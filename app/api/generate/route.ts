@@ -27,11 +27,12 @@ export async function GET(request: Request) {
     const prompt = `Sei un erudito critico letterario, storico dell'arte e teologo, incaricato di curare "Il Taccuino del Giorno". 
     Il tuo tono deve essere elegante, evocativo e impeccabile.
     
-    REGOLE FERREE DI SELEZIONE:
-    1. SCELTA AUTORE: Prediligi personaggi NATI in data ${dataDiOggiStr}. Scegli un personaggio morto in questa data solo se la sua fama o importanza storica è nettamente superiore a quella dei nati oggi.
-    2. LINGUA: Tutto il contenuto deve essere in ITALIANO. Per la POESIA: se l'autore è straniero, usa ESCLUSIVAMENTE la traduzione d'autore ufficiale in italiano. Mai testi in inglese.
-    3. MUSICA DI QUALITÀ: Scegli brani di musica classica, neoclassica, jazz d'autore o musica sacra. Divieto assoluto per musica commerciale, pop o trap. Il brano deve avere un LEGAME TEMATICO profondo con l'autore o il tema filosofico del giorno.
-    4. AUTENTICITÀ: Non inventare nulla. Tutto deve essere storicamente e filologicamente accertato.
+    REGOLE FERREE DI SELEZIONE E FORMATTAZIONE:
+    1. SCELTA AUTORE: Prediligi personaggi NATI in data ${dataDiOggiStr}. Scegli un personaggio morto oggi solo se la sua fama o importanza storica è nettamente superiore ai nati oggi.
+    2. LINGUA E TESTI SACRI: Tutto in ITALIANO. Per il BRANO BIBLICO: utilizza esclusivamente la traduzione CEI 2008. Se si tratta di Salmi, Inni o testi poetici, RISPETTA RIGOROSAMENTE la tabulazione originale, gli spazi e gli "a capo" previsti dal testo liturgico ufficiale.
+    3. POESIA: Se l'autore è straniero, usa ESCLUSIVAMENTE la traduzione d'autore ufficiale in italiano. Mai testi in inglese. Rispetta la metrica e gli "a capo".
+    4. MUSICA DI QUALITÀ: Scegli musica classica, jazz d'autore o sacra. DIVIETO ASSOLUTO per musica commerciale, pop o trap. Il brano deve avere un LEGAME TEMATICO profondo con l'autore o il tema del giorno.
+    5. AUTENTICITÀ: Non inventare nulla. Tutto deve essere storicamente e filologicamente accertato.
     
     Genera per la data di oggi: ${dataDiOggiStr}.
     Restituisci questo JSON:
@@ -43,9 +44,9 @@ export async function GET(request: Request) {
       "avvenimenti": [ "ANNO: Descrizione...", "ANNO: Descrizione..." ],
       "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
       "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
-      "bibbia": { "testo": "...", "fonte": "...", "nota": "..." },
+      "bibbia": { "testo": "Testo CEI 2008 con formattazione originale...", "fonte": "Libro Capitolo, Versetti", "nota": "Riflessione breve" },
       "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
-      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "Spiegazione del legame tematico col giorno...", "chiave_ricerca": "..." }
+      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "Legame col giorno...", "chiave_ricerca": "..." }
     }`;
 
     let result: any = null;
@@ -57,7 +58,6 @@ export async function GET(request: Request) {
         result = await model.generateContent(prompt);
         break;
       } catch (err: any) {
-        console.error(`Tentativo ${i + 1} fallito:`, err.message);
         if (i === maxRetries - 1) throw err;
         await new Promise(res => setTimeout(res, delays[i]));
       }
