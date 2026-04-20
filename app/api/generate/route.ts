@@ -51,17 +51,24 @@ export async function GET(request: Request) {
       "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
     }`;
 
-    // Sistema di Retry per evitare sovraccarichi (Errori 503/429)
-    let result;
+    // Sistema di Retry per evitare sovraccarichi - Inizializzato a null per TypeScript
+    let result: any = null;
     const maxRetries = 5;
+    const delays = [1000, 2000, 4000, 8000, 16000];
+
     for (let i = 0; i < maxRetries; i++) {
       try {
         result = await model.generateContent(prompt);
         break;
       } catch (err) {
         if (i === maxRetries - 1) throw err;
-        await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
+        await new Promise(res => setTimeout(res, delays[i]));
       }
+    }
+
+    // Controllo di sicurezza per TypeScript: se arriviamo qui e result è ancora null, lanciamo errore
+    if (!result || !result.response) {
+      throw new Error("Il modello AI non ha restituito una risposta valida.");
     }
 
     let responseText = result.response.text();
