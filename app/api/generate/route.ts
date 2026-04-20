@@ -10,35 +10,38 @@ export async function GET(request: Request) {
     const apiKey = process.env.GEMINI_API_KEY as string;
     const genAI = new GoogleGenerativeAI(apiKey);
 
+    // Controllo sicurezza Cron
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return new Response('Non autorizzato', { status: 401 });
     }
 
+    // Calcolo data dinamica
     const oggi = new Date();
     const dataIso = oggi.toISOString().split('T')[0];
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
+    // Modello STABILE certificato: Gemini 2.0 Flash
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-preview-09-2025",
+      model: "gemini-2.0-flash",
       generationConfig: { responseMimeType: "application/json" }
     });
 
-    const prompt = `Sei un erudito critico letterario, storico dell'arte e teologo, incaricato di curare "Il Taccuino del Giorno" per un pubblico esigente e colto. 
-    Il tuo tono deve essere elegante, evocativo, profondamente ispirazionale e impeccabile dal punto di vista grammaticale e storico.
+    const prompt = `Sei un erudito critico letterario, storico dell'arte e teologo, incaricato di curare "Il Taccuino del Giorno". 
+    Il tuo tono deve essere elegante, evocativo e impeccabile.
     
-    REGOLE FERREE (Pena il fallimento):
-    1. AUTENTICITÀ: Non inventare MAI date, eventi, poesie o citazioni. Tutto deve essere storicamente e filologicamente accertato.
-    2. STILE: Scrivi in un italiano ricercato, ma accessibile. Evita la banalità.
-    3. MUSICA: Scegli SOLO brani di musica classica, neoclassica, jazz d'autore o ambient ricercata.
-    4. POESIA E BIBBIA: Riporta i testi nella loro interezza e con gli "a capo" corretti.
+    REGOLE FERREE:
+    1. AUTENTICITÀ: Non inventare MAI nulla. Tutto deve essere storicamente accertato.
+    2. STILE: Scrivi in un italiano ricercato (erudito).
+    3. MUSICA: Scegli SOLO brani di musica classica, jazz o ambient colta.
+    4. TESTI: Riporta poesia e Bibbia integralmente con i corretti "a capo".
     
-    Genera il materiale per la data di OGGI, ovvero: ${dataDiOggiStr}.
-    Restituisci ESATTAMENTE questo schema JSON puro:
+    Genera per la data: ${dataDiOggiStr}.
+    Restituisci questo JSON:
     {
       "data_odierna": "${dataDiOggiStr}",
-      "autore_giorno": "Nome autore legato a oggi",
-      "breve_descrizione": "Ritratto letterario curato...",
+      "autore_giorno": "Autore legato a oggi",
+      "breve_descrizione": "Ritratto letterario (3-4 righe)...",
       "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
       "avvenimenti": [ "ANNO: Descrizione...", "ANNO: Descrizione..." ],
       "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
@@ -48,39 +51,34 @@ export async function GET(request: Request) {
       "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
     }`;
 
-    // IMPLEMENTAZIONE RETRY CON BACKOFF ESPONENZIALE
+    // Sistema di Retry per evitare sovraccarichi (Errori 503/429)
     let result;
     const maxRetries = 5;
-    const delays = [1000, 2000, 4000, 8000, 16000];
-
     for (let i = 0; i < maxRetries; i++) {
       try {
         result = await model.generateContent(prompt);
-        break; // Se ha successo, esce dal loop
-      } catch (err: any) {
-        if (i === maxRetries - 1) throw err; // Se è l'ultimo tentativo, lancia l'errore
-        // Aspetta prima di riprovare
-        await new Promise(res => setTimeout(res, delays[i]));
+        break;
+      } catch (err) {
+        if (i === maxRetries - 1) throw err;
+        await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
       }
     }
-
-    if (!result) throw new Error("Generazione fallita dopo vari tentativi");
 
     let responseText = result.response.text();
     responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const data = JSON.parse(responseText);
 
+    // Salvataggio con UPSERT (sovrascrive se la data esiste già)
     const { error } = await supabase.from('contenuti_giornalieri').upsert({
       ...data,
       data: dataIso
     }, { onConflict: 'data' });
 
-    if (error) return new Response(JSON.stringify(error), { status: 500 });
+    if (error) throw error;
 
     return new Response('Generato e salvato con successo!');
-
   } catch (err: any) {
-    console.error("ERRORE:", err);
+    console.error(err);
     return new Response(err.message || 'Errore interno', { status: 500 });
   }
 }
