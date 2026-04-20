@@ -10,8 +10,13 @@ export async function GET(request: Request) {
     const apiKey = process.env.GEMINI_API_KEY as string;
     const genAI = new GoogleGenerativeAI(apiKey);
 
+    // Autenticazione: accetta sia il cron Vercel (x-vercel-cron) sia chiamate manuali con Bearer token
+    const cronHeader = request.headers.get('x-vercel-cron');
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isVercelCron = cronHeader === '1';
+    const isManualCall = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+    if (!isVercelCron && !isManualCall) {
       return new Response('Non autorizzato', { status: 401 });
     }
 
@@ -26,27 +31,27 @@ export async function GET(request: Request) {
     });
 
     const prompt = `Sei un erudito critico letterario e teologo. Cura "Il Taccuino del Giorno" per il ${dataDiOggiStr}.
-    
-    REGOLE DI CURATELA:
-    1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
-    2. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
-    3. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni).
-    4. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale.
-    5. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
-    
-    Restituisci questo JSON:
-    {
-      "data_odierna": "${dataDiOggiStr}",
-      "autore_giorno": "...",
-      "breve_descrizione": "...",
-      "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
-      "avvenimenti": [ "ANNO: Descrizione evento o brevetto..." ],
-      "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
-      "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
-      "bibbia": { "testo": "Testo CEI 2008 formattato con tabulazioni...", "fonte": "...", "nota": "..." },
-      "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
-      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
-    }`;
+
+REGOLE DI CURATELA:
+1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
+2. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
+3. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni).
+4. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale.
+5. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
+
+Restituisci questo JSON:
+{
+  "data_odierna": "${dataDiOggiStr}",
+  "autore_giorno": "...",
+  "breve_descrizione": "...",
+  "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
+  "avvenimenti": [ "ANNO: Descrizione evento o brevetto..." ],
+  "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
+  "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
+  "bibbia": { "testo": "Testo CEI 2008 formattato con tabulazioni...", "fonte": "...", "nota": "..." },
+  "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
+  "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
+}`;
 
     let result: any = null;
     const maxRetries = 5;
@@ -64,12 +69,12 @@ export async function GET(request: Request) {
     responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const data = JSON.parse(responseText);
 
-    const { error } = await supabase.from('contenuti_giornalieri').upsert({
-      ...data,
-      data: dataIso
-    }, { onConflict: 'data' });
-
+    const { error } = await supabase.from('contenuti_giornalieri').upsert(
+      { ...data, data: dataIso },
+      { onConflict: 'data' }
+    );
     if (error) throw error;
+
     return new Response('Successo!');
   } catch (err: any) {
     return new Response(err.message, { status: 500 });
