@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Risoluzione errore TypeScript dicendo esplicitamente che si tratta di stringhe sicure
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-const apiKey = process.env.GEMINI_API_KEY as string;
-const genAI = new GoogleGenerativeAI(apiKey);
-
 export async function GET(request: Request) {
+  // Spostato QUI DENTRO l'inizializzazione per evitare errori di compilazione (Build) su Vercel
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const apiKey = process.env.GEMINI_API_KEY as string;
+  const genAI = new GoogleGenerativeAI(apiKey);
+
   // 1. Sicurezza: controlla che Vercel usi la password corretta
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
