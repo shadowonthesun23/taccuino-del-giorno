@@ -14,15 +14,16 @@ export async function GET(request: Request) {
     console.log("2. Controllo autorizzazione...");
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      console.error("Errore: Autorizzazione negata. Ricevuto:", authHeader);
+      console.error("Errore: Autorizzazione negata.");
       return new Response('Non autorizzato', { status: 401 });
     }
 
-    // Calcoliamo la data esatta di oggi in italiano (es. "20 aprile")
-    const dataDiOggi = new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+    // Calcolo data dinamica per evitare allucinazioni temporali dell'AI
+    const oggi = new Date();
+    const dataIso = oggi.toISOString().split('T')[0];
+    const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
-    console.log(`3. Configurazione Gemini per la data: ${dataDiOggi}...`);
-    // Utilizziamo il modello stabile Gemini 2.5 Flash per evitare errori 503 da sovraccarico
+    console.log(`3. Configurazione Gemini per la data: ${dataDiOggiStr}...`);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" }
@@ -37,11 +38,11 @@ export async function GET(request: Request) {
     3. MUSICA: Scegli SOLO brani di musica classica, neoclassica, jazz d'autore o ambient ricercata. NIENTE musica pop o commerciale.
     4. POESIA E BIBBIA: Riporta i testi nella loro interezza e con gli "a capo" (newline) corretti per rispettare la metrica originale. Per la Bibbia usa la traduzione CEI 2008.
     
-    Genera il materiale per la data di OGGI, ovvero: ${dataDiOggi}.
+    Genera il materiale per la data di OGGI, ovvero: ${dataDiOggiStr}.
     Restituisci ESATTAMENTE questo schema JSON puro (senza markdown o backtick aggiuntivi):
     {
-      "data_odierna": "${dataDiOggi}",
-      "autore_giorno": "Nome di un autore, poeta o pensatore celebre nato o morto oggi (${dataDiOggi})",
+      "data_odierna": "${dataDiOggiStr}",
+      "autore_giorno": "Nome di un autore, poeta o pensatore celebre nato o morto oggi (${dataDiOggiStr})",
       "breve_descrizione": "Ritratto letterario e biografico molto curato (3-4 righe)...",
       "citazione": {
         "testo": "Testo della citazione autentica...",
@@ -74,7 +75,7 @@ export async function GET(request: Request) {
         }
       ],
       "bibbia": {
-        "testo": "Testo completo e impaginato correttamente...",
+        "testo": "Testo completo e impaginato correttamente (Salmi, Proverbi, Qoèlet, Cantico, Siracide o Isaia)...",
         "fonte": "Libro capitolo, versetti",
         "nota": "Riflessione teologica o poetica sul legame col tema"
       },
@@ -88,22 +89,24 @@ export async function GET(request: Request) {
         "brano": "Titolo del brano",
         "autore": "Compositore",
         "genere": "Genere colto",
-        "motivo": "Descrizione evocativa...",
+        "motivo": "Descrizione evocativa del perché questo brano accompagna perfettamente la lettura di oggi",
         "chiave_ricerca": "Nome autore Titolo brano"
       }
     }`;
 
-    console.log("4. Generazione contenuti con Gemini in corso...");
+    console.log("4. Generazione contenuti con Gemini...");
     const result = await model.generateContent(prompt);
     let responseText = result.response.text();
-    console.log("5. Risposta ricevuta, pulizia formato JSON...");
 
-    // Evita errori di parsing se Gemini inserisce "```json"
     responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const data = JSON.parse(responseText);
 
-    console.log("6. Salvataggio nel database Supabase...");
-    const { error } = await supabase.from('contenuti_giornalieri').insert([data]);
+    console.log("6. Salvataggio/Aggiornamento nel database Supabase...");
+    // Usiamo upsert per sovrascrivere se il giorno esiste già
+    const { error } = await supabase.from('contenuti_giornalieri').upsert({
+      ...data,
+      data: dataIso
+    }, { onConflict: 'data' });
 
     if (error) {
       console.error("ERRORE SUPABASE:", error);
@@ -114,7 +117,7 @@ export async function GET(request: Request) {
     return new Response('Generato e salvato con successo!');
 
   } catch (err: any) {
-    console.error("ERRORE GRAVE DURANTE L'ESECUZIONE:", err);
+    console.error("ERRORE GRAVE:", err);
     return new Response(err.message || 'Errore interno', { status: 500 });
   }
 }
