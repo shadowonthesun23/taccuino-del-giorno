@@ -7,20 +7,36 @@ export async function GET() {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+    // Prima prova: cerca il contenuto di oggi
     const oggi = new Date();
     const dataIso = oggi.toISOString().split('T')[0];
 
-    const { data, error } = await supabase
+    const { data: dataOggi, error: errorOggi } = await supabase
       .from('contenuti_giornalieri')
       .select('*')
       .eq('data', dataIso)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
-      return NextResponse.json({ error: 'Nessun contenuto per oggi' }, { status: 404 });
+    if (dataOggi) {
+      return NextResponse.json(dataOggi);
     }
 
-    return NextResponse.json(data);
+    // Fallback: prendi l'ultima riga disponibile (nel caso il cron non sia ancora girato oggi)
+    const { data: ultimaRiga, error: errorUltima } = await supabase
+      .from('contenuti_giornalieri')
+      .select('*')
+      .order('data', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (errorUltima || !ultimaRiga) {
+      return NextResponse.json(
+        { error: 'Nessun contenuto disponibile. Il taccuino verrà generato alle 00:05.' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(ultimaRiga);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
