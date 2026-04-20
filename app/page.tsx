@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { BookOpen, Quote, CalendarDays, History, BookA, Heart, Library, Feather, Music, PlayCircle } from 'lucide-react';
 
-export const revalidate = 3600; // Aggiorna la cache della pagina ogni ora
+export const revalidate = 0; // Disabilita la cache per vedere sempre i dati in tempo reale
 
 export default async function Home() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
