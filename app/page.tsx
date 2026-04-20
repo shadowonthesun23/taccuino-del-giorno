@@ -44,7 +44,7 @@ export default async function Home() {
 
           <div className="space-y-12">
             <section>
-              <h3 className="flex items-center gap-2 text-xl font-bold mb-6 text-stone-800"><History className="text-stone-400" /> Avvenimenti</h3>
+              <h3 className="flex items-center gap-2 text-xl font-bold mb-6 text-stone-800"><History className="text-stone-400" /> Avvenimenti e Invenzioni</h3>
               <ul className="space-y-3">
                 {post.avvenimenti.map((ev: string, i: number) => {
                   const [anno, ...testo] = ev.split(":");
@@ -60,15 +60,15 @@ export default async function Home() {
 
             <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-white p-6 border border-stone-200 shadow-sm">
-                <h3 className="flex items-center gap-2 font-bold mb-4 text-stone-800"><BookA size={20} /> Parola</h3>
+                <h3 className="flex items-center gap-2 font-bold mb-4 text-stone-800"><BookA size={20} /> Parola del Giorno</h3>
                 <h4 className="text-xl sm:text-2xl italic mb-2 text-stone-900">{post.parola_giorno.parola}</h4>
                 <p className="text-sm text-stone-600 break-words">{post.parola_giorno.definizione}</p>
                 <p className="text-xs text-stone-400 mt-4 italic break-words">"{post.parola_giorno.esempio}"</p>
               </div>
-              <div className="bg-white p-6 border border-stone-200 shadow-sm flex flex-col justify-center">
-                <h3 className="flex items-center gap-2 font-bold mb-4 text-stone-800"><Heart size={20} /> Santi</h3>
+              <div className="bg-white p-6 border border-stone-200 shadow-sm">
+                <h3 className="flex items-center gap-2 font-bold mb-4 text-stone-800"><Heart size={20} /> Santi del Giorno</h3>
                 {post.santi.map((santo: any, i: number) => (
-                  <div key={i} className="mb-2 last:mb-0">
+                  <div key={i} className="mb-3 last:mb-0">
                     <p className="text-stone-800 font-bold text-sm leading-tight">{santo.nome}</p>
                     <p className="text-[11px] text-stone-500 leading-tight">{santo.biografia}</p>
                   </div>
@@ -77,19 +77,18 @@ export default async function Home() {
             </section>
 
             <section>
-              <h3 className="flex items-center gap-2 text-xl font-bold mb-6 text-stone-800"><Library className="text-stone-400" /> Passaggio Biblico</h3>
-              {/* Contenitore ottimizzato per Salmi e Inni: rispetta spazi e a capo */}
+              <h3 className="flex items-center gap-2 text-xl font-bold mb-6 text-stone-800"><Library className="text-stone-400" /> Passaggio Biblico (CEI 2008)</h3>
               <div className="border-l-2 border-stone-200 pl-6 mb-2">
                 <p className="whitespace-pre-wrap font-serif italic text-stone-700 leading-loose break-words">
                   {post.bibbia.testo}
                 </p>
               </div>
               <p className="text-xs text-stone-500 uppercase tracking-widest">{post.bibbia.fonte}</p>
-              <p className="text-xs text-stone-400 italic mt-2">{post.bibbia.nota}</p>
+              <p className="text-[11px] text-stone-400 italic mt-2 leading-relaxed">{post.bibbia.nota}</p>
             </section>
 
             <section>
-              <h3 className="flex items-center gap-2 text-xl font-bold mb-6 text-stone-800"><Feather className="text-stone-400" /> Poesia</h3>
+              <h3 className="flex items-center gap-2 text-xl font-bold mb-6 text-stone-800"><Feather className="text-stone-400" /> Poesia del Giorno</h3>
               <p className="whitespace-pre-wrap text-stone-800 leading-loose mb-4 pl-6 break-words">
                 {post.poesia.testo}
               </p>
@@ -101,7 +100,7 @@ export default async function Home() {
             <section className="bg-stone-800 text-stone-100 p-8 shadow-inner">
               <h3 className="flex items-center gap-2 text-xl font-bold mb-4"><PlayCircle size={24} /> Ascolto del giorno</h3>
               <p className="text-xl italic text-white mb-1">"{post.musica.brano}"</p>
-              <p className="text-stone-400 font-bold text-xs uppercase mb-4">di {post.musica.autore}</p>
+              <p className="text-stone-400 font-bold text-xs uppercase mb-4">di {post.musica.autore} ({post.musica.genere})</p>
               <p className="text-stone-300 text-sm mb-6 leading-relaxed italic border-l border-stone-600 pl-4 break-words">{post.musica.motivo}</p>
               <div className="flex flex-wrap gap-4">
                 <a href={`https://open.spotify.com/search/${encodeURIComponent(post.musica.chiave_ricerca)}`} target="_blank" className="bg-white text-stone-900 px-4 py-2 rounded text-xs font-bold uppercase tracking-widest hover:bg-stone-200 transition-colors">Spotify</a>
