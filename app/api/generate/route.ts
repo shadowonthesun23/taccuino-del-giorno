@@ -18,7 +18,11 @@ export async function GET(request: Request) {
       return new Response('Non autorizzato', { status: 401 });
     }
 
-    console.log("3. Configurazione Gemini...");
+    // Calcoliamo la data esatta di oggi in italiano (es. "20 aprile")
+    const dataDiOggi = new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+
+    console.log(`3. Configurazione Gemini per la data: ${dataDiOggi}...`);
+    // Utilizziamo l'ultimo modello Gemini 3 Flash
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
       generationConfig: { responseMimeType: "application/json" }
@@ -33,11 +37,11 @@ export async function GET(request: Request) {
     3. MUSICA: Scegli SOLO brani di musica classica, neoclassica, jazz d'autore o ambient ricercata. NIENTE musica pop o commerciale.
     4. POESIA E BIBBIA: Riporta i testi nella loro interezza e con gli "a capo" (newline) corretti per rispettare la metrica originale. Per la Bibbia usa la traduzione CEI 2008.
     
-    Genera il materiale per la data di OGGI.
+    Genera il materiale per la data di OGGI, ovvero: ${dataDiOggi}.
     Restituisci ESATTAMENTE questo schema JSON puro (senza markdown o backtick aggiuntivi):
     {
-      "data_odierna": "Es. 20 Aprile",
-      "autore_giorno": "Nome di un autore, poeta o pensatore celebre nato o morto oggi",
+      "data_odierna": "${dataDiOggi}",
+      "autore_giorno": "Nome di un autore, poeta o pensatore celebre nato o morto oggi (${dataDiOggi})",
       "breve_descrizione": "Ritratto letterario e biografico molto curato (3-4 righe)...",
       "citazione": {
         "testo": "Testo della citazione autentica...",
