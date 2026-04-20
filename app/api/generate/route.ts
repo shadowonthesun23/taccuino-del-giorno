@@ -22,9 +22,9 @@ export async function GET(request: Request) {
     const dataDiOggi = new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
     console.log(`3. Configurazione Gemini per la data: ${dataDiOggi}...`);
-    // Utilizziamo l'ultimo modello Gemini 3 Flash
+    // Utilizziamo il modello stabile Gemini 2.5 Flash per evitare errori 503 da sovraccarico
     const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" }
     });
 
