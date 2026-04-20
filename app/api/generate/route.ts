@@ -19,7 +19,6 @@ export async function GET(request: Request) {
     const dataIso = oggi.toISOString().split('T')[0];
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
-    // Modello STABILE aggiornato: gemini-2.5-flash
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" }
@@ -28,17 +27,17 @@ export async function GET(request: Request) {
     const prompt = `Sei un erudito critico letterario, storico dell'arte e teologo, incaricato di curare "Il Taccuino del Giorno". 
     Il tuo tono deve essere elegante, evocativo e impeccabile.
     
-    REGOLE FERREE:
-    1. AUTENTICITÀ: Non inventare MAI nulla. Tutto deve essere storicamente accertato.
-    2. STILE: Scrivi in un italiano ricercato (erudito).
-    3. MUSICA: Scegli SOLO brani di musica classica, jazz o ambient colta.
-    4. TESTI: Riporta poesia e Bibbia integralmente con i corretti "a capo".
+    REGOLE FERREE DI SELEZIONE:
+    1. SCELTA AUTORE: Prediligi personaggi NATI in data ${dataDiOggiStr}. Scegli un personaggio morto in questa data solo se la sua fama o importanza storica è nettamente superiore a quella dei nati oggi.
+    2. LINGUA: Tutto il contenuto deve essere in ITALIANO. Per la POESIA: se l'autore è straniero, usa ESCLUSIVAMENTE la traduzione d'autore ufficiale in italiano. Mai testi in inglese.
+    3. MUSICA DI QUALITÀ: Scegli brani di musica classica, neoclassica, jazz d'autore o musica sacra. Divieto assoluto per musica commerciale, pop o trap. Il brano deve avere un LEGAME TEMATICO profondo con l'autore o il tema filosofico del giorno.
+    4. AUTENTICITÀ: Non inventare nulla. Tutto deve essere storicamente e filologicamente accertato.
     
-    Genera per la data di OGGI: ${dataDiOggiStr}.
+    Genera per la data di oggi: ${dataDiOggiStr}.
     Restituisci questo JSON:
     {
       "data_odierna": "${dataDiOggiStr}",
-      "autore_giorno": "Autore legato a oggi",
+      "autore_giorno": "Nome autore scelto",
       "breve_descrizione": "Ritratto letterario curato (3-4 righe)...",
       "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
       "avvenimenti": [ "ANNO: Descrizione...", "ANNO: Descrizione..." ],
@@ -46,7 +45,7 @@ export async function GET(request: Request) {
       "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
       "bibbia": { "testo": "...", "fonte": "...", "nota": "..." },
       "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
-      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
+      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "Spiegazione del legame tematico col giorno...", "chiave_ricerca": "..." }
     }`;
 
     let result: any = null;
@@ -64,9 +63,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (!result || !result.response) {
-      throw new Error("Risposta AI non valida.");
-    }
+    if (!result || !result.response) throw new Error("Risposta AI non valida.");
 
     let responseText = result.response.text();
     responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
