@@ -19,52 +19,46 @@ export async function GET(request: Request) {
     const dataIso = oggi.toISOString().split('T')[0];
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
+    // Modello STABILE: gemini-2.0-flash
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash",
       generationConfig: { responseMimeType: "application/json" }
     });
 
-    const prompt = `Sei un erudito critico letterario, storico dell'arte e teologo, incaricato di curare "Il Taccuino del Giorno". 
-    Il tuo tono deve essere elegante, evocativo e impeccabile.
+    const prompt = `Sei un erudito critico letterario e teologo. Cura "Il Taccuino del Giorno" per il ${dataDiOggiStr}.
     
-    REGOLE DI SELEZIONE E FORMATTAZIONE:
-    1. SCELTA AUTORE: Prediligi personaggi NATI in data ${dataDiOggiStr}. Scegli un personaggio morto oggi solo se la sua fama o importanza storica è nettamente superiore ai nati oggi.
-    2. AVVENIMENTI: Inserisci un massimo di 5 avvenimenti di rilievo accaduti il giorno ${dataDiOggiStr}. Includi prioritariamente fatti storici, scoperte scientifiche, grandi opere dell'ingegno, invenzioni o brevetti registrati in questa data.
-    3. TESTI SACRI (CEI 2008): Tutto in ITALIANO. Usa esclusivamente la traduzione Bibbia CEI 2008. Per Salmi, Inni o cantici, RISPETTA RIGOROSAMENTE la tabulazione originale (rientri e spazi bianchi) e gli "a capo" ufficiali.
-    4. POESIA: Se l'autore è straniero, usa la traduzione d'autore ufficiale in italiano. Mai testi in inglese. Rispetta metrica e spazi originali.
-    5. MUSICA: Scegli brani di QUALSIASI GENERE (classica, jazz, sacra, moderna, contemporanea, cantautorato, alternativa). DIVIETO ASSOLUTO per musica commerciale/pop mainstream o trap. Il brano deve avere un LEGAME TEMATICO profondo con l'autore o il tema del giorno.
-    6. AUTENTICITÀ: Non inventare nulla. Tutto deve essere storicamente e filologicamente accertato.
+    REGOLE DI CURATELA:
+    1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
+    2. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
+    3. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni).
+    4. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale.
+    5. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
     
-    Genera per la data: ${dataDiOggiStr}.
     Restituisci questo JSON:
     {
       "data_odierna": "${dataDiOggiStr}",
-      "autore_giorno": "Nome autore scelto",
-      "breve_descrizione": "Ritratto letterario curato (3-4 righe)...",
+      "autore_giorno": "...",
+      "breve_descrizione": "...",
       "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
-      "avvenimenti": [ "ANNO: Descrizione evento o brevetto...", "ANNO: Descrizione..." ],
+      "avvenimenti": [ "ANNO: Descrizione evento o brevetto..." ],
       "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
       "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
-      "bibbia": { "testo": "Testo CEI 2008 formattato correttamente...", "fonte": "Libro Capitolo, Versetti", "nota": "Riflessione breve" },
+      "bibbia": { "testo": "Testo CEI 2008 formattato con tabulazioni...", "fonte": "...", "nota": "..." },
       "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
-      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "Legame col giorno...", "chiave_ricerca": "..." }
+      "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
     }`;
 
     let result: any = null;
     const maxRetries = 5;
-    const delays = [2000, 4000, 8000, 16000, 32000];
-
     for (let i = 0; i < maxRetries; i++) {
       try {
         result = await model.generateContent(prompt);
         break;
-      } catch (err: any) {
+      } catch (err) {
         if (i === maxRetries - 1) throw err;
-        await new Promise(res => setTimeout(res, delays[i]));
+        await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
       }
     }
-
-    if (!result || !result.response) throw new Error("Risposta AI non valida.");
 
     let responseText = result.response.text();
     responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -76,10 +70,8 @@ export async function GET(request: Request) {
     }, { onConflict: 'data' });
 
     if (error) throw error;
-
-    return new Response('Generato e salvato con successo!');
+    return new Response('Successo!');
   } catch (err: any) {
-    console.error(err);
-    return new Response(err.message || 'Errore interno', { status: 500 });
+    return new Response(err.message, { status: 500 });
   }
 }
