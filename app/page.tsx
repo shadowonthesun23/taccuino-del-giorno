@@ -1,197 +1,219 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { BookOpen, Quote, CalendarDays, History, BookA, Heart, Library, Feather, Loader2, Music, PlayCircle } from 'lucide-react';
 
-export default function App() {
-  const [loading, setLoading] = useState(true);
+import { useEffect, useState } from 'react';
+import { EB_Garamond } from 'next/font/google';
+
+// Importazione del font EB Garamond ottimizzato per Next.js
+const garamond = EB_Garamond({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+interface DatiTaccuino {
+  data_odierna: string;
+  autore_giorno: string;
+  breve_descrizione: string;
+  citazione: { testo: string; autore: string; fonte: string };
+  avvenimenti: string[];
+  parola_giorno: { parola: string; definizione: string; etimologia: string; esempio: string; nota: string };
+  santi: { nome: string; ruolo: string; anni: string; biografia: string }[];
+  bibbia: { testo: string; fonte: string; nota: string };
+  poesia: { testo: string; autore: string; fonte: string; nota: string };
+  musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
+}
+
+// Componente helper per le "tessere" eleganti
+const Card = ({ title, children, className = "" }: { title: string, children: React.ReactNode, className?: string }) => (
+  <section className={`bg-white border border-[#EBE5DB] rounded-sm p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] ${className}`}>
+    <h3 className="text-[#DE6B58] text-sm font-semibold tracking-[0.2em] uppercase mb-6 text-center">
+      {title}
+    </h3>
+    <div className="text-[#2A2522]">
+      {children}
+    </div>
+  </section>
+);
+
+export default function Home() {
+  const [data, setData] = useState<DatiTaccuino | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/oggi')
-      .then(async (res) => {
-        if (!res.ok) {
-          const json = await res.json().catch(() => ({}));
-          throw new Error(json.error || 'Contenuto non ancora disponibile per oggi.');
-        }
+      .then(res => {
+        if (!res.ok) throw new Error('Dati non ancora disponibili per oggi.');
         return res.json();
       })
-      .then((json) => {
-        setData(json);
+      .then(dati => {
+        setData(dati);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(err => {
         setError(err.message);
         setLoading(false);
       });
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-stone-100 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-stone-500 mx-auto mb-4" />
-          <p className="text-stone-500 font-serif italic">Sfogliando il taccuino...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className={`min-h-screen bg-[#FDFBF7] flex items-center justify-center ${garamond.className}`}>
+      <div className="text-[#DE6B58] text-xl animate-pulse tracking-widest uppercase">Apertura del taccuino...</div>
+    </div>
+  );
 
-  if (error || !data) {
-    return (
-      <div className="min-h-screen bg-stone-100 flex items-center justify-center">
-        <div className="text-center max-w-md px-6">
-          <BookOpen className="w-12 h-12 text-stone-400 mx-auto mb-4" />
-          <h2 className="text-xl font-serif text-stone-700 mb-2">Taccuino non ancora pronto</h2>
-          <p className="text-stone-500 text-sm">{error || 'Il contenuto di oggi non è ancora stato generato. Riprova dopo le 00:05.'}</p>
-        </div>
+  if (error) return (
+    <div className={`min-h-screen bg-[#FDFBF7] flex items-center justify-center ${garamond.className} p-4`}>
+      <div className="bg-white border border-[#EBE5DB] p-8 max-w-lg text-center rounded-sm">
+        <p className="text-[#2A2522] text-xl mb-4">Il taccuino di oggi non è ancora stato compilato.</p>
+        <p className="text-sm text-gray-500 italic">{error}</p>
       </div>
-    );
-  }
+    </div>
+  );
+
+  if (!data) return null;
 
   return (
-    <div className="min-h-screen bg-stone-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className={`min-h-screen bg-[#FDFBF7] text-[#2A2522] ${garamond.className} py-12 px-4 md:px-8 selection:bg-[#DE6B58] selection:text-white`}>
+      <main className="max-w-4xl mx-auto space-y-12">
+        
+        {/* Intestazione */}
+        <header className="text-center space-y-6 pb-10 border-b border-[#EBE5DB]">
+          <p className="text-lg italic text-[#8A817C]">{data.data_odierna}</p>
+          <h1 className="text-5xl md:text-6xl font-normal text-[#2A2522] tracking-tight">
+            Il Taccuino del Giorno
+          </h1>
+        </header>
 
-        {/* TITOLO E INTENTO DELL'APP */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif font-bold text-stone-800 mb-2">Il Taccuino del Giorno</h1>
-          <p className="text-stone-500 text-sm italic">Un rifugio quotidiano per la mente. Una raccolta curata di spunti letterari, storici e spirituali per ispirare le tue riflessioni e accompagnare le tue giornate.</p>
-        </div>
+        {/* Autore del Giorno (Hero Section) */}
+        <section className="text-center space-y-4 py-8">
+          <span className="text-[#DE6B58] text-sm font-semibold tracking-[0.2em] uppercase">
+            Autore del Giorno
+          </span>
+          <h2 className="text-4xl md:text-5xl font-medium mt-2 mb-6">
+            {data.autore_giorno}
+          </h2>
+          <p className="text-xl md:text-2xl leading-relaxed max-w-2xl mx-auto text-[#4A433F]">
+            {data.breve_descrizione}
+          </p>
+        </section>
 
-        {/* HEADER E BIOGRAFIA */}
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <CalendarDays className="w-4 h-4 text-stone-400" />
-            <span className="text-sm text-stone-400 uppercase tracking-widest font-sans">{data.data_odierna}</span>
-          </div>
-          <h2 className="text-3xl font-serif font-bold text-stone-800 mb-3">{data.autore_giorno}</h2>
-          <p className="text-stone-600 leading-relaxed">{data.breve_descrizione}</p>
-        </div>
+        {/* Griglia Contenuti */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Citazione - Spazia su due colonne */}
+          <Card title="Citazione" className="md:col-span-2">
+            <blockquote className="text-center">
+              <span className="text-6xl text-[#DE6B58]/30 leading-none block mb-[-20px]">"</span>
+              <p className="text-2xl md:text-3xl italic leading-relaxed mb-6">
+                {data.citazione.testo}
+              </p>
+              <footer className="text-lg">
+                <span className="font-semibold">{data.citazione.autore}</span>
+                <span className="text-[#8A817C] italic"> — {data.citazione.fonte}</span>
+              </footer>
+            </blockquote>
+          </Card>
 
-        {/* CITAZIONE */}
-        <div className="bg-stone-800 text-stone-100 rounded-2xl shadow-sm p-6 mb-6">
-          <Quote className="w-6 h-6 text-stone-400 mb-3" />
-          <p className="text-lg font-serif italic leading-relaxed mb-4">&ldquo;{data.citazione.testo}&rdquo;</p>
-          <p className="text-stone-400 text-sm"><strong className="text-stone-200">{data.citazione.autore}</strong>, {data.citazione.fonte}</p>
-        </div>
+          {/* Parola del Giorno */}
+          <Card title="Parola del Giorno">
+            <div className="text-center mb-6">
+              <h4 className="text-4xl font-medium text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
+              <p className="text-[#8A817C] italic text-lg">{data.parola_giorno.etimologia}</p>
+            </div>
+            <p className="text-xl mb-4"><strong className="font-semibold">Definizione:</strong> {data.parola_giorno.definizione}</p>
+            <p className="text-lg italic bg-[#FDFBF7] p-4 rounded-sm border border-[#EBE5DB]/50">
+              "{data.parola_giorno.esempio}"
+            </p>
+          </Card>
 
-        <hr className="border-stone-200 my-6" />
+          {/* Santi */}
+          <Card title="I Santi di Oggi">
+            <ul className="space-y-6">
+              {data.santi.map((santo, idx) => (
+                <li key={idx} className="border-b border-[#EBE5DB]/50 last:border-0 pb-4 last:pb-0">
+                  <h4 className="text-2xl font-medium mb-1">{santo.nome}</h4>
+                  <p className="text-[#DE6B58] italic mb-2">{santo.ruolo} ({santo.anni})</p>
+                  <p className="text-lg leading-relaxed">{santo.biografia}</p>
+                </li>
+              ))}
+            </ul>
+          </Card>
 
-        {/* AVVENIMENTI STORICI */}
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <History className="w-5 h-5 text-stone-500" />
-            <h3 className="text-lg font-serif font-semibold text-stone-700">Avvenimenti del giorno</h3>
-          </div>
-          <ul className="space-y-3">
-            {[...data.avvenimenti]
-              .sort((a: string, b: string) => {
-                const annoA = parseInt(a.split(':')[0], 10);
-                const annoB = parseInt(b.split(':')[0], 10);
-                return annoA - annoB;
-              })
-              .map((evento: string, index: number) => {
-                const parti = evento.split(':');
-                const anno = parti[0].trim();
-                const testo = parti.slice(1).join(':').trim();
+          {/* Avvenimenti - Spazia su due colonne */}
+          <Card title="Accadde Oggi" className="md:col-span-2">
+            <ul className="space-y-4">
+              {data.avvenimenti.map((evento, idx) => {
+                // Semplice logica per evidenziare l'anno se il formato è "ANNO: descrizione"
+                const parts = evento.split(':');
                 return (
-                  <li key={index} className="flex gap-3">
-                    <span className="text-stone-400 font-mono text-sm font-bold min-w-[3rem]">{anno}</span>
-                    <span className="text-stone-600 text-sm">{testo}</span>
+                  <li key={idx} className="flex gap-4 text-xl leading-relaxed">
+                    <span className="text-[#DE6B58]">•</span>
+                    <span>
+                      {parts.length > 1 ? (
+                        <>
+                          <strong className="font-semibold">{parts[0]}:</strong>
+                          {parts.slice(1).join(':')}
+                        </>
+                      ) : (
+                        evento
+                      )}
+                    </span>
                   </li>
                 );
               })}
-          </ul>
-        </div>
+            </ul>
+          </Card>
 
-        <hr className="border-stone-200 my-6" />
-
-        {/* PAROLA E SANTO */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <BookA className="w-5 h-5 text-stone-500" />
-              <h3 className="text-lg font-serif font-semibold text-stone-700">Parola del giorno</h3>
+          {/* Poesia */}
+          <Card title="Versi">
+            <div className="whitespace-pre-wrap text-xl leading-loose italic mb-6">
+              {data.poesia.testo}
             </div>
-            <h4 className="text-xl font-serif font-bold text-stone-800 mb-2">{data.parola_giorno.parola}</h4>
-            <p className="text-stone-600 text-sm mb-1"><strong>Definizione:</strong> {data.parola_giorno.definizione}</p>
-            <p className="text-stone-500 text-sm mb-2"><strong>Etimologia:</strong> {data.parola_giorno.etimologia}</p>
-            <p className="text-stone-500 text-sm italic">&ldquo;{data.parola_giorno.esempio}&rdquo;</p>
-            {data.parola_giorno.nota && <p className="text-stone-400 text-xs mt-2">{data.parola_giorno.nota}</p>}
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Heart className="w-5 h-5 text-stone-500" />
-              <h3 className="text-lg font-serif font-semibold text-stone-700">Santi del giorno</h3>
+            <div className="text-right border-t border-[#EBE5DB]/50 pt-4">
+              <p className="font-semibold text-xl">{data.poesia.autore}</p>
+              <p className="text-[#8A817C] italic">{data.poesia.fonte}</p>
             </div>
-            {data.santi.map((santo: any, index: number) => (
-              <div key={index} className={index > 0 ? 'mt-4 pt-4 border-t border-stone-100' : ''}>
-                <p className="font-serif font-semibold text-stone-800">{santo.nome} <span className="text-stone-400 text-xs font-sans">({santo.ruolo})</span></p>
-                <p className="text-stone-400 text-xs mb-1">{santo.anni}</p>
-                <p className="text-stone-500 text-sm">{santo.biografia}</p>
-              </div>
-            ))}
-          </div>
+          </Card>
+
+          {/* Bibbia */}
+          <Card title="Scritture">
+            <div className="whitespace-pre-wrap text-xl leading-relaxed mb-6">
+              {data.bibbia.testo}
+            </div>
+            <div className="text-right border-t border-[#EBE5DB]/50 pt-4">
+              <p className="text-[#8A817C] italic font-semibold">{data.bibbia.fonte}</p>
+            </div>
+          </Card>
+
+          {/* Musica - Spazia su due colonne */}
+          <Card title="Consiglio Musicale" className="md:col-span-2 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h4 className="text-3xl font-medium mb-2">{data.musica.brano}</h4>
+              <p className="text-xl mb-2">di <span className="font-semibold">{data.musica.autore}</span></p>
+              <p className="text-[#DE6B58] italic mb-6">{data.musica.genere}</p>
+              <p className="text-xl leading-relaxed mb-6">
+                {data.musica.motivo}
+              </p>
+              <a 
+                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block border border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] hover:text-white transition-colors duration-300 px-6 py-2 rounded-sm uppercase tracking-widest text-sm"
+              >
+                Ascolta il brano
+              </a>
+            </div>
+          </Card>
+
         </div>
-
-        <hr className="border-stone-200 my-6" />
-
-        {/* PASSAGGIO BIBLICO */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl shadow-sm p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-amber-700" />
-            <h3 className="text-lg font-serif font-semibold text-amber-800">Passaggio Biblico</h3>
-          </div>
-          <p className="whitespace-pre-wrap font-serif text-base leading-loose text-stone-700 italic mb-3">{data.bibbia.testo}</p>
-          <p className="text-amber-700 text-sm font-semibold">{data.bibbia.fonte}</p>
-          {data.bibbia.nota && <p className="text-stone-500 text-sm mt-2">{data.bibbia.nota}</p>}
-        </div>
-
-        <hr className="border-stone-200 my-6" />
-
-        {/* POESIA */}
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Feather className="w-5 h-5 text-stone-500" />
-            <h3 className="text-lg font-serif font-semibold text-stone-700">Poesia del giorno</h3>
-          </div>
-          <p className="whitespace-pre-wrap font-serif text-base leading-loose text-stone-700 italic mb-4">{data.poesia.testo}</p>
-          <p className="text-stone-500 text-sm"><strong>{data.poesia.autore}</strong>, {data.poesia.fonte}</p>
-          {data.poesia.nota && <p className="text-stone-400 text-sm mt-2">{data.poesia.nota}</p>}
-        </div>
-
-        {/* CONSIGLIO MUSICALE */}
-        <div className="bg-stone-800 text-stone-100 rounded-2xl shadow-sm p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Music className="w-5 h-5 text-stone-400" />
-            <h3 className="text-lg font-serif font-semibold">Ascolto del giorno</h3>
-          </div>
-          <p className="text-xl font-serif italic mb-1">&ldquo;{data.musica.brano}&rdquo;</p>
-          <p className="text-stone-400 text-sm mb-1">di {data.musica.autore} <span className="text-stone-500">({data.musica.genere})</span></p>
-          <p className="text-stone-300 text-sm mb-4">{data.musica.motivo}</p>
-          <div className="flex gap-3 flex-wrap">
-            <a
-              href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}/tracks`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white text-sm px-4 py-2 rounded-full transition-colors"
-            >
-              <PlayCircle className="w-4 h-4" /> Ascolta su Spotify
-            </a>
-            <a
-              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white text-sm px-4 py-2 rounded-full transition-colors"
-            >
-              <PlayCircle className="w-4 h-4" /> Cerca su YouTube
-            </a>
-          </div>
-        </div>
-
-      </div>
+        
+        {/* Footer */}
+        <footer className="text-center pt-12 pb-6 text-[#8A817C] text-sm">
+          <p>Compilato automaticamente — {data.data_odierna}</p>
+        </footer>
+      </main>
     </div>
   );
 }
