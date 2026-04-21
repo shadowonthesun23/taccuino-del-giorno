@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { EB_Garamond } from 'next/font/google';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink } from 'lucide-react';
 
-// Importazione del font EB Garamond ottimizzato per Next.js
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -12,11 +11,9 @@ const garamond = EB_Garamond({
   display: 'swap',
 });
 
-// Texture rumore/carta SVG (Base64)
 const paperTextureLight = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E")`;
 const paperTextureDark = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E")`;
 
-// Icone SVG custom per bypassare gli errori di esportazione di lucide-react
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
@@ -41,6 +38,21 @@ const CoffeeIcon = ({ className, strokeWidth = 1.5 }: { className?: string, stro
   </svg>
 );
 
+interface OperaGiorno {
+  titolo: string;
+  artista: string;
+  anno: string;
+  met_object_id: number;
+  immagine_url: string;
+  immagine_url_hd: string;
+  museo: string;
+  met_url: string;
+  medium: string;
+  dipartimento: string;
+  nota: string;
+  keyword_ricerca: string;
+}
+
 interface DatiTaccuino {
   data_odierna: string;
   autore_giorno: string;
@@ -54,7 +66,6 @@ interface DatiTaccuino {
   musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
 }
 
-// Componente helper per le "tessere" eleganti
 const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: string, icon?: any, isDark: boolean, children: React.ReactNode, className?: string }) => (
   <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 ${className}`}>
     <div className="flex items-center justify-center gap-2 mb-6">
@@ -71,25 +82,30 @@ const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: 
 
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
+  const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Controlla la preferenza di sistema o il salvataggio locale all'avvio
     if (typeof window !== 'undefined') {
       const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('theme');
       setIsDark(savedTheme === 'dark' || (!savedTheme && isSystemDark));
     }
 
-    fetch('/api/oggi')
-      .then(res => {
+    Promise.all([
+      fetch('/api/oggi').then(res => {
         if (!res.ok) throw new Error('Dati non ancora disponibili per oggi.');
         return res.json();
-      })
-      .then(dati => {
+      }),
+      fetch('/api/opera')
+        .then(res => (res.ok ? res.json() : null))
+        .catch(() => null),
+    ])
+      .then(([dati, operaData]) => {
         setData(dati);
+        setOpera(operaData);
         setLoading(false);
       })
       .catch(err => {
@@ -134,12 +150,9 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-      {/* Overlay Texture Carta */}
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
       
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
-        
-        {/* Intestazione */}
         <header className={`text-center space-y-6 pb-10 border-b ${themeClasses.border} relative`}>
           <button 
             onClick={toggleTheme} 
@@ -153,11 +166,10 @@ export default function Home() {
             Il Taccuino del Giorno
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
-            &quot;Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno e musica. Cultura quotidiana, generata automaticamente.&quot;
+            &quot;Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un'opera d'arte. Cultura quotidiana, generata automaticamente.&quot;
           </p>
         </header>
 
-        {/* Autore del Giorno (Hero Section) */}
         <section className="text-center space-y-4 py-8">
           <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
             Autore del Giorno
@@ -170,10 +182,7 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Griglia Contenuti */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          {/* Citazione - Spazia su due colonne */}
           <Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
             <blockquote className="text-center">
               <span className="text-6xl text-[#DE6B58]/30 leading-none block mb-[-20px]">&quot;</span>
@@ -187,7 +196,64 @@ export default function Home() {
             </blockquote>
           </Card>
 
-          {/* Parola del Giorno */}
+          {opera && (
+            <Card title="Opera del Giorno" icon={Palette} isDark={isDark} className="md:col-span-2 overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                <div className="space-y-5 order-2 md:order-1">
+                  <div>
+                    <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
+                    <p className="text-xl font-medium">
+                      di <span className="font-bold">{opera.artista}</span>
+                      {opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}
+                    </p>
+                  </div>
+
+                  {(opera.medium || opera.dipartimento) && (
+                    <p className={`text-lg ${themeClasses.textMuted} italic`}>
+                      {[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+
+                  {opera.nota && (
+                    <div className={`p-4 ${themeClasses.highlightBg} border ${themeClasses.border} rounded-xl text-lg font-medium leading-relaxed`}>
+                      {opera.nota}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-4 pt-2">
+                    <a
+                      href={opera.met_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}
+                    >
+                      Vedi al museo
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                    {opera.keyword_ricerca && (
+                      <span className={`text-sm uppercase tracking-[0.18em] ${themeClasses.textMuted}`}>
+                        Tema: {opera.keyword_ricerca}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="order-1 md:order-2">
+                  <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
+                    <img
+                      src={opera.immagine_url_hd || opera.immagine_url}
+                      alt={`${opera.titolo} di ${opera.artista}`}
+                      className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`}
+                    />
+                  </a>
+                  <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>
+                    {opera.museo}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
           <Card title="Parola del Giorno" icon={Type} isDark={isDark}>
             <div className="text-center mb-6">
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
@@ -199,7 +265,6 @@ export default function Home() {
             </p>
           </Card>
 
-          {/* Santi */}
           <Card title="I Santi di Oggi" icon={Sparkles} isDark={isDark}>
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
@@ -212,7 +277,6 @@ export default function Home() {
             </ul>
           </Card>
 
-          {/* Avvenimenti - Spazia su due colonne */}
           <Card title="Accadde Oggi" icon={CalendarDays} isDark={isDark} className="md:col-span-2">
             <ul className="space-y-4">
               {data.avvenimenti.map((evento, idx) => {
@@ -236,7 +300,6 @@ export default function Home() {
             </ul>
           </Card>
 
-          {/* Poesia */}
           <Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
             <div className="whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
               {data.poesia.testo}
@@ -253,7 +316,6 @@ export default function Home() {
             )}
           </Card>
 
-          {/* Bibbia */}
           <Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
             <div className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
               {data.bibbia.testo}
@@ -269,7 +331,6 @@ export default function Home() {
             )}
           </Card>
 
-          {/* Musica - Spazia su due colonne */}
           <Card title="Consiglio Musicale" icon={Music} isDark={isDark} className="md:col-span-2 text-center">
             <div className="max-w-2xl mx-auto">
               <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
@@ -298,10 +359,8 @@ export default function Home() {
               </div>
             </div>
           </Card>
-
         </div>
         
-        {/* Footer */}
         <footer className={`text-center pt-16 pb-8 ${themeClasses.textMuted} font-medium`}>
           <div className="flex flex-col items-center justify-center gap-6">
             <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
