@@ -166,7 +166,7 @@ export default function Home() {
             Il Taccuino del Giorno
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
-            &quot;Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un'opera d'arte. Cultura quotidiana, generata automaticamente.&quot;
+            &quot;Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un&apos;opera d&apos;arte. Cultura quotidiana, generata automaticamente.&quot;
           </p>
         </header>
 
@@ -183,6 +183,8 @@ export default function Home() {
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+          {/* Citazione - su due colonne */}
           <Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
             <blockquote className="text-center">
               <span className="text-6xl text-[#DE6B58]/30 leading-none block mb-[-20px]">&quot;</span>
@@ -196,6 +198,32 @@ export default function Home() {
             </blockquote>
           </Card>
 
+          {/* Parola del Giorno */}
+          <Card title="Parola del Giorno" icon={Type} isDark={isDark}>
+            <div className="text-center mb-6">
+              <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
+              <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
+            </div>
+            <p className="text-xl font-medium mb-4"><strong className="font-bold">Definizione:</strong> {data.parola_giorno.definizione}</p>
+            <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
+              &quot;{data.parola_giorno.esempio}&quot;
+            </p>
+          </Card>
+
+          {/* Santi */}
+          <Card title="I Santi di Oggi" icon={Sparkles} isDark={isDark}>
+            <ul className="space-y-6">
+              {data.santi.map((santo, idx) => (
+                <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
+                  <h4 className="text-2xl font-bold mb-1">{santo.nome}</h4>
+                  <p className="text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
+                  <p className="text-lg font-medium leading-relaxed">{santo.biografia}</p>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          {/* Opera del Giorno - su due colonne, dopo Parola e Santi */}
           {opera && (
             <Card title="Opera del Giorno" icon={Palette} isDark={isDark} className="md:col-span-2 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
@@ -214,12 +242,6 @@ export default function Home() {
                     </p>
                   )}
 
-                  {opera.nota && (
-                    <div className={`p-4 ${themeClasses.highlightBg} border ${themeClasses.border} rounded-xl text-lg font-medium leading-relaxed`}>
-                      {opera.nota}
-                    </div>
-                  )}
-
                   <div className="flex flex-wrap items-center gap-4 pt-2">
                     <a
                       href={opera.met_url}
@@ -230,11 +252,6 @@ export default function Home() {
                       Vedi al museo
                       <ExternalLink className="w-4 h-4" />
                     </a>
-                    {opera.keyword_ricerca && (
-                      <span className={`text-sm uppercase tracking-[0.18em] ${themeClasses.textMuted}`}>
-                        Tema: {opera.keyword_ricerca}
-                      </span>
-                    )}
                   </div>
                 </div>
 
@@ -254,29 +271,7 @@ export default function Home() {
             </Card>
           )}
 
-          <Card title="Parola del Giorno" icon={Type} isDark={isDark}>
-            <div className="text-center mb-6">
-              <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
-              <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
-            </div>
-            <p className="text-xl font-medium mb-4"><strong className="font-bold">Definizione:</strong> {data.parola_giorno.definizione}</p>
-            <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
-              &quot;{data.parola_giorno.esempio}&quot;
-            </p>
-          </Card>
-
-          <Card title="I Santi di Oggi" icon={Sparkles} isDark={isDark}>
-            <ul className="space-y-6">
-              {data.santi.map((santo, idx) => (
-                <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
-                  <h4 className="text-2xl font-bold mb-1">{santo.nome}</h4>
-                  <p className="text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
-                  <p className="text-lg font-medium leading-relaxed">{santo.biografia}</p>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
+          {/* Accadde Oggi - su due colonne */}
           <Card title="Accadde Oggi" icon={CalendarDays} isDark={isDark} className="md:col-span-2">
             <ul className="space-y-4">
               {data.avvenimenti.map((evento, idx) => {
@@ -300,6 +295,7 @@ export default function Home() {
             </ul>
           </Card>
 
+          {/* Poesia */}
           <Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
             <div className="whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
               {data.poesia.testo}
@@ -316,6 +312,7 @@ export default function Home() {
             )}
           </Card>
 
+          {/* Bibbia */}
           <Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
             <div className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
               {data.bibbia.testo}
@@ -331,6 +328,7 @@ export default function Home() {
             )}
           </Card>
 
+          {/* Musica - su due colonne */}
           <Card title="Consiglio Musicale" icon={Music} isDark={isDark} className="md:col-span-2 text-center">
             <div className="max-w-2xl mx-auto">
               <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
@@ -359,12 +357,12 @@ export default function Home() {
               </div>
             </div>
           </Card>
+
         </div>
         
         <footer className={`text-center pt-16 pb-8 ${themeClasses.textMuted} font-medium`}>
           <div className="flex flex-col items-center justify-center gap-6">
             <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
-            
             <div className="flex items-center justify-center gap-6">
               <a 
                 href="https://x.com/antonello23" 
