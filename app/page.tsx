@@ -187,12 +187,9 @@ export default function Home() {
          {/* Citazione - su due colonne */}
 <Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
   <blockquote className="md:px-8">
-    <span className="text-6xl text-[#DE6B58]/30 leading-none block text-center mb-[-20px]">"</span>
-    
     <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">
       {data.citazione.testo}
     </p>
-    
     <footer className="text-right text-lg clear-both pt-2">
       <span className="font-bold">{data.citazione.autore}</span>
       <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
