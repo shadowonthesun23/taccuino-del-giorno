@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       generationConfig: { responseMimeType: "application/json" }
     });
 
