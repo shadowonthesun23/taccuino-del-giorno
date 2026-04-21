@@ -73,10 +73,15 @@ Restituisci questo JSON:
       { ...data, data: dataIso },
       { onConflict: 'data' }
     );
-    if (error) throw error;
+    
+    if (error) {
+      console.error("Errore Supabase durante upsert:", error);
+      throw error;
+    }
 
     return new Response('Successo!');
   } catch (err: any) {
-    return new Response(err.message, { status: 500 });
+    console.error("Errore fatale in /api/generate:", err);
+    return new Response(err.message || "Errore interno del server", { status: 500 });
   }
 }
