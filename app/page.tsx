@@ -128,7 +128,7 @@ export default function Home() {
             Il Taccuino del Giorno
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
-            "Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno e musica. Cultura quotidiana, generata automaticamente."
+            &quot;Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno e musica. Cultura quotidiana, generata automaticamente.&quot;
           </p>
         </header>
 
@@ -151,7 +151,7 @@ export default function Home() {
           {/* Citazione - Spazia su due colonne */}
           <Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
             <blockquote className="text-center">
-              <span className="text-6xl text-[#DE6B58]/30 leading-none block mb-[-20px]">"</span>
+              <span className="text-6xl text-[#DE6B58]/30 leading-none block mb-[-20px]">&quot;</span>
               <p className="text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">
                 {data.citazione.testo}
               </p>
@@ -170,7 +170,7 @@ export default function Home() {
             </div>
             <p className="text-xl font-medium mb-4"><strong className="font-bold">Definizione:</strong> {data.parola_giorno.definizione}</p>
             <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
-              "{data.parola_giorno.esempio}"
+              &quot;{data.parola_giorno.esempio}&quot;
             </p>
           </Card>
 
