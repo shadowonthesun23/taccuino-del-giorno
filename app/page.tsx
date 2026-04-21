@@ -29,7 +29,7 @@ interface DatiTaccuino {
 
 // Componente helper per le "tessere" eleganti
 const Card = ({ title, children, className = "" }: { title: string, children: React.ReactNode, className?: string }) => (
-  <section className={`bg-[#FDFCF8] border border-[#EBE5DB] rounded-sm p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] ${className}`}>
+  <section className={`bg-[#FDFCF8] border border-[#EBE5DB] rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] ${className}`}>
     <h3 className="text-[#DE6B58] text-sm font-semibold tracking-[0.2em] uppercase mb-6 text-center">
       {title}
     </h3>
@@ -70,7 +70,7 @@ export default function Home() {
   if (error) return (
     <div className={`min-h-screen bg-[#F4F0E6] flex items-center justify-center ${garamond.className} p-4 relative`}>
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: paperTexture }}></div>
-      <div className="bg-[#FDFCF8] border border-[#EBE5DB] p-8 max-w-lg text-center rounded-sm relative z-10">
+      <div className="bg-[#FDFCF8] border border-[#EBE5DB] p-8 max-w-lg text-center rounded-2xl relative z-10">
         <p className="text-[#2A2522] text-xl mb-4">Il taccuino di oggi non è ancora stato compilato.</p>
         <p className="text-sm text-[#8A817C] italic">{error}</p>
       </div>
@@ -131,7 +131,7 @@ export default function Home() {
               <p className="text-[#8A817C] italic text-lg">{data.parola_giorno.etimologia}</p>
             </div>
             <p className="text-xl mb-4"><strong className="font-semibold">Definizione:</strong> {data.parola_giorno.definizione}</p>
-            <p className="text-lg italic bg-[#F4F0E6]/50 p-4 rounded-sm border border-[#EBE5DB]/50">
+            <p className="text-lg italic bg-[#F4F0E6]/50 p-4 rounded-xl border border-[#EBE5DB]/50">
               "{data.parola_giorno.esempio}"
             </p>
           </Card>
@@ -183,7 +183,7 @@ export default function Home() {
               <p className="text-[#8A817C] italic">{data.poesia.fonte}</p>
             </div>
             {data.poesia.nota && (
-              <div className="mt-4 p-4 bg-[#F4F0E6]/60 border-l-2 border-[#DE6B58] text-lg text-[#4A433F]">
+              <div className="mt-4 p-4 bg-[#F4F0E6]/60 border-l-2 border-[#DE6B58] text-lg text-[#4A433F] rounded-xl">
                 <span className="font-semibold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">Perché questa scelta</span>
                 {data.poesia.nota}
               </div>
@@ -199,7 +199,7 @@ export default function Home() {
               <p className="text-[#8A817C] italic font-semibold">{data.bibbia.fonte}</p>
             </div>
             {data.bibbia.nota && (
-              <div className="mt-4 p-4 bg-[#F4F0E6]/60 border-l-2 border-[#DE6B58] text-lg text-[#4A433F]">
+              <div className="mt-4 p-4 bg-[#F4F0E6]/60 border-l-2 border-[#DE6B58] text-lg text-[#4A433F] rounded-xl">
                 <span className="font-semibold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">Il senso del passaggio</span>
                 {data.bibbia.nota}
               </div>
@@ -215,14 +215,24 @@ export default function Home() {
               <p className="text-xl leading-relaxed mb-8">
                 {data.musica.motivo}
               </p>
-              <a 
-                href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] hover:text-[#FDFCF8] transition-colors duration-300 px-8 py-3 rounded-sm uppercase tracking-widest text-sm font-semibold"
-              >
-                Ascolta su Spotify
-              </a>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <a 
+                  href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center border border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] hover:text-[#FDFCF8] transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-semibold w-full sm:w-auto"
+                >
+                  Ascolta su Spotify
+                </a>
+                <a 
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center border border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] hover:text-[#FDFCF8] transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-semibold w-full sm:w-auto"
+                >
+                  Ascolta su YouTube
+                </a>
+              </div>
             </div>
           </Card>
 
