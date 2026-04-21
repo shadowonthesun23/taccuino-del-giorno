@@ -299,7 +299,7 @@ export default function Home() {
   <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
     {data.poesia.testo}
   </div>
-            <div className={`text-right border-t ${themeClasses.border} pt-4 mb-6`}>
+            <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
               <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
             </div>
@@ -316,7 +316,7 @@ export default function Home() {
   <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
     {data.bibbia.testo}
   </div>
-            <div className={`text-right border-t ${themeClasses.border} pt-4 mb-6`}>
+            <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
             </div>
             {data.bibbia.nota && (
