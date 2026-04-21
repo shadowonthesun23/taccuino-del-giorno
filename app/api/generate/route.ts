@@ -39,6 +39,7 @@ REGOLE DI CURATELA:
 4. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni). Includi una "nota" che spieghi brevemente il senso teologico del passaggio.
 5. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale. Includi una "nota" che spieghi perché hai scelto questa poesia.
 6. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
+7. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
 
 Restituisci questo JSON:
 {
@@ -51,7 +52,8 @@ Restituisci questo JSON:
   "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
   "bibbia": { "testo": "Testo CEI 2008 formattato con tabulazioni...", "fonte": "...", "nota": "..." },
   "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
-  "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." }
+  "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." },
+  "keyword_arte_en": "..."
 }`;
 
     let result: any = null;
