@@ -1,16 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const apiKey = process.env.GEMINI_API_KEY as string;
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Autenticazione: accetta sia il cron Vercel (x-vercel-cron) sia chiamate manuali con Bearer token
     const cronHeader = request.headers.get('x-vercel-cron');
     const authHeader = request.headers.get('authorization');
     const isVercelCron = cronHeader === '1';
@@ -24,7 +25,6 @@ export async function GET(request: Request) {
     const dataIso = oggi.toISOString().split('T')[0];
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
-    // Modello: gemini-2.5-flash-preview-04-17
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash-preview-04-17",
       generationConfig: { responseMimeType: "application/json" }
