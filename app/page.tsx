@@ -124,9 +124,12 @@ export default function Home() {
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           <p className={`text-lg italic font-medium ${themeClasses.textMuted}`}>{data.data_odierna}</p>
-          <h1 className="text-5xl md:text-6xl font-medium tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
             Il Taccuino del Giorno
           </h1>
+          <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
+            "Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno e musica. Cultura quotidiana, generata automaticamente."
+          </p>
         </header>
 
         {/* Autore del Giorno (Hero Section) */}
