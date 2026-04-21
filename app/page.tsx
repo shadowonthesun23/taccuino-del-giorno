@@ -298,10 +298,10 @@ export default function Home() {
           </Card>
 
           {/* Poesia */}
-          <Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
-            <div className="whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
-              {data.poesia.testo}
-            </div>
+<Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
+  <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
+    {data.poesia.testo}
+  </div>
             <div className={`text-right border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
               <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
@@ -314,11 +314,11 @@ export default function Home() {
             )}
           </Card>
 
-          {/* Bibbia */}
-          <Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
-            <div className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
-              {data.bibbia.testo}
-            </div>
+         {/* Bibbia */}
+<Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
+  <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
+    {data.bibbia.testo}
+  </div>
             <div className={`text-right border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
             </div>
