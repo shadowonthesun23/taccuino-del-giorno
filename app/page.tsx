@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { EB_Garamond } from 'next/font/google';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Twitter, Instagram, Coffee } from 'lucide-react';
 
 // Importazione del font EB Garamond ottimizzato per Next.js
 const garamond = EB_Garamond({ 
@@ -277,8 +277,40 @@ export default function Home() {
         </div>
         
         {/* Footer */}
-        <footer className={`text-center pt-12 pb-6 ${themeClasses.textMuted} font-medium text-sm`}>
-          <p>Compilato automaticamente — {data.data_odierna}</p>
+        <footer className={`text-center pt-16 pb-8 ${themeClasses.textMuted} font-medium`}>
+          <div className="flex flex-col items-center justify-center gap-6">
+            <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
+            
+            <div className="flex items-center justify-center gap-6">
+              <a 
+                href="https://x.com/antonello23" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
+                aria-label="X (Twitter)"
+              >
+                <Twitter className="w-5 h-5" strokeWidth={1.5} />
+              </a>
+              <a 
+                href="https://www.instagram.com/antonelloan23/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5" strokeWidth={1.5} />
+              </a>
+              <a 
+                href="https://buymeacoffee.com/antonello23" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
+                aria-label="Buy Me a Coffee"
+              >
+                <Coffee className="w-5 h-5" strokeWidth={1.5} />
+              </a>
+            </div>
+          </div>
         </footer>
       </main>
     </div>
