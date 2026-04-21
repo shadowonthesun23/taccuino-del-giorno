@@ -10,13 +10,23 @@ export async function GET(request: Request) {
     const apiKey = process.env.GEMINI_API_KEY as string;
     const genAI = new GoogleGenerativeAI(apiKey);
 
+    // Autenticazione: accetta sia il cron Vercel (x-vercel-cron) sia chiamate manuali con Bearer token
+    const cronHeader = request.headers.get('x-vercel-cron');
+    const authHeader = request.headers.get('authorization');
+    const isVercelCron = cronHeader === '1';
+    const isManualCall = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+    if (!isVercelCron && !isManualCall) {
+      return new Response('Non autorizzato', { status: 401 });
+    }
+
     const oggi = new Date();
     const dataIso = oggi.toISOString().split('T')[0];
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
-    // Modello STABILE: gemini-2.0-flash
+    // Modello: gemini-2.5-flash-preview-04-17
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash-preview-04-17",
       generationConfig: { responseMimeType: "application/json" }
     });
 
