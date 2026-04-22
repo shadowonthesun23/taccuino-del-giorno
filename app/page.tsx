@@ -349,7 +349,7 @@ export default function Home() {
         <header className={`text-center space-y-6 pb-8 border-b ${themeClasses.border} relative`}>
 
           {/* Controlli in alto a destra */}
-          <div className="absolute right-0 top-0 flex items-center gap-2">
+        <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
 
             {/* Pulsante traduzione IT/EN */}
             <button
