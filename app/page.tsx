@@ -400,16 +400,15 @@ export default function Home() {
                     transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
                     pointerEvents: popoverOpen ? 'auto' : 'none',
                   }}
-                  className={`absolute top-[calc(100%+10px)] right-0 w-72 max-h-[70vh] z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.10)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
-                >
-                  <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
+className={`absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 w-[92vw] md:w-80 z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}                >
+                  <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] left-1/2 -translate-x-1/2 md:left-auto md:right-[11px] md:translate-x-0" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
                     <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
                   </svg>
 
                   <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
-                      <span className="font-bold tracking-widest uppercase text-xs text-[#DE6B58]">Archivio</span>
+                      <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
                     </div>
                     <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio">
                       <X className="w-4 h-4" />
@@ -431,7 +430,7 @@ export default function Home() {
                     ) : (
                       Object.entries(groupedArchivio).map(([mese, items]) => (
                         <div key={mese} className="mb-4">
-                          <p className={`text-[10px] font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
+                          <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
                           <ul className="space-y-0.5">
                             {items.map(item => {
                               const isOggi = item.data === oggi;
@@ -440,14 +439,14 @@ export default function Home() {
                                 <li key={item.data}>
                                   <button
                                     onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
-                                    className={`w-full text-left px-3 py-2 rounded-xl transition-colors flex items-center gap-2.5 ${
+                                    className={`w-full text-left px-3 py-3 rounded-xl transition-colors flex items-center gap-4 ${
                                       isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
                                     }`}
                                   >
                                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
                                     <span className="flex-1 min-w-0">
-                                      <span className="text-xs font-medium block truncate">{item.autore_giorno}</span>
-                                      <span className={`text-[10px] ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
+                                      <span className="text-base font-medium block truncate">{item.autore_giorno}</span>
+                                      <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
                                         {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
                                       </span>
                                     </span>
