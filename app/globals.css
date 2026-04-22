@@ -1,5 +1,6 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+@import "tailwindcss";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -24,6 +25,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
 .medieval-box::first-letter {
   font-family: 'Cinzel Decorative', serif;
   float: left;
@@ -33,7 +35,6 @@ body {
   padding: 10px 15px;
   background-color: #9e2a2b;
   color: #ffffff;
-  /* Bordo doppio classico al posto della greca SVG */
   border: 3px double #b08d57;
   border-radius: 4px;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
