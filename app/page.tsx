@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { EB_Garamond } from 'next/font/google';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink, X, ChevronLeft } from 'lucide-react';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -66,6 +66,11 @@ interface DatiTaccuino {
   musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
 }
 
+interface ArchivioItem {
+  data: string;
+  autore_giorno: string;
+}
+
 const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: string, icon?: any, isDark: boolean, children: React.ReactNode, className?: string }) => (
   <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 ${className}`}>
     <div className="flex items-center justify-center gap-2 mb-6">
@@ -80,23 +85,44 @@ const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: 
   </section>
 );
 
+function formatDataItaliana(dataIso: string): string {
+  const mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+  const [anno, mese, giorno] = dataIso.split('-');
+  return `${parseInt(giorno)} ${mesi[parseInt(mese) - 1]} ${anno}`;
+}
+
+function groupByMonth(items: ArchivioItem[]): Record<string, ArchivioItem[]> {
+  const mesiNome = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+  const groups: Record<string, ArchivioItem[]> = {};
+  for (const item of items) {
+    const [anno, mese] = item.data.split('-');
+    const key = `${mesiNome[parseInt(mese) - 1]} ${anno}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item);
+  }
+  return groups;
+}
+
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
+  const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const savedTheme = localStorage.getItem('theme');
-      setIsDark(savedTheme === 'dark' || (!savedTheme && isSystemDark));
-    }
+  const oggi = new Date().toISOString().split('T')[0];
 
+  const caricaGiorno = (dataIso: string | null) => {
+    setLoading(true);
+    setError(null);
+    setDrawerOpen(false);
+    const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
-      fetch('/api/oggi').then(res => {
-        if (!res.ok) throw new Error('Dati non ancora disponibili per oggi.');
+      fetch(url).then(res => {
+        if (!res.ok) throw new Error('Nessun contenuto per questa data.');
         return res.json();
       }),
       fetch('/api/opera')
@@ -106,12 +132,27 @@ export default function Home() {
       .then(([dati, operaData]) => {
         setData(dati);
         setOpera(operaData);
+        setDataSelezionata(dataIso);
         setLoading(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       })
       .catch(err => {
         setError(err.message);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('theme');
+      setIsDark(savedTheme === 'dark' || (!savedTheme && isSystemDark));
+    }
+    caricaGiorno(null);
+    fetch('/api/archivio')
+      .then(res => res.ok ? res.json() : [])
+      .then(setArchivio)
+      .catch(() => setArchivio([]));
   }, []);
 
   const toggleTheme = () => {
@@ -126,8 +167,12 @@ export default function Home() {
     border: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
-    texture: isDark ? paperTextureDark : paperTextureLight
+    texture: isDark ? paperTextureDark : paperTextureLight,
+    drawerBg: isDark ? 'bg-[#1A1A1A]' : 'bg-[#FDFCF8]',
+    drawerBorder: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
   };
+
+  const groupedArchivio = groupByMonth(archivio);
 
   if (loading) return (
     <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} relative transition-colors duration-300`}>
@@ -142,6 +187,15 @@ export default function Home() {
       <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
+        {archivio.length > 0 && (
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
+          >
+            <CalendarDays className="w-4 h-4" />
+            Vedi giorni precedenti
+          </button>
+        )}
       </div>
     </div>
   );
@@ -151,16 +205,111 @@ export default function Home() {
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
-      
+
+      {/* Drawer overlay */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* Drawer pannello */}
+      <div className={`fixed top-0 right-0 h-full w-80 max-w-[90vw] z-50 flex flex-col shadow-2xl border-l transition-transform duration-300 ease-in-out ${themeClasses.drawerBg} ${themeClasses.drawerBorder} ${
+        drawerOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}>
+        <div className={`flex items-center justify-between p-5 border-b ${themeClasses.drawerBorder} flex-shrink-0`}>
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-5 h-5 text-[#DE6B58]" />
+            <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
+          </div>
+          <button
+            onClick={() => setDrawerOpen(false)}
+            className={`p-1.5 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`}
+            aria-label="Chiudi"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {dataSelezionata && dataSelezionata !== oggi && (
+          <div className={`px-5 py-3 border-b ${themeClasses.drawerBorder} flex-shrink-0`}>
+            <button
+              onClick={() => caricaGiorno(null)}
+              className="inline-flex items-center gap-1.5 text-sm text-[#DE6B58] hover:underline font-medium"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Torna a oggi
+            </button>
+          </div>
+        )}
+
+        <div className="overflow-y-auto flex-1 px-5 py-4">
+          {archivio.length === 0 ? (
+            <p className={`text-sm italic ${themeClasses.textMuted} text-center mt-8`}>Nessun giorno in archivio.</p>
+          ) : (
+            Object.entries(groupedArchivio).map(([mese, items]) => (
+              <div key={mese} className="mb-6">
+                <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-3`}>{mese}</p>
+                <ul className="space-y-1">
+                  {items.map(item => {
+                    const isOggi = item.data === oggi;
+                    const isSelezionato = item.data === dataSelezionata;
+                    return (
+                      <li key={item.data}>
+                        <button
+                          onClick={() => {
+                            if (!isSelezionato) caricaGiorno(item.data);
+                            else setDrawerOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors flex items-center gap-3 group ${
+                            isSelezionato
+                              ? 'bg-[#DE6B58]/15 text-[#DE6B58]'
+                              : isDark
+                                ? 'hover:bg-[#2A2A2A] text-[#E0E0E0]'
+                                : 'hover:bg-[#F4F0E6] text-[#2A2522]'
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'
+                          }`} />
+                          <span className="flex-1 min-w-0">
+                            <span className="text-sm font-medium block">{item.autore_giorno}</span>
+                            <span className={`text-xs ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
+                              {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 pb-8 border-b ${themeClasses.border} relative`}>
-          <button 
-            onClick={toggleTheme} 
-            className={`absolute right-0 top-0 p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
-            aria-label="Cambia tema"
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
+          <div className="absolute right-0 top-0 flex items-center gap-2">
+            {archivio.length > 0 && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
+                aria-label="Archivio"
+              >
+                <CalendarDays className="w-5 h-5" />
+              </button>
+            )}
+            <button 
+              onClick={toggleTheme} 
+              className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
+              aria-label="Cambia tema"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
           <p className={`text-lg italic font-medium ${themeClasses.textMuted}`}>{data.data_odierna}</p>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
             Il Taccuino del Giorno
@@ -184,20 +333,18 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-         {/* Citazione - su due colonne */}
-<Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
-  <blockquote className="md:px-8">
-    <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">
-      {data.citazione.testo}
-    </p>
-    <footer className="text-right text-lg clear-both pt-2">
-      <span className="font-bold">{data.citazione.autore}</span>
-      <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
-    </footer>
-  </blockquote>
-</Card>
+          <Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
+            <blockquote className="md:px-8">
+              <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">
+                {data.citazione.testo}
+              </p>
+              <footer className="text-right text-lg clear-both pt-2">
+                <span className="font-bold">{data.citazione.autore}</span>
+                <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
+              </footer>
+            </blockquote>
+          </Card>
 
-          {/* Parola del Giorno */}
           <Card title="Parola del Giorno" icon={Type} isDark={isDark}>
             <div className="text-center mb-6">
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
@@ -211,7 +358,6 @@ export default function Home() {
             )}
           </Card>
 
-          {/* Santi */}
           <Card title="I Santi di Oggi" icon={Sparkles} isDark={isDark}>
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
@@ -224,7 +370,6 @@ export default function Home() {
             </ul>
           </Card>
 
-          {/* Opera del Giorno - su due colonne, dopo Parola e Santi */}
           {opera && (
             <Card title="Opera del Giorno" icon={Palette} isDark={isDark} className="md:col-span-2 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
@@ -236,13 +381,11 @@ export default function Home() {
                       {opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}
                     </p>
                   </div>
-
                   {(opera.medium || opera.dipartimento) && (
                     <p className={`text-lg ${themeClasses.textMuted} italic`}>
                       {[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}
                     </p>
                   )}
-
                   <div className="flex flex-wrap items-center gap-4 pt-2">
                     <a
                       href={opera.met_url}
@@ -255,7 +398,6 @@ export default function Home() {
                     </a>
                   </div>
                 </div>
-
                 <div className="order-1 md:order-2">
                   <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
                     <img
@@ -272,7 +414,6 @@ export default function Home() {
             </Card>
           )}
 
-          {/* Accadde Oggi - su due colonne */}
           <Card title="Accadde Oggi" icon={CalendarDays} isDark={isDark} className="md:col-span-2">
             <ul className="space-y-4">
               {data.avvenimenti.map((evento, idx) => {
@@ -296,11 +437,10 @@ export default function Home() {
             </ul>
           </Card>
 
-          {/* Poesia */}
-<Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
-  <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
-    {data.poesia.testo}
-  </div>
+          <Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
+              {data.poesia.testo}
+            </div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
               <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
@@ -313,11 +453,10 @@ export default function Home() {
             )}
           </Card>
 
-         {/* Bibbia */}
-<Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
-  <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
-    {data.bibbia.testo}
-  </div>
+          <Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
+              {data.bibbia.testo}
+            </div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
             </div>
@@ -329,7 +468,6 @@ export default function Home() {
             )}
           </Card>
 
-          {/* Musica - su due colonne */}
           <Card title="Consiglio Musicale" icon={Music} isDark={isDark} className="md:col-span-2 text-center">
             <div className="max-w-2xl mx-auto">
               <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
