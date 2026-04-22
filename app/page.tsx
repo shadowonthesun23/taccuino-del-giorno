@@ -400,8 +400,8 @@ export default function Home() {
                     transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
                     pointerEvents: popoverOpen ? 'auto' : 'none',
                   }}
-className={`absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 w-[92vw] md:w-80 z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}                >
-                  <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] left-1/2 -translate-x-1/2 md:left-auto md:right-[11px] md:translate-x-0" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
+className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(100%+10px)] md:right-0 md:w-80 md:translate-x-0 z-50 max-h-[70vh] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}                >
+                  <svg width="20" height="10" viewBox="0 0 20 10" className="hidden md:block absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
                     <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
                   </svg>
 
@@ -439,13 +439,13 @@ className={`absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 md:left-aut
                                 <li key={item.data}>
                                   <button
                                     onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
-                                    className={`w-full text-left px-3 py-3 rounded-xl transition-colors flex items-center gap-4 ${
+                                    className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
                                       isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
                                     }`}
                                   >
-                                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
                                     <span className="flex-1 min-w-0">
-                                      <span className="text-base font-medium block truncate">{item.autore_giorno}</span>
+                                      <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
                                       <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
                                         {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
                                       </span>
