@@ -153,7 +153,7 @@ export default function Home() {
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
       
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
-        <header className={`text-center space-y-6 pb-10 border-b ${themeClasses.border} relative`}>
+        <header className={`text-center space-y-6 pb-8 border-b ${themeClasses.border} relative`}>
           <button 
             onClick={toggleTheme} 
             className={`absolute right-0 top-0 p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
