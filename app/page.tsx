@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { EB_Garamond } from 'next/font/google';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink, X, ChevronLeft } from 'lucide-react';
 
@@ -109,16 +109,45 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
+
+  // Chiudi il popover cliccando fuori
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
+      ) {
+        setPopoverOpen(false);
+      }
+    }
+    if (popoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [popoverOpen]);
+
+  // Chiudi con Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setPopoverOpen(false);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
     setLoading(true);
     setError(null);
-    setDrawerOpen(false);
+    setPopoverOpen(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => {
@@ -168,11 +197,10 @@ export default function Home() {
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
     texture: isDark ? paperTextureDark : paperTextureLight,
-    // Frost/glass drawer: sfondo semi-trasparente + blur
-    drawerBg: isDark
-      ? 'bg-[#1A1A1A]/75 backdrop-blur-xl'
-      : 'bg-[#F4F0E6]/70 backdrop-blur-xl',
-    drawerBorder: isDark ? 'border-[#3D3D3D]/60' : 'border-[#D6CCBC]/70',
+    popoverBg: isDark ? 'bg-[#1C1C1C]/85' : 'bg-[#F7F4EE]/82',
+    popoverBorder: isDark ? 'border-[#3D3D3D]/70' : 'border-[#D4CABC]/80',
+    popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
+    popoverArrowStroke: isDark ? '#3D3D3D' : '#D4CABC',
   };
 
   const groupedArchivio = groupByMonth(archivio);
@@ -192,7 +220,7 @@ export default function Home() {
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
           <button
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => setPopoverOpen(true)}
             className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
           >
             <CalendarDays className="w-4 h-4" />
@@ -209,102 +237,132 @@ export default function Home() {
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
 
-      {/* Drawer overlay */}
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
-          onClick={() => setDrawerOpen(false)}
-        />
-      )}
-
-      {/* Drawer pannello — frost/glass */}
-      <div className={`fixed top-0 right-0 h-full w-80 max-w-[90vw] z-50 flex flex-col shadow-2xl border-l transition-transform duration-300 ease-in-out ${themeClasses.drawerBg} ${themeClasses.drawerBorder} ${
-        drawerOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
-        <div className={`flex items-center justify-between p-5 border-b ${themeClasses.drawerBorder} flex-shrink-0`}>
-          <div className="flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-[#DE6B58]" />
-            <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
-          </div>
-          <button
-            onClick={() => setDrawerOpen(false)}
-            className={`p-1.5 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`}
-            aria-label="Chiudi"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {dataSelezionata && dataSelezionata !== oggi && (
-          <div className={`px-5 py-3 border-b ${themeClasses.drawerBorder} flex-shrink-0`}>
-            <button
-              onClick={() => caricaGiorno(null)}
-              className="inline-flex items-center gap-1.5 text-sm text-[#DE6B58] hover:underline font-medium"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Torna a oggi
-            </button>
-          </div>
-        )}
-
-        <div className="overflow-y-auto flex-1 px-5 py-4">
-          {archivio.length === 0 ? (
-            <p className={`text-sm italic ${themeClasses.textMuted} text-center mt-8`}>Nessun giorno in archivio.</p>
-          ) : (
-            Object.entries(groupedArchivio).map(([mese, items]) => (
-              <div key={mese} className="mb-6">
-                <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-3`}>{mese}</p>
-                <ul className="space-y-1">
-                  {items.map(item => {
-                    const isOggi = item.data === oggi;
-                    const isSelezionato = item.data === dataSelezionata;
-                    return (
-                      <li key={item.data}>
-                        <button
-                          onClick={() => {
-                            if (!isSelezionato) caricaGiorno(item.data);
-                            else setDrawerOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors flex items-center gap-3 group ${
-                            isSelezionato
-                              ? 'bg-[#DE6B58]/15 text-[#DE6B58]'
-                              : isDark
-                                ? 'hover:bg-white/5 text-[#E0E0E0]'
-                                : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
-                          }`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                            isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'
-                          }`} />
-                          <span className="flex-1 min-w-0">
-                            <span className="text-sm font-medium block">{item.autore_giorno}</span>
-                            <span className={`text-xs ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
-                              {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
-                            </span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 pb-8 border-b ${themeClasses.border} relative`}>
+
+          {/* Controlli in alto a destra */}
           <div className="absolute right-0 top-0 flex items-center gap-2">
+
+            {/* Pulsante archivio con popover */}
             {archivio.length > 0 && (
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
-                aria-label="Archivio"
-              >
-                <CalendarDays className="w-5 h-5" />
-              </button>
+              <div className="relative">
+                <button
+                  ref={triggerRef}
+                  onClick={() => setPopoverOpen(v => !v)}
+                  className={`p-2 rounded-full border ${
+                    popoverOpen
+                      ? 'border-[#DE6B58] text-[#DE6B58]'
+                      : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
+                  } transition-colors`}
+                  aria-label="Archivio"
+                  aria-expanded={popoverOpen}
+                  aria-haspopup="true"
+                >
+                  <CalendarDays className="w-5 h-5" />
+                </button>
+
+                {/* Popover floating */}
+                <div
+                  ref={popoverRef}
+                  role="dialog"
+                  aria-label="Archivio dei giorni"
+                  style={{
+                    transformOrigin: 'top right',
+                    transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
+                    opacity: popoverOpen ? 1 : 0,
+                    transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
+                    pointerEvents: popoverOpen ? 'auto' : 'none',
+                  }}
+                  className={`absolute top-[calc(100%+10px)] right-0 w-72 max-h-[70vh] z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.10)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
+                >
+                  {/* Freccietta SVG ancorata all'icona */}
+                  <svg
+                    width="20" height="10"
+                    viewBox="0 0 20 10"
+                    className="absolute -top-[9px] right-[11px]"
+                    style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}
+                  >
+                    <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
+                  </svg>
+
+                  {/* Header popover */}
+                  <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
+                      <span className="font-bold tracking-widest uppercase text-xs text-[#DE6B58]">Archivio</span>
+                    </div>
+                    <button
+                      onClick={() => setPopoverOpen(false)}
+                      className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`}
+                      aria-label="Chiudi archivio"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Torna a oggi */}
+                  {dataSelezionata && dataSelezionata !== oggi && (
+                    <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
+                      <button
+                        onClick={() => caricaGiorno(null)}
+                        className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        Torna a oggi
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Lista archivio scrollabile */}
+                  <div className="overflow-y-auto flex-1 px-3 py-3">
+                    {archivio.length === 0 ? (
+                      <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
+                    ) : (
+                      Object.entries(groupedArchivio).map(([mese, items]) => (
+                        <div key={mese} className="mb-4">
+                          <p className={`text-[10px] font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
+                          <ul className="space-y-0.5">
+                            {items.map(item => {
+                              const isOggi = item.data === oggi;
+                              const isSelezionato = item.data === dataSelezionata;
+                              return (
+                                <li key={item.data}>
+                                  <button
+                                    onClick={() => {
+                                      if (!isSelezionato) caricaGiorno(item.data);
+                                      else setPopoverOpen(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 rounded-xl transition-colors flex items-center gap-2.5 ${
+                                      isSelezionato
+                                        ? 'bg-[#DE6B58]/15 text-[#DE6B58]'
+                                        : isDark
+                                          ? 'hover:bg-white/5 text-[#E0E0E0]'
+                                          : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                      isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'
+                                    }`} />
+                                    <span className="flex-1 min-w-0">
+                                      <span className="text-xs font-medium block truncate">{item.autore_giorno}</span>
+                                      <span className={`text-[10px] ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
+                                        {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
+                                      </span>
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
+
+            {/* Toggle tema */}
             <button 
               onClick={toggleTheme} 
               className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
@@ -313,6 +371,7 @@ export default function Home() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
           </div>
+
           <p className={`text-lg italic font-medium ${themeClasses.textMuted}`}>{data.data_odierna}</p>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
             Il Taccuino del Giorno
