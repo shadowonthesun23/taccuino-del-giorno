@@ -132,7 +132,7 @@ function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTa
 }
 
 const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: string, icon?: any, isDark: boolean, children: React.ReactNode, className?: string }) => (
-  <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 ${className}`}>
+  <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 card-paper-shadow ${className}`}>
     <div className="flex items-center justify-center gap-2 mb-6">
       {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
       <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">
