@@ -47,3 +47,41 @@ body {
     padding: 8px 12px;
   }
 }
+.card-paper-shadow {
+  position: relative;
+}
+
+.card-paper-shadow::before,
+.card-paper-shadow::after {
+  content: '';
+  position: absolute;
+  bottom: 15px; 
+  width: 40%;
+  height: 10px;
+  box-shadow: 0 5px 14px rgba(0,0,0,0.4);
+  z-index: -1;
+  transition: all 0.3s ease-in-out;
+}
+
+.card-paper-shadow::before {
+  left: 15px;
+  transform: skew(-5deg) rotate(-5deg);
+}
+
+.card-paper-shadow::after {
+  right: 15px;
+  transform: skew(5deg) rotate(5deg);
+}
+
+.card-paper-shadow:hover::before,
+.card-paper-shadow:hover::after {
+  box-shadow: 0 2px 14px rgba(0,0,0,0.2);
+}
+
+.card-paper-shadow:hover::before {
+  left: 10px;
+}
+
+.card-paper-shadow:hover::after {
+  right: 10px;
+}
