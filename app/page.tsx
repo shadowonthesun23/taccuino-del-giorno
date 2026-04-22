@@ -204,9 +204,11 @@ export default function Home() {
               <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
             </div>
             <p className="text-xl font-medium mb-4"><strong className="font-bold">Definizione:</strong> {data.parola_giorno.definizione}</p>
-            <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
-              &quot;{data.parola_giorno.esempio}&quot;
-            </p>
+            {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && (
+              <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
+                &quot;{data.parola_giorno.esempio}&quot;
+              </p>
+            )}
           </Card>
 
           {/* Santi */}
