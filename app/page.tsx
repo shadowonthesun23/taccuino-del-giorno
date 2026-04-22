@@ -168,8 +168,11 @@ export default function Home() {
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
     texture: isDark ? paperTextureDark : paperTextureLight,
-    drawerBg: isDark ? 'bg-[#1A1A1A]' : 'bg-[#FDFCF8]',
-    drawerBorder: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
+    // Frost/glass drawer: sfondo semi-trasparente + blur
+    drawerBg: isDark
+      ? 'bg-[#1A1A1A]/75 backdrop-blur-xl'
+      : 'bg-[#F4F0E6]/70 backdrop-blur-xl',
+    drawerBorder: isDark ? 'border-[#3D3D3D]/60' : 'border-[#D6CCBC]/70',
   };
 
   const groupedArchivio = groupByMonth(archivio);
@@ -214,7 +217,7 @@ export default function Home() {
         />
       )}
 
-      {/* Drawer pannello */}
+      {/* Drawer pannello — frost/glass */}
       <div className={`fixed top-0 right-0 h-full w-80 max-w-[90vw] z-50 flex flex-col shadow-2xl border-l transition-transform duration-300 ease-in-out ${themeClasses.drawerBg} ${themeClasses.drawerBorder} ${
         drawerOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
@@ -266,8 +269,8 @@ export default function Home() {
                             isSelezionato
                               ? 'bg-[#DE6B58]/15 text-[#DE6B58]'
                               : isDark
-                                ? 'hover:bg-[#2A2A2A] text-[#E0E0E0]'
-                                : 'hover:bg-[#F4F0E6] text-[#2A2522]'
+                                ? 'hover:bg-white/5 text-[#E0E0E0]'
+                                : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
                           }`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
