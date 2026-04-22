@@ -126,3 +126,20 @@ body {
   background-size: 51% 51%; /* Previene difetti grafici al centro */
   background-repeat: no-repeat;
 }
+/* 3. Nastro adesivo per la data */
+.masking-tape {
+  position: relative; display: inline-block;
+  background-color: #E8E3C8; color: #111111 !important;
+  padding: 6px 24px;
+  transform: rotate(-2deg);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
+  clip-path: polygon(
+    1% 2%, 99% 0%, 98% 12%, 100% 24%, 98% 36%, 100% 48%, 98% 62%, 100% 74%, 98% 88%, 99% 100%, 
+    2% 98%, 0% 85%, 2% 70%, 0% 58%, 2% 44%, 0% 30%, 2% 16%, 0% 5% 
+  );
+  z-index: 20;
+}
+.masking-tape::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(45deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.03) 50%, rgba(0,0,0,0) 100%);
+}
