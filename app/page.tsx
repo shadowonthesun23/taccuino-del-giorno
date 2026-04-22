@@ -100,14 +100,14 @@ function estraiTesti(d: DatiTaccuino): string[] {
 
 // Ricostruisce un DatiTaccuino traducibile dai testi flat
 function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTaccuino {
-  let i = 0;
-  const t = () => traduzioni[i++] ?? '';
+  const flat = traduzioni;
+  // I santi iniziano all'indice 9 (dopo i 9 campi fissi: autore, descrizione, citazione×2, parola×5)
+  let i = 9;
+  const t = () => flat[i++] ?? '';
   const santiTradotti = originale.santi.map(() => ({
     nome: t(), ruolo: t(), anni: t(), biografia: t(),
   }));
-  // indice base dopo i santi
-  const base = 9 + originale.santi.length * 4;
-  const flat = traduzioni;
+  // j parte esattamente dove i si è fermato (dopo tutti i santi)
   let j = 9 + originale.santi.length * 4;
   const tf = () => flat[j++] ?? '';
   return {
@@ -120,7 +120,7 @@ function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTa
       parola: flat[4],
       etimologia: flat[5],
       definizione: flat[6],
-      esempio: flat[7],
+      esempio: flat[7] && flat[7] !== 'null' ? flat[7] : '',
       nota: flat[8],
     },
     santi: santiTradotti,
@@ -519,7 +519,7 @@ export default function Home() {
             <p className="text-xl font-medium mb-4">
               <strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}
             </p>
-            {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && (
+            {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
               <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
                 &quot;{data.parola_giorno.esempio}&quot;
               </p>
