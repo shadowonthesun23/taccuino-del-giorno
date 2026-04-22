@@ -170,7 +170,7 @@ export default function Home() {
           </p>
         </header>
 
-        <section className="text-center space-y-4 py-8">
+        <section className="text-center space-y-4 pb-8">
           <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
             Autore del Giorno
           </span>
