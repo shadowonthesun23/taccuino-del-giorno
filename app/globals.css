@@ -85,3 +85,44 @@ body {
 .card-paper-shadow:hover::after {
   right: 10px;
 }
+
+/* Effetto "Inserito nei lembi" (Notched/Photo Corners) */
+.notched-card-wrapper {
+  position: relative;
+  /* Ripristina l'ombra generale perché clip-path nasconde la box-shadow nativa della card */
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.08));
+}
+
+.notched-card {
+  /* Taglia i 4 angoli in diagonale esatta (24px) */
+  clip-path: polygon(
+    24px 0, calc(100% - 24px) 0, 
+    100% 24px, 100% calc(100% - 24px), 
+    calc(100% - 24px) 100%, 24px 100%, 
+    0 calc(100% - 24px), 0 24px
+  );
+  /* Sovrascrive i bordi arrotondati nativi (rounded-2xl) */
+  border-radius: 0 !important; 
+}
+
+/* Annulla l'ombra 2D del primo CodePen solo per questa scheda specifica */
+.notched-card::before,
+.notched-card::after {
+  display: none !important; 
+}
+
+/* Disegna le 4 fessure d'ombra diagonali che trattengono la scheda */
+.notched-card-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* Permette di cliccare gli elementi sottostanti */
+  z-index: 10;
+  background: 
+    linear-gradient(135deg, transparent 16px, rgba(0,0,0,0.2) 17px, rgba(0,0,0,0.05) 19px, transparent 20px) top left,
+    linear-gradient(225deg, transparent 16px, rgba(0,0,0,0.2) 17px, rgba(0,0,0,0.05) 19px, transparent 20px) top right,
+    linear-gradient(45deg, transparent 16px, rgba(0,0,0,0.2) 17px, rgba(0,0,0,0.05) 19px, transparent 20px) bottom left,
+    linear-gradient(315deg, transparent 16px, rgba(0,0,0,0.2) 17px, rgba(0,0,0,0.05) 19px, transparent 20px) bottom right;
+  background-size: 51% 51%; /* Previene difetti grafici al centro */
+  background-repeat: no-repeat;
+}
