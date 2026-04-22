@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { EB_Garamond } from 'next/font/google';
+import { EB_Garamond, Caveat } from 'next/font/google';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
+  display: 'swap',
+});
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '700'],
   display: 'swap',
 });
 
@@ -469,7 +474,11 @@ export default function Home() {
             </button>
           </div>
 
-          <p className={`text-lg italic font-medium ${themeClasses.textMuted}`}>{data.data_odierna}</p>
+         <div className="flex justify-center mb-6 mt-2">
+  <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+    {data.data_odierna}
+  </div>
+</div>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
             {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
           </h1>
