@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { EB_Garamond } from 'next/font/google';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink, X, ChevronLeft } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -71,6 +71,66 @@ interface ArchivioItem {
   autore_giorno: string;
 }
 
+// Estrae tutti i testi traducibili dal DatiTaccuino in un array flat
+function estraiTesti(d: DatiTaccuino): string[] {
+  return [
+    d.autore_giorno,                          // 0
+    d.breve_descrizione,                      // 1
+    d.citazione.testo,                        // 2
+    d.citazione.fonte,                        // 3
+    d.parola_giorno.parola,                   // 4
+    d.parola_giorno.etimologia,               // 5
+    d.parola_giorno.definizione,              // 6
+    d.parola_giorno.esempio,                  // 7
+    d.parola_giorno.nota,                     // 8
+    ...d.santi.flatMap(s => [s.nome, s.ruolo, s.anni, s.biografia]), // 9+
+    d.bibbia.testo,
+    d.bibbia.nota,
+    d.poesia.testo,
+    d.poesia.autore,
+    d.poesia.fonte,
+    d.poesia.nota,
+    d.musica.brano,
+    d.musica.autore,
+    d.musica.genere,
+    d.musica.motivo,
+    ...d.avvenimenti,
+  ];
+}
+
+// Ricostruisce un DatiTaccuino traducibile dai testi flat
+function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTaccuino {
+  let i = 0;
+  const t = () => traduzioni[i++] ?? '';
+  const santiTradotti = originale.santi.map(() => ({
+    nome: t(), ruolo: t(), anni: t(), biografia: t(),
+  }));
+  // indice base dopo i santi
+  const base = 9 + originale.santi.length * 4;
+  const flat = traduzioni;
+  let j = 9 + originale.santi.length * 4;
+  const tf = () => flat[j++] ?? '';
+  return {
+    ...originale,
+    autore_giorno: flat[0],
+    breve_descrizione: flat[1],
+    citazione: { ...originale.citazione, testo: flat[2], fonte: flat[3] },
+    parola_giorno: {
+      ...originale.parola_giorno,
+      parola: flat[4],
+      etimologia: flat[5],
+      definizione: flat[6],
+      esempio: flat[7],
+      nota: flat[8],
+    },
+    santi: santiTradotti,
+    bibbia: { ...originale.bibbia, testo: tf(), nota: tf() },
+    poesia: { ...originale.poesia, testo: tf(), autore: tf(), fonte: tf(), nota: tf() },
+    musica: { ...originale.musica, brano: tf(), autore: tf(), genere: tf(), motivo: tf() },
+    avvenimenti: flat.slice(j),
+  };
+}
+
 const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: string, icon?: any, isDark: boolean, children: React.ReactNode, className?: string }) => (
   <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 ${className}`}>
     <div className="flex items-center justify-center gap-2 mb-6">
@@ -105,6 +165,8 @@ function groupByMonth(items: ArchivioItem[]): Record<string, ArchivioItem[]> {
 
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
+  const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
+  const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,12 +174,14 @@ export default function Home() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
+  const [lingua, setLingua] = useState<'IT' | 'EN'>('IT');
+  const [traducendo, setTraducendo] = useState(false);
+  const [erroreTraduzioni, setErroreTraduzioni] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
 
-  // Chiudi il popover cliccando fuori
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -129,13 +193,10 @@ export default function Home() {
         setPopoverOpen(false);
       }
     }
-    if (popoverOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    if (popoverOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen]);
 
-  // Chiudi con Escape
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') setPopoverOpen(false);
@@ -148,6 +209,10 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setPopoverOpen(false);
+    // Reset traduzione al cambio di giorno
+    setLingua('IT');
+    setDataTradotta(null);
+    setErroreTraduzioni(null);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => {
@@ -160,6 +225,7 @@ export default function Home() {
     ])
       .then(([dati, operaData]) => {
         setData(dati);
+        setDataOriginale(dati);
         setOpera(operaData);
         setDataSelezionata(dataIso);
         setLoading(false);
@@ -170,6 +236,43 @@ export default function Home() {
         setLoading(false);
       });
   };
+
+  const toggleLingua = useCallback(async () => {
+    if (lingua === 'EN') {
+      // Torna all'italiano
+      setLingua('IT');
+      setData(dataOriginale);
+      return;
+    }
+    // Se abbiamo già la cache della traduzione, usala subito
+    if (dataTradotta) {
+      setLingua('EN');
+      setData(dataTradotta);
+      return;
+    }
+    // Prima traduzione: chiama la route API
+    if (!dataOriginale) return;
+    setTraducendo(true);
+    setErroreTraduzioni(null);
+    try {
+      const testi = estraiTesti(dataOriginale);
+      const res = await fetch('/api/traduci', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testi, targetLang: 'EN' }),
+      });
+      if (!res.ok) throw new Error('Errore nella traduzione.');
+      const { traduzioni } = await res.json();
+      const tradotta = ricostruisciDati(dataOriginale, traduzioni);
+      setDataTradotta(tradotta);
+      setData(tradotta);
+      setLingua('EN');
+    } catch (e: any) {
+      setErroreTraduzioni(e.message ?? 'Traduzione non disponibile.');
+    } finally {
+      setTraducendo(false);
+    }
+  }, [lingua, dataOriginale, dataTradotta]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -243,6 +346,25 @@ export default function Home() {
           {/* Controlli in alto a destra */}
           <div className="absolute right-0 top-0 flex items-center gap-2">
 
+            {/* Pulsante traduzione IT/EN */}
+            <button
+              onClick={toggleLingua}
+              disabled={traducendo}
+              title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
+                lingua === 'EN'
+                  ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/8'
+                  : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+            >
+              {traducendo
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Languages className="w-3.5 h-3.5" />
+              }
+              <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
+            </button>
+
             {/* Pulsante archivio con popover */}
             {archivio.length > 0 && (
               <div className="relative">
@@ -275,45 +397,29 @@ export default function Home() {
                   }}
                   className={`absolute top-[calc(100%+10px)] right-0 w-72 max-h-[70vh] z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.10)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
                 >
-                  {/* Freccietta SVG ancorata all'icona */}
-                  <svg
-                    width="20" height="10"
-                    viewBox="0 0 20 10"
-                    className="absolute -top-[9px] right-[11px]"
-                    style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}
-                  >
+                  <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
                     <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
                   </svg>
 
-                  {/* Header popover */}
                   <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
                       <span className="font-bold tracking-widest uppercase text-xs text-[#DE6B58]">Archivio</span>
                     </div>
-                    <button
-                      onClick={() => setPopoverOpen(false)}
-                      className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`}
-                      aria-label="Chiudi archivio"
-                    >
+                    <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  {/* Torna a oggi */}
                   {dataSelezionata && dataSelezionata !== oggi && (
                     <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-                      <button
-                        onClick={() => caricaGiorno(null)}
-                        className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"
-                      >
+                      <button onClick={() => caricaGiorno(null)} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium">
                         <ChevronLeft className="w-3.5 h-3.5" />
                         Torna a oggi
                       </button>
                     </div>
                   )}
 
-                  {/* Lista archivio scrollabile */}
                   <div className="overflow-y-auto flex-1 px-3 py-3">
                     {archivio.length === 0 ? (
                       <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
@@ -328,21 +434,12 @@ export default function Home() {
                               return (
                                 <li key={item.data}>
                                   <button
-                                    onClick={() => {
-                                      if (!isSelezionato) caricaGiorno(item.data);
-                                      else setPopoverOpen(false);
-                                    }}
+                                    onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
                                     className={`w-full text-left px-3 py-2 rounded-xl transition-colors flex items-center gap-2.5 ${
-                                      isSelezionato
-                                        ? 'bg-[#DE6B58]/15 text-[#DE6B58]'
-                                        : isDark
-                                          ? 'hover:bg-white/5 text-[#E0E0E0]'
-                                          : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
+                                      isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
                                     }`}
                                   >
-                                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                                      isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'
-                                    }`} />
+                                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
                                     <span className="flex-1 min-w-0">
                                       <span className="text-xs font-medium block truncate">{item.autore_giorno}</span>
                                       <span className={`text-[10px] ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
@@ -363,8 +460,8 @@ export default function Home() {
             )}
 
             {/* Toggle tema */}
-            <button 
-              onClick={toggleTheme} 
+            <button
+              onClick={toggleTheme}
               className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
               aria-label="Cambia tema"
             >
@@ -374,16 +471,23 @@ export default function Home() {
 
           <p className={`text-lg italic font-medium ${themeClasses.textMuted}`}>{data.data_odierna}</p>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
-            Il Taccuino del Giorno
+            {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
-            &quot;Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un&apos;opera d&apos;arte. Cultura quotidiana, generata automaticamente.&quot;
+            {lingua === 'IT'
+              ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, generata automaticamente."'
+              : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, automatically generated."'
+            }
           </p>
+          {/* Avviso errore traduzione */}
+          {erroreTraduzioni && (
+            <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>
+          )}
         </header>
 
         <section className="text-center space-y-4 pb-8">
           <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
-            Autore del Giorno
+            {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-6">
             {data.autore_giorno}
@@ -395,7 +499,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <Card title="Citazione" icon={Quote} isDark={isDark} className="md:col-span-2">
+          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
             <blockquote className="md:px-8">
               <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">
                 {data.citazione.testo}
@@ -407,12 +511,14 @@ export default function Home() {
             </blockquote>
           </Card>
 
-          <Card title="Parola del Giorno" icon={Type} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}>
             <div className="text-center mb-6">
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
               <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
             </div>
-            <p className="text-xl font-medium mb-4"><strong className="font-bold">Definizione:</strong> {data.parola_giorno.definizione}</p>
+            <p className="text-xl font-medium mb-4">
+              <strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}
+            </p>
             {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && (
               <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
                 &quot;{data.parola_giorno.esempio}&quot;
@@ -420,7 +526,7 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title="I Santi di Oggi" icon={Sparkles} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Sparkles} isDark={isDark}>
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
                 <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
@@ -433,13 +539,13 @@ export default function Home() {
           </Card>
 
           {opera && (
-            <Card title="Opera del Giorno" icon={Palette} isDark={isDark} className="md:col-span-2 overflow-hidden">
+            <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="md:col-span-2 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                 <div className="space-y-5 order-2 md:order-1">
                   <div>
                     <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
                     <p className="text-xl font-medium">
-                      di <span className="font-bold">{opera.artista}</span>
+                      {lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>
                       {opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}
                     </p>
                   </div>
@@ -449,13 +555,10 @@ export default function Home() {
                     </p>
                   )}
                   <div className="flex flex-wrap items-center gap-4 pt-2">
-                    <a
-                      href={opera.met_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer"
                       className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}
                     >
-                      Vedi al museo
+                      {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
@@ -464,19 +567,17 @@ export default function Home() {
                   <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
                     <img
                       src={opera.immagine_url_hd || opera.immagine_url}
-                      alt={`${opera.titolo} di ${opera.artista}`}
+                      alt={`${opera.titolo} by ${opera.artista}`}
                       className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`}
                     />
                   </a>
-                  <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>
-                    {opera.museo}
-                  </p>
+                  <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                 </div>
               </div>
             </Card>
           )}
 
-          <Card title="Accadde Oggi" icon={CalendarDays} isDark={isDark} className="md:col-span-2">
+          <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2">
             <ul className="space-y-4">
               {data.avvenimenti.map((evento, idx) => {
                 const parts = evento.split(':');
@@ -485,13 +586,8 @@ export default function Home() {
                     <span className="text-[#DE6B58] font-bold">•</span>
                     <span>
                       {parts.length > 1 ? (
-                        <>
-                          <strong className="font-bold">{parts[0]}:</strong>
-                          {parts.slice(1).join(':')}
-                        </>
-                      ) : (
-                        evento
-                      )}
+                        <><strong className="font-bold">{parts[0]}:</strong>{parts.slice(1).join(':')}</>
+                      ) : evento}
                     </span>
                   </li>
                 );
@@ -499,7 +595,7 @@ export default function Home() {
             </ul>
           </Card>
 
-          <Card title="Poesia del giorno" icon={Feather} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Poesia del giorno' : "Poem of the Day"} icon={Feather} isDark={isDark}>
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
               {data.poesia.testo}
             </div>
@@ -509,13 +605,15 @@ export default function Home() {
             </div>
             {data.poesia.nota && (
               <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
-                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">Perché questa scelta</span>
+                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">
+                  {lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}
+                </span>
                 {data.poesia.nota}
               </div>
             )}
           </Card>
 
-          <Card title="Passaggio biblico del giorno" icon={BookOpen} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}>
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
               {data.bibbia.testo}
             </div>
@@ -524,69 +622,58 @@ export default function Home() {
             </div>
             {data.bibbia.nota && (
               <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
-                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">Il senso del passaggio</span>
+                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">
+                  {lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}
+                </span>
                 {data.bibbia.nota}
               </div>
             )}
           </Card>
 
-          <Card title="Consiglio Musicale" icon={Music} isDark={isDark} className="md:col-span-2 text-center">
+          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center">
             <div className="max-w-2xl mx-auto">
               <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
-              <p className="text-xl font-medium mb-2">di <span className="font-bold">{data.musica.autore}</span></p>
+              <p className="text-xl font-medium mb-2">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{data.musica.autore}</span></p>
               <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
-              <p className="text-xl font-medium leading-relaxed mb-8">
-                {data.musica.motivo}
-              </p>
+              <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
               <div className="flex flex-wrap items-center justify-center gap-4">
-                <a 
+                <a
                   href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
                   className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
                 >
-                  Ascolta su Spotify
+                  {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
                 </a>
-                <a 
+                <a
                   href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
                   className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
                 >
-                  Ascolta su YouTube
+                  {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
                 </a>
               </div>
             </div>
           </Card>
 
         </div>
-        
+
         <footer className={`text-center pt-16 pb-8 ${themeClasses.textMuted} font-medium`}>
           <div className="flex flex-col items-center justify-center gap-6">
             <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
             <div className="flex items-center justify-center gap-6">
-              <a 
-                href="https://x.com/antonello23" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer"
                 className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
                 aria-label="X (Twitter)"
               >
                 <XIcon className="w-5 h-5" />
               </a>
-              <a 
-                href="https://www.instagram.com/antonelloan23/" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer"
                 className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
                 aria-label="Instagram"
               >
                 <InstagramIcon className="w-5 h-5" />
               </a>
-              <a 
-                href="https://buymeacoffee.com/antonello23" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer"
                 className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
                 aria-label="Buy Me a Coffee"
               >
