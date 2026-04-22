@@ -1,14 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    const oggi = new Date();
-    const dataIso = oggi.toISOString().split('T')[0];
+    const { searchParams } = new URL(request.url);
+    const dataParam = searchParams.get('data');
+
+    let dataIso: string;
+    if (dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)) {
+      dataIso = dataParam;
+    } else {
+      const oggi = new Date();
+      dataIso = oggi.toISOString().split('T')[0];
+    }
 
     const { data, error } = await supabase
       .from('contenuti_giornalieri')
@@ -17,7 +25,7 @@ export async function GET() {
       .single();
 
     if (error || !data) {
-      return NextResponse.json({ error: 'Nessun contenuto per oggi' }, { status: 404 });
+      return NextResponse.json({ error: 'Nessun contenuto per questa data' }, { status: 404 });
     }
 
     return NextResponse.json(data);
