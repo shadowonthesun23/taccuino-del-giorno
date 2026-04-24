@@ -428,11 +428,17 @@ export default function Home() {
       // transform rimosso
     }}
   >
-      <img ... />
-      <div className="photo-tape" />
-    </div>
-  </div>
-)}
+  <img
+  src={data.foto_autore_url}
+  alt={data.autore_giorno}
+  style={{
+    display: 'block',
+    width: '140px',
+    height: '180px',
+    objectFit: 'cover',
+    filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+  }}
+/>
             
             {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
