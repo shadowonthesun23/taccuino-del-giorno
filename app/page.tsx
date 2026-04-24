@@ -418,19 +418,16 @@ export default function Home() {
            
         {/* Diapositiva fotografica */}
            {data.foto_autore_url && (
+  <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
   <div
-    className="flex-shrink-0 relative"
-    style={{ width: '160px', transform: 'rotate(-2.5deg)' }}  {/* ← rotazione spostata qui */}
+    className="relative photo-paper-shadow"
+    style={{
+      background: themeClasses.photoBg,
+      border: `1px solid ${themeClasses.photoBorder}`,
+      padding: '10px 10px 28px 10px',
+      // transform rimosso
+    }}
   >
-    <div
-      className="relative photo-paper-shadow"
-      style={{
-        background: themeClasses.photoBg,
-        border: `1px solid ${themeClasses.photoBorder}`,
-        padding: '10px 10px 28px 10px',
-        // ← transform rimosso da qui
-      }}
-    >
       <img ... />
       <div className="photo-tape" />
     </div>
