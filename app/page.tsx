@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
-import { BookOpen, Quote, File-type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -472,7 +472,7 @@ export default function Home() {
             </blockquote>
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={File-type} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}>
             <div className="text-center mb-6">
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
               <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
