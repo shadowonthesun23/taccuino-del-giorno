@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -483,7 +483,7 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Sparkles} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark}>
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
                 <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
