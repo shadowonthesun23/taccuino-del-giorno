@@ -416,12 +416,11 @@ export default function Home() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
 
            
-         {/* Diapositiva fotografica */}
+        {/* Diapositiva fotografica */}
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
-                {/* Cornice stampa fotografica */}
                 <div
-                  className="relative photo-paper-shadow bg-white"
+                  className="relative photo-paper-shadow"
                   style={{
                     background: themeClasses.photoBg,
                     border: `1px solid ${themeClasses.photoBorder}`,
@@ -440,11 +439,11 @@ export default function Home() {
                       filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
                     }}
                   />
-                  {/* Nastro masking tape diagonale — angolo inferiore sinistro */}
                   <div className="photo-tape" />
                 </div>
               </div>
             )}
+            
             {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
               <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
