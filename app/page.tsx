@@ -16,7 +16,7 @@ const caveat = Caveat({
   display: 'swap',
 });
 
-const paperTexture = `url("/tua-texture.png")`; // Usa lo stesso file
+const paperTexture = `url("/beige-paper.png")`; // Usa lo stesso file
 
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -270,11 +270,11 @@ export default function Home() {
     <div 
   className="absolute inset-0 pointer-events-none" 
   style={{ 
-    backgroundImage: `url("/tua-texture.png")`,
+    backgroundImage: `url("/beige-paper.png")`,
     filter: isDark ? 'invert(1) opacity(0.2)' : 'opacity(0.4)', // Inverti e abbassa l'opacità nel dark
     mixBlendMode: isDark ? 'overlay' : 'multiply' // Opzionale: migliora la fusione
   }}
-</div>
+></div>
   );
 
   if (error) return (
