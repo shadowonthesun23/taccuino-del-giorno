@@ -47,12 +47,7 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
   const color = isDark ? '#7a5c38' : '#b5956a';
   return (
     <div aria-hidden="true" className="w-full flex justify-center my-2 pointer-events-none select-none">
-      <svg
-        viewBox="0 0 800 36"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-full max-w-2xl"
-        style={{ height: '36px', display: 'block' }}
-      >
+      <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-2xl" style={{ height: '36px', display: 'block' }}>
         <defs>
           <filter id="wc-blur" x="-10%" y="-60%" width="120%" height="220%">
             <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
@@ -65,33 +60,9 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
             <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
-        <path
-          d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18"
-          fill="none"
-          stroke={color}
-          strokeWidth="7"
-          strokeLinecap="round"
-          opacity="0.55"
-          filter="url(#wc-blur)"
-        />
-        <path
-          d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16"
-          fill="none"
-          stroke={color}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          opacity="0.3"
-          filter="url(#wc-edge)"
-        />
-        <path
-          d="M 100 22 Q 250 28 400 21 Q 550 14 700 23"
-          fill="none"
-          stroke={color}
-          strokeWidth="3"
-          strokeLinecap="round"
-          opacity="0.18"
-          filter="url(#wc-blur)"
-        />
+        <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#wc-blur)" />
+        <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#wc-edge)" />
+        <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#wc-blur)" />
       </svg>
     </div>
   );
@@ -133,26 +104,13 @@ interface ArchivioItem {
 
 function estraiTesti(d: DatiTaccuino): string[] {
   return [
-    d.autore_giorno,
-    d.breve_descrizione,
-    d.citazione.testo,
-    d.citazione.fonte,
-    d.parola_giorno.parola,
-    d.parola_giorno.etimologia,
-    d.parola_giorno.definizione,
-    d.parola_giorno.esempio,
-    d.parola_giorno.nota,
+    d.autore_giorno, d.breve_descrizione, d.citazione.testo, d.citazione.fonte,
+    d.parola_giorno.parola, d.parola_giorno.etimologia, d.parola_giorno.definizione,
+    d.parola_giorno.esempio, d.parola_giorno.nota,
     ...d.santi.flatMap(s => [s.nome, s.ruolo, s.anni, s.biografia]),
-    d.bibbia.testo,
-    d.bibbia.nota,
-    d.poesia.testo,
-    d.poesia.autore,
-    d.poesia.fonte,
-    d.poesia.nota,
-    d.musica.brano,
-    d.musica.autore,
-    d.musica.genere,
-    d.musica.motivo,
+    d.bibbia.testo, d.bibbia.nota,
+    d.poesia.testo, d.poesia.autore, d.poesia.fonte, d.poesia.nota,
+    d.musica.brano, d.musica.autore, d.musica.genere, d.musica.motivo,
     ...d.avvenimenti,
   ];
 }
@@ -161,24 +119,14 @@ function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTa
   const flat = traduzioni;
   let i = 9;
   const t = () => flat[i++] ?? '';
-  const santiTradotti = originale.santi.map(() => ({
-    nome: t(), ruolo: t(), anni: t(), biografia: t(),
-  }));
+  const santiTradotti = originale.santi.map(() => ({ nome: t(), ruolo: t(), anni: t(), biografia: t() }));
   let j = 9 + originale.santi.length * 4;
   const tf = () => flat[j++] ?? '';
   return {
     ...originale,
-    autore_giorno: flat[0],
-    breve_descrizione: flat[1],
+    autore_giorno: flat[0], breve_descrizione: flat[1],
     citazione: { ...originale.citazione, testo: flat[2], fonte: flat[3] },
-    parola_giorno: {
-      ...originale.parola_giorno,
-      parola: flat[4],
-      etimologia: flat[5],
-      definizione: flat[6],
-      esempio: flat[7] && flat[7] !== 'null' ? flat[7] : '',
-      nota: flat[8],
-    },
+    parola_giorno: { ...originale.parola_giorno, parola: flat[4], etimologia: flat[5], definizione: flat[6], esempio: flat[7] && flat[7] !== 'null' ? flat[7] : '', nota: flat[8] },
     santi: santiTradotti,
     bibbia: { ...originale.bibbia, testo: tf(), nota: tf() },
     poesia: { ...originale.poesia, testo: tf(), autore: tf(), fonte: tf(), nota: tf() },
@@ -191,13 +139,9 @@ const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: 
   <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 card-paper-shadow ${className}`}>
     <div className="flex items-center justify-center gap-2 mb-6">
       {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
-      <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">
-        {title}
-      </h3>
+      <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">{title}</h3>
     </div>
-    <div className={isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'}>
-      {children}
-    </div>
+    <div className={isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'}>{children}</div>
   </section>
 );
 
@@ -244,104 +188,52 @@ export default function Home() {
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
     if (!el) return;
-    const hasScroll = el.scrollHeight > el.clientHeight + 4;
-    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
-    setArchivioHasScroll(hasScroll);
-    setArchivioAtBottom(atBottom);
+    setArchivioHasScroll(el.scrollHeight > el.clientHeight + 4);
+    setArchivioAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 8);
   }, []);
 
-  useEffect(() => {
-    if (popoverOpen) {
-      setTimeout(checkArchivioScroll, 50);
-    }
-  }, [popoverOpen, archivio, checkArchivioScroll]);
+  useEffect(() => { if (popoverOpen) setTimeout(checkArchivioScroll, 50); }, [popoverOpen, archivio, checkArchivioScroll]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node) &&
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target as Node)
-      ) {
-        setPopoverOpen(false);
-      }
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node) && triggerRef.current && !triggerRef.current.contains(e.target as Node)) setPopoverOpen(false);
     }
     if (popoverOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen]);
 
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setPopoverOpen(false);
-    }
+    function handleKeyDown(e: KeyboardEvent) { if (e.key === 'Escape') setPopoverOpen(false); }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true);
-    setError(null);
-    setPopoverOpen(false);
-    setLingua('IT');
-    setDataTradotta(null);
-    setErroreTraduzioni(null);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
-      fetch(url).then(res => {
-        if (!res.ok) throw new Error('Nessun contenuto per questa data.');
-        return res.json();
-      }),
-      fetch('/api/opera')
-        .then(res => (res.ok ? res.json() : null))
-        .catch(() => null),
+      fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
+      fetch('/api/opera').then(res => (res.ok ? res.json() : null)).catch(() => null),
     ])
-      .then(([dati, operaData]) => {
-        setData(dati);
-        setDataOriginale(dati);
-        setOpera(operaData);
-        setDataSelezionata(dataIso);
-        setLoading(false);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+      .then(([dati, operaData]) => { setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); window.scrollTo({ top: 0, behavior: 'smooth' }); })
+      .catch(err => { setError(err.message); setLoading(false); });
   };
 
   const toggleLingua = useCallback(async () => {
-    if (lingua === 'EN') {
-      setLingua('IT');
-      setData(dataOriginale);
-      return;
-    }
-    if (dataTradotta) {
-      setLingua('EN');
-      setData(dataTradotta);
-      return;
-    }
+    if (lingua === 'EN') { setLingua('IT'); setData(dataOriginale); return; }
+    if (dataTradotta) { setLingua('EN'); setData(dataTradotta); return; }
     if (!dataOriginale) return;
-    setTraducendo(true);
-    setErroreTraduzioni(null);
+    setTraducendo(true); setErroreTraduzioni(null);
     try {
       const testi = estraiTesti(dataOriginale);
-      const res = await fetch('/api/traduci', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ testi, targetLang: 'EN' }),
-      });
+      const res = await fetch('/api/traduci', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testi, targetLang: 'EN' }) });
       if (!res.ok) throw new Error('Errore nella traduzione.');
       const { traduzioni } = await res.json();
       const tradotta = ricostruisciDati(dataOriginale, traduzioni);
-      setDataTradotta(tradotta);
-      setData(tradotta);
-      setLingua('EN');
+      setDataTradotta(tradotta); setData(tradotta); setLingua('EN');
     } catch (e: any) {
       setErroreTraduzioni(e.message ?? 'Traduzione non disponibile.');
-    } finally {
-      setTraducendo(false);
-    }
+    } finally { setTraducendo(false); }
   }, [lingua, dataOriginale, dataTradotta]);
 
   useEffect(() => {
@@ -351,16 +243,10 @@ export default function Home() {
       setIsDark(savedTheme === 'dark' || (!savedTheme && isSystemDark));
     }
     caricaGiorno(null);
-    fetch('/api/archivio')
-      .then(res => res.ok ? res.json() : [])
-      .then(setArchivio)
-      .catch(() => setArchivio([]));
+    fetch('/api/archivio').then(res => res.ok ? res.json() : []).then(setArchivio).catch(() => setArchivio([]));
   }, []);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    localStorage.setItem('theme', !isDark ? 'dark' : 'light');
-  };
+  const toggleTheme = () => { setIsDark(!isDark); localStorage.setItem('theme', !isDark ? 'dark' : 'light'); };
 
   const themeClasses = {
     bg: isDark ? 'bg-[#1E1E1E]' : 'bg-[#F4F0E6]',
@@ -374,9 +260,9 @@ export default function Home() {
     popoverBorder: isDark ? 'border-[#3D3D3D]/70' : 'border-[#D4CABC]/80',
     popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
     popoverArrowStroke: isDark ? '#3D3D3D' : '#D4CABC',
-    fadeGradient: isDark
-      ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)'
-      : 'linear-gradient(to bottom, transparent 0%, #F7F4EE 100%)',
+    fadeGradient: isDark ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)' : 'linear-gradient(to bottom, transparent 0%, #F7F4EE 100%)',
+    photoBg: isDark ? '#2A2A2A' : '#FDFCF8',
+    photoBorder: isDark ? '#3D3D3D' : '#EBE5DB',
   };
 
   const groupedArchivio = groupByMonth(archivio);
@@ -395,12 +281,8 @@ export default function Home() {
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
-          <button
-            onClick={() => setPopoverOpen(true)}
-            className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
-          >
-            <CalendarDays className="w-4 h-4" />
-            Vedi giorni precedenti
+          <button onClick={() => setPopoverOpen(true)} className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors">
+            <CalendarDays className="w-4 h-4" />Vedi giorni precedenti
           </button>
         )}
       </div>
@@ -414,89 +296,47 @@ export default function Home() {
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
 
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
-        <header className={`text-center space-y-6 pb-8 relative`}>
 
+        {/* Header */}
+        <header className="text-center space-y-6 pb-8 relative">
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
-            <button
-              onClick={toggleLingua}
-              disabled={traducendo}
-              title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+            <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
-                lingua === 'EN'
-                  ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/8'
-                  : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-              aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-            >
-              {traducendo
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <Languages className="w-3.5 h-3.5" />
-              }
+                lingua === 'EN' ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/8' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
+              } disabled:opacity-50 disabled:cursor-not-allowed`} aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}>
+              {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
               <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
             </button>
 
             {archivio.length > 0 && (
               <div className="relative">
-                <button
-                  ref={triggerRef}
-                  onClick={() => setPopoverOpen(v => !v)}
+                <button ref={triggerRef} onClick={() => setPopoverOpen(v => !v)}
                   className={`p-2 rounded-full border ${
-                    popoverOpen
-                      ? 'border-[#DE6B58] text-[#DE6B58]'
-                      : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
-                  } transition-colors`}
-                  aria-label="Archivio"
-                  aria-expanded={popoverOpen}
-                  aria-haspopup="true"
-                >
+                    popoverOpen ? 'border-[#DE6B58] text-[#DE6B58]' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
+                  } transition-colors`} aria-label="Archivio" aria-expanded={popoverOpen} aria-haspopup="true">
                   <CalendarDays className="w-5 h-5" />
                 </button>
 
-                <div
-                  ref={popoverRef}
-                  role="dialog"
-                  aria-label="Archivio dei giorni"
+                <div ref={popoverRef} role="dialog" aria-label="Archivio dei giorni"
                   className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(100%+10px)] md:right-0 md:w-80 md:translate-x-0 z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
-                  style={{
-                    transformOrigin: 'top right',
-                    transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
-                    opacity: popoverOpen ? 1 : 0,
-                    transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
-                    pointerEvents: popoverOpen ? 'auto' : 'none',
-                    maxHeight: '380px',
-                    height: 'auto',
-                  }}
-                >
+                  style={{ transformOrigin: 'top right', transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)', opacity: popoverOpen ? 1 : 0, transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)', pointerEvents: popoverOpen ? 'auto' : 'none', maxHeight: '380px', height: 'auto' }}>
                   <svg width="20" height="10" viewBox="0 0 20 10" className="hidden md:block absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
                     <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
                   </svg>
-
                   <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
                       <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
                     </div>
-                    <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio">
-                      <X className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio"><X className="w-4 h-4" /></button>
                   </div>
-
                   {dataSelezionata && dataSelezionata !== oggi && (
                     <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-                      <button onClick={() => caricaGiorno(null)} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium">
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                        Torna a oggi
-                      </button>
+                      <button onClick={() => caricaGiorno(null)} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"><ChevronLeft className="w-3.5 h-3.5" />Torna a oggi</button>
                     </div>
                   )}
-
                   <div className="relative flex-1 min-h-0">
-                    <div
-                      ref={archivioScrollRef}
-                      onScroll={checkArchivioScroll}
-                      className="overflow-y-auto h-full px-3 py-3"
-                      style={{ maxHeight: '300px' }}
-                    >
+                    <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
                       {archivio.length === 0 ? (
                         <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
                       ) : (
@@ -509,18 +349,14 @@ export default function Home() {
                                 const isSelezionato = item.data === dataSelezionata;
                                 return (
                                   <li key={item.data}>
-                                    <button
-                                      onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
+                                    <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
                                       className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
                                         isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
-                                      }`}
-                                    >
+                                      }`}>
                                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
                                       <span className="flex-1 min-w-0">
                                         <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
-                                        <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
-                                          {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
-                                        </span>
+                                        <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>{formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}</span>
                                       </span>
                                     </button>
                                   </li>
@@ -531,32 +367,21 @@ export default function Home() {
                         ))
                       )}
                     </div>
-
                     {archivioHasScroll && !archivioAtBottom && (
-                      <div
-                        aria-hidden="true"
-                        className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 rounded-b-2xl"
-                        style={{ background: themeClasses.fadeGradient }}
-                      />
+                      <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 rounded-b-2xl" style={{ background: themeClasses.fadeGradient }} />
                     )}
                   </div>
                 </div>
               </div>
             )}
 
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
-              aria-label="Cambia tema"
-            >
+            <button onClick={toggleTheme} className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`} aria-label="Cambia tema">
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
           </div>
 
           <div className="flex justify-center mb-6 mt-2">
-            <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
-              {data.data_odierna}
-            </div>
+            <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>{data.data_odierna}</div>
           </div>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
             {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
@@ -564,45 +389,57 @@ export default function Home() {
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
             {lingua === 'IT'
               ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, generata automaticamente."'
-              : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, automatically generated."'
-            }
+              : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, automatically generated."'}
           </p>
-          {erroreTraduzioni && (
-            <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>
-          )}
-
+          {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
           <WatercolorDivider isDark={isDark} />
         </header>
 
-        {/* Sezione Autore del Giorno con ritratto in trasparenza */}
-        <section className="relative text-center space-y-4 pb-8 overflow-hidden">
-          {data.foto_autore_url && (
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 pointer-events-none select-none flex items-center justify-center"
-            >
-              <img
-                src={data.foto_autore_url}
-                alt=""
-                className="h-full max-h-80 w-auto object-contain"
-                style={{
-                  filter: 'grayscale(100%) contrast(70%) brightness(1.5)',
-                  opacity: isDark ? 0.06 : 0.09,
-                  mixBlendMode: isDark ? 'screen' : 'multiply',
-                }}
-              />
+        {/* Sezione Autore del Giorno */}
+        <section className="pb-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
+
+            {/* Diapositiva fotografica */}
+            {data.foto_autore_url && (
+              <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
+                {/* Cornice stampa fotografica */}
+                <div
+                  className="relative"
+                  style={{
+                    background: themeClasses.photoBg,
+                    border: `1px solid ${themeClasses.photoBorder}`,
+                    padding: '10px 10px 28px 10px',
+                    boxShadow: '0 4px 16px -2px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.08)',
+                    transform: 'rotate(-2.5deg)',
+                  }}
+                >
+                  <img
+                    src={data.foto_autore_url}
+                    alt={data.autore_giorno}
+                    style={{
+                      display: 'block',
+                      width: '140px',
+                      height: '180px',
+                      objectFit: 'cover',
+                      filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+                    }}
+                  />
+                  {/* Nastro masking tape diagonale — angolo inferiore sinistro */}
+                  <div className="photo-tape" />
+                </div>
+              </div>
+            )}
+
+            {/* Testo autore */}
+            <div className={`flex-1 text-center md:text-left ${data.foto_autore_url ? 'md:pt-4' : ''}`}>
+              <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
+                {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
+              <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
+                {data.breve_descrizione}
+              </p>
             </div>
-          )}
-          <div className="relative z-10">
-            <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
-              {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-6">
-              {data.autore_giorno}
-            </h2>
-            <p className={`text-xl md:text-2xl leading-relaxed max-w-2xl mx-auto font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
-              {data.breve_descrizione}
-            </p>
           </div>
         </section>
 
@@ -610,9 +447,7 @@ export default function Home() {
 
           <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
             <blockquote className="md:px-8">
-              <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">
-                {data.citazione.testo}
-              </p>
+              <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
               <footer className="text-right text-lg clear-both pt-2">
                 <span className="font-bold">{data.citazione.autore}</span>
                 <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
@@ -625,13 +460,9 @@ export default function Home() {
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
               <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
             </div>
-            <p className="text-xl font-medium mb-4">
-              <strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}
-            </p>
+            <p className="text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
             {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
-              <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>
-                &quot;{data.parola_giorno.esempio}&quot;
-              </p>
+              <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
             )}
           </Card>
 
@@ -649,42 +480,23 @@ export default function Home() {
 
           {opera && (
             <div className="md:col-span-2 notched-card-wrapper">
-              <Card
-                title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'}
-                icon={Palette}
-                isDark={isDark}
-                className="notched-card"
-              >
+              <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
                 <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                   <div className="space-y-5 order-2 md:order-1">
                     <div>
                       <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
-                      <p className="text-xl font-medium">
-                        {lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>
-                        {opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}
-                      </p>
+                      <p className="text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
-                    {(opera.medium || opera.dipartimento) && (
-                      <p className={`text-lg ${themeClasses.textMuted} italic`}>
-                        {[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
+                    {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
                     <div className="flex flex-wrap items-center gap-4 pt-2">
-                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer"
-                        className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}
-                      >
-                        {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}
-                        <ExternalLink className="w-4 h-4" />
+                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
+                        {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   </div>
                   <div className="order-1 md:order-2">
                     <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
-                      <img
-                        src={opera.immagine_url_hd || opera.immagine_url}
-                        alt={`${opera.titolo} by ${opera.artista}`}
-                        className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`}
-                      />
+                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
                     </a>
                     <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>
@@ -700,47 +512,35 @@ export default function Home() {
                 return (
                   <li key={idx} className="flex gap-4 text-xl font-medium leading-relaxed">
                     <span className="text-[#DE6B58] font-bold">•</span>
-                    <span>
-                      {parts.length > 1 ? (
-                        <><strong className="font-bold">{parts[0]}:</strong>{parts.slice(1).join(':')}</>
-                      ) : evento}
-                    </span>
+                    <span>{parts.length > 1 ? (<><strong className="font-bold">{parts[0]}:</strong>{parts.slice(1).join(':')}</>) : evento}</span>
                   </li>
                 );
               })}
             </ul>
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Poesia del giorno' : "Poem of the Day"} icon={Feather} isDark={isDark}>
-            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">
-              {data.poesia.testo}
-            </div>
+          <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">{data.poesia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
               <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
             </div>
             {data.poesia.nota && (
               <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
-                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">
-                  {lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}
-                </span>
+                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
                 {data.poesia.nota}
               </div>
             )}
           </Card>
 
           <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}>
-            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">
-              {data.bibbia.testo}
-            </div>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
             </div>
             {data.bibbia.nota && (
               <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
-                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">
-                  {lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}
-                </span>
+                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
                 {data.bibbia.nota}
               </div>
             )}
@@ -753,18 +553,12 @@ export default function Home() {
               <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
               <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
               <div className="flex flex-wrap items-center justify-center gap-4">
-                <a
-                  href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
-                >
+                <a href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
+                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
                   {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
                 </a>
-                <a
-                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
-                >
+                <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
+                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
                   {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
                 </a>
               </div>
@@ -777,27 +571,13 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center gap-6">
             <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
             <div className="flex items-center justify-center gap-6">
-              <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer"
-                className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
-                aria-label="X (Twitter)"
-              >
-                <XIcon className="w-5 h-5" />
-              </a>
-              <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer"
-                className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
-                aria-label="Instagram"
-              >
-                <InstagramIcon className="w-5 h-5" />
-              </a>
-              <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer"
-                className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`}
-                aria-label="Buy Me a Coffee"
-              >
-                <CoffeeIcon className="w-5 h-5" />
-              </a>
+              <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="X (Twitter)"><XIcon className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Instagram"><InstagramIcon className="w-5 h-5" /></a>
+              <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Buy Me a Coffee"><CoffeeIcon className="w-5 h-5" /></a>
             </div>
           </div>
         </footer>
+
       </main>
     </div>
   );
