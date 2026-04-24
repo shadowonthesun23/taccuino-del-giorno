@@ -16,8 +16,7 @@ const caveat = Caveat({
   display: 'swap',
 });
 
-const paperTextureLight = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E")`;
-const paperTextureDark = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E")`;
+const paperTexture = `url("/tua-texture.png")`; // Usa lo stesso file
 
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -268,10 +267,14 @@ export default function Home() {
   const groupedArchivio = groupByMonth(archivio);
 
   if (loading) return (
-    <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} relative transition-colors duration-300`}>
-      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: themeClasses.texture }}></div>
-      <div className="text-[#DE6B58] text-xl animate-pulse tracking-widest font-bold uppercase relative z-10">Apertura del taccuino...</div>
-    </div>
+    <div 
+  className="absolute inset-0 pointer-events-none" 
+  style={{ 
+    backgroundImage: `url("/tua-texture.png")`,
+    filter: isDark ? 'invert(1) opacity(0.2)' : 'opacity(0.4)', // Inverti e abbassa l'opacità nel dark
+    mixBlendMode: isDark ? 'overlay' : 'multiply' // Opzionale: migliora la fusione
+  }}
+</div>
   );
 
   if (error) return (
