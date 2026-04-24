@@ -182,10 +182,30 @@ export default function Home() {
   const [lingua, setLingua] = useState<'IT' | 'EN'>('IT');
   const [traducendo, setTraducendo] = useState(false);
   const [erroreTraduzioni, setErroreTraduzioni] = useState<string | null>(null);
+  const [archivioHasScroll, setArchivioHasScroll] = useState(false);
+  const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const archivioScrollRef = useRef<HTMLDivElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
+
+  // Controlla se la lista archivio è scrollabile e se siamo in fondo
+  const checkArchivioScroll = useCallback(() => {
+    const el = archivioScrollRef.current;
+    if (!el) return;
+    const hasScroll = el.scrollHeight > el.clientHeight + 4;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+    setArchivioHasScroll(hasScroll);
+    setArchivioAtBottom(atBottom);
+  }, []);
+
+  useEffect(() => {
+    if (popoverOpen) {
+      // Piccolo delay per attendere il render del contenuto
+      setTimeout(checkArchivioScroll, 50);
+    }
+  }, [popoverOpen, archivio, checkArchivioScroll]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -309,6 +329,9 @@ export default function Home() {
     popoverBorder: isDark ? 'border-[#3D3D3D]/70' : 'border-[#D4CABC]/80',
     popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
     popoverArrowStroke: isDark ? '#3D3D3D' : '#D4CABC',
+    fadeGradient: isDark
+      ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)'
+      : 'linear-gradient(to bottom, transparent 0%, #F7F4EE 100%)',
   };
 
   const groupedArchivio = groupByMonth(archivio);
@@ -388,7 +411,7 @@ export default function Home() {
                   <CalendarDays className="w-5 h-5" />
                 </button>
 
-                {/* Popover floating */}
+                {/* Popover floating — altezza fissa, non supera mai 380px */}
                 <div
                   ref={popoverRef}
                   role="dialog"
@@ -400,7 +423,18 @@ export default function Home() {
                     transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
                     pointerEvents: popoverOpen ? 'auto' : 'none',
                   }}
-className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(100%+10px)] md:right-0 md:w-80 md:translate-x-0 z-50 max-h-[70vh] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}                >
+                  className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(100%+10px)] md:right-0 md:w-80 md:translate-x-0 z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
+                  style={{
+                    transformOrigin: 'top right',
+                    transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
+                    opacity: popoverOpen ? 1 : 0,
+                    transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
+                    pointerEvents: popoverOpen ? 'auto' : 'none',
+                    /* Altezza massima fissa: uguale su mobile e desktop */
+                    maxHeight: '380px',
+                    height: 'auto',
+                  }}
+                >
                   <svg width="20" height="10" viewBox="0 0 20 10" className="hidden md:block absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
                     <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
                   </svg>
@@ -424,39 +458,56 @@ className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(10
                     </div>
                   )}
 
-                  <div className="overflow-y-auto flex-1 px-3 py-3">
-                    {archivio.length === 0 ? (
-                      <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
-                    ) : (
-                      Object.entries(groupedArchivio).map(([mese, items]) => (
-                        <div key={mese} className="mb-4">
-                          <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
-                          <ul className="space-y-0.5">
-                            {items.map(item => {
-                              const isOggi = item.data === oggi;
-                              const isSelezionato = item.data === dataSelezionata;
-                              return (
-                                <li key={item.data}>
-                                  <button
-                                    onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
-                                    className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
-                                      isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
-                                    }`}
-                                  >
-                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
-                                    <span className="flex-1 min-w-0">
-                                      <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
-                                      <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
-                                        {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
+                  {/* Contenitore scrollabile con fade-out in basso */}
+                  <div className="relative flex-1 min-h-0">
+                    <div
+                      ref={archivioScrollRef}
+                      onScroll={checkArchivioScroll}
+                      className="overflow-y-auto h-full px-3 py-3"
+                      style={{ maxHeight: '300px' }}
+                    >
+                      {archivio.length === 0 ? (
+                        <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
+                      ) : (
+                        Object.entries(groupedArchivio).map(([mese, items]) => (
+                          <div key={mese} className="mb-4">
+                            <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
+                            <ul className="space-y-0.5">
+                              {items.map(item => {
+                                const isOggi = item.data === oggi;
+                                const isSelezionato = item.data === dataSelezionata;
+                                return (
+                                  <li key={item.data}>
+                                    <button
+                                      onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
+                                      className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
+                                        isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
+                                      }`}
+                                    >
+                                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
+                                      <span className="flex-1 min-w-0">
+                                        <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
+                                        <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>
+                                          {formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}
+                                        </span>
                                       </span>
-                                    </span>
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      ))
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Fade-out in basso: visibile solo se c'è contenuto oltre e non siamo già in fondo */}
+                    {archivioHasScroll && !archivioAtBottom && (
+                      <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 rounded-b-2xl"
+                        style={{ background: themeClasses.fadeGradient }}
+                      />
                     )}
                   </div>
                 </div>
@@ -582,7 +633,6 @@ className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(10
                       <img
                         src={opera.immagine_url_hd || opera.immagine_url}
                         alt={`${opera.titolo} by ${opera.artista}`}
-                        /* NOTA: Rimosso overflow-hidden da eventuali wrapper precedenti */
                         className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`}
                       />
                     </a>
