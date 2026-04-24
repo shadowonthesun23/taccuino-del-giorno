@@ -167,15 +167,41 @@ body {
   pointer-events: none;
 }
 /* Animazione interattiva per la cornice fotografica */
-.photo-frame {
-  box-shadow: 0 4px 16px -2px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.08);
-  transform: rotate(-2.5deg);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  z-index: 10;
+.photo-paper-shadow {
+  position: relative;
 }
 
-.photo-frame:hover {
-  transform: rotate(-1deg) translateY(-6px) scale(1.02);
-  box-shadow: 0 14px 28px -4px rgba(0,0,0,0.25), 0 6px 12px rgba(0,0,0,0.15);
-  z-index: 20;
+.photo-paper-shadow::before,
+.photo-paper-shadow::after {
+  content: '';
+  position: absolute;
+  bottom: 8px; /* Regolato sul padding inferiore di 28px */
+  width: 42%;
+  height: 10px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+  z-index: -1;
+  transition: all 0.3s ease-in-out;
+}
+
+.photo-paper-shadow::before {
+  left: 12px;
+  transform: skew(-6deg) rotate(-4deg);
+}
+
+.photo-paper-shadow::after {
+  right: 12px;
+  transform: skew(6deg) rotate(4deg);
+}
+
+.photo-paper-shadow:hover::before,
+.photo-paper-shadow:hover::after {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.photo-paper-shadow:hover::before {
+  left: 8px;
+}
+
+.photo-paper-shadow:hover::after {
+  right: 8px;
 }
