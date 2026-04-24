@@ -483,7 +483,7 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Sparkles} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={church} isDark={isDark}>
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
                 <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
