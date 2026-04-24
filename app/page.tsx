@@ -65,7 +65,6 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
             <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
-        {/* Pennellata principale */}
         <path
           d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18"
           fill="none"
@@ -75,7 +74,6 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
           opacity="0.55"
           filter="url(#wc-blur)"
         />
-        {/* Pennellata sottile sopra */}
         <path
           d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16"
           fill="none"
@@ -85,7 +83,6 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
           opacity="0.3"
           filter="url(#wc-edge)"
         />
-        {/* Tratto di "sbavatura" acquerello */}
         <path
           d="M 100 22 Q 250 28 400 21 Q 550 14 700 23"
           fill="none"
@@ -133,19 +130,18 @@ interface ArchivioItem {
   autore_giorno: string;
 }
 
-// Estrae tutti i testi traducibili dal DatiTaccuino in un array flat
 function estraiTesti(d: DatiTaccuino): string[] {
   return [
-    d.autore_giorno,                          // 0
-    d.breve_descrizione,                      // 1
-    d.citazione.testo,                        // 2
-    d.citazione.fonte,                        // 3
-    d.parola_giorno.parola,                   // 4
-    d.parola_giorno.etimologia,               // 5
-    d.parola_giorno.definizione,              // 6
-    d.parola_giorno.esempio,                  // 7
-    d.parola_giorno.nota,                     // 8
-    ...d.santi.flatMap(s => [s.nome, s.ruolo, s.anni, s.biografia]), // 9+
+    d.autore_giorno,
+    d.breve_descrizione,
+    d.citazione.testo,
+    d.citazione.fonte,
+    d.parola_giorno.parola,
+    d.parola_giorno.etimologia,
+    d.parola_giorno.definizione,
+    d.parola_giorno.esempio,
+    d.parola_giorno.nota,
+    ...d.santi.flatMap(s => [s.nome, s.ruolo, s.anni, s.biografia]),
     d.bibbia.testo,
     d.bibbia.nota,
     d.poesia.testo,
@@ -160,16 +156,13 @@ function estraiTesti(d: DatiTaccuino): string[] {
   ];
 }
 
-// Ricostruisce un DatiTaccuino traducibile dai testi flat
 function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTaccuino {
   const flat = traduzioni;
-  // I santi iniziano all'indice 9 (dopo i 9 campi fissi: autore, descrizione, citazione×2, parola×5)
   let i = 9;
   const t = () => flat[i++] ?? '';
   const santiTradotti = originale.santi.map(() => ({
     nome: t(), ruolo: t(), anni: t(), biografia: t(),
   }));
-  // j parte esattamente dove i si è fermato (dopo tutti i santi)
   let j = 9 + originale.santi.length * 4;
   const tf = () => flat[j++] ?? '';
   return {
@@ -247,7 +240,6 @@ export default function Home() {
 
   const oggi = new Date().toISOString().split('T')[0];
 
-  // Controlla se la lista archivio è scrollabile e se siamo in fondo
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
     if (!el) return;
@@ -259,7 +251,6 @@ export default function Home() {
 
   useEffect(() => {
     if (popoverOpen) {
-      // Piccolo delay per attendere il render del contenuto
       setTimeout(checkArchivioScroll, 50);
     }
   }, [popoverOpen, archivio, checkArchivioScroll]);
@@ -291,7 +282,6 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setPopoverOpen(false);
-    // Reset traduzione al cambio di giorno
     setLingua('IT');
     setDataTradotta(null);
     setErroreTraduzioni(null);
@@ -321,18 +311,15 @@ export default function Home() {
 
   const toggleLingua = useCallback(async () => {
     if (lingua === 'EN') {
-      // Torna all'italiano
       setLingua('IT');
       setData(dataOriginale);
       return;
     }
-    // Se abbiamo già la cache della traduzione, usala subito
     if (dataTradotta) {
       setLingua('EN');
       setData(dataTradotta);
       return;
     }
-    // Prima traduzione: chiama la route API
     if (!dataOriginale) return;
     setTraducendo(true);
     setErroreTraduzioni(null);
@@ -426,10 +413,10 @@ export default function Home() {
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
 
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
-        <header className={`text-center space-y-6 pb-8 border-b ${themeClasses.border} relative`}>
+        <header className={`text-center space-y-6 pb-8 relative`}>
 
           {/* Controlli in alto a destra */}
-        <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
+          <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
 
             {/* Pulsante traduzione IT/EN */}
             <button
@@ -468,7 +455,6 @@ export default function Home() {
                   <CalendarDays className="w-5 h-5" />
                 </button>
 
-                {/* Popover floating — altezza fissa, non supera mai 380px */}
                 <div
                   ref={popoverRef}
                   role="dialog"
@@ -480,7 +466,6 @@ export default function Home() {
                     opacity: popoverOpen ? 1 : 0,
                     transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
                     pointerEvents: popoverOpen ? 'auto' : 'none',
-                    /* Altezza massima fissa: uguale su mobile e desktop */
                     maxHeight: '380px',
                     height: 'auto',
                   }}
@@ -508,7 +493,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Contenitore scrollabile con fade-out in basso */}
                   <div className="relative flex-1 min-h-0">
                     <div
                       ref={archivioScrollRef}
@@ -551,7 +535,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Fade-out in basso: visibile solo se c'è contenuto oltre e non siamo già in fondo */}
                     {archivioHasScroll && !archivioAtBottom && (
                       <div
                         aria-hidden="true"
@@ -574,11 +557,11 @@ export default function Home() {
             </button>
           </div>
 
-         <div className="flex justify-center mb-6 mt-2">
-  <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
-    {data.data_odierna}
-  </div>
-</div>
+          <div className="flex justify-center mb-6 mt-2">
+            <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+              {data.data_odierna}
+            </div>
+          </div>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
             {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
           </h1>
@@ -588,13 +571,12 @@ export default function Home() {
               : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, automatically generated."'
             }
           </p>
-          {/* Avviso errore traduzione */}
           {erroreTraduzioni && (
             <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>
           )}
-        </header>
 
-        <WatercolorDivider isDark={isDark} />
+          <WatercolorDivider isDark={isDark} />
+        </header>
 
         <section className="text-center space-y-4 pb-8">
           <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
@@ -649,12 +631,12 @@ export default function Home() {
             </ul>
           </Card>
 
-         {opera && (
+          {opera && (
             <div className="md:col-span-2 notched-card-wrapper">
-              <Card 
-                title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} 
-                icon={Palette} 
-                isDark={isDark} 
+              <Card
+                title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'}
+                icon={Palette}
+                isDark={isDark}
                 className="notched-card"
               >
                 <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
@@ -666,20 +648,20 @@ export default function Home() {
                         {opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}
                       </p>
                     </div>
-                  {(opera.medium || opera.dipartimento) && (
-                    <p className={`text-lg ${themeClasses.textMuted} italic`}>
-                      {[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-4 pt-2">
-                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer"
-                      className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}
-                    >
-                      {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
+                    {(opera.medium || opera.dipartimento) && (
+                      <p className={`text-lg ${themeClasses.textMuted} italic`}>
+                        {[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer"
+                        className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}
+                      >
+                        {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
                   </div>
-               </div>
                   <div className="order-1 md:order-2">
                     <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
                       <img
