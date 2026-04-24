@@ -416,35 +416,34 @@ export default function Home() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
 
             {/* Diapositiva fotografica */}
-            {data.foto_autore_url && (
-              <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
-                {/* Cornice stampa fotografica */}
-                <div
-                  className="relative"
-                  style={{
-                    background: themeClasses.photoBg,
-                    border: `1px solid ${themeClasses.photoBorder}`,
-                    padding: '10px 10px 28px 10px',
-                    boxShadow: '0 4px 16px -2px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.08)',
-                    transform: 'rotate(-2.5deg)',
-                  }}
-                >
-                  <img
-                    src={data.foto_autore_url}
-                    alt={data.autore_giorno}
-                    style={{
-                      display: 'block',
-                      width: '140px',
-                      height: '180px',
-                      objectFit: 'cover',
-                      filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-                    }}
-                  />
-                  {/* Nastro masking tape diagonale — angolo inferiore sinistro */}
-                  <div className="photo-tape" />
-                </div>
-              </div>
-            )}
+           {data.foto_autore_url && (
+  <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
+    {/* Cornice stampa fotografica */}
+    <div
+      className="relative card-paper-shadow shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all duration-300"
+      style={{
+        background: themeClasses.photoBg,
+        border: `1px solid ${themeClasses.photoBorder}`,
+        padding: '10px 10px 28px 10px',
+        transform: 'rotate(-2.5deg)',
+      }}
+    >
+      <img
+        src={data.foto_autore_url}
+        alt={data.autore_giorno}
+        style={{
+          display: 'block',
+          width: '140px',
+          height: '180px',
+          objectFit: 'cover',
+          filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+        }}
+      />
+      {/* Nastro masking tape diagonale — angolo inferiore sinistro */}
+      <div className="photo-tape" />
+    </div>
+  </div>
+)}
 
             {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
