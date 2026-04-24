@@ -271,7 +271,7 @@ export default function Home() {
   className="absolute inset-0 pointer-events-none" 
   style={{ 
     backgroundImage: `url("/beige-paper.png")`,
-    filter: isDark ? 'invert(1) opacity(0.2)' : 'opacity(0.4)', // Inverti e abbassa l'opacità nel dark
+    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)', // Inverti e abbassa l'opacità nel dark
     mixBlendMode: isDark ? 'overlay' : 'multiply' // Opzionale: migliora la fusione
   }}
 ></div>
@@ -284,7 +284,7 @@ export default function Home() {
   style={{ 
     backgroundImage: themeClasses.texture,
     backgroundRepeat: 'repeat',
-    filter: isDark ? 'invert(1) opacity(0.15)' : 'opacity(0.35)' 
+    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
   }}
 ></div>
       <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
@@ -302,13 +302,12 @@ export default function Home() {
   if (!data) return null;
 
   return (
-    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-      <div 
+    <div 
   className="absolute inset-0 pointer-events-none z-0" 
   style={{ 
     backgroundImage: themeClasses.texture,
     backgroundRepeat: 'repeat',
-    filter: isDark ? 'invert(1) opacity(0.15)' : 'opacity(0.35)' 
+    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
   }}
 ></div>
 
