@@ -415,35 +415,35 @@ export default function Home() {
         <section className="py-8">
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
 
-            {/* Diapositiva fotografica */}
-           {data.foto_autore_url && (
-  <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
-    {/* Cornice stampa fotografica */}
-    <div
-      className="relative card-paper-shadow shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all duration-300"
-      style={{
-        background: themeClasses.photoBg,
-        border: `1px solid ${themeClasses.photoBorder}`,
-        padding: '10px 10px 28px 10px',
-        transform: 'rotate(-2.5deg)',
-      }}
-    >
-      <img
-        src={data.foto_autore_url}
-        alt={data.autore_giorno}
-        style={{
-          display: 'block',
-          width: '140px',
-          height: '180px',
-          objectFit: 'cover',
-          filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-        }}
-      />
-      {/* Nastro masking tape diagonale — angolo inferiore sinistro */}
-      <div className="photo-tape" />
-    </div>
-  </div>
-)}
+           
+          {/* Diapositiva fotografica */}
+            {data.foto_autore_url && (
+              <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
+                {/* Cornice stampa fotografica */}
+                <div
+                  className="relative photo-frame"
+                  style={{
+                    background: themeClasses.photoBg,
+                    border: `1px solid ${themeClasses.photoBorder}`,
+                    padding: '10px 10px 28px 10px',
+                  }}
+                >
+                  <img
+                    src={data.foto_autore_url}
+                    alt={data.autore_giorno}
+                    style={{
+                      display: 'block',
+                      width: '140px',
+                      height: '180px',
+                      objectFit: 'cover',
+                      filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+                    }}
+                  />
+                  {/* Nastro masking tape diagonale — angolo inferiore sinistro */}
+                  <div className="photo-tape" />
+                </div>
+              </div>
+            )}
 
             {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
