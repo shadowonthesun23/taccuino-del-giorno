@@ -298,7 +298,7 @@ export default function Home() {
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
 
         {/* Header */}
-        <header className="text-center space-y-6 pb-8 relative">
+        <header className={`text-center space-y-6 relative`}>
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
             <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
