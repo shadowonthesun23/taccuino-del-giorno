@@ -396,8 +396,8 @@ export default function Home() {
         </header>
 
         {/* Sezione Autore del Giorno */}
-        <section className="pb-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
+        <section className="py-8">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
 
             {/* Diapositiva fotografica */}
             {data.foto_autore_url && (
@@ -431,7 +431,7 @@ export default function Home() {
             )}
 
             {/* Testo autore */}
-            <div className={`flex-1 text-center md:text-left ${data.foto_autore_url ? 'md:pt-4' : ''}`}>
+            <div className="flex-1 text-center md:text-left">
               <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
                 {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
               </span>
