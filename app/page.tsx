@@ -299,21 +299,21 @@ export default function Home() {
     </div>
   );
 
-  if (!data) return null;
+ if (!data) return null;
 
   return (
-    <div 
-  className="absolute inset-0 pointer-events-none z-0" 
-  style={{ 
-    backgroundImage: themeClasses.texture,
-    backgroundRepeat: 'repeat',
-    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
-  }}
-></div>
+    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+      
+      <div 
+        className="absolute inset-0 pointer-events-none z-0" 
+        style={{ 
+          backgroundImage: themeClasses.texture,
+          backgroundRepeat: 'repeat',
+          filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
+        }}
+      ></div>
 
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
-
-        {/* Header */}
         <header className={`text-center space-y-6 relative`}>
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
             <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
