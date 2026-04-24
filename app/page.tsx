@@ -43,6 +43,63 @@ const CoffeeIcon = ({ className, strokeWidth = 1.5 }: { className?: string, stro
   </svg>
 );
 
+const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
+  const color = isDark ? '#7a5c38' : '#b5956a';
+  return (
+    <div aria-hidden="true" className="w-full flex justify-center my-2 pointer-events-none select-none">
+      <svg
+        viewBox="0 0 800 36"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full max-w-2xl"
+        style={{ height: '36px', display: 'block' }}
+      >
+        <defs>
+          <filter id="wc-blur" x="-10%" y="-60%" width="120%" height="220%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+            <feGaussianBlur in="displaced" stdDeviation="1.2" result="blurred" />
+            <feComposite in="blurred" in2="SourceGraphic" operator="atop" />
+          </filter>
+          <filter id="wc-edge" x="-5%" y="-80%" width="110%" height="260%">
+            <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves="3" seed="14" result="noise2" />
+            <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+        {/* Pennellata principale */}
+        <path
+          d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18"
+          fill="none"
+          stroke={color}
+          strokeWidth="7"
+          strokeLinecap="round"
+          opacity="0.55"
+          filter="url(#wc-blur)"
+        />
+        {/* Pennellata sottile sopra */}
+        <path
+          d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16"
+          fill="none"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          opacity="0.3"
+          filter="url(#wc-edge)"
+        />
+        {/* Tratto di "sbavatura" acquerello */}
+        <path
+          d="M 100 22 Q 250 28 400 21 Q 550 14 700 23"
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
+          strokeLinecap="round"
+          opacity="0.18"
+          filter="url(#wc-blur)"
+        />
+      </svg>
+    </div>
+  );
+};
+
 interface OperaGiorno {
   titolo: string;
   artista: string;
@@ -536,6 +593,8 @@ export default function Home() {
             <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>
           )}
         </header>
+
+        <WatercolorDivider isDark={isDark} />
 
         <section className="text-center space-y-4 pb-8">
           <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
