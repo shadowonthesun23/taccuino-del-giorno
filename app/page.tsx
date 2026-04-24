@@ -254,7 +254,7 @@ export default function Home() {
     border: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
-    texture: isDark ? paperTextureDark : paperTextureLight,
+    texture: paperTexture, // MODIFICA QUI: usa solo paperTexture senza il controllo isDark
     popoverBg: isDark ? 'bg-[#1C1C1C]/85' : 'bg-[#F7F4EE]/82',
     popoverBorder: isDark ? 'border-[#3D3D3D]/70' : 'border-[#D4CABC]/80',
     popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
@@ -279,7 +279,14 @@ export default function Home() {
 
   if (error) return (
     <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
-      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: themeClasses.texture }}></div>
+      <div 
+  className="absolute inset-0 pointer-events-none z-0" 
+  style={{ 
+    backgroundImage: themeClasses.texture,
+    backgroundRepeat: 'repeat',
+    filter: isDark ? 'invert(1) opacity(0.15)' : 'opacity(0.35)' 
+  }}
+></div>
       <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
@@ -296,7 +303,14 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-      <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: themeClasses.texture }}></div>
+      <div 
+  className="absolute inset-0 pointer-events-none z-0" 
+  style={{ 
+    backgroundImage: themeClasses.texture,
+    backgroundRepeat: 'repeat',
+    filter: isDark ? 'invert(1) opacity(0.15)' : 'opacity(0.35)' 
+  }}
+></div>
 
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
 
