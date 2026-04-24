@@ -416,13 +416,6 @@ export default function Home() {
                   ref={popoverRef}
                   role="dialog"
                   aria-label="Archivio dei giorni"
-                  style={{
-                    transformOrigin: 'top right',
-                    transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
-                    opacity: popoverOpen ? 1 : 0,
-                    transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
-                    pointerEvents: popoverOpen ? 'auto' : 'none',
-                  }}
                   className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(100%+10px)] md:right-0 md:w-80 md:translate-x-0 z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
                   style={{
                     transformOrigin: 'top right',
