@@ -166,42 +166,43 @@ body {
   background-image: linear-gradient(45deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.04) 50%, rgba(0,0,0,0) 100%);
   pointer-events: none;
 }
-/* Animazione interattiva per la cornice fotografica */
+/* Versione scalata dell'effetto lifted per la diapositiva */
 .photo-paper-shadow {
   position: relative;
+  isolation: isolate;
 }
 
 .photo-paper-shadow::before,
 .photo-paper-shadow::after {
   content: '';
   position: absolute;
-  bottom: 8px; /* Regolato sul padding inferiore di 28px */
-  width: 42%;
-  height: 10px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+  bottom: 12px; /* Posizionata sotto la zona bianca inferiore */
+  width: 40%;
+  height: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Ombra più definita e meno diffusa */
   z-index: -1;
   transition: all 0.3s ease-in-out;
 }
 
 .photo-paper-shadow::before {
-  left: 12px;
-  transform: skew(-6deg) rotate(-4deg);
+  left: 8px;
+  transform: skew(-8deg) rotate(-4deg);
 }
 
 .photo-paper-shadow::after {
-  right: 12px;
-  transform: skew(6deg) rotate(4deg);
+  right: 8px;
+  transform: skew(8deg) rotate(4deg);
 }
 
 .photo-paper-shadow:hover::before,
 .photo-paper-shadow:hover::after {
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* L'ombra si attenua come nelle card grandi */
 }
 
 .photo-paper-shadow:hover::before {
-  left: 8px;
+  left: 4px;
 }
 
 .photo-paper-shadow:hover::after {
-  right: 8px;
+  right: 4px;
 }
