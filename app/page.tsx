@@ -412,47 +412,48 @@ export default function Home() {
         </header>
 
         {/* Sezione Autore del Giorno */}
-        <section className="py-8">
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
+<section className="py-8">
+  <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
+    
+    {/* Diapositiva fotografica */}
+    {data.foto_autore_url && (
+      <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+        <div
+          className="relative photo-paper-shadow"
+          style={{
+            background: themeClasses.photoBg,
+            border: `1px solid ${themeClasses.photoBorder}`,
+            padding: '10px 10px 28px 10px',
+          }}
+        >
+          <img
+            src={data.foto_autore_url}
+            alt={data.autore_giorno}
+            style={{
+              display: 'block',
+              width: '140px',
+              height: '180px',
+              objectFit: 'cover',
+              filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+            }}
+          />
+        </div>    {/* ← chiude photo-paper-shadow */}
+      </div>       {/* ← chiude flex-shrink-0 */}
+    )}
+    
+    {/* Testo autore — FUORI dalla foto */}
+    <div className="flex-1 text-center md:text-left">
+      <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
+        {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+      </span>
+      <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
+      <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
+        {data.breve_descrizione}
+      </p>
+    </div>
 
-           
-        {/* Diapositiva fotografica */}
-           {data.foto_autore_url && (
-  <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
-  <div
-    className="relative photo-paper-shadow"
-    style={{
-      background: themeClasses.photoBg,
-      border: `1px solid ${themeClasses.photoBorder}`,
-      padding: '10px 10px 28px 10px',
-      // transform rimosso
-    }}
-  >
-  <img
-  src={data.foto_autore_url}
-  alt={data.autore_giorno}
-  style={{
-    display: 'block',
-    width: '140px',
-    height: '180px',
-    objectFit: 'cover',
-    filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-  }}
-/>
-            
-            {/* Testo autore */}
-            <div className="flex-1 text-center md:text-left">
-              <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
-                {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
-              </span>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
-              <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
-                {data.breve_descrizione}
-              </p>
-            </div>
-          </div>
-        </section>
-
+  </div>
+</section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
           <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
