@@ -416,16 +416,17 @@ export default function Home() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
 
            
-          {/* Diapositiva fotografica */}
+         {/* Diapositiva fotografica */}
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
                 {/* Cornice stampa fotografica */}
                 <div
-                  className="relative photo-frame"
+                  className="relative photo-paper-shadow bg-white"
                   style={{
                     background: themeClasses.photoBg,
                     border: `1px solid ${themeClasses.photoBorder}`,
                     padding: '10px 10px 28px 10px',
+                    transform: 'rotate(-2.5deg)',
                   }}
                 >
                   <img
@@ -444,7 +445,6 @@ export default function Home() {
                 </div>
               </div>
             )}
-
             {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
               <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
