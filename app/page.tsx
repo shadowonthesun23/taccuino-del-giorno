@@ -417,32 +417,25 @@ export default function Home() {
 
            
         {/* Diapositiva fotografica */}
-            {data.foto_autore_url && (
-              <div className="flex-shrink-0 relative" style={{ width: '160px' }}>
-                <div
-                  className="relative photo-paper-shadow"
-                  style={{
-                    background: themeClasses.photoBg,
-                    border: `1px solid ${themeClasses.photoBorder}`,
-                    padding: '10px 10px 28px 10px',
-                    transform: 'rotate(-2.5deg)',
-                  }}
-                >
-                  <img
-                    src={data.foto_autore_url}
-                    alt={data.autore_giorno}
-                    style={{
-                      display: 'block',
-                      width: '140px',
-                      height: '180px',
-                      objectFit: 'cover',
-                      filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-                    }}
-                  />
-                  <div className="photo-tape" />
-                </div>
-              </div>
-            )}
+           {data.foto_autore_url && (
+  <div
+    className="flex-shrink-0 relative"
+    style={{ width: '160px', transform: 'rotate(-2.5deg)' }}  {/* ← rotazione spostata qui */}
+  >
+    <div
+      className="relative photo-paper-shadow"
+      style={{
+        background: themeClasses.photoBg,
+        border: `1px solid ${themeClasses.photoBorder}`,
+        padding: '10px 10px 28px 10px',
+        // ← transform rimosso da qui
+      }}
+    >
+      <img ... />
+      <div className="photo-tape" />
+    </div>
+  </div>
+)}
             
             {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
