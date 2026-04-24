@@ -123,6 +123,7 @@ interface DatiTaccuino {
   bibbia: { testo: string; fonte: string; nota: string };
   poesia: { testo: string; autore: string; fonte: string; nota: string };
   musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
+  foto_autore_url?: string | null;
 }
 
 interface ArchivioItem {
@@ -415,10 +416,7 @@ export default function Home() {
       <main className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 pb-8 relative`}>
 
-          {/* Controlli in alto a destra */}
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
-
-            {/* Pulsante traduzione IT/EN */}
             <button
               onClick={toggleLingua}
               disabled={traducendo}
@@ -437,7 +435,6 @@ export default function Home() {
               <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
             </button>
 
-            {/* Pulsante archivio con popover */}
             {archivio.length > 0 && (
               <div className="relative">
                 <button
@@ -547,7 +544,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Toggle tema */}
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`}
@@ -578,16 +574,36 @@ export default function Home() {
           <WatercolorDivider isDark={isDark} />
         </header>
 
-        <section className="text-center space-y-4 pb-8">
-          <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
-            {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-6">
-            {data.autore_giorno}
-          </h2>
-          <p className={`text-xl md:text-2xl leading-relaxed max-w-2xl mx-auto font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
-            {data.breve_descrizione}
-          </p>
+        {/* Sezione Autore del Giorno con ritratto in trasparenza */}
+        <section className="relative text-center space-y-4 pb-8 overflow-hidden">
+          {data.foto_autore_url && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none select-none flex items-center justify-center"
+            >
+              <img
+                src={data.foto_autore_url}
+                alt=""
+                className="h-full max-h-80 w-auto object-contain"
+                style={{
+                  filter: 'grayscale(100%) contrast(70%) brightness(1.5)',
+                  opacity: isDark ? 0.06 : 0.09,
+                  mixBlendMode: isDark ? 'screen' : 'multiply',
+                }}
+              />
+            </div>
+          )}
+          <div className="relative z-10">
+            <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase">
+              {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-6">
+              {data.autore_giorno}
+            </h2>
+            <p className={`text-xl md:text-2xl leading-relaxed max-w-2xl mx-auto font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
+              {data.breve_descrizione}
+            </p>
+          </div>
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
