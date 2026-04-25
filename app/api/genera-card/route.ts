@@ -74,14 +74,16 @@ export async function POST(req: NextRequest) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '60px 72px 48px',
+            // Più padding top per scendere il contenuto
+            padding: '90px 72px 48px',
             boxSizing: 'border-box',
             fontFamily: 'EB Garamond',
           },
         },
+        // Data tape — con box-shadow per effetto scotch/nastro
         React.createElement(
           'div',
-          { style: { display: 'flex', justifyContent: 'center', width: '100%', marginBottom: 18 } },
+          { style: { display: 'flex', justifyContent: 'center', width: '100%', marginBottom: 36 } },
           React.createElement(
             'div',
             {
@@ -92,12 +94,18 @@ export async function POST(req: NextRequest) {
                 color: textMuted,
                 background: '#e8dcc6',
                 padding: '12px 72px 18px',
-                borderRadius: 6,
+                borderRadius: 4,
+                // Bordi leggermente più scuri ai lati (effetto tape translucente)
+                borderTop: '2px solid #d4c9b0',
+                borderBottom: '2px solid #d4c9b0',
+                // Ombra sottile per dare profondità come nastro adesivo
+                boxShadow: '0 3px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
               },
             },
             dataOdierna
           )
         ),
+        // Etichetta AUTORE DEL GIORNO
         React.createElement(
           'div',
           {
@@ -113,6 +121,7 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
+        // Foto
         fotoB64
           ? React.createElement(
               'div',
@@ -124,6 +133,7 @@ export async function POST(req: NextRequest) {
                   border: `3px solid ${borderColor}`,
                   padding: '24px 24px 60px 24px',
                   display: 'flex',
+                  boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
                 },
               },
               React.createElement('img', {
@@ -134,6 +144,7 @@ export async function POST(req: NextRequest) {
               })
             )
           : null,
+        // Nome autore
         React.createElement(
           'div',
           {
@@ -149,6 +160,7 @@ export async function POST(req: NextRequest) {
           },
           autoreGiorno
         ),
+        // Descrizione
         React.createElement(
           'div',
           {
@@ -165,12 +177,14 @@ export async function POST(req: NextRequest) {
           },
           breveDescrizione
         ),
+        // Divisore watercolor
         React.createElement('img', {
           src: dividerB64,
           width: 864,
           height: 26,
           style: { marginBottom: 20 },
         }),
+        // Box citazione
         React.createElement(
           'div',
           {
@@ -240,10 +254,8 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // 1. Render SVG -> PNG base
     const basePng = await sharp(Buffer.from(svg)).png().toBuffer();
 
-    // 2. Schiarisce la texture al massimo (brightness 3x, desatura) poi tila
     const paperBright = await sharp(paperBuffer)
       .modulate({ brightness: 3.0, saturation: 0.2 })
       .png()
@@ -258,7 +270,6 @@ export async function POST(req: NextRequest) {
       .png()
       .toBuffer();
 
-    // 3. Sovrappone la grana quasi-bianca con blend 'soft-light' per effetto sottile
     const pngBuffer = await sharp(basePng)
       .composite([{ input: paperTiled, blend: 'soft-light' }])
       .png()
