@@ -57,28 +57,22 @@ export default function AuthorExportCard({
     setExporting(true);
     try {
       const html2canvas = (await import('html2canvas')).default;
-      const rect = cardRef.current.getBoundingClientRect();
+
+      // Approccio semplice: html2canvas cattura l'elemento direttamente.
+      // Non passiamo x/y/scroll/windowSize per evitare canvas nero o offset errati.
       const canvas = await html2canvas(cardRef.current, {
         scale: SCALE,
         useCORS: true,
         allowTaint: false,
         backgroundColor: null,
         logging: false,
-        width: CARD_W,
-        height: CARD_H,
-        // Usa la posizione reale dell'elemento nel documento
-        x: rect.left + window.scrollX,
-        y: rect.top + window.scrollY,
-        scrollX: -window.scrollX,
-        scrollY: -window.scrollY,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight,
       });
 
-      const croppedCanvas = document.createElement('canvas');
-      croppedCanvas.width = CARD_W * SCALE;
-      croppedCanvas.height = CARD_H * SCALE;
-      const ctx = croppedCanvas.getContext('2d');
+      // Ritaglia sempre al formato esatto 360x640 * scale
+      const out = document.createElement('canvas');
+      out.width = CARD_W * SCALE;
+      out.height = CARD_H * SCALE;
+      const ctx = out.getContext('2d');
       if (ctx) {
         ctx.drawImage(canvas, 0, 0, CARD_W * SCALE, CARD_H * SCALE, 0, 0, CARD_W * SCALE, CARD_H * SCALE);
       }
@@ -89,7 +83,7 @@ export default function AuthorExportCard({
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
       link.download = `taccuino-${nomeFile}.jpg`;
-      link.href = croppedCanvas.toDataURL('image/jpeg', 0.93);
+      link.href = out.toDataURL('image/jpeg', 0.93);
       link.click();
     } catch (e) {
       console.error("Errore durante l'export:", e);
@@ -129,6 +123,7 @@ export default function AuthorExportCard({
         </button>
       </div>
 
+      {/* Wrapper visivo esterno — non usato da html2canvas, solo per l'anteprima */}
       <div
         style={{
           width: `${CARD_W}px`,
@@ -139,6 +134,7 @@ export default function AuthorExportCard({
           border: `1px solid ${borderColor}`,
         }}
       >
+        {/* cardRef punta direttamente qui: html2canvas vede questo div */}
         <div
           ref={cardRef}
           className={garamond.className}
@@ -321,7 +317,7 @@ export default function AuthorExportCard({
                 margin: 0,
               }}
             >
-              {'\u2014'} {citazione.autore}
+              &mdash; {citazione.autore}
               {citazione.fonte ? (
                 <span style={{ fontWeight: 400, fontStyle: 'italic' }}>, {citazione.fonte}</span>
               ) : null}
