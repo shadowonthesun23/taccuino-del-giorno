@@ -58,9 +58,7 @@ export default function AuthorExportCard({
     try {
       const html2canvas = (await import('html2canvas')).default;
 
-      // Porta la card nel viewport prima di catturarla
       cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
-      // Piccola pausa per permettere al browser di completare lo scroll e il repaint
       await new Promise((r) => setTimeout(r, 120));
 
       const canvas = await html2canvas(cardRef.current, {
@@ -75,7 +73,6 @@ export default function AuthorExportCard({
         scrollY: -window.scrollY,
       });
 
-      // Ritaglia esattamente 360x640 * scale
       const out = document.createElement('canvas');
       out.width = CARD_W * SCALE;
       out.height = CARD_H * SCALE;
@@ -154,12 +151,12 @@ export default function AuthorExportCard({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '40px 24px 16px',
+            padding: '20px 24px 16px',
             boxSizing: 'border-box',
           }}
         >
           {/* Data tape */}
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0 }}>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '6px', flexShrink: 0 }}>
             <div
               className={caveat.className}
               style={{
@@ -187,7 +184,7 @@ export default function AuthorExportCard({
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
               color: accent,
-              marginBottom: '14px',
+              marginBottom: '8px',
               flexShrink: 0,
             }}
           >
@@ -196,7 +193,7 @@ export default function AuthorExportCard({
 
           {/* Diapositiva */}
           {fotoAutoreUrl && (
-            <div style={{ transform: 'rotate(-2deg)', marginBottom: '12px', flexShrink: 0 }}>
+            <div style={{ transform: 'rotate(-2deg)', marginBottom: '8px', flexShrink: 0 }}>
               <div
                 style={{
                   background: cardBg,
@@ -228,7 +225,7 @@ export default function AuthorExportCard({
               fontWeight: 700,
               color: textPrimary,
               textAlign: 'center',
-              margin: '0 0 6px',
+              margin: '0 0 4px',
               lineHeight: 1.1,
               flexShrink: 0,
             }}
@@ -243,7 +240,7 @@ export default function AuthorExportCard({
               fontWeight: 500,
               color: textMuted,
               textAlign: 'center',
-              margin: '0 0 10px',
+              margin: '0 0 8px',
               lineHeight: 1.45,
               maxWidth: '290px',
               flexShrink: 0,
@@ -255,7 +252,7 @@ export default function AuthorExportCard({
           {/* Divisore watercolor */}
           <div
             aria-hidden="true"
-            style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0, pointerEvents: 'none' }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '8px', flexShrink: 0, pointerEvents: 'none' }}
           >
             <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
               <defs>
@@ -280,7 +277,7 @@ export default function AuthorExportCard({
           <div
             style={{
               width: '100%',
-              padding: '12px 14px',
+              padding: '10px 14px',
               background: cardBg,
               border: `1px solid ${borderColor}`,
               borderRadius: '10px',
@@ -290,7 +287,7 @@ export default function AuthorExportCard({
           >
             <span
               style={{
-                fontSize: '30px',
+                fontSize: '28px',
                 lineHeight: 1,
                 color: accent,
                 opacity: 0.35,
@@ -308,7 +305,7 @@ export default function AuthorExportCard({
                 fontWeight: 500,
                 color: textPrimary,
                 lineHeight: 1.55,
-                margin: '0 0 8px',
+                margin: '0 0 6px',
               }}
             >
               {citTesto}
