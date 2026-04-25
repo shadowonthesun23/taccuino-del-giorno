@@ -58,18 +58,12 @@ export default function AuthorExportCard({
     try {
       const html2canvas = (await import('html2canvas')).default;
 
-      // Clona la card e la posiziona in alto a sinistra fuori dallo schermo.
-      // Questo elimina qualsiasi offset Y causato dalla posizione della card nella pagina.
-      const clone = cardRef.current.cloneNode(true) as HTMLElement;
-      clone.style.position = 'fixed';
-      clone.style.top = '0';
-      clone.style.left = '0';
-      clone.style.zIndex = '-9999';
-      clone.style.pointerEvents = 'none';
-      clone.style.opacity = '0';
-      document.body.appendChild(clone);
+      // Porta la card nel viewport prima di catturarla
+      cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
+      // Piccola pausa per permettere al browser di completare lo scroll e il repaint
+      await new Promise((r) => setTimeout(r, 120));
 
-      const canvas = await html2canvas(clone, {
+      const canvas = await html2canvas(cardRef.current, {
         scale: SCALE,
         useCORS: true,
         allowTaint: false,
@@ -77,9 +71,9 @@ export default function AuthorExportCard({
         logging: false,
         width: CARD_W,
         height: CARD_H,
+        scrollX: 0,
+        scrollY: -window.scrollY,
       });
-
-      document.body.removeChild(clone);
 
       // Ritaglia esattamente 360x640 * scale
       const out = document.createElement('canvas');
@@ -266,14 +260,14 @@ export default function AuthorExportCard({
             <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
               <defs>
                 <filter id="ec-wc-blur" x="-10%" y="-60%" width="120%" height="220%">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
-                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-                  <feGaussianBlur in="displaced" stdDeviation="1.2" result="blurred" />
+                  <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves={4} seed={8} result="noise" />
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale={5} xChannelSelector="R" yChannelSelector="G" result="displaced" />
+                  <feGaussianBlur in="displaced" stdDeviation={1.2} result="blurred" />
                   <feComposite in="blurred" in2="SourceGraphic" operator="atop" />
                 </filter>
                 <filter id="ec-wc-edge" x="-5%" y="-80%" width="110%" height="260%">
-                  <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves="3" seed="14" result="noise2" />
-                  <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
+                  <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves={3} seed={14} result="noise2" />
+                  <feDisplacementMap in="SourceGraphic" in2="noise2" scale={3} xChannelSelector="R" yChannelSelector="G" />
                 </filter>
               </defs>
               <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#ec-wc-blur)" />
