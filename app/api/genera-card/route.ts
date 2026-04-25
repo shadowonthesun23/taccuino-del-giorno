@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
 
     const { testo: citTesto, fontSize: citFontSize } = truncateCitation(citazione.testo);
 
-    // Divisore watercolor come SVG base64 (senza filtri feTurbulence non supportati)
     const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
@@ -80,7 +79,6 @@ export async function POST(req: NextRequest) {
             fontFamily: 'EB Garamond',
           },
         },
-        // Data tape
         React.createElement(
           'div',
           { style: { display: 'flex', justifyContent: 'center', width: '100%', marginBottom: 18 } },
@@ -100,7 +98,6 @@ export async function POST(req: NextRequest) {
             dataOdierna
           )
         ),
-        // Etichetta
         React.createElement(
           'div',
           {
@@ -116,7 +113,6 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Foto
         fotoB64
           ? React.createElement(
               'div',
@@ -138,7 +134,6 @@ export async function POST(req: NextRequest) {
               })
             )
           : null,
-        // Nome autore
         React.createElement(
           'div',
           {
@@ -154,7 +149,6 @@ export async function POST(req: NextRequest) {
           },
           autoreGiorno
         ),
-        // Descrizione
         React.createElement(
           'div',
           {
@@ -171,14 +165,12 @@ export async function POST(req: NextRequest) {
           },
           breveDescrizione
         ),
-        // Divisore watercolor
         React.createElement('img', {
           src: dividerB64,
           width: 864,
           height: 26,
           style: { marginBottom: 20 },
         }),
-        // Box citazione
         React.createElement(
           'div',
           {
@@ -251,17 +243,19 @@ export async function POST(req: NextRequest) {
     // 1. Render SVG -> PNG base
     const basePng = await sharp(Buffer.from(svg)).png().toBuffer();
 
-    // 2. Tila la texture carta alla dimensione della card
+    // 2. Tila la texture e riduce l'alpha al 30% con linear()
     const paperTiled = await sharp({
       create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
     })
       .composite([{ input: paperBuffer, tile: true, blend: 'over' }])
+      .ensureAlpha()
+      .linear(0.3, 0)   // moltiplica canale alpha * 0.3 => opacità 30%
       .png()
       .toBuffer();
 
-    // 3. Compone la texture sopra il PNG con opacità 30% (multiply-like)
+    // 3. Compone la texture sul PNG base (blend multiply, alpha già ridotta)
     const pngBuffer = await sharp(basePng)
-      .composite([{ input: paperTiled, blend: 'multiply', opacity: 0.3 }])
+      .composite([{ input: paperTiled, blend: 'multiply' }])
       .png()
       .toBuffer();
 
