@@ -63,7 +63,6 @@ export default function AuthorExportCard({
     }
   };
 
-  // Colori statici per la card export (sempre in tema chiaro per leggibilità su social)
   const bg = '#F4F0E6';
   const textPrimary = '#2A2522';
   const textMuted = '#8A817C';
@@ -73,7 +72,6 @@ export default function AuthorExportCard({
 
   return (
     <div className="relative group">
-      {/* Bottone export — visibile sopra la card */}
       <div className="flex justify-end mb-2">
         <button
           onClick={handleExport}
@@ -97,10 +95,6 @@ export default function AuthorExportCard({
         </button>
       </div>
 
-      {/* ———————————————————————————————————————————
-          CARD CHE VIENE FOTOGRAFATA — proporzione 9:16
-          Larghezza fissa 360px → altezza 640px
-      ——————————————————————————————————————————— */}
       <div
         ref={cardRef}
         className={garamond.className}
@@ -116,62 +110,50 @@ export default function AuthorExportCard({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '28px 24px 20px',
+          padding: '16px 24px 16px',
           boxSizing: 'border-box',
           border: `1px solid ${borderColor}`,
           borderRadius: '16px',
           margin: '0 auto',
         }}
       >
-        {/* Logo / intestazione */}
-        <div style={{ width: '100%', textAlign: 'center', marginBottom: '12px' }}>
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: accent,
-            }}
-          >
-            Il Taccuino del Giorno
-          </span>
-          <span
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+          <div
             className={caveat.className}
             style={{
-              display: 'block',
-              fontSize: '13px',
+              fontSize: '20px',
+              fontWeight: 700,
               color: textMuted,
-              marginTop: '2px',
+              background: '#e8dcc6',
+              padding: '4px 20px 6px',
+              borderRadius: '2px',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+              transform: 'rotate(-1.2deg)',
+              lineHeight: 1,
             }}
           >
             {dataOdierna}
-          </span>
+          </div>
         </div>
 
-        {/* Divisore sottile */}
-        <div style={{ width: '40px', height: '1px', background: borderColor, marginBottom: '16px' }} />
-
-        {/* Etichetta */}
         <span
           style={{
-            fontSize: '9px',
+            fontSize: '11px',
             fontWeight: 700,
-            letterSpacing: '0.22em',
+            letterSpacing: '0.24em',
             textTransform: 'uppercase',
             color: accent,
-            marginBottom: '10px',
+            marginBottom: '6px',
           }}
         >
           Autore del Giorno
         </span>
 
-        {/* Diapositiva fotografica */}
         {fotoAutoreUrl && (
           <div
             style={{
               transform: 'rotate(-2deg)',
-              marginBottom: '14px',
+              marginBottom: '12px',
               flexShrink: 0,
             }}
           >
@@ -179,7 +161,7 @@ export default function AuthorExportCard({
               style={{
                 background: cardBg,
                 border: `1px solid ${borderColor}`,
-                padding: '8px 8px 22px 8px',
+                padding: '8px 8px 20px 8px',
                 boxShadow: '0 4px 16px -4px rgba(0,0,0,0.18)',
               }}
             >
@@ -189,8 +171,8 @@ export default function AuthorExportCard({
                 crossOrigin="anonymous"
                 style={{
                   display: 'block',
-                  width: '110px',
-                  height: '140px',
+                  width: '104px',
+                  height: '132px',
                   objectFit: 'cover',
                   filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
                 }}
@@ -199,91 +181,82 @@ export default function AuthorExportCard({
           </div>
         )}
 
-        {/* Nome autore */}
         <h2
           style={{
-            fontSize: '26px',
+            fontSize: '24px',
             fontWeight: 700,
             color: textPrimary,
             textAlign: 'center',
-            margin: '0 0 8px',
-            lineHeight: 1.2,
+            margin: '0 0 6px',
+            lineHeight: 1.1,
           }}
         >
           {autoreGiorno}
         </h2>
 
-        {/* Biografia breve */}
         <p
           style={{
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: 500,
             color: textMuted,
             textAlign: 'center',
-            margin: '0 0 16px',
-            lineHeight: 1.5,
+            margin: '0 0 10px',
+            lineHeight: 1.45,
             maxWidth: '290px',
           }}
         >
           {breveDescrizione}
         </p>
 
-        {/* Divisore decorativo */}
         <div
           style={{
-            width: '60px',
+            width: '56px',
             height: '2px',
             background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
-            marginBottom: '16px',
+            marginBottom: '10px',
             flexShrink: 0,
           }}
         />
 
-        {/* Citazione */}
         <div
           style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
             width: '100%',
-            padding: '14px 16px',
+            padding: '12px 14px',
             background: cardBg,
             border: `1px solid ${borderColor}`,
             borderRadius: '10px',
             boxSizing: 'border-box',
+            marginTop: 'auto',
           }}
         >
-          {/* Virgolette decorative */}
           <span
             style={{
-              fontSize: '36px',
+              fontSize: '30px',
               lineHeight: 1,
               color: accent,
-              opacity: 0.4,
+              opacity: 0.35,
               fontFamily: 'Georgia, serif',
               display: 'block',
-              marginBottom: '4px',
+              marginBottom: '2px',
             }}
           >
             &ldquo;
           </span>
           <p
             style={{
-              fontSize: '14px',
+              fontSize: '13px',
               fontStyle: 'italic',
               fontWeight: 500,
               color: textPrimary,
-              lineHeight: 1.65,
-              margin: '0 0 10px',
-              flexGrow: 1,
+              lineHeight: 1.55,
+              margin: '0 0 8px',
             }}
           >
             {citazione.testo}
           </p>
           <p
             style={{
-              fontSize: '11px',
+              fontSize: '10px',
               fontWeight: 700,
               color: textMuted,
               textAlign: 'right',
@@ -295,20 +268,6 @@ export default function AuthorExportCard({
               <span style={{ fontWeight: 400, fontStyle: 'italic' }}>, {citazione.fonte}</span>
             ) : null}
           </p>
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            marginTop: '14px',
-            fontSize: '9px',
-            letterSpacing: '0.15em',
-            color: textMuted,
-            opacity: 0.6,
-            textTransform: 'uppercase',
-          }}
-        >
-          taccuinodelgiorno.vercel.app
         </div>
       </div>
     </div>
