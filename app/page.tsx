@@ -521,30 +521,30 @@ export default function Home() {
           </Card>
 
           {opera && (
-            <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark}
-              className="md:col-span-2 notched-card notched-card-wrapper"
-              filename={`opera-${opera.titolo.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}>
-              <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
-                <div className="space-y-5 order-2 md:order-1">
-                  <div>
-                    <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
-                    <p className="text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
+            <div className="md:col-span-2 notched-card-wrapper">
+              <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
+                <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                  <div className="space-y-5 order-2 md:order-1">
+                    <div>
+                      <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
+                      <p className="text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
+                    </div>
+                    {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
+                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
+                        {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
                   </div>
-                  {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
-                  <div className="flex flex-wrap items-center gap-4 pt-2">
-                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
-                      {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
+                  <div className="order-1 md:order-2">
+                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
+                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
                     </a>
+                    <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>
                 </div>
-                <div className="order-1 md:order-2">
-                  <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
-                    <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
-                  </a>
-                  <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
           )}
 
           <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2"
