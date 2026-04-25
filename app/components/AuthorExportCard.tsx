@@ -29,23 +29,16 @@ const CARD_W = 360;
 const CARD_H = 640;
 const SCALE = 3;
 
-/**
- * Tronca il testo a un numero massimo di caratteri in base alla lunghezza,
- * aggiungendo ellissi se necessario. Questo evita qualsiasi dipendenza da
- * CSS line-clamp o maxHeight che html2canvas non rispetta.
- */
 function truncateCitation(testo: string): { testo: string; fontSize: string } {
   const len = testo.length;
   if (len <= 200) return { testo, fontSize: '13px' };
   if (len <= 350) return { testo, fontSize: '11.5px' };
   if (len <= 500) {
-    // tronca a ~350 caratteri
     const truncated = testo.slice(0, 350).trimEnd();
-    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: '10.5px' };
+    return { testo: truncated + (testo.length > 350 ? '…' : ''), fontSize: '10.5px' };
   }
-  // testo molto lungo: tronca a ~300 caratteri con font ancora pi\u00f9 piccolo
   const truncated = testo.slice(0, 300).trimEnd();
-  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: '9.5px' };
+  return { testo: truncated + (testo.length > 300 ? '…' : ''), fontSize: '9.5px' };
 }
 
 export default function AuthorExportCard({
@@ -64,6 +57,7 @@ export default function AuthorExportCard({
     setExporting(true);
     try {
       const html2canvas = (await import('html2canvas')).default;
+      const rect = cardRef.current.getBoundingClientRect();
       const canvas = await html2canvas(cardRef.current, {
         scale: SCALE,
         useCORS: true,
@@ -72,11 +66,15 @@ export default function AuthorExportCard({
         logging: false,
         width: CARD_W,
         height: CARD_H,
-        windowWidth: CARD_W,
-        windowHeight: CARD_H,
+        // Usa la posizione reale dell'elemento nel documento
+        x: rect.left + window.scrollX,
+        y: rect.top + window.scrollY,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
       });
 
-      // Ritaglia il canvas al formato 9:16 esatto
       const croppedCanvas = document.createElement('canvas');
       croppedCanvas.width = CARD_W * SCALE;
       croppedCanvas.height = CARD_H * SCALE;
@@ -131,7 +129,6 @@ export default function AuthorExportCard({
         </button>
       </div>
 
-      {/* Wrapper di clipping esterno */}
       <div
         style={{
           width: `${CARD_W}px`,
@@ -156,7 +153,7 @@ export default function AuthorExportCard({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '28px 24px 16px',
+            padding: '40px 24px 16px',
             boxSizing: 'border-box',
           }}
         >
@@ -278,7 +275,7 @@ export default function AuthorExportCard({
             </svg>
           </div>
 
-          {/* Box citazione: testo gi\u00e0 troncato in JS, nessun clipping CSS necessario */}
+          {/* Box citazione */}
           <div
             style={{
               width: '100%',
@@ -324,7 +321,7 @@ export default function AuthorExportCard({
                 margin: 0,
               }}
             >
-              \u2014 {citazione.autore}
+              {'\u2014'} {citazione.autore}
               {citazione.fonte ? (
                 <span style={{ fontWeight: 400, fontStyle: 'italic' }}>, {citazione.fonte}</span>
               ) : null}
