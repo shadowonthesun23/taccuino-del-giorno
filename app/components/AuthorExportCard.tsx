@@ -58,51 +58,35 @@ export default function AuthorExportCard({
     try {
       const html2canvas = (await import('html2canvas')).default;
 
-      // Porta la card nel viewport
+      // Porta la card esattamente in cima al viewport
       cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
       await new Promise((r) => setTimeout(r, 150));
 
-      // Legge la posizione ESATTA della card nel viewport DOPO lo scroll
-      const rect = cardRef.current.getBoundingClientRect();
-
-      // Cattura l'intera pagina visibile
-      const fullCanvas = await html2canvas(document.body, {
+      // Cattura direttamente il nodo della card.
+      // x/y dicono a html2canvas di partire dall'angolo in alto-sinistra dell'elemento stesso,
+      // width/height limitano la finestra di rendering alle sole dimensioni della card.
+      const canvas = await html2canvas(cardRef.current, {
         scale: SCALE,
         useCORS: true,
         allowTaint: false,
         backgroundColor: null,
         logging: false,
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight,
+        x: 0,
+        y: 0,
+        width: CARD_W,
+        height: CARD_H,
+        windowWidth: CARD_W,
+        windowHeight: CARD_H,
       });
 
-      // Ritaglia esattamente la card usando le coordinate del rect
-      const out = document.createElement('canvas');
-      out.width = CARD_W * SCALE;
-      out.height = CARD_H * SCALE;
-      const ctx = out.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(
-          fullCanvas,
-          rect.left * SCALE,   // x di partenza nel canvas completo
-          rect.top * SCALE,    // y di partenza nel canvas completo
-          CARD_W * SCALE,      // larghezza da ritagliare
-          CARD_H * SCALE,      // altezza da ritagliare
-          0, 0,                // destinazione
-          CARD_W * SCALE,
-          CARD_H * SCALE
-        );
-      }
-
+      // Il canvas prodotto è già esattamente CARD_W*SCALE x CARD_H*SCALE
       const link = document.createElement('a');
       const nomeFile = autoreGiorno
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
       link.download = `taccuino-${nomeFile}.jpg`;
-      link.href = out.toDataURL('image/jpeg', 0.93);
+      link.href = canvas.toDataURL('image/jpeg', 0.93);
       link.click();
     } catch (e) {
       console.error("Errore durante l'export:", e);
