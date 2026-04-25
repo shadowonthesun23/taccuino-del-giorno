@@ -29,12 +29,21 @@ const CARD_W = 360;
 const CARD_H = 640;
 const SCALE = 3;
 
-function citazioneFontSize(testo: string): { fontSize: string; maxLines: number } {
+/**
+ * Restituisce fontSize (numero) e maxHeight calcolata in px.
+ * maxHeight = fontSize * lineHeight * maxLines  — usata al posto di WebkitLineClamp
+ * che html2canvas non rispetta.
+ */
+function citazioneStyle(testo: string): {
+  fontSize: number;
+  maxHeight: string;
+} {
   const len = testo.length;
-  if (len <= 160) return { fontSize: '13px', maxLines: 7 };
-  if (len <= 280) return { fontSize: '11.5px', maxLines: 8 };
-  if (len <= 400) return { fontSize: '10.5px', maxLines: 9 };
-  return { fontSize: '9.5px', maxLines: 10 };
+  const lineHeight = 1.55;
+  if (len <= 160) return { fontSize: 13, maxHeight: `${Math.round(13 * lineHeight * 7)}px` };
+  if (len <= 280) return { fontSize: 11.5, maxHeight: `${Math.round(11.5 * lineHeight * 8)}px` };
+  if (len <= 400) return { fontSize: 10.5, maxHeight: `${Math.round(10.5 * lineHeight * 9)}px` };
+  return { fontSize: 9.5, maxHeight: `${Math.round(9.5 * lineHeight * 10)}px` };
 }
 
 export default function AuthorExportCard({
@@ -59,14 +68,13 @@ export default function AuthorExportCard({
         allowTaint: false,
         backgroundColor: null,
         logging: false,
-        // Forza il ritaglio esatto alla dimensione della card
         width: CARD_W,
         height: CARD_H,
         windowWidth: CARD_W,
         windowHeight: CARD_H,
       });
 
-      // Ritaglia il canvas al formato 9:16 esatto (360x640 * scale)
+      // Ritaglia il canvas al formato 9:16 esatto
       const croppedCanvas = document.createElement('canvas');
       croppedCanvas.width = CARD_W * SCALE;
       croppedCanvas.height = CARD_H * SCALE;
@@ -84,7 +92,7 @@ export default function AuthorExportCard({
       link.href = croppedCanvas.toDataURL('image/jpeg', 0.93);
       link.click();
     } catch (e) {
-      console.error('Errore durante l\'export:', e);
+      console.error("Errore durante l'export:", e);
     } finally {
       setExporting(false);
     }
@@ -98,7 +106,7 @@ export default function AuthorExportCard({
   const borderColor = '#EBE5DB';
   const wcColor = '#b5956a';
 
-  const { fontSize: citFontSize, maxLines } = citazioneFontSize(citazione.testo);
+  const { fontSize: citFontSize, maxHeight: citMaxHeight } = citazioneStyle(citazione.testo);
 
   return (
     <div className="relative group">
@@ -121,7 +129,7 @@ export default function AuthorExportCard({
         </button>
       </div>
 
-      {/* Wrapper di clipping: garantisce che html2canvas non veda nulla fuori da 360x640 */}
+      {/* Wrapper di clipping esterno */}
       <div
         style={{
           width: `${CARD_W}px`,
@@ -146,11 +154,12 @@ export default function AuthorExportCard({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '48px 24px 16px',
+            // padding ridotto per evitare che la tape sfondi il bordo superiore
+            padding: '28px 24px 16px',
             boxSizing: 'border-box',
           }}
         >
-          {/* Data tape */}
+          {/* Data tape — senza rotazione per evitare sforamento dal bordo */}
           <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0 }}>
             <div
               className={caveat.className}
@@ -162,7 +171,7 @@ export default function AuthorExportCard({
                 padding: '4px 24px 6px',
                 borderRadius: '2px',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                transform: 'rotate(-1.2deg)',
+                // Nessuna rotazione: evita sforamento oltre il padding-top in html2canvas
                 lineHeight: 1,
                 textAlign: 'center',
                 display: 'inline-block',
@@ -295,17 +304,16 @@ export default function AuthorExportCard({
             >
               &ldquo;
             </span>
+            {/* maxHeight al posto di WebkitLineClamp: html2canvas non rispetta -webkit-line-clamp */}
             <p
               style={{
-                fontSize: citFontSize,
+                fontSize: `${citFontSize}px`,
                 fontStyle: 'italic',
                 fontWeight: 500,
                 color: textPrimary,
                 lineHeight: 1.55,
                 margin: '0 0 8px',
-                display: '-webkit-box',
-                WebkitLineClamp: maxLines,
-                WebkitBoxOrient: 'vertical',
+                maxHeight: citMaxHeight,
                 overflow: 'hidden',
               }}
             >
