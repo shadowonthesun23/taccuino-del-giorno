@@ -4,7 +4,6 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
-import CardExportWrapper from './components/CardExportWrapper';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -271,25 +270,25 @@ export default function Home() {
 
   if (loading) return (
     <div 
-  className="absolute inset-0 pointer-events-none" 
-  style={{ 
-    backgroundImage: `url("/beige-paper.png")`,
-    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)',
-    mixBlendMode: isDark ? 'overlay' : 'multiply'
-  }}
-></div>
+      className="absolute inset-0 pointer-events-none" 
+      style={{ 
+        backgroundImage: `url("/beige-paper.png")`,
+        filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)',
+        mixBlendMode: isDark ? 'overlay' : 'multiply'
+      }}
+    ></div>
   );
 
   if (error) return (
     <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
       <div 
-  className="absolute inset-0 pointer-events-none z-0" 
-  style={{ 
-    backgroundImage: themeClasses.texture,
-    backgroundRepeat: 'repeat',
-    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
-  }}
-></div>
+        className="absolute inset-0 pointer-events-none z-0" 
+        style={{ 
+          backgroundImage: themeClasses.texture,
+          backgroundRepeat: 'repeat',
+          filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
+        }}
+      ></div>
       <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
@@ -302,7 +301,7 @@ export default function Home() {
     </div>
   );
 
- if (!data) return null;
+  if (!data) return null;
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
@@ -407,7 +406,7 @@ export default function Home() {
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
             {lingua === 'IT'
-              ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un’opera d’arte. Cultura quotidiana, generata automaticamente."'
+              ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, generata automaticamente."'
               : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, automatically generated."'}
           </p>
           {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
@@ -494,141 +493,125 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <CardExportWrapper isDark={isDark} filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`} className="md:col-span-2">
-            <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
-              <blockquote className="md:px-8">
-                <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
-                <footer className="text-right text-lg clear-both pt-2">
-                  <span className="font-bold">{data.citazione.autore}</span>
-                  <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
-                </footer>
-              </blockquote>
-            </Card>
-          </CardExportWrapper>
+          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
+            <blockquote className="md:px-8">
+              <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
+              <footer className="text-right text-lg clear-both pt-2">
+                <span className="font-bold">{data.citazione.autore}</span>
+                <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
+              </footer>
+            </blockquote>
+          </Card>
 
-          <CardExportWrapper isDark={isDark} filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
-            <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}>
-              <div className="text-center mb-6">
-                <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
-                <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
-              </div>
-              <p className="text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
-              {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
-                <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
-              )}
-            </Card>
-          </CardExportWrapper>
+          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}>
+            <div className="text-center mb-6">
+              <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
+              <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
+            </div>
+            <p className="text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
+            {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
+              <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
+            )}
+          </Card>
 
-          <CardExportWrapper isDark={isDark} filename="santi">
-            <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark}>
-              <ul className="space-y-6">
-                {data.santi.map((santo, idx) => (
-                  <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
-                    <h4 className="text-2xl font-bold mb-1">{santo.nome}</h4>
-                    <p className="text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
-                    <p className="text-lg font-medium leading-relaxed">{santo.biografia}</p>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          </CardExportWrapper>
+          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark}>
+            <ul className="space-y-6">
+              {data.santi.map((santo, idx) => (
+                <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
+                  <h4 className="text-2xl font-bold mb-1">{santo.nome}</h4>
+                  <p className="text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
+                  <p className="text-lg font-medium leading-relaxed">{santo.biografia}</p>
+                </li>
+              ))}
+            </ul>
+          </Card>
 
           {opera && (
             <div className="md:col-span-2 notched-card-wrapper">
-              <CardExportWrapper isDark={isDark} filename={`opera-${opera.titolo.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}>
-                <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
-                  <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
-                    <div className="space-y-5 order-2 md:order-1">
-                      <div>
-                        <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
-                        <p className="text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
-                      </div>
-                      {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
-                      <div className="flex flex-wrap items-center gap-4 pt-2">
-                        <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
-                          {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
-                        </a>
-                      </div>
+              <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
+                <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                  <div className="space-y-5 order-2 md:order-1">
+                    <div>
+                      <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
+                      <p className="text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
-                    <div className="order-1 md:order-2">
-                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
-                        <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
+                    {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
+                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
+                        {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
                       </a>
-                      <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                     </div>
                   </div>
-                </Card>
-              </CardExportWrapper>
+                  <div className="order-1 md:order-2">
+                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
+                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
+                    </a>
+                    <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
+                  </div>
+                </div>
+              </Card>
             </div>
           )}
 
-          <CardExportWrapper isDark={isDark} filename="avvenimenti" className="md:col-span-2">
-            <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2">
-              <ul className="space-y-4">
-                {data.avvenimenti.map((evento, idx) => {
-                  const parts = evento.split(':');
-                  return (
-                    <li key={idx} className="flex gap-4 text-xl font-medium leading-relaxed">
-                      <span className="text-[#DE6B58] font-bold">•</span>
-                      <span>{parts.length > 1 ? (<><strong className="font-bold">{parts[0]}:</strong>{parts.slice(1).join(':')}</>) : evento}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Card>
-          </CardExportWrapper>
+          <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2">
+            <ul className="space-y-4">
+              {data.avvenimenti.map((evento, idx) => {
+                const parts = evento.split(':');
+                return (
+                  <li key={idx} className="flex gap-4 text-xl font-medium leading-relaxed">
+                    <span className="text-[#DE6B58] font-bold">•</span>
+                    <span>{parts.length > 1 ? (<><strong className="font-bold">{parts[0]}:</strong>{parts.slice(1).join(':')}</>) : evento}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
 
-          <CardExportWrapper isDark={isDark} filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}>
-            <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}>
-              <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">{data.poesia.testo}</div>
-              <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
-                <p className="font-bold text-xl">{data.poesia.autore}</p>
-                <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
+          <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">{data.poesia.testo}</div>
+            <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
+              <p className="font-bold text-xl">{data.poesia.autore}</p>
+              <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
+            </div>
+            {data.poesia.nota && (
+              <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
+                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
+                {data.poesia.nota}
               </div>
-              {data.poesia.nota && (
-                <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
-                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
-                  {data.poesia.nota}
-                </div>
-              )}
-            </Card>
-          </CardExportWrapper>
+            )}
+          </Card>
 
-          <CardExportWrapper isDark={isDark} filename="bibbia">
-            <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}>
-              <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
-              <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
-                <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
+          <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
+            <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
+              <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
+            </div>
+            {data.bibbia.nota && (
+              <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
+                <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
+                {data.bibbia.nota}
               </div>
-              {data.bibbia.nota && (
-                <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
-                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
-                  {data.bibbia.nota}
-                </div>
-              )}
-            </Card>
-          </CardExportWrapper>
+            )}
+          </Card>
 
-          <CardExportWrapper isDark={isDark} filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`} className="md:col-span-2">
-            <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center">
-              <div className="max-w-2xl mx-auto">
-                <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
-                <p className="text-xl font-medium mb-2">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{data.musica.autore}</span></p>
-                <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
-                <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                  <a href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
-                    className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
-                    {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
-                  </a>
-                  <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
-                    className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
-                    {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
-                  </a>
-                </div>
+          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
+              <p className="text-xl font-medium mb-2">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{data.musica.autore}</span></p>
+              <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
+              <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <a href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
+                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
+                  {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
+                </a>
+                <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
+                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
+                  {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
+                </a>
               </div>
-            </Card>
-          </CardExportWrapper>
+            </div>
+          </Card>
 
         </div>
 
