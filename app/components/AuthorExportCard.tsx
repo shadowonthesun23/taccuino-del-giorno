@@ -58,27 +58,42 @@ export default function AuthorExportCard({
     try {
       const html2canvas = (await import('html2canvas')).default;
 
+      // Porta la card nel viewport
       cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 150));
 
-      const canvas = await html2canvas(cardRef.current, {
+      // Legge la posizione ESATTA della card nel viewport DOPO lo scroll
+      const rect = cardRef.current.getBoundingClientRect();
+
+      // Cattura l'intera pagina visibile
+      const fullCanvas = await html2canvas(document.body, {
         scale: SCALE,
         useCORS: true,
         allowTaint: false,
         backgroundColor: null,
         logging: false,
-        width: CARD_W,
-        height: CARD_H,
         scrollX: 0,
         scrollY: -window.scrollY,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
       });
 
+      // Ritaglia esattamente la card usando le coordinate del rect
       const out = document.createElement('canvas');
       out.width = CARD_W * SCALE;
       out.height = CARD_H * SCALE;
       const ctx = out.getContext('2d');
       if (ctx) {
-        ctx.drawImage(canvas, 0, 0, CARD_W * SCALE, CARD_H * SCALE, 0, 0, CARD_W * SCALE, CARD_H * SCALE);
+        ctx.drawImage(
+          fullCanvas,
+          rect.left * SCALE,   // x di partenza nel canvas completo
+          rect.top * SCALE,    // y di partenza nel canvas completo
+          CARD_W * SCALE,      // larghezza da ritagliare
+          CARD_H * SCALE,      // altezza da ritagliare
+          0, 0,                // destinazione
+          CARD_W * SCALE,
+          CARD_H * SCALE
+        );
       }
 
       const link = document.createElement('a');
@@ -151,8 +166,7 @@ export default function AuthorExportCard({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            // padding-top ridotto ulteriormente per far salire la data
-            padding: '12px 24px 16px',
+            padding: '20px 24px 16px',
             boxSizing: 'border-box',
           }}
         >
@@ -194,7 +208,6 @@ export default function AuthorExportCard({
 
           {/* Diapositiva */}
           {fotoAutoreUrl && (
-            // marginBottom ridotto: elimina lo spazio eccessivo tra foto e nome
             <div style={{ transform: 'rotate(-2deg)', marginBottom: '4px', flexShrink: 0 }}>
               <div
                 style={{
