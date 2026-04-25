@@ -7,9 +7,10 @@ interface CardExportWrapperProps {
   children: React.ReactNode;
   filename?: string;
   isDark: boolean;
+  className?: string;
 }
 
-export default function CardExportWrapper({ children, filename = 'card', isDark }: CardExportWrapperProps) {
+export default function CardExportWrapper({ children, filename = 'card', isDark, className = '' }: CardExportWrapperProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -23,11 +24,8 @@ export default function CardExportWrapper({ children, filename = 'card', isDark 
         quality: 0.94,
         pixelRatio: 2,
         backgroundColor: isDark ? '#1E1E1E' : '#F4F0E6',
-        style: {
-          borderRadius: '0',
-        },
+        style: { borderRadius: '0' },
         filter: (node) => {
-          // Esclude il pulsante di export dall'immagine
           if (node instanceof HTMLElement && node.dataset.exportIgnore) return false;
           return true;
         },
@@ -44,8 +42,7 @@ export default function CardExportWrapper({ children, filename = 'card', isDark 
   }, [exporting, filename, isDark]);
 
   return (
-    <div className="relative group">
-      {/* Pulsante export — invisibile finché non si fa hover sulla card */}
+    <div className={`relative group ${className}`}>
       <button
         data-export-ignore="true"
         onClick={handleExport}
@@ -73,7 +70,6 @@ export default function CardExportWrapper({ children, filename = 'card', isDark 
         )}
       </button>
 
-      {/* Contenuto card con sfondo carta per la cattura */}
       <div
         ref={cardRef}
         style={{
