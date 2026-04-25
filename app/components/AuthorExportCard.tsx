@@ -56,19 +56,19 @@ export default function AuthorExportCard({
     if (!cardRef.current || exporting) return;
     setExporting(true);
     try {
-      // dom-to-image-more cattura il nodo direttamente, senza problemi di scroll offset
-      const domtoimage = (await import('dom-to-image-more')).default;
+      const html2canvas = (await import('html2canvas')).default;
 
-      const dataUrl = await domtoimage.toJpeg(cardRef.current, {
-        quality: 0.93,
-        width: CARD_W * SCALE,
-        height: CARD_H * SCALE,
-        style: {
-          transform: `scale(${SCALE})`,
-          transformOrigin: 'top left',
-          width: `${CARD_W}px`,
-          height: `${CARD_H}px`,
-        },
+      // Porta la card in cima al viewport e aspetta il repaint
+      cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
+      await new Promise((r) => setTimeout(r, 200));
+
+      const canvas = await html2canvas(cardRef.current, {
+        scale: SCALE,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false,
+        scrollY: -window.scrollY,
       });
 
       const link = document.createElement('a');
@@ -77,7 +77,7 @@ export default function AuthorExportCard({
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
       link.download = `taccuino-${nomeFile}.jpg`;
-      link.href = dataUrl;
+      link.href = canvas.toDataURL('image/jpeg', 0.93);
       link.click();
     } catch (e) {
       console.error("Errore durante l'export:", e);
