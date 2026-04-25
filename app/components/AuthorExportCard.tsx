@@ -107,14 +107,14 @@ export default function AuthorExportCard({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '18px 24px 16px',
+          padding: '48px 24px 16px', // top aumentato da 18px a 48px
           boxSizing: 'border-box',
           border: `1px solid ${borderColor}`,
           borderRadius: '16px',
           margin: '0 auto',
         }}
       >
-        {/* Data stile tape — centrata con text-align */}
+        {/* Data stile tape */}
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
           <div
             className={caveat.className}
@@ -136,7 +136,7 @@ export default function AuthorExportCard({
           </div>
         </div>
 
-        {/* Etichetta Autore del Giorno */}
+        {/* Etichetta */}
         <span
           style={{
             fontSize: '11px',
@@ -144,7 +144,7 @@ export default function AuthorExportCard({
             letterSpacing: '0.24em',
             textTransform: 'uppercase',
             color: accent,
-            marginBottom: '14px', // più spazio prima della diapositiva
+            marginBottom: '14px',
           }}
         >
           Autore del Giorno
@@ -152,13 +152,7 @@ export default function AuthorExportCard({
 
         {/* Diapositiva fotografica */}
         {fotoAutoreUrl && (
-          <div
-            style={{
-              transform: 'rotate(-2deg)',
-              marginBottom: '12px',
-              flexShrink: 0,
-            }}
-          >
+          <div style={{ transform: 'rotate(-2deg)', marginBottom: '12px', flexShrink: 0 }}>
             <div
               style={{
                 background: cardBg,
@@ -212,7 +206,7 @@ export default function AuthorExportCard({
           {breveDescrizione}
         </p>
 
-        {/* Divisore watercolor SVG (versione ridotta dell'header) */}
+        {/* Divisore watercolor SVG */}
         <div
           aria-hidden="true"
           style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0, pointerEvents: 'none' }}
@@ -240,7 +234,7 @@ export default function AuthorExportCard({
           </svg>
         </div>
 
-        {/* Box citazione — ancorato subito sotto il divisore */}
+        {/* Box citazione */}
         <div
           style={{
             width: '100%',
