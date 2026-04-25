@@ -27,7 +27,6 @@ interface AuthorExportCardProps {
 
 const CARD_W = 360;
 const CARD_H = 640;
-const SCALE = 3;
 
 function truncateCitation(testo: string): { testo: string; fontSize: string } {
   const len = testo.length;
@@ -35,10 +34,10 @@ function truncateCitation(testo: string): { testo: string; fontSize: string } {
   if (len <= 350) return { testo, fontSize: '11.5px' };
   if (len <= 500) {
     const truncated = testo.slice(0, 350).trimEnd();
-    return { testo: truncated + (testo.length > 350 ? '…' : ''), fontSize: '10.5px' };
+    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: '10.5px' };
   }
   const truncated = testo.slice(0, 300).trimEnd();
-  return { testo: truncated + (testo.length > 300 ? '…' : ''), fontSize: '9.5px' };
+  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: '9.5px' };
 }
 
 export default function AuthorExportCard({
@@ -49,38 +48,34 @@ export default function AuthorExportCard({
   dataOdierna,
   isDark,
 }: AuthorExportCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
-    if (!cardRef.current || exporting) return;
+    if (exporting) return;
     setExporting(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
-
-      // Porta la card in cima al viewport e aspetta il repaint
-      cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
-      await new Promise((r) => setTimeout(r, 200));
-
-      const canvas = await html2canvas(cardRef.current, {
-        scale: SCALE,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        logging: false,
-        scrollY: -window.scrollY,
+      const res = await fetch('/api/genera-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna }),
       });
 
+      if (!res.ok) throw new Error(`Errore API: ${res.status}`);
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       const nomeFile = autoreGiorno
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
-      link.download = `taccuino-${nomeFile}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.93);
+      link.download = `taccuino-${nomeFile}.png`;
+      link.href = url;
       link.click();
+      URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Errore durante l'export:", e);
+      alert('Errore durante la generazione. Riprova.');
     } finally {
       setExporting(false);
     }
@@ -113,7 +108,7 @@ export default function AuthorExportCard({
           }}
         >
           {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          {exporting ? 'Esportando...' : 'Salva come immagine'}
+          {exporting ? 'Generando...' : 'Salva come immagine'}
         </button>
       </div>
 
@@ -128,7 +123,6 @@ export default function AuthorExportCard({
         }}
       >
         <div
-          ref={cardRef}
           className={garamond.className}
           style={{
             width: `${CARD_W}px`,
