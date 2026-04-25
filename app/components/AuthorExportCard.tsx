@@ -151,7 +151,8 @@ export default function AuthorExportCard({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '20px 24px 16px',
+            // padding-top ridotto ulteriormente per far salire la data
+            padding: '12px 24px 16px',
             boxSizing: 'border-box',
           }}
         >
@@ -193,7 +194,8 @@ export default function AuthorExportCard({
 
           {/* Diapositiva */}
           {fotoAutoreUrl && (
-            <div style={{ transform: 'rotate(-2deg)', marginBottom: '8px', flexShrink: 0 }}>
+            // marginBottom ridotto: elimina lo spazio eccessivo tra foto e nome
+            <div style={{ transform: 'rotate(-2deg)', marginBottom: '4px', flexShrink: 0 }}>
               <div
                 style={{
                   background: cardBg,
@@ -252,7 +254,7 @@ export default function AuthorExportCard({
           {/* Divisore watercolor */}
           <div
             aria-hidden="true"
-            style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '8px', flexShrink: 0, pointerEvents: 'none' }}
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '4px', flexShrink: 0, pointerEvents: 'none' }}
           >
             <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
               <defs>
