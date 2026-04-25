@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import satori from 'satori';
-import { Resvg } from '@resvg/resvg-js';
+import sharp from 'sharp';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
+
+export const runtime = 'nodejs';
 
 const W = 1080;
 const H = 1920;
@@ -25,7 +27,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna } = body;
 
-    // Carica i font dal filesystem
     const fontsDir = path.join(process.cwd(), 'public', 'fonts');
     const [garamondRegular, garamondBold, garamondItalic, caveatBold] = await Promise.all([
       readFile(path.join(fontsDir, 'EBGaramond-Regular.ttf')),
@@ -34,12 +35,10 @@ export async function POST(req: NextRequest) {
       readFile(path.join(fontsDir, 'Caveat-Bold.ttf')),
     ]);
 
-    // Carica texture carta come base64
     const paperPath = path.join(process.cwd(), 'public', 'beige-paper.png');
     const paperBuffer = await readFile(paperPath);
     const paperB64 = `data:image/png;base64,${paperBuffer.toString('base64')}`;
 
-    // Scarica foto autore come base64 (se presente)
     let fotoB64: string | null = null;
     if (fotoAutoreUrl) {
       try {
@@ -79,7 +78,6 @@ export async function POST(req: NextRequest) {
             fontFamily: 'EB Garamond',
           },
         },
-        // Data tape
         React.createElement(
           'div',
           { style: { display: 'flex', justifyContent: 'center', width: '100%', marginBottom: 18 } },
@@ -99,7 +97,6 @@ export async function POST(req: NextRequest) {
             dataOdierna
           )
         ),
-        // Etichetta
         React.createElement(
           'div',
           {
@@ -115,7 +112,6 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Foto polaroid
         fotoB64
           ? React.createElement(
               'div',
@@ -138,7 +134,6 @@ export async function POST(req: NextRequest) {
               })
             )
           : null,
-        // Nome autore
         React.createElement(
           'div',
           {
@@ -154,7 +149,6 @@ export async function POST(req: NextRequest) {
           },
           autoreGiorno
         ),
-        // Biografia
         React.createElement(
           'div',
           {
@@ -171,7 +165,6 @@ export async function POST(req: NextRequest) {
           },
           breveDescrizione
         ),
-        // Divisore
         React.createElement('div', {
           style: {
             width: '80%',
@@ -182,7 +175,6 @@ export async function POST(req: NextRequest) {
             marginBottom: 24,
           },
         }),
-        // Box citazione
         React.createElement(
           'div',
           {
@@ -252,16 +244,19 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // SVG → PNG via resvg-js, poi risponde con il PNG
-    const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: W } });
-    const pngData = resvg.render();
-    const pngBuffer = pngData.asPng();
+    // SVG -> PNG via sharp
+    const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+
+    const nomeFile = autoreGiorno
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
 
     return new NextResponse(pngBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="taccuino-${autoreGiorno.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}.png"`,
+        'Content-Disposition': `attachment; filename="taccuino-${nomeFile}.png"`,
       },
     });
   } catch (err) {
