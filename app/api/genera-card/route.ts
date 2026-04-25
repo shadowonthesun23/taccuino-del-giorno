@@ -22,33 +22,36 @@ function truncateCitation(testo: string): { testo: string; fontSize: number } {
   return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: 28 };
 }
 
-// SVG washi tape SOLO sfondo zigzag, senza testo (il testo lo mette Satori)
-function makeWashiTapeBgSvg(): string {
-  const TW = 520;
-  const TH = 90;
-  const TOOTH = 10;
-  const TEETH = Math.floor(TH / TOOTH);
+// Washi tape: rettangolo centrale pieno + triangolini ai bordi via pattern
+function makeWashiTapeSvg(): string {
+  const TW = 560;
+  const TH = 88;
+  const T = 11; // dimensione dente
 
-  // bordo sinistro a zigzag
-  let leftZig = `M ${TOOTH},0 `;
-  for (let i = 0; i < TEETH; i++) {
-    leftZig += `L 0,${i * TOOTH + TOOTH / 2} L ${TOOTH},${(i + 1) * TOOTH} `;
+  // Bordo sinistro: triangolini rivolti verso sinistra
+  let leftTeeth = '';
+  for (let y = 0; y < TH; y += T) {
+    leftTeeth += `M 0,${y} L ${T},${y + T / 2} L 0,${y + T} Z `;
   }
 
-  // bordo destro a zigzag (inverso)
-  const rx = TW - TOOTH;
-  let rightZig = `L ${rx},${TH} `;
-  for (let i = TEETH; i >= 0; i--) {
-    rightZig += `L ${TW},${i * TOOTH + TOOTH / 2} L ${rx},${i * TOOTH} `;
+  // Bordo destro: triangolini rivolti verso destra
+  let rightTeeth = '';
+  for (let y = 0; y < TH; y += T) {
+    rightTeeth += `M ${TW},${y} L ${TW - T},${y + T / 2} L ${TW},${y + T} Z `;
   }
-  rightZig += 'Z';
-
-  const d = leftZig + `L ${rx},0 ` + rightZig;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${TW}" height="${TH}" viewBox="0 0 ${TW} ${TH}">
-    <path d="${d}" fill="#e8dcc6"/>
-    <path d="${d}" fill="rgba(255,255,255,0.22)"/>
-  </svg>`;
+  <!-- Sfondo principale (area interna, escludendo i denti) -->
+  <rect x="${T}" y="0" width="${TW - T * 2}" height="${TH}" fill="#e8dcc6"/>
+  <!-- Riflesso luce -->
+  <rect x="${T}" y="0" width="${TW - T * 2}" height="${TH}" fill="rgba(255,255,255,0.2)"/>
+  <!-- Denti sinistri (bg color = stessa tinta tape) -->
+  <path d="${leftTeeth}" fill="#e8dcc6"/>
+  <!-- Denti destri -->
+  <path d="${rightTeeth}" fill="#e8dcc6"/>
+  <!-- Ombra sottile bordo inferiore per profondità -->
+  <rect x="${T}" y="${TH - 2}" width="${TW - T * 2}" height="2" fill="rgba(0,0,0,0.08)"/>
+</svg>`;
 }
 
 export async function POST(req: NextRequest) {
@@ -92,9 +95,8 @@ export async function POST(req: NextRequest) {
     const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
-    // Washi tape: solo sfondo SVG, il testo lo renderizza Satori
-    const washiBgSvg = makeWashiTapeBgSvg();
-    const washiBgB64 = `data:image/svg+xml;base64,${Buffer.from(washiBgSvg).toString('base64')}`;
+    const washiSvg = makeWashiTapeSvg();
+    const washiB64 = `data:image/svg+xml;base64,${Buffer.from(washiSvg).toString('base64')}`;
 
     const svg = await satori(
       React.createElement(
@@ -113,7 +115,7 @@ export async function POST(req: NextRequest) {
             position: 'relative',
           },
         },
-        // Washi tape: sfondo SVG + testo Satori sovrapposti
+        // Washi tape: SVG + testo Satori sovrapposto
         React.createElement(
           'div',
           {
@@ -123,26 +125,21 @@ export async function POST(req: NextRequest) {
               width: '100%',
               marginBottom: 36,
               position: 'relative',
-              height: 90,
+              height: 88,
             },
           },
-          // Sfondo zigzag
           React.createElement('img', {
-            src: washiBgB64,
-            width: 520,
-            height: 90,
+            src: washiB64,
+            width: 560,
+            height: 88,
             style: { position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' },
           }),
-          // Testo data sopra il tape — renderizzato da Satori con font Caveat
           React.createElement(
             'div',
             {
               style: {
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
+                top: 0, left: 0, right: 0, bottom: 0,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -178,7 +175,7 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Contenitore foto + watermark assoluto
+        // Contenitore foto con watermark sul bordo destro assoluto della card
         React.createElement(
           'div',
           {
@@ -190,7 +187,6 @@ export async function POST(req: NextRequest) {
               position: 'relative',
             },
           },
-          // Polaroid
           fotoB64
             ? React.createElement(
                 'div',
@@ -212,26 +208,36 @@ export async function POST(req: NextRequest) {
                 })
               )
             : null,
-          // Watermark verticale — posizionato in assoluto sul bordo destro
+          // Watermark verticale al bordo destro della card (right: -36 esce dal padding)
           React.createElement(
             'div',
             {
               style: {
                 position: 'absolute',
-                right: 0,
-                top: '50%',
-                transform: 'translateY(-50%) rotate(90deg)',
-                fontSize: 24,
-                fontFamily: 'EB Garamond',
-                fontWeight: 400,
-                color: textMuted,
-                opacity: 0.45,
-                whiteSpace: 'nowrap',
-                letterSpacing: '0.12em',
-                transformOrigin: 'center center',
+                right: -36,
+                top: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               },
             },
-            'ig: @antonelloan23'
+            React.createElement(
+              'div',
+              {
+                style: {
+                  fontSize: 22,
+                  fontFamily: 'EB Garamond',
+                  fontWeight: 400,
+                  color: textMuted,
+                  opacity: 0.45,
+                  transform: 'rotate(90deg)',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '0.15em',
+                },
+              },
+              'ig: @antonelloan23'
+            )
           )
         ),
         // Nome autore
