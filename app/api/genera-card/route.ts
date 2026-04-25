@@ -244,15 +244,14 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // SVG -> PNG via sharp
+    // SVG -> PNG via sharp, wrappato in Uint8Array per NextResponse
     const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-
     const nomeFile = autoreGiorno
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
 
-    return new NextResponse(pngBuffer, {
+    return new NextResponse(new Uint8Array(pngBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
