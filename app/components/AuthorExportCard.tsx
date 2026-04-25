@@ -30,20 +30,22 @@ const CARD_H = 640;
 const SCALE = 3;
 
 /**
- * Restituisce fontSize (numero) e maxHeight calcolata in px.
- * maxHeight = fontSize * lineHeight * maxLines  — usata al posto di WebkitLineClamp
- * che html2canvas non rispetta.
+ * Tronca il testo a un numero massimo di caratteri in base alla lunghezza,
+ * aggiungendo ellissi se necessario. Questo evita qualsiasi dipendenza da
+ * CSS line-clamp o maxHeight che html2canvas non rispetta.
  */
-function citazioneStyle(testo: string): {
-  fontSize: number;
-  maxHeight: string;
-} {
+function truncateCitation(testo: string): { testo: string; fontSize: string } {
   const len = testo.length;
-  const lineHeight = 1.55;
-  if (len <= 160) return { fontSize: 13, maxHeight: `${Math.round(13 * lineHeight * 7)}px` };
-  if (len <= 280) return { fontSize: 11.5, maxHeight: `${Math.round(11.5 * lineHeight * 8)}px` };
-  if (len <= 400) return { fontSize: 10.5, maxHeight: `${Math.round(10.5 * lineHeight * 9)}px` };
-  return { fontSize: 9.5, maxHeight: `${Math.round(9.5 * lineHeight * 10)}px` };
+  if (len <= 200) return { testo, fontSize: '13px' };
+  if (len <= 350) return { testo, fontSize: '11.5px' };
+  if (len <= 500) {
+    // tronca a ~350 caratteri
+    const truncated = testo.slice(0, 350).trimEnd();
+    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: '10.5px' };
+  }
+  // testo molto lungo: tronca a ~300 caratteri con font ancora pi\u00f9 piccolo
+  const truncated = testo.slice(0, 300).trimEnd();
+  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: '9.5px' };
 }
 
 export default function AuthorExportCard({
@@ -106,7 +108,7 @@ export default function AuthorExportCard({
   const borderColor = '#EBE5DB';
   const wcColor = '#b5956a';
 
-  const { fontSize: citFontSize, maxHeight: citMaxHeight } = citazioneStyle(citazione.testo);
+  const { testo: citTesto, fontSize: citFontSize } = truncateCitation(citazione.testo);
 
   return (
     <div className="relative group">
@@ -154,12 +156,11 @@ export default function AuthorExportCard({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            // padding ridotto per evitare che la tape sfondi il bordo superiore
             padding: '28px 24px 16px',
             boxSizing: 'border-box',
           }}
         >
-          {/* Data tape — senza rotazione per evitare sforamento dal bordo */}
+          {/* Data tape */}
           <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0 }}>
             <div
               className={caveat.className}
@@ -171,7 +172,6 @@ export default function AuthorExportCard({
                 padding: '4px 24px 6px',
                 borderRadius: '2px',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                // Nessuna rotazione: evita sforamento oltre il padding-top in html2canvas
                 lineHeight: 1,
                 textAlign: 'center',
                 display: 'inline-block',
@@ -278,7 +278,7 @@ export default function AuthorExportCard({
             </svg>
           </div>
 
-          {/* Box citazione */}
+          {/* Box citazione: testo gi\u00e0 troncato in JS, nessun clipping CSS necessario */}
           <div
             style={{
               width: '100%',
@@ -288,7 +288,6 @@ export default function AuthorExportCard({
               borderRadius: '10px',
               boxSizing: 'border-box',
               flexShrink: 0,
-              overflow: 'hidden',
             }}
           >
             <span
@@ -304,20 +303,17 @@ export default function AuthorExportCard({
             >
               &ldquo;
             </span>
-            {/* maxHeight al posto di WebkitLineClamp: html2canvas non rispetta -webkit-line-clamp */}
             <p
               style={{
-                fontSize: `${citFontSize}px`,
+                fontSize: citFontSize,
                 fontStyle: 'italic',
                 fontWeight: 500,
                 color: textPrimary,
                 lineHeight: 1.55,
                 margin: '0 0 8px',
-                maxHeight: citMaxHeight,
-                overflow: 'hidden',
               }}
             >
-              {citazione.testo}
+              {citTesto}
             </p>
             <p
               style={{
@@ -328,7 +324,7 @@ export default function AuthorExportCard({
                 margin: 0,
               }}
             >
-              — {citazione.autore}
+              \u2014 {citazione.autore}
               {citazione.fonte ? (
                 <span style={{ fontWeight: 400, fontStyle: 'italic' }}>, {citazione.fonte}</span>
               ) : null}
