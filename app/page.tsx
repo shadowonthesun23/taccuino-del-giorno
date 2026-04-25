@@ -406,18 +406,15 @@ export default function Home() {
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
             {lingua === 'IT'
-              ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, generata automaticamente."'
+              ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un’opera d’arte. Cultura quotidiana, generata automaticamente."'
               : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, automatically generated."'}
           </p>
           {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
           <WatercolorDivider isDark={isDark} />
         </header>
 
-        {/* Sezione Autore del Giorno */}
         <section className="py-8">
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
-            
-            {/* Diapositiva fotografica */}
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
                 <div
@@ -443,7 +440,6 @@ export default function Home() {
               </div>
             )}
             
-            {/* Testo autore */}
             <div className="flex-1 text-center md:text-left">
               <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
                 {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
@@ -453,7 +449,6 @@ export default function Home() {
                 {data.breve_descrizione}
               </p>
 
-              {/* Bottone export */}
               <button
                 onClick={() => setShowExportCard(v => !v)}
                 className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
@@ -470,10 +465,16 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Card export — mt-5 invece di mt-10 */}
-          {showExportCard && (
-            <div className="mt-5">
-              <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4`}>
+          <div
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${
+              showExportCard
+                ? 'max-h-[1400px] opacity-100 translate-y-0 mt-5'
+                : 'max-h-0 opacity-0 -translate-y-2 mt-0'
+            }`}
+            aria-hidden={!showExportCard}
+          >
+            <div className="pt-1 pb-1">
+              <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4 transition-opacity duration-300 ${showExportCard ? 'opacity-100' : 'opacity-0'}`}>
                 {lingua === 'IT'
                   ? 'Anteprima della card da condividere (formato 9:16)'
                   : 'Preview of the shareable card (9:16 format)'}
@@ -487,7 +488,7 @@ export default function Home() {
                 isDark={isDark}
               />
             </div>
-          )}
+          </div>
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
