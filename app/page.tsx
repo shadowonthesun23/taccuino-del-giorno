@@ -17,7 +17,7 @@ const caveat = Caveat({
   display: 'swap',
 });
 
-const paperTexture = `url("/beige-paper.png")`; // Usa lo stesso file
+const paperTexture = `url("/beige-paper.png")`;
 
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -453,7 +453,7 @@ export default function Home() {
                 {data.breve_descrizione}
               </p>
 
-              {/* Bottone per mostrare/nascondere la card export */}
+              {/* Bottone export */}
               <button
                 onClick={() => setShowExportCard(v => !v)}
                 className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
@@ -470,9 +470,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Card export — compare solo quando richiesto */}
+          {/* Card export — mt-5 invece di mt-10 */}
           {showExportCard && (
-            <div className="mt-10">
+            <div className="mt-5">
               <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4`}>
                 {lingua === 'IT'
                   ? 'Anteprima della card da condividere (formato 9:16)'
