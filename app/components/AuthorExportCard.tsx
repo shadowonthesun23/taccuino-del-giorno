@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import { Download, Loader2 } from 'lucide-react';
 
@@ -60,7 +60,17 @@ export default function AuthorExportCard({
         body: JSON.stringify({ autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna }),
       });
 
-      if (!res.ok) throw new Error(`Errore API: ${res.status}`);
+      if (!res.ok) {
+        // Mostra l'errore preciso dall'API per debug
+        let errMsg = `HTTP ${res.status}`;
+        try {
+          const errJson = await res.json();
+          errMsg = errJson.error || JSON.stringify(errJson);
+        } catch {
+          errMsg = await res.text();
+        }
+        throw new Error(errMsg);
+      }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -75,7 +85,7 @@ export default function AuthorExportCard({
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Errore durante l'export:", e);
-      alert('Errore durante la generazione. Riprova.');
+      alert(`Errore: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setExporting(false);
     }
@@ -139,7 +149,6 @@ export default function AuthorExportCard({
             boxSizing: 'border-box',
           }}
         >
-          {/* Data tape */}
           <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '6px', flexShrink: 0 }}>
             <div
               className={caveat.className}
@@ -160,7 +169,6 @@ export default function AuthorExportCard({
             </div>
           </div>
 
-          {/* Etichetta */}
           <span
             style={{
               fontSize: '11px',
@@ -175,7 +183,6 @@ export default function AuthorExportCard({
             Autore del Giorno
           </span>
 
-          {/* Diapositiva */}
           {fotoAutoreUrl && (
             <div style={{ transform: 'rotate(-2deg)', marginBottom: '4px', flexShrink: 0 }}>
               <div
@@ -202,7 +209,6 @@ export default function AuthorExportCard({
             </div>
           )}
 
-          {/* Nome autore */}
           <h2
             style={{
               fontSize: '26px',
@@ -217,7 +223,6 @@ export default function AuthorExportCard({
             {autoreGiorno}
           </h2>
 
-          {/* Biografia */}
           <p
             style={{
               fontSize: '12px',
@@ -233,7 +238,6 @@ export default function AuthorExportCard({
             {breveDescrizione}
           </p>
 
-          {/* Divisore watercolor */}
           <div
             aria-hidden="true"
             style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '4px', flexShrink: 0, pointerEvents: 'none' }}
@@ -257,7 +261,6 @@ export default function AuthorExportCard({
             </svg>
           </div>
 
-          {/* Box citazione */}
           <div
             style={{
               width: '100%',
