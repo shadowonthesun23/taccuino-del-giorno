@@ -56,37 +56,28 @@ export default function AuthorExportCard({
     if (!cardRef.current || exporting) return;
     setExporting(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
+      // dom-to-image-more cattura il nodo direttamente, senza problemi di scroll offset
+      const domtoimage = (await import('dom-to-image-more')).default;
 
-      // Porta la card esattamente in cima al viewport
-      cardRef.current.scrollIntoView({ block: 'start', behavior: 'instant' });
-      await new Promise((r) => setTimeout(r, 150));
-
-      // Cattura direttamente il nodo della card.
-      // x/y dicono a html2canvas di partire dall'angolo in alto-sinistra dell'elemento stesso,
-      // width/height limitano la finestra di rendering alle sole dimensioni della card.
-      const canvas = await html2canvas(cardRef.current, {
-        scale: SCALE,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        logging: false,
-        x: 0,
-        y: 0,
-        width: CARD_W,
-        height: CARD_H,
-        windowWidth: CARD_W,
-        windowHeight: CARD_H,
+      const dataUrl = await domtoimage.toJpeg(cardRef.current, {
+        quality: 0.93,
+        width: CARD_W * SCALE,
+        height: CARD_H * SCALE,
+        style: {
+          transform: `scale(${SCALE})`,
+          transformOrigin: 'top left',
+          width: `${CARD_W}px`,
+          height: `${CARD_H}px`,
+        },
       });
 
-      // Il canvas prodotto è già esattamente CARD_W*SCALE x CARD_H*SCALE
       const link = document.createElement('a');
       const nomeFile = autoreGiorno
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
       link.download = `taccuino-${nomeFile}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.93);
+      link.href = dataUrl;
       link.click();
     } catch (e) {
       console.error("Errore durante l'export:", e);
