@@ -10,10 +10,6 @@ interface CardExportWrapperProps {
   className?: string;
 }
 
-/**
- * Pre-fetches all <img> tags inside a node that have cross-origin src,
- * converts them to base64 data URLs so html-to-image can include them.
- */
 async function resolveExternalImages(node: HTMLElement) {
   const imgs = Array.from(node.querySelectorAll('img')) as HTMLImageElement[];
   await Promise.all(
@@ -33,7 +29,7 @@ async function resolveExternalImages(node: HTMLElement) {
           reader.readAsDataURL(blob);
         });
       } catch {
-        // se fallisce, lascia l'immagine com'è
+        // lascia l'immagine com'è
       }
     })
   );
@@ -100,14 +96,13 @@ export default function CardExportWrapper({ children, filename = 'card', isDark,
         )}
       </button>
 
-      {/* padding: 38px ≈ 1cm a 96dpi */}
       <div
         ref={cardRef}
         style={{
           backgroundImage: `url('/beige-paper.png')`,
           backgroundRepeat: 'repeat',
           backgroundColor: isDark ? '#1E1E1E' : '#F4F0E6',
-          padding: '38px',
+          padding: '2px',
         }}
       >
         {children}
