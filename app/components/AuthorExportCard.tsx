@@ -25,7 +25,10 @@ interface AuthorExportCardProps {
   isDark: boolean;
 }
 
-/** Restituisce fontSize e maxLines in base alla lunghezza del testo citazione */
+const CARD_W = 360;
+const CARD_H = 640;
+const SCALE = 3;
+
 function citazioneFontSize(testo: string): { fontSize: string; maxLines: number } {
   const len = testo.length;
   if (len <= 160) return { fontSize: '13px', maxLines: 7 };
@@ -51,19 +54,34 @@ export default function AuthorExportCard({
     try {
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3,
+        scale: SCALE,
         useCORS: true,
         allowTaint: false,
         backgroundColor: null,
         logging: false,
+        // Forza il ritaglio esatto alla dimensione della card
+        width: CARD_W,
+        height: CARD_H,
+        windowWidth: CARD_W,
+        windowHeight: CARD_H,
       });
+
+      // Ritaglia il canvas al formato 9:16 esatto (360x640 * scale)
+      const croppedCanvas = document.createElement('canvas');
+      croppedCanvas.width = CARD_W * SCALE;
+      croppedCanvas.height = CARD_H * SCALE;
+      const ctx = croppedCanvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(canvas, 0, 0, CARD_W * SCALE, CARD_H * SCALE, 0, 0, CARD_W * SCALE, CARD_H * SCALE);
+      }
+
       const link = document.createElement('a');
       const nomeFile = autoreGiorno
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
       link.download = `taccuino-${nomeFile}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.93);
+      link.href = croppedCanvas.toDataURL('image/jpeg', 0.93);
       link.click();
     } catch (e) {
       console.error('Errore durante l\'export:', e);
@@ -103,200 +121,211 @@ export default function AuthorExportCard({
         </button>
       </div>
 
+      {/* Wrapper di clipping: garantisce che html2canvas non veda nulla fuori da 360x640 */}
       <div
-        ref={cardRef}
-        className={garamond.className}
         style={{
-          width: '360px',
-          height: '640px',
-          background: bg,
-          backgroundImage: 'url("/beige-paper.png")',
-          backgroundRepeat: 'repeat',
-          backgroundBlendMode: 'multiply',
-          position: 'relative',
+          width: `${CARD_W}px`,
+          height: `${CARD_H}px`,
           overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '48px 24px 16px',
-          boxSizing: 'border-box',
-          border: `1px solid ${borderColor}`,
-          borderRadius: '16px',
           margin: '0 auto',
+          borderRadius: '16px',
+          border: `1px solid ${borderColor}`,
         }}
       >
-        {/* Data tape */}
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-          <div
-            className={caveat.className}
-            style={{
-              fontSize: '20px',
-              fontWeight: 700,
-              color: textMuted,
-              background: '#e8dcc6',
-              padding: '4px 24px 6px',
-              borderRadius: '2px',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-              transform: 'rotate(-1.2deg)',
-              lineHeight: 1,
-              textAlign: 'center',
-              display: 'inline-block',
-            }}
-          >
-            {dataOdierna}
-          </div>
-        </div>
-
-        {/* Etichetta */}
-        <span
+        <div
+          ref={cardRef}
+          className={garamond.className}
           style={{
-            fontSize: '11px',
-            fontWeight: 700,
-            letterSpacing: '0.24em',
-            textTransform: 'uppercase',
-            color: accent,
-            marginBottom: '14px',
+            width: `${CARD_W}px`,
+            height: `${CARD_H}px`,
+            background: bg,
+            backgroundImage: 'url("/beige-paper.png")',
+            backgroundRepeat: 'repeat',
+            backgroundBlendMode: 'multiply',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '48px 24px 16px',
+            boxSizing: 'border-box',
           }}
         >
-          Autore del Giorno
-        </span>
-
-        {/* Diapositiva */}
-        {fotoAutoreUrl && (
-          <div style={{ transform: 'rotate(-2deg)', marginBottom: '12px', flexShrink: 0 }}>
+          {/* Data tape */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0 }}>
             <div
+              className={caveat.className}
               style={{
-                background: cardBg,
-                border: `1px solid ${borderColor}`,
-                padding: '8px 8px 20px 8px',
-                boxShadow: '0 4px 16px -4px rgba(0,0,0,0.18)',
+                fontSize: '20px',
+                fontWeight: 700,
+                color: textMuted,
+                background: '#e8dcc6',
+                padding: '4px 24px 6px',
+                borderRadius: '2px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                transform: 'rotate(-1.2deg)',
+                lineHeight: 1,
+                textAlign: 'center',
+                display: 'inline-block',
               }}
             >
-              <img
-                src={fotoAutoreUrl}
-                alt={autoreGiorno}
-                crossOrigin="anonymous"
-                style={{
-                  display: 'block',
-                  width: '104px',
-                  height: '132px',
-                  objectFit: 'cover',
-                  filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-                }}
-              />
+              {dataOdierna}
             </div>
           </div>
-        )}
 
-        {/* Nome autore */}
-        <h2
-          style={{
-            fontSize: '26px',
-            fontWeight: 700,
-            color: textPrimary,
-            textAlign: 'center',
-            margin: '0 0 6px',
-            lineHeight: 1.1,
-          }}
-        >
-          {autoreGiorno}
-        </h2>
-
-        {/* Biografia */}
-        <p
-          style={{
-            fontSize: '12px',
-            fontWeight: 500,
-            color: textMuted,
-            textAlign: 'center',
-            margin: '0 0 10px',
-            lineHeight: 1.45,
-            maxWidth: '290px',
-          }}
-        >
-          {breveDescrizione}
-        </p>
-
-        {/* Divisore watercolor */}
-        <div
-          aria-hidden="true"
-          style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0, pointerEvents: 'none' }}
-        >
-          <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
-            <defs>
-              <filter id="ec-wc-blur" x="-10%" y="-60%" width="120%" height="220%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-                <feGaussianBlur in="displaced" stdDeviation="1.2" result="blurred" />
-                <feComposite in="blurred" in2="SourceGraphic" operator="atop" />
-              </filter>
-              <filter id="ec-wc-edge" x="-5%" y="-80%" width="110%" height="260%">
-                <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves="3" seed="14" result="noise2" />
-                <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
-              </filter>
-            </defs>
-            <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#ec-wc-blur)" />
-            <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#ec-wc-edge)" />
-            <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={wcColor} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#ec-wc-blur)" />
-          </svg>
-        </div>
-
-        {/* Box citazione con font adattivo + line-clamp fallback */}
-        <div
-          style={{
-            width: '100%',
-            padding: '12px 14px',
-            background: cardBg,
-            border: `1px solid ${borderColor}`,
-            borderRadius: '10px',
-            boxSizing: 'border-box',
-            flexShrink: 0,
-          }}
-        >
+          {/* Etichetta */}
           <span
             style={{
-              fontSize: '30px',
-              lineHeight: 1,
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
               color: accent,
-              opacity: 0.35,
-              fontFamily: 'Georgia, serif',
-              display: 'block',
-              marginBottom: '2px',
+              marginBottom: '14px',
+              flexShrink: 0,
             }}
           >
-            &ldquo;
+            Autore del Giorno
           </span>
+
+          {/* Diapositiva */}
+          {fotoAutoreUrl && (
+            <div style={{ transform: 'rotate(-2deg)', marginBottom: '12px', flexShrink: 0 }}>
+              <div
+                style={{
+                  background: cardBg,
+                  border: `1px solid ${borderColor}`,
+                  padding: '8px 8px 20px 8px',
+                  boxShadow: '0 4px 16px -4px rgba(0,0,0,0.18)',
+                }}
+              >
+                <img
+                  src={fotoAutoreUrl}
+                  alt={autoreGiorno}
+                  crossOrigin="anonymous"
+                  style={{
+                    display: 'block',
+                    width: '104px',
+                    height: '132px',
+                    objectFit: 'cover',
+                    filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Nome autore */}
+          <h2
+            style={{
+              fontSize: '26px',
+              fontWeight: 700,
+              color: textPrimary,
+              textAlign: 'center',
+              margin: '0 0 6px',
+              lineHeight: 1.1,
+              flexShrink: 0,
+            }}
+          >
+            {autoreGiorno}
+          </h2>
+
+          {/* Biografia */}
           <p
             style={{
-              fontSize: citFontSize,
-              fontStyle: 'italic',
+              fontSize: '12px',
               fontWeight: 500,
-              color: textPrimary,
-              lineHeight: 1.55,
-              margin: '0 0 8px',
-              // line-clamp come rete di sicurezza
-              display: '-webkit-box',
-              WebkitLineClamp: maxLines,
-              WebkitBoxOrient: 'vertical',
+              color: textMuted,
+              textAlign: 'center',
+              margin: '0 0 10px',
+              lineHeight: 1.45,
+              maxWidth: '290px',
+              flexShrink: 0,
+            }}
+          >
+            {breveDescrizione}
+          </p>
+
+          {/* Divisore watercolor */}
+          <div
+            aria-hidden="true"
+            style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0, pointerEvents: 'none' }}
+          >
+            <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
+              <defs>
+                <filter id="ec-wc-blur" x="-10%" y="-60%" width="120%" height="220%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+                  <feGaussianBlur in="displaced" stdDeviation="1.2" result="blurred" />
+                  <feComposite in="blurred" in2="SourceGraphic" operator="atop" />
+                </filter>
+                <filter id="ec-wc-edge" x="-5%" y="-80%" width="110%" height="260%">
+                  <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves="3" seed="14" result="noise2" />
+                  <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
+                </filter>
+              </defs>
+              <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#ec-wc-blur)" />
+              <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#ec-wc-edge)" />
+              <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={wcColor} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#ec-wc-blur)" />
+            </svg>
+          </div>
+
+          {/* Box citazione */}
+          <div
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              background: cardBg,
+              border: `1px solid ${borderColor}`,
+              borderRadius: '10px',
+              boxSizing: 'border-box',
+              flexShrink: 0,
               overflow: 'hidden',
             }}
           >
-            {citazione.testo}
-          </p>
-          <p
-            style={{
-              fontSize: '10px',
-              fontWeight: 700,
-              color: textMuted,
-              textAlign: 'right',
-              margin: 0,
-            }}
-          >
-            — {citazione.autore}
-            {citazione.fonte ? (
-              <span style={{ fontWeight: 400, fontStyle: 'italic' }}>, {citazione.fonte}</span>
-            ) : null}
-          </p>
+            <span
+              style={{
+                fontSize: '30px',
+                lineHeight: 1,
+                color: accent,
+                opacity: 0.35,
+                fontFamily: 'Georgia, serif',
+                display: 'block',
+                marginBottom: '2px',
+              }}
+            >
+              &ldquo;
+            </span>
+            <p
+              style={{
+                fontSize: citFontSize,
+                fontStyle: 'italic',
+                fontWeight: 500,
+                color: textPrimary,
+                lineHeight: 1.55,
+                margin: '0 0 8px',
+                display: '-webkit-box',
+                WebkitLineClamp: maxLines,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {citazione.testo}
+            </p>
+            <p
+              style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                color: textMuted,
+                textAlign: 'right',
+                margin: 0,
+              }}
+            >
+              — {citazione.autore}
+              {citazione.fonte ? (
+                <span style={{ fontWeight: 400, fontStyle: 'italic' }}>, {citazione.fonte}</span>
+              ) : null}
+            </p>
+          </div>
         </div>
       </div>
     </div>
