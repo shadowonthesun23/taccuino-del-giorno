@@ -25,6 +25,15 @@ interface AuthorExportCardProps {
   isDark: boolean;
 }
 
+/** Restituisce fontSize e maxLines in base alla lunghezza del testo citazione */
+function citazioneFontSize(testo: string): { fontSize: string; maxLines: number } {
+  const len = testo.length;
+  if (len <= 160) return { fontSize: '13px', maxLines: 7 };
+  if (len <= 280) return { fontSize: '11.5px', maxLines: 8 };
+  if (len <= 400) return { fontSize: '10.5px', maxLines: 9 };
+  return { fontSize: '9.5px', maxLines: 10 };
+}
+
 export default function AuthorExportCard({
   autoreGiorno,
   breveDescrizione,
@@ -71,6 +80,8 @@ export default function AuthorExportCard({
   const borderColor = '#EBE5DB';
   const wcColor = '#b5956a';
 
+  const { fontSize: citFontSize, maxLines } = citazioneFontSize(citazione.testo);
+
   return (
     <div className="relative group">
       <div className="flex justify-end mb-2">
@@ -107,14 +118,14 @@ export default function AuthorExportCard({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '48px 24px 16px', // top aumentato da 18px a 48px
+          padding: '48px 24px 16px',
           boxSizing: 'border-box',
           border: `1px solid ${borderColor}`,
           borderRadius: '16px',
           margin: '0 auto',
         }}
       >
-        {/* Data stile tape */}
+        {/* Data tape */}
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
           <div
             className={caveat.className}
@@ -150,7 +161,7 @@ export default function AuthorExportCard({
           Autore del Giorno
         </span>
 
-        {/* Diapositiva fotografica */}
+        {/* Diapositiva */}
         {fotoAutoreUrl && (
           <div style={{ transform: 'rotate(-2deg)', marginBottom: '12px', flexShrink: 0 }}>
             <div
@@ -191,7 +202,7 @@ export default function AuthorExportCard({
           {autoreGiorno}
         </h2>
 
-        {/* Biografia breve */}
+        {/* Biografia */}
         <p
           style={{
             fontSize: '12px',
@@ -206,16 +217,12 @@ export default function AuthorExportCard({
           {breveDescrizione}
         </p>
 
-        {/* Divisore watercolor SVG */}
+        {/* Divisore watercolor */}
         <div
           aria-hidden="true"
           style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px', flexShrink: 0, pointerEvents: 'none' }}
         >
-          <svg
-            viewBox="0 0 800 36"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ width: '80%', height: '24px', display: 'block' }}
-          >
+          <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
             <defs>
               <filter id="ec-wc-blur" x="-10%" y="-60%" width="120%" height="220%">
                 <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
@@ -234,7 +241,7 @@ export default function AuthorExportCard({
           </svg>
         </div>
 
-        {/* Box citazione */}
+        {/* Box citazione con font adattivo + line-clamp fallback */}
         <div
           style={{
             width: '100%',
@@ -243,6 +250,7 @@ export default function AuthorExportCard({
             border: `1px solid ${borderColor}`,
             borderRadius: '10px',
             boxSizing: 'border-box',
+            flexShrink: 0,
           }}
         >
           <span
@@ -260,12 +268,17 @@ export default function AuthorExportCard({
           </span>
           <p
             style={{
-              fontSize: '13px',
+              fontSize: citFontSize,
               fontStyle: 'italic',
               fontWeight: 500,
               color: textPrimary,
               lineHeight: 1.55,
               margin: '0 0 8px',
+              // line-clamp come rete di sicurezza
+              display: '-webkit-box',
+              WebkitLineClamp: maxLines,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
             }}
           >
             {citazione.testo}
