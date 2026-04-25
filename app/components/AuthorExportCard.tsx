@@ -58,17 +58,30 @@ export default function AuthorExportCard({
     try {
       const html2canvas = (await import('html2canvas')).default;
 
-      // Approccio semplice: html2canvas cattura l'elemento direttamente.
-      // Non passiamo x/y/scroll/windowSize per evitare canvas nero o offset errati.
-      const canvas = await html2canvas(cardRef.current, {
+      // Clona la card e la posiziona in alto a sinistra fuori dallo schermo.
+      // Questo elimina qualsiasi offset Y causato dalla posizione della card nella pagina.
+      const clone = cardRef.current.cloneNode(true) as HTMLElement;
+      clone.style.position = 'fixed';
+      clone.style.top = '0';
+      clone.style.left = '0';
+      clone.style.zIndex = '-9999';
+      clone.style.pointerEvents = 'none';
+      clone.style.opacity = '0';
+      document.body.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
         scale: SCALE,
         useCORS: true,
         allowTaint: false,
         backgroundColor: null,
         logging: false,
+        width: CARD_W,
+        height: CARD_H,
       });
 
-      // Ritaglia sempre al formato esatto 360x640 * scale
+      document.body.removeChild(clone);
+
+      // Ritaglia esattamente 360x640 * scale
       const out = document.createElement('canvas');
       out.width = CARD_W * SCALE;
       out.height = CARD_H * SCALE;
@@ -123,7 +136,6 @@ export default function AuthorExportCard({
         </button>
       </div>
 
-      {/* Wrapper visivo esterno — non usato da html2canvas, solo per l'anteprima */}
       <div
         style={{
           width: `${CARD_W}px`,
@@ -134,7 +146,6 @@ export default function AuthorExportCard({
           border: `1px solid ${borderColor}`,
         }}
       >
-        {/* cardRef punta direttamente qui: html2canvas vede questo div */}
         <div
           ref={cardRef}
           className={garamond.className}
