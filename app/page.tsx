@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
+import AuthorExportCard from './components/AuthorExportCard';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -178,6 +179,7 @@ export default function Home() {
   const [erroreTraduzioni, setErroreTraduzioni] = useState<string | null>(null);
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
+  const [showExportCard, setShowExportCard] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
@@ -208,7 +210,7 @@ export default function Home() {
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -254,7 +256,7 @@ export default function Home() {
     border: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
-    texture: paperTexture, // MODIFICA QUI: usa solo paperTexture senza il controllo isDark
+    texture: paperTexture,
     popoverBg: isDark ? 'bg-[#1C1C1C]/85' : 'bg-[#F7F4EE]/82',
     popoverBorder: isDark ? 'border-[#3D3D3D]/70' : 'border-[#D4CABC]/80',
     popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
@@ -271,8 +273,8 @@ export default function Home() {
   className="absolute inset-0 pointer-events-none" 
   style={{ 
     backgroundImage: `url("/beige-paper.png")`,
-    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)', // Inverti e abbassa l'opacità nel dark
-    mixBlendMode: isDark ? 'overlay' : 'multiply' // Opzionale: migliora la fusione
+    filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)',
+    mixBlendMode: isDark ? 'overlay' : 'multiply'
   }}
 ></div>
   );
@@ -412,48 +414,82 @@ export default function Home() {
         </header>
 
         {/* Sezione Autore del Giorno */}
-<section className="py-8">
-  <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
-    
-    {/* Diapositiva fotografica */}
-    {data.foto_autore_url && (
-      <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
-        <div
-          className="relative photo-paper-shadow"
-          style={{
-            background: themeClasses.photoBg,
-            border: `1px solid ${themeClasses.photoBorder}`,
-            padding: '10px 10px 28px 10px',
-          }}
-        >
-          <img
-            src={data.foto_autore_url}
-            alt={data.autore_giorno}
-            style={{
-              display: 'block',
-              width: '140px',
-              height: '180px',
-              objectFit: 'cover',
-              filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-            }}
-          />
-        </div>    {/* ← chiude photo-paper-shadow */}
-      </div>       {/* ← chiude flex-shrink-0 */}
-    )}
-    
-    {/* Testo autore — FUORI dalla foto */}
-    <div className="flex-1 text-center md:text-left">
-      <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
-        {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
-      </span>
-      <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
-      <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
-        {data.breve_descrizione}
-      </p>
-    </div>
+        <section className="py-8">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
+            
+            {/* Diapositiva fotografica */}
+            {data.foto_autore_url && (
+              <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+                <div
+                  className="relative photo-paper-shadow"
+                  style={{
+                    background: themeClasses.photoBg,
+                    border: `1px solid ${themeClasses.photoBorder}`,
+                    padding: '10px 10px 28px 10px',
+                  }}
+                >
+                  <img
+                    src={data.foto_autore_url}
+                    alt={data.autore_giorno}
+                    style={{
+                      display: 'block',
+                      width: '140px',
+                      height: '180px',
+                      objectFit: 'cover',
+                      filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* Testo autore */}
+            <div className="flex-1 text-center md:text-left">
+              <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
+                {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
+              <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
+                {data.breve_descrizione}
+              </p>
 
-  </div>
-</section>
+              {/* Bottone per mostrare/nascondere la card export */}
+              <button
+                onClick={() => setShowExportCard(v => !v)}
+                className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
+                  showExportCard
+                    ? 'border-[#DE6B58] text-[#DE6B58]'
+                    : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                {showExportCard
+                  ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
+                  : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
+              </button>
+            </div>
+          </div>
+
+          {/* Card export — compare solo quando richiesto */}
+          {showExportCard && (
+            <div className="mt-10">
+              <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4`}>
+                {lingua === 'IT'
+                  ? 'Anteprima della card da condividere (formato 9:16)'
+                  : 'Preview of the shareable card (9:16 format)'}
+              </p>
+              <AuthorExportCard
+                autoreGiorno={data.autore_giorno}
+                breveDescrizione={data.breve_descrizione}
+                fotoAutoreUrl={data.foto_autore_url}
+                citazione={data.citazione}
+                dataOdierna={data.data_odierna}
+                isDark={isDark}
+              />
+            </div>
+          )}
+        </section>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
           <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
