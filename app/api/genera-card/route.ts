@@ -22,48 +22,32 @@ function truncateCitation(testo: string): { testo: string; fontSize: number } {
   return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: 28 };
 }
 
-// Genera SVG washi tape con bordi a zigzag
-function makeWashiTapeSvg(text: string, textColor: string): string {
-  const W_TAPE = 520;
-  const H_TAPE = 90;
-  const TOOTH = 10; // ampiezza dente di sega
-  const TEETH_L = Math.floor(H_TAPE / TOOTH);
+// SVG washi tape SOLO sfondo zigzag, senza testo (il testo lo mette Satori)
+function makeWashiTapeBgSvg(): string {
+  const TW = 520;
+  const TH = 90;
+  const TOOTH = 10;
+  const TEETH = Math.floor(TH / TOOTH);
 
-  // Path bordo sinistro zigzag
-  let leftPath = `M ${TOOTH},0 `;
-  for (let i = 0; i < TEETH_L; i++) {
-    const y1 = i * TOOTH;
-    const y2 = y1 + TOOTH / 2;
-    const y3 = y1 + TOOTH;
-    leftPath += `L 0,${y2} L ${TOOTH},${y3} `;
+  // bordo sinistro a zigzag
+  let leftZig = `M ${TOOTH},0 `;
+  for (let i = 0; i < TEETH; i++) {
+    leftZig += `L 0,${i * TOOTH + TOOTH / 2} L ${TOOTH},${(i + 1) * TOOTH} `;
   }
-  leftPath += `L ${TOOTH},${H_TAPE} `;
 
-  // Path bordo destro zigzag
-  const rx = W_TAPE - TOOTH;
-  let rightPath = `L ${rx},${H_TAPE} `;
-  for (let i = TEETH_L; i >= 0; i--) {
-    const y1 = i * TOOTH;
-    const y2 = y1 + TOOTH / 2;
-    leftPath; // unused, just building rightPath
-    rightPath += `L ${W_TAPE},${y2 > H_TAPE ? H_TAPE : (i * TOOTH + TOOTH / 2)} L ${rx},${i * TOOTH} `;
+  // bordo destro a zigzag (inverso)
+  const rx = TW - TOOTH;
+  let rightZig = `L ${rx},${TH} `;
+  for (let i = TEETH; i >= 0; i--) {
+    rightZig += `L ${TW},${i * TOOTH + TOOTH / 2} L ${rx},${i * TOOTH} `;
   }
-  rightPath += `Z`;
+  rightZig += 'Z';
 
-  const fullPath = leftPath + rightPath;
+  const d = leftZig + `L ${rx},0 ` + rightZig;
 
-  const textY = H_TAPE / 2 + 2;
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W_TAPE}" height="${H_TAPE}" viewBox="0 0 ${W_TAPE} ${H_TAPE}">
-    <defs>
-      <clipPath id="tape-clip">
-        <path d="${fullPath}"/>
-      </clipPath>
-    </defs>
-    <rect width="${W_TAPE}" height="${H_TAPE}" fill="#e8dcc6" clip-path="url(#tape-clip)"/>
-    <rect width="${W_TAPE}" height="${H_TAPE}" fill="rgba(255,255,255,0.25)" clip-path="url(#tape-clip)"/>
-    <text x="${W_TAPE / 2}" y="${textY}" text-anchor="middle" dominant-baseline="middle"
-      font-family="Caveat, cursive" font-size="46" font-weight="700" fill="${textColor}">${text}</text>
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${TW}" height="${TH}" viewBox="0 0 ${TW} ${TH}">
+    <path d="${d}" fill="#e8dcc6"/>
+    <path d="${d}" fill="rgba(255,255,255,0.22)"/>
   </svg>`;
 }
 
@@ -108,9 +92,9 @@ export async function POST(req: NextRequest) {
     const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
-    // Washi tape SVG
-    const washiSvg = makeWashiTapeSvg(dataOdierna, textMuted);
-    const washiB64 = `data:image/svg+xml;base64,${Buffer.from(washiSvg).toString('base64')}`;
+    // Washi tape: solo sfondo SVG, il testo lo renderizza Satori
+    const washiBgSvg = makeWashiTapeBgSvg();
+    const washiBgB64 = `data:image/svg+xml;base64,${Buffer.from(washiBgSvg).toString('base64')}`;
 
     const svg = await satori(
       React.createElement(
@@ -129,16 +113,54 @@ export async function POST(req: NextRequest) {
             position: 'relative',
           },
         },
-        // Washi tape con zigzag
+        // Washi tape: sfondo SVG + testo Satori sovrapposti
         React.createElement(
           'div',
-          { style: { display: 'flex', justifyContent: 'center', width: '100%', marginBottom: 36 } },
+          {
+            style: {
+              display: 'flex',
+              justifyContent: 'center',
+              width: '100%',
+              marginBottom: 36,
+              position: 'relative',
+              height: 90,
+            },
+          },
+          // Sfondo zigzag
           React.createElement('img', {
-            src: washiB64,
+            src: washiBgB64,
             width: 520,
             height: 90,
-            style: { display: 'block' },
-          })
+            style: { position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' },
+          }),
+          // Testo data sopra il tape — renderizzato da Satori con font Caveat
+          React.createElement(
+            'div',
+            {
+              style: {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            },
+            React.createElement(
+              'div',
+              {
+                style: {
+                  fontSize: 52,
+                  fontFamily: 'Caveat',
+                  fontWeight: 700,
+                  color: textMuted,
+                },
+              },
+              dataOdierna
+            )
+          )
         ),
         // Etichetta
         React.createElement(
@@ -156,14 +178,14 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Foto + watermark laterale
+        // Contenitore foto + watermark assoluto
         React.createElement(
           'div',
           {
             style: {
               display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'flex-start',
+              justifyContent: 'center',
+              width: '100%',
               marginBottom: 12,
               position: 'relative',
             },
@@ -190,34 +212,26 @@ export async function POST(req: NextRequest) {
                 })
               )
             : null,
-          // Watermark verticale
+          // Watermark verticale — posizionato in assoluto sul bordo destro
           React.createElement(
             'div',
             {
               style: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginLeft: 18,
-                alignSelf: 'center',
+                position: 'absolute',
+                right: 0,
+                top: '50%',
+                transform: 'translateY(-50%) rotate(90deg)',
+                fontSize: 24,
+                fontFamily: 'EB Garamond',
+                fontWeight: 400,
+                color: textMuted,
+                opacity: 0.45,
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.12em',
+                transformOrigin: 'center center',
               },
             },
-            React.createElement(
-              'div',
-              {
-                style: {
-                  fontSize: 24,
-                  fontFamily: 'EB Garamond',
-                  fontWeight: 400,
-                  color: textMuted,
-                  opacity: 0.5,
-                  transform: 'rotate(90deg)',
-                  whiteSpace: 'nowrap',
-                  letterSpacing: '0.12em',
-                },
-              },
-              'ig: @antonelloan23'
-            )
+            'ig: @antonelloan23'
           )
         ),
         // Nome autore
@@ -253,7 +267,7 @@ export async function POST(req: NextRequest) {
           },
           breveDescrizione
         ),
-        // Divisore watercolor
+        // Divisore
         React.createElement('img', {
           src: dividerB64,
           width: 864,
