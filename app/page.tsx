@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
+import Card from './components/Card';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -134,16 +135,6 @@ function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTa
     avvenimenti: flat.slice(j),
   };
 }
-
-const Card = ({ title, icon: Icon, isDark, children, className = "" }: { title: string, icon?: any, isDark: boolean, children: React.ReactNode, className?: string }) => (
-  <section className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 card-paper-shadow ${className}`}>
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
-      <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">{title}</h3>
-    </div>
-    <div className={isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'}>{children}</div>
-  </section>
-);
 
 function formatDataItaliana(dataIso: string): string {
   const mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
@@ -493,7 +484,8 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2">
+          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2"
+            filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}` }>
             <blockquote className="md:px-8">
               <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
               <footer className="text-right text-lg clear-both pt-2">
@@ -503,7 +495,8 @@ export default function Home() {
             </blockquote>
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}
+            filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
             <div className="text-center mb-6">
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
               <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
@@ -514,7 +507,8 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark}
+            filename="santi">
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
                 <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
@@ -528,7 +522,8 @@ export default function Home() {
 
           {opera && (
             <div className="md:col-span-2 notched-card-wrapper">
-              <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
+              <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card"
+                filename={`opera-${opera.titolo.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}>
                 <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                   <div className="space-y-5 order-2 md:order-1">
                     <div>
@@ -553,7 +548,8 @@ export default function Home() {
             </div>
           )}
 
-          <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2">
+          <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2"
+            filename="avvenimenti">
             <ul className="space-y-4">
               {data.avvenimenti.map((evento, idx) => {
                 const parts = evento.split(':');
@@ -567,7 +563,8 @@ export default function Home() {
             </ul>
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}
+            filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}` }>
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">{data.poesia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
@@ -581,7 +578,8 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}>
+          <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}
+            filename="bibbia">
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
@@ -594,7 +592,8 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center">
+          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center"
+            filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}>
             <div className="max-w-2xl mx-auto">
               <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
               <p className="text-xl font-medium mb-2">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{data.musica.autore}</span></p>
