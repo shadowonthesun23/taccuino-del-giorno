@@ -564,7 +564,7 @@ export default function Home() {
 
           <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}
             filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}` }>
-            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-loose italic mb-6">{data.poesia.testo}</div>
+            <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.poesia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
               <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
