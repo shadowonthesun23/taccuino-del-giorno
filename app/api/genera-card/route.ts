@@ -22,6 +22,51 @@ function truncateCitation(testo: string): { testo: string; fontSize: number } {
   return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: 28 };
 }
 
+// Genera SVG washi tape con bordi a zigzag
+function makeWashiTapeSvg(text: string, textColor: string): string {
+  const W_TAPE = 520;
+  const H_TAPE = 90;
+  const TOOTH = 10; // ampiezza dente di sega
+  const TEETH_L = Math.floor(H_TAPE / TOOTH);
+
+  // Path bordo sinistro zigzag
+  let leftPath = `M ${TOOTH},0 `;
+  for (let i = 0; i < TEETH_L; i++) {
+    const y1 = i * TOOTH;
+    const y2 = y1 + TOOTH / 2;
+    const y3 = y1 + TOOTH;
+    leftPath += `L 0,${y2} L ${TOOTH},${y3} `;
+  }
+  leftPath += `L ${TOOTH},${H_TAPE} `;
+
+  // Path bordo destro zigzag
+  const rx = W_TAPE - TOOTH;
+  let rightPath = `L ${rx},${H_TAPE} `;
+  for (let i = TEETH_L; i >= 0; i--) {
+    const y1 = i * TOOTH;
+    const y2 = y1 + TOOTH / 2;
+    leftPath; // unused, just building rightPath
+    rightPath += `L ${W_TAPE},${y2 > H_TAPE ? H_TAPE : (i * TOOTH + TOOTH / 2)} L ${rx},${i * TOOTH} `;
+  }
+  rightPath += `Z`;
+
+  const fullPath = leftPath + rightPath;
+
+  const textY = H_TAPE / 2 + 2;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W_TAPE}" height="${H_TAPE}" viewBox="0 0 ${W_TAPE} ${H_TAPE}">
+    <defs>
+      <clipPath id="tape-clip">
+        <path d="${fullPath}"/>
+      </clipPath>
+    </defs>
+    <rect width="${W_TAPE}" height="${H_TAPE}" fill="#e8dcc6" clip-path="url(#tape-clip)"/>
+    <rect width="${W_TAPE}" height="${H_TAPE}" fill="rgba(255,255,255,0.25)" clip-path="url(#tape-clip)"/>
+    <text x="${W_TAPE / 2}" y="${textY}" text-anchor="middle" dominant-baseline="middle"
+      font-family="Caveat, cursive" font-size="46" font-weight="700" fill="${textColor}">${text}</text>
+  </svg>`;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -63,6 +108,10 @@ export async function POST(req: NextRequest) {
     const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
+    // Washi tape SVG
+    const washiSvg = makeWashiTapeSvg(dataOdierna, textMuted);
+    const washiB64 = `data:image/svg+xml;base64,${Buffer.from(washiSvg).toString('base64')}`;
+
     const svg = await satori(
       React.createElement(
         'div',
@@ -74,38 +123,24 @@ export async function POST(req: NextRequest) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            // Più padding top per scendere il contenuto
             padding: '90px 72px 48px',
             boxSizing: 'border-box',
             fontFamily: 'EB Garamond',
+            position: 'relative',
           },
         },
-        // Data tape — con box-shadow per effetto scotch/nastro
+        // Washi tape con zigzag
         React.createElement(
           'div',
           { style: { display: 'flex', justifyContent: 'center', width: '100%', marginBottom: 36 } },
-          React.createElement(
-            'div',
-            {
-              style: {
-                fontSize: 60,
-                fontFamily: 'Caveat',
-                fontWeight: 700,
-                color: textMuted,
-                background: '#e8dcc6',
-                padding: '12px 72px 18px',
-                borderRadius: 4,
-                // Bordi leggermente più scuri ai lati (effetto tape translucente)
-                borderTop: '2px solid #d4c9b0',
-                borderBottom: '2px solid #d4c9b0',
-                // Ombra sottile per dare profondità come nastro adesivo
-                boxShadow: '0 3px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
-              },
-            },
-            dataOdierna
-          )
+          React.createElement('img', {
+            src: washiB64,
+            width: 520,
+            height: 90,
+            style: { display: 'block' },
+          })
         ),
-        // Etichetta AUTORE DEL GIORNO
+        // Etichetta
         React.createElement(
           'div',
           {
@@ -121,29 +156,70 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Foto
-        fotoB64
-          ? React.createElement(
+        // Foto + watermark laterale
+        React.createElement(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              marginBottom: 12,
+              position: 'relative',
+            },
+          },
+          // Polaroid
+          fotoB64
+            ? React.createElement(
+                'div',
+                {
+                  style: {
+                    transform: 'rotate(-2deg)',
+                    background: cardBg,
+                    border: `3px solid ${borderColor}`,
+                    padding: '24px 24px 60px 24px',
+                    display: 'flex',
+                    boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
+                  },
+                },
+                React.createElement('img', {
+                  src: fotoB64,
+                  width: 312,
+                  height: 396,
+                  style: { objectFit: 'cover', filter: 'grayscale(100%)' },
+                })
+              )
+            : null,
+          // Watermark verticale
+          React.createElement(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 18,
+                alignSelf: 'center',
+              },
+            },
+            React.createElement(
               'div',
               {
                 style: {
-                  transform: 'rotate(-2deg)',
-                  marginBottom: 12,
-                  background: cardBg,
-                  border: `3px solid ${borderColor}`,
-                  padding: '24px 24px 60px 24px',
-                  display: 'flex',
-                  boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
+                  fontSize: 24,
+                  fontFamily: 'EB Garamond',
+                  fontWeight: 400,
+                  color: textMuted,
+                  opacity: 0.5,
+                  transform: 'rotate(90deg)',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '0.12em',
                 },
               },
-              React.createElement('img', {
-                src: fotoB64,
-                width: 312,
-                height: 396,
-                style: { objectFit: 'cover', filter: 'grayscale(100%)' },
-              })
+              'ig: @antonelloan23'
             )
-          : null,
+          )
+        ),
         // Nome autore
         React.createElement(
           'div',
