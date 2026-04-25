@@ -22,35 +22,37 @@ function truncateCitation(testo: string): { testo: string; fontSize: number } {
   return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: 28 };
 }
 
-// Washi tape: rettangolo centrale pieno + triangolini ai bordi via pattern
-function makeWashiTapeSvg(): string {
+// Tape: rettangolo pieno + triangoli BG ai bordi che "mordono" verso l'interno
+function makeWashiTapeSvg(bgColor: string): string {
   const TW = 560;
   const TH = 88;
-  const T = 11; // dimensione dente
+  const T = 11; // altezza dente
+  const D = 11; // profondità dente (verso interno)
 
-  // Bordo sinistro: triangolini rivolti verso sinistra
-  let leftTeeth = '';
+  // Triangoli sinistra: puntano verso DESTRA (mordono dentro da sinistra)
+  let leftNotches = '';
   for (let y = 0; y < TH; y += T) {
-    leftTeeth += `M 0,${y} L ${T},${y + T / 2} L 0,${y + T} Z `;
+    // triangolo con vertice a destra (dentro il tape)
+    leftNotches += `M 0,${y} L ${D},${y + T / 2} L 0,${y + T} Z `;
   }
 
-  // Bordo destro: triangolini rivolti verso destra
-  let rightTeeth = '';
+  // Triangoli destra: puntano verso SINISTRA (mordono dentro da destra)
+  let rightNotches = '';
   for (let y = 0; y < TH; y += T) {
-    rightTeeth += `M ${TW},${y} L ${TW - T},${y + T / 2} L ${TW},${y + T} Z `;
+    rightNotches += `M ${TW},${y} L ${TW - D},${y + T / 2} L ${TW},${y + T} Z `;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${TW}" height="${TH}" viewBox="0 0 ${TW} ${TH}">
-  <!-- Sfondo principale (area interna, escludendo i denti) -->
-  <rect x="${T}" y="0" width="${TW - T * 2}" height="${TH}" fill="#e8dcc6"/>
+  <!-- Tape pieno -->
+  <rect width="${TW}" height="${TH}" fill="#e8dcc6"/>
   <!-- Riflesso luce -->
-  <rect x="${T}" y="0" width="${TW - T * 2}" height="${TH}" fill="rgba(255,255,255,0.2)"/>
-  <!-- Denti sinistri (bg color = stessa tinta tape) -->
-  <path d="${leftTeeth}" fill="#e8dcc6"/>
-  <!-- Denti destri -->
-  <path d="${rightTeeth}" fill="#e8dcc6"/>
-  <!-- Ombra sottile bordo inferiore per profondità -->
-  <rect x="${T}" y="${TH - 2}" width="${TW - T * 2}" height="2" fill="rgba(0,0,0,0.08)"/>
+  <rect x="${D}" y="0" width="${TW - D * 2}" height="${TH}" fill="rgba(255,255,255,0.18)"/>
+  <!-- Tacche sinistra: triangoli del colore sfondo che "mangiano" il tape -->
+  <path d="${leftNotches}" fill="${bgColor}"/>
+  <!-- Tacche destra -->
+  <path d="${rightNotches}" fill="${bgColor}"/>
+  <!-- Ombra bottom -->
+  <rect x="${D}" y="${TH - 2}" width="${TW - D * 2}" height="2" fill="rgba(0,0,0,0.07)"/>
 </svg>`;
 }
 
@@ -95,7 +97,8 @@ export async function POST(req: NextRequest) {
     const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
-    const washiSvg = makeWashiTapeSvg();
+    // Tape con tacche verso l'interno, passando il colore bg per le tacche
+    const washiSvg = makeWashiTapeSvg(bg);
     const washiB64 = `data:image/svg+xml;base64,${Buffer.from(washiSvg).toString('base64')}`;
 
     const svg = await satori(
@@ -115,7 +118,7 @@ export async function POST(req: NextRequest) {
             position: 'relative',
           },
         },
-        // Washi tape: SVG + testo Satori sovrapposto
+        // Washi tape
         React.createElement(
           'div',
           {
@@ -134,6 +137,7 @@ export async function POST(req: NextRequest) {
             height: 88,
             style: { position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' },
           }),
+          // Testo data sopra il tape — Satori con Caveat
           React.createElement(
             'div',
             {
@@ -175,7 +179,7 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Contenitore foto con watermark sul bordo destro assoluto della card
+        // Contenitore foto + watermark
         React.createElement(
           'div',
           {
@@ -208,7 +212,7 @@ export async function POST(req: NextRequest) {
                 })
               )
             : null,
-          // Watermark verticale al bordo destro della card (right: -36 esce dal padding)
+          // Watermark verticale — bordo destro card (right: -36 esce dal padding 72)
           React.createElement(
             'div',
             {
