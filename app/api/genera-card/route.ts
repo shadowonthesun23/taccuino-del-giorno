@@ -243,19 +243,19 @@ export async function POST(req: NextRequest) {
     // 1. Render SVG -> PNG base
     const basePng = await sharp(Buffer.from(svg)).png().toBuffer();
 
-    // 2. Tila la texture e riduce l'alpha al 30% con linear()
+    // 2. Tila la texture alla dimensione della card e riduce alpha al 12%
     const paperTiled = await sharp({
       create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
     })
       .composite([{ input: paperBuffer, tile: true, blend: 'over' }])
       .ensureAlpha()
-      .linear(0.3, 0)   // moltiplica canale alpha * 0.3 => opacità 30%
+      .linear(0.12, 0)
       .png()
       .toBuffer();
 
-    // 3. Compone la texture sul PNG base (blend multiply, alpha già ridotta)
+    // 3. Sovrappone la texture con blend 'over' (non multiply) per una grana sottile
     const pngBuffer = await sharp(basePng)
-      .composite([{ input: paperTiled, blend: 'multiply' }])
+      .composite([{ input: paperTiled, blend: 'over' }])
       .png()
       .toBuffer();
 
