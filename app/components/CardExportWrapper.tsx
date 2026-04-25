@@ -50,7 +50,13 @@ export default function CardExportWrapper({ children, filename = 'card', isDark,
         quality: 0.94,
         pixelRatio: 2,
         backgroundColor: isDark ? '#1E1E1E' : '#F4F0E6',
-        style: { borderRadius: '0' },
+        style: {
+          borderRadius: '0',
+          padding: '38px', // ~1cm visibile solo nell'immagine esportata
+          backgroundImage: `url('/beige-paper.png')`,
+          backgroundRepeat: 'repeat',
+          backgroundColor: isDark ? '#1E1E1E' : '#F4F0E6',
+        },
         filter: (node) => {
           if (node instanceof HTMLElement && node.dataset.exportIgnore) return false;
           return true;
