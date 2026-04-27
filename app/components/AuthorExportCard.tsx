@@ -132,25 +132,6 @@ export default function AuthorExportCard({
           overflow: 'visible',
         }}
       >
-        {/* Washi tape angolo top-left */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '-10px',
-            left: '-6px',
-            width: '72px',
-            height: '26px',
-            background: 'rgba(222, 107, 88, 0.28)',
-            transform: 'rotate(-6deg)',
-            zIndex: 20,
-            clipPath:
-              'polygon(0 8px,8px 0,16px 8px,24px 0,32px 8px,40px 0,48px 8px,56px 0,64px 8px,72px 0,72px 26px,64px 18px,56px 26px,48px 18px,40px 26px,32px 18px,24px 26px,16px 18px,8px 26px,0 18px)',
-            boxShadow: '1px 2px 5px rgba(0,0,0,0.13)',
-            backdropFilter: 'blur(0px)',
-          }}
-        />
-
         <div
           className={garamond.className}
           style={{
