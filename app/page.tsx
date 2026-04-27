@@ -253,8 +253,8 @@ export default function Home() {
     popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
     popoverArrowStroke: isDark ? '#3D3D3D' : '#D4CABC',
     fadeGradient: isDark ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)' : 'linear-gradient(to bottom, transparent 0%, #F7F4EE 100%)',
-    photoBg: isDark ? '#2A2A2A' : '#FDFCF8',
-    photoBorder: isDark ? '#3D3D3D' : '#EBE5DB',
+    photoBg: '#FDFCF8',
+    photoBorder: '#EBE5DB',
   };
 
   const groupedArchivio = groupByMonth(archivio);
