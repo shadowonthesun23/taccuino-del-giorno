@@ -408,6 +408,21 @@ export default function Home() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+                {/* Masking tape nell'angolo in alto a sinistra della polaroid */}
+                <div
+                  className={`masking-tape ${caveat.className} text-base font-bold tracking-wider`}
+                  style={{
+                    position: 'absolute',
+                    top: '-14px',
+                    left: '-18px',
+                    transform: 'rotate(2deg)',
+                    zIndex: 10,
+                    fontSize: '0.85rem',
+                    padding: '2px 14px',
+                  }}
+                >
+                  {data.autore_giorno.split(' ')[0]}
+                </div>
                 <div
                   className="relative photo-paper-shadow"
                   style={{
