@@ -408,22 +408,6 @@ export default function Home() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
-                {/* Washi tape angolo top-left */}
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    left: '-8px',
-                    width: '68px',
-                    height: '24px',
-                    background: 'rgba(222, 107, 88, 0.32)',
-                    transform: 'rotate(-5deg)',
-                    zIndex: 10,
-                    clipPath: 'polygon(0 8px,8px 0,16px 8px,24px 0,32px 8px,40px 0,48px 8px,56px 0,64px 8px,68px 4px,68px 24px,60px 16px,52px 24px,44px 16px,36px 24px,28px 16px,20px 24px,12px 16px,4px 24px,0 20px)',
-                    boxShadow: '1px 2px 4px rgba(0,0,0,0.12)',
-                  }}
-                />
                 <div
                   className="relative photo-paper-shadow"
                   style={{
