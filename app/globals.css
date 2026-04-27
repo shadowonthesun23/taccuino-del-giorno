@@ -125,7 +125,7 @@ body {
 /* Nastro adesivo per la data */
 .masking-tape {
   position: relative; display: inline-block;
-  background-color: #E8E3C8; color: #111111 !important;
+  background-color: #b5956a; color: #111111 !important;
   padding: 6px 24px;
   transform: rotate(-2deg);
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
