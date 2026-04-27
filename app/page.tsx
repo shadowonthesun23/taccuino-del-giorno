@@ -417,7 +417,8 @@ export default function Home() {
                     left: '-18px',
                     transform: 'rotate(-32deg)',
                     zIndex: 10,
-                    padding: '2px 14px',
+                    width: '80px',
+                    height: '22px',
                     opacity: 0.8,
                   }}
                 />
