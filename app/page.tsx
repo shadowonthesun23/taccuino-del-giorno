@@ -394,7 +394,9 @@ export default function Home() {
             <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>{data.data_odierna}</div>
           </div>
           <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
-            {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
+            <span className="font-jocky animate-typewriter">
+              {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
+            </span>
           </h1>
           <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}>
             {lingua === 'IT'
