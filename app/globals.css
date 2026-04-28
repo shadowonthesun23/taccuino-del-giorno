@@ -206,14 +206,19 @@ body {
 }
 
 /* ── Animazioni di ingresso ──────────────────────────────────────── */
+/*
+  Usiamo `translate` come proprieta' CSS standalone (non dentro `transform`)
+  perche' transform creerebbe un nuovo stacking context sul genitore,
+  rompendo gli pseudo-elementi ::before/::after con z-index: -1 delle ombre.
+*/
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    translate: 0 16px;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    translate: 0 0;
   }
 }
 
