@@ -171,6 +171,7 @@ export default function Home() {
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const [showExportCard, setShowExportCard] = useState(false);
+  const [contentKey, setContentKey] = useState(0);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
@@ -207,7 +208,7 @@ export default function Home() {
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
       fetch('/api/opera').then(res => (res.ok ? res.json() : null)).catch(() => null),
     ])
-      .then(([dati, operaData]) => { setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); window.scrollTo({ top: 0, behavior: 'smooth' }); })
+      .then(([dati, operaData]) => { setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); })
       .catch(err => { setError(err.message); setLoading(false); });
   };
 
@@ -306,8 +307,8 @@ export default function Home() {
         }}
       ></div>
 
-      <main className="max-w-4xl mx-auto space-y-12 relative z-10">
-        <header className={`text-center space-y-6 relative`}>
+      <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
+        <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
             <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
@@ -404,7 +405,7 @@ export default function Home() {
           <WatercolorDivider isDark={isDark} />
         </header>
 
-        <section className="py-8">
+        <section className="py-8 animate-fadeInUp stagger-2">
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
@@ -498,7 +499,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2"
+          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2 animate-fadeInUp stagger-3"
             filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}` }>
             <blockquote className="md:px-8">
               <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
@@ -509,7 +510,7 @@ export default function Home() {
             </blockquote>
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark}
+          <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark} className="animate-fadeInUp stagger-4"
             filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
             <div className="text-center mb-6">
               <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
@@ -521,7 +522,7 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark}
+          <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark} className="animate-fadeInUp stagger-4"
             filename="santi">
             <ul className="space-y-6">
               {data.santi.map((santo, idx) => (
@@ -535,7 +536,7 @@ export default function Home() {
           </Card>
 
           {opera && (
-            <div className="md:col-span-2 notched-card-wrapper">
+            <div className="md:col-span-2 notched-card-wrapper animate-fadeInUp stagger-5">
               <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
                 <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                   <div className="space-y-5 order-2 md:order-1">
@@ -561,7 +562,7 @@ export default function Home() {
             </div>
           )}
 
-          <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2"
+          <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2 animate-fadeInUp stagger-6"
             filename="avvenimenti">
             <ul className="space-y-4">
               {data.avvenimenti.map((evento, idx) => {
@@ -576,7 +577,7 @@ export default function Home() {
             </ul>
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark}
+          <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="animate-fadeInUp stagger-7"
             filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}` }>
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.poesia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
@@ -591,7 +592,7 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark}
+          <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark} className="animate-fadeInUp stagger-7"
             filename="bibbia">
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
@@ -605,7 +606,7 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center"
+          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center animate-fadeInUp stagger-8"
             filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}>
             <div className="max-w-2xl mx-auto">
               <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
