@@ -161,6 +161,7 @@ export default function Home() {
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [vinylCover, setVinylCover] = useState<string | null>(null);
+  const [vinylOpen, setVinylOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
@@ -206,7 +207,7 @@ export default function Home() {
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -589,21 +590,23 @@ export default function Home() {
             className="md:col-span-2 animate-fadeInUp stagger-8"
             filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
           >
-            <div className="flex flex-col md:flex-row gap-10 items-stretch">
+            <div className="flex flex-col md:flex-row gap-10 items-center">
 
-              {/* Copertina vinile — 240×240px, centrata verticalmente, bordi quasi squadrati */}
+              {/* Wrapper copertina — dimensione fissa, my-auto per centraggio verticale reale */}
               <div
-                className="group relative flex-shrink-0 self-center select-none"
-                style={{ width: '240px', height: '240px' }}
+                className="relative flex-shrink-0 select-none"
+                style={{ width: '240px', height: '240px', margin: 'auto 0' }}
                 aria-hidden="true"
               >
-                {/* Disco vinile — z-0, slide a destra al hover */}
+                {/* Disco vinile — z-0, animato da stato vinylOpen */}
                 <svg
                   viewBox="0 0 240 240"
-                  className="absolute inset-0 w-full h-full transition-transform duration-700 ease-in-out group-hover:translate-x-[72px]"
+                  className="absolute inset-0 w-full h-full"
                   style={{
                     zIndex: 0,
                     filter: 'drop-shadow(3px 3px 12px rgba(0,0,0,0.6))',
+                    transform: vinylOpen ? 'translateX(72px)' : 'translateX(0)',
+                    transition: 'transform 700ms ease-in-out',
                   }}
                 >
                   <defs>
@@ -617,20 +620,15 @@ export default function Home() {
                       <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
                     </radialGradient>
                   </defs>
-                  {/* Corpo disco */}
                   <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
-                  {/* Solchi sottili */}
                   {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
                     <circle key={i} cx="120" cy="120" r={r}
                       fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
                   ))}
-                  {/* Riflesso luce radente */}
                   <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
                     transform="rotate(-35 90 72)" />
-                  {/* Etichetta centrale */}
                   <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
                   <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
-                  {/* Testo etichetta */}
                   <text x="120" y="114" textAnchor="middle" fontSize="6.5"
                     fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
                     {data.musica.autore.slice(0, 16)}
@@ -641,13 +639,17 @@ export default function Home() {
                   </text>
                 </svg>
 
-                {/* Sleeve (copertina) — z-10, bordi quasi squadrati (rounded-sm), leggerissimo shift opposto al hover */}
+                {/* Sleeve — z-10, hover solo su questo elemento */}
                 <div
-                  className="absolute inset-0 rounded-sm overflow-hidden transition-transform duration-700 ease-in-out group-hover:-translate-x-1"
+                  className="absolute inset-0 rounded-sm overflow-hidden cursor-pointer"
                   style={{
                     zIndex: 10,
                     boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
+                    transform: vinylOpen ? 'translateX(-4px)' : 'translateX(0)',
+                    transition: 'transform 700ms ease-in-out',
                   }}
+                  onMouseEnter={() => setVinylOpen(true)}
+                  onMouseLeave={() => setVinylOpen(false)}
                 >
                   {vinylCover ? (
                     <img
@@ -660,36 +662,22 @@ export default function Home() {
                       <Music className={`w-16 h-16 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
                     </div>
                   )}
-
-                  {/* Texture grain vintage */}
                   <svg
                     className="absolute inset-0 w-full h-full pointer-events-none"
                     xmlns="http://www.w3.org/2000/svg"
                     aria-hidden="true"
                   >
                     <filter id="grain-vintage">
-                      <feTurbulence
-                        type="fractalNoise"
-                        baseFrequency="0.68"
-                        numOctaves="4"
-                        stitchTiles="stitch"
-                        result="noise"
-                      />
+                      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" stitchTiles="stitch" result="noise" />
                       <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
                       <feBlend in="SourceGraphic" in2="gray" mode="soft-light" result="blended" />
-                      <feComponentTransfer in="blended">
-                        <feFuncA type="linear" slope="1" />
-                      </feComponentTransfer>
+                      <feComponentTransfer in="blended"><feFuncA type="linear" slope="1" /></feComponentTransfer>
                     </filter>
                     <rect width="100%" height="100%" filter="url(#grain-vintage)" opacity="0.28" />
                   </svg>
-
-                  {/* Vignette angoli */}
                   <div
                     className="absolute inset-0 pointer-events-none rounded-sm"
-                    style={{
-                      background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)',
-                    }}
+                    style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)' }}
                   />
                 </div>
               </div>
