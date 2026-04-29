@@ -37,6 +37,7 @@ body {
 
 .font-jocky {
   font-family: 'JockyStarline', serif;
+  letter-spacing: 0;
 }
 
 /* ── Effetto scrittura a mano per il titolo principale ───────────── */
