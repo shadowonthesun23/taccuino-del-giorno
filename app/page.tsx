@@ -51,14 +51,14 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
       <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-2xl" style={{ height: '36px', display: 'block' }}>
         <defs>
           <filter id="wc-blur" x="-10%" y="-60%" width="120%" height="220%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves="4" seed="8" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-            <feGaussianBlur in="displaced" stdDeviation="1.2" result="blurred" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves={4} seed={8} result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={5} xChannelSelector="R" yChannelSelector="G" result="displaced" />
+            <feGaussianBlur in="displaced" stdDeviation={1.2} result="blurred" />
             <feComposite in="blurred" in2="SourceGraphic" operator="atop" />
           </filter>
           <filter id="wc-edge" x="-5%" y="-80%" width="110%" height="260%">
-            <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves="3" seed="14" result="noise2" />
-            <feDisplacementMap in="SourceGraphic" in2="noise2" scale="3" xChannelSelector="R" yChannelSelector="G" />
+            <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves={3} seed={14} result="noise2" />
+            <feDisplacementMap in="SourceGraphic" in2="noise2" scale={3} xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
         <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#wc-blur)" />
@@ -163,6 +163,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
   const [lingua, setLingua] = useState<'IT' | 'EN'>('IT');
@@ -224,8 +225,8 @@ export default function Home() {
       const { traduzioni } = await res.json();
       const tradotta = ricostruisciDati(dataOriginale, traduzioni);
       setDataTradotta(tradotta); setData(tradotta); setLingua('EN');
-    } catch (e: any) {
-      setErroreTraduzioni(e.message ?? 'Traduzione non disponibile.');
+    } catch (e: unknown) {
+      setErroreTraduzioni(e instanceof Error ? e.message : 'Traduzione non disponibile.');
     } finally { setTraducendo(false); }
   }, [lingua, dataOriginale, dataTradotta]);
 
@@ -249,11 +250,12 @@ export default function Home() {
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
     texture: paperTexture,
-    popoverBg: isDark ? 'bg-[#1C1C1C]/85' : 'bg-[#F7F4EE]/82',
-    popoverBorder: isDark ? 'border-[#3D3D3D]/70' : 'border-[#D4CABC]/80',
-    popoverArrowFill: isDark ? '#2a2a2a' : '#f4f0e6',
+    popoverBg: isDark ? '#1C1C1C' : '#F4F0E6',
+    popoverBgClass: isDark ? 'bg-[#1C1C1C]' : 'bg-[#F4F0E6]',
+    popoverBorder: isDark ? 'border-[#3D3D3D]' : 'border-[#D4CABC]',
+    popoverArrowFill: isDark ? '#1C1C1C' : '#F4F0E6',
     popoverArrowStroke: isDark ? '#3D3D3D' : '#D4CABC',
-    fadeGradient: isDark ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)' : 'linear-gradient(to bottom, transparent 0%, #F7F4EE 100%)',
+    fadeGradient: isDark ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)' : 'linear-gradient(to bottom, transparent 0%, #F4F0E6 100%)',
     photoBg: '#FDFCF8',
     photoBorder: '#EBE5DB',
   };
@@ -320,17 +322,43 @@ export default function Home() {
 
             {archivio.length > 0 && (
               <div className="relative">
-                <button ref={triggerRef} onClick={() => setPopoverOpen(v => !v)}
+                <button
+                  ref={triggerRef}
+                  onClick={() => {
+                    if (!popoverOpen && triggerRef.current) {
+                      const rect = triggerRef.current.getBoundingClientRect();
+                      setPopoverPos({
+                        top: rect.bottom + 10,
+                        right: window.innerWidth - rect.right,
+                      });
+                    }
+                    setPopoverOpen(v => !v);
+                  }}
                   className={`p-2 rounded-full border ${
                     popoverOpen ? 'border-[#DE6B58] text-[#DE6B58]' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
                   } transition-colors`} aria-label="Archivio" aria-expanded={popoverOpen} aria-haspopup="true">
                   <CalendarDays className="w-5 h-5" />
                 </button>
 
-                <div ref={popoverRef} role="dialog" aria-label="Archivio dei giorni"
-                  className={`fixed inset-x-[4vw] top-24 md:absolute md:inset-auto md:top-[calc(100%+10px)] md:right-0 md:w-80 md:translate-x-0 z-50 rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl ${themeClasses.popoverBg} ${themeClasses.popoverBorder}`}
-                  style={{ transformOrigin: 'top right', transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)', opacity: popoverOpen ? 1 : 0, transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)', pointerEvents: popoverOpen ? 'auto' : 'none', maxHeight: '380px', height: 'auto' }}>
-                  <svg width="20" height="10" viewBox="0 0 20 10" className="hidden md:block absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
+                {/* Popover archivio — sempre fixed per evitare problemi di stacking context */}
+                <div
+                  ref={popoverRef}
+                  role="dialog"
+                  aria-label="Archivio dei giorni"
+                  className={`fixed w-[92vw] max-w-xs z-[200] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+                  style={{
+                    top: `${popoverPos.top}px`,
+                    right: `${popoverPos.right}px`,
+                    transformOrigin: 'top right',
+                    transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
+                    opacity: popoverOpen ? 1 : 0,
+                    transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
+                    pointerEvents: popoverOpen ? 'auto' : 'none',
+                    maxHeight: '380px',
+                    height: 'auto',
+                  }}
+                >
+                  <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
                     <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
                   </svg>
                   <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
