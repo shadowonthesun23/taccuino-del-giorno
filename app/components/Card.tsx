@@ -4,7 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import { Download } from 'lucide-react';
 
 interface CardProps {
-  title: string;
+  title?: string;
   icon?: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   isDark: boolean;
   children: React.ReactNode;
@@ -38,10 +38,6 @@ export default function Card({ title, icon: Icon, isDark, children, className = 
     }
   }, [exporting, filename]);
 
-  // Le classi di animazione (animate-fadeInUp, stagger-N) vengono applicate
-  // al wrapper esterno, NON alla section con card-paper-shadow.
-  // Questo evita che opacity/translate animati creino uno stacking context
-  // che rompe i ::before/::after con z-index: -1 delle ombre.
   return (
     <div className={className}>
       <section
@@ -80,10 +76,12 @@ export default function Card({ title, icon: Icon, isDark, children, className = 
           </button>
         )}
 
-        <div className="flex items-center justify-center gap-2 mb-6">
-          {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
-          <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">{title}</h3>
-        </div>
+        {title && (
+          <div className="flex items-center justify-center gap-2 mb-6">
+            {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
+            <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">{title}</h3>
+          </div>
+        )}
         <div className={isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'}>{children}</div>
       </section>
     </div>
