@@ -582,12 +582,7 @@ export default function Home() {
             )}
           </Card>
 
-          {/* ── CONSIGLIO MUSICALE ──
-              Layout: Card senza titolo nell'header.
-              Internamente 2 colonne su desktop:
-                sinistra  → solo copertina vinile (centrata verticalmente in modo naturale)
-                destra    → titolo sezione + tutto il contenuto, allineato a sinistra
-          */}
+          {/* ── CONSIGLIO MUSICALE ── */}
           <Card
             isDark={isDark}
             className="md:col-span-2 animate-fadeInUp stagger-8"
@@ -686,10 +681,10 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Colonna destra: titolo sezione + contenuto, tutto allineato a sinistra */}
+              {/* Colonna destra: titolo sezione + contenuto */}
               <div className="flex-1 flex flex-col justify-center text-center md:text-left">
-                {/* Titolo sezione (rimpiazza l'header della Card) */}
-                <div className="flex items-center gap-2 mb-5">
+                {/* Titolo sezione: centrato su mobile, a sinistra su desktop */}
+                <div className="flex items-center justify-center md:justify-start gap-2 mb-5">
                   <Music className="w-5 h-5 text-[#DE6B58] flex-shrink-0" />
                   <h3 className={`text-sm font-bold tracking-[0.2em] uppercase ${themeClasses.textMuted}`}>
                     {lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'}
