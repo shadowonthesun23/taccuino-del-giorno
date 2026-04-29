@@ -608,7 +608,7 @@ export default function Home() {
           ref={popoverRef}
           role="dialog"
           aria-label="Archivio dei giorni"
-          className={`fixed z-[9999] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+          className={`fixed z-[9999] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
           style={{
             top: `${popoverPos.top}px`,
             right: `${popoverPos.right}px`,
