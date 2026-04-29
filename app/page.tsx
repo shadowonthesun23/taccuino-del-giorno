@@ -214,7 +214,6 @@ export default function Home() {
     ])
       .then(([dati, operaData]) => {
         setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Fetch copertina album da iTunes (client-side, no auth)
         fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
           .then(r => r.json())
           .then(j => {
@@ -592,19 +591,19 @@ export default function Home() {
           >
             <div className="flex flex-col md:flex-row gap-10 items-center">
 
-              {/* Copertina vinile */}
+              {/* Copertina vinile — 240×240px, bordi quasi squadrati */}
               <div
                 className="group relative flex-shrink-0 select-none"
-                style={{ width: '180px', height: '180px' }}
+                style={{ width: '240px', height: '240px' }}
                 aria-hidden="true"
               >
                 {/* Disco vinile — z-0, slide a destra al hover */}
                 <svg
-                  viewBox="0 0 180 180"
-                  className="absolute inset-0 w-full h-full transition-transform duration-700 ease-in-out group-hover:translate-x-[60px]"
+                  viewBox="0 0 240 240"
+                  className="absolute inset-0 w-full h-full transition-transform duration-700 ease-in-out group-hover:translate-x-[72px]"
                   style={{
                     zIndex: 0,
-                    filter: 'drop-shadow(3px 3px 10px rgba(0,0,0,0.55))',
+                    filter: 'drop-shadow(3px 3px 12px rgba(0,0,0,0.6))',
                   }}
                 >
                   <defs>
@@ -619,35 +618,35 @@ export default function Home() {
                     </radialGradient>
                   </defs>
                   {/* Corpo disco */}
-                  <circle cx="90" cy="90" r="88" fill="url(#vinyl-dark)" />
+                  <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
                   {/* Solchi sottili */}
-                  {[34, 42, 50, 57, 63, 69, 74, 78, 81, 84].map((r, i) => (
-                    <circle key={i} cx="90" cy="90" r={r}
+                  {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
+                    <circle key={i} cx="120" cy="120" r={r}
                       fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
                   ))}
                   {/* Riflesso luce radente */}
-                  <ellipse cx="68" cy="54" rx="26" ry="10" fill="white" opacity="0.035"
-                    transform="rotate(-35 68 54)" />
+                  <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
+                    transform="rotate(-35 90 72)" />
                   {/* Etichetta centrale */}
-                  <circle cx="90" cy="90" r="26" fill="url(#vinyl-label)" />
-                  <circle cx="90" cy="90" r="3.5" fill="#0a0a0a" />
+                  <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
+                  <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
                   {/* Testo etichetta */}
-                  <text x="90" y="86" textAnchor="middle" fontSize="5"
+                  <text x="120" y="114" textAnchor="middle" fontSize="6.5"
                     fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
                     {data.musica.autore.slice(0, 16)}
                   </text>
-                  <text x="90" y="95" textAnchor="middle" fontSize="4"
+                  <text x="120" y="126" textAnchor="middle" fontSize="5.5"
                     fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
                     {data.musica.brano.slice(0, 18)}
                   </text>
                 </svg>
 
-                {/* Sleeve (copertina) — z-10, leggerissimo shift opposto al hover */}
+                {/* Sleeve (copertina) — z-10, bordi quasi squadrati (rounded-sm), leggerissimo shift opposto al hover */}
                 <div
-                  className="absolute inset-0 rounded-lg overflow-hidden transition-transform duration-700 ease-in-out group-hover:-translate-x-1"
+                  className="absolute inset-0 rounded-sm overflow-hidden transition-transform duration-700 ease-in-out group-hover:-translate-x-1"
                   style={{
                     zIndex: 10,
-                    boxShadow: '0 6px 24px rgba(0,0,0,0.3)',
+                    boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
                   }}
                 >
                   {vinylCover ? (
@@ -658,7 +657,7 @@ export default function Home() {
                     />
                   ) : (
                     <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#DDD5C4]'}`}>
-                      <Music className={`w-12 h-12 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
+                      <Music className={`w-16 h-16 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
                     </div>
                   )}
 
@@ -687,7 +686,7 @@ export default function Home() {
 
                   {/* Vignette angoli */}
                   <div
-                    className="absolute inset-0 pointer-events-none rounded-lg"
+                    className="absolute inset-0 pointer-events-none rounded-sm"
                     style={{
                       background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)',
                     }}
