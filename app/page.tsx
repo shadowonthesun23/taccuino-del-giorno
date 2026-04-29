@@ -301,7 +301,7 @@ export default function Home() {
           filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
         }}
       ></div>
-      <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
+      <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
@@ -373,7 +373,7 @@ export default function Home() {
               {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
             </span>
           </h1>
-          <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-4`}>
+          <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-3`}>
             {lingua === 'IT'
               ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
               : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
