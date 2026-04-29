@@ -340,15 +340,17 @@ export default function Home() {
                   <CalendarDays className="w-5 h-5" />
                 </button>
 
-                {/* Popover archivio — sempre fixed per evitare problemi di stacking context */}
+                {/* Popover archivio — fixed, z-[9999] per superare stacking context delle animazioni */}
                 <div
                   ref={popoverRef}
                   role="dialog"
                   aria-label="Archivio dei giorni"
-                  className={`fixed w-[92vw] max-w-xs z-[200] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+                  className={`fixed z-[9999] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
                   style={{
                     top: `${popoverPos.top}px`,
                     right: `${popoverPos.right}px`,
+                    width: '320px',
+                    maxWidth: 'calc(100vw - 32px)',
                     transformOrigin: 'top right',
                     transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
                     opacity: popoverOpen ? 1 : 0,
@@ -439,7 +441,6 @@ export default function Home() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
             {data.foto_autore_url && (
               <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
-                {/* Washi tape decorativo sulla polaroid — solo nastro, nessun testo */}
                 <div
                   className="masking-tape"
                   style={{
