@@ -301,7 +301,7 @@ export default function Home() {
           filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
         }}
       ></div>
-      <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
+      <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
@@ -373,7 +373,7 @@ export default function Home() {
               {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
             </span>
           </h1>
-          <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-3`}>
+          <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}>
             {lingua === 'IT'
               ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
               : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
@@ -590,13 +590,11 @@ export default function Home() {
           >
             <div className="flex flex-col md:flex-row gap-10 items-stretch">
 
-              {/* Colonna sinistra: copertina vinile centrata verticalmente */}
               <div className="flex items-center justify-center flex-shrink-0 select-none" aria-hidden="true">
                 <div
                   className="relative"
                   style={{ width: '240px', height: '240px' }}
                 >
-                  {/* Disco vinile */}
                   <svg
                     viewBox="0 0 240 240"
                     className="absolute inset-0 w-full h-full"
@@ -637,7 +635,6 @@ export default function Home() {
                     </text>
                   </svg>
 
-                  {/* Sleeve — hover solo qui */}
                   <div
                     className="absolute inset-0 rounded-sm overflow-hidden cursor-pointer"
                     style={{
@@ -681,9 +678,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Colonna destra: titolo sezione + contenuto */}
               <div className="flex-1 flex flex-col justify-center text-center md:text-left">
-                {/* Titolo sezione: centrato su mobile, a sinistra su desktop */}
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-5">
                   <Music className="w-5 h-5 text-[#DE6B58] flex-shrink-0" />
                   <h3 className={`text-sm font-bold tracking-[0.2em] uppercase ${themeClasses.textMuted}`}>
@@ -734,7 +729,6 @@ export default function Home() {
 
       </main>
 
-      {/* Portal archivio */}
       {isMounted && createPortal(
         <div
           ref={popoverRef}
