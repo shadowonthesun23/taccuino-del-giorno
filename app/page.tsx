@@ -589,11 +589,11 @@ export default function Home() {
             className="md:col-span-2 animate-fadeInUp stagger-8"
             filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
           >
-            <div className="flex flex-col md:flex-row gap-10 items-center">
+            <div className="flex flex-col md:flex-row gap-10 items-stretch">
 
-              {/* Copertina vinile — 240×240px, bordi quasi squadrati */}
+              {/* Copertina vinile — 240×240px, centrata verticalmente, bordi quasi squadrati */}
               <div
-                className="group relative flex-shrink-0 select-none"
+                className="group relative flex-shrink-0 self-center select-none"
                 style={{ width: '240px', height: '240px' }}
                 aria-hidden="true"
               >
