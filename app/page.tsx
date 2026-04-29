@@ -160,6 +160,7 @@ export default function Home() {
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
+  const [vinylCover, setVinylCover] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
@@ -205,13 +206,27 @@ export default function Home() {
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
       fetch('/api/opera').then(res => (res.ok ? res.json() : null)).catch(() => null),
     ])
-      .then(([dati, operaData]) => { setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); })
+      .then(([dati, operaData]) => {
+        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Fetch copertina album da iTunes (client-side, no auth)
+        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
+          .then(r => r.json())
+          .then(j => {
+            const result = j.results?.[0];
+            if (result?.artworkUrl100) {
+              setVinylCover(result.artworkUrl100.replace('100x100bb', '600x600bb'));
+            } else {
+              setVinylCover(null);
+            }
+          })
+          .catch(() => setVinylCover(null));
+      })
       .catch(err => { setError(err.message); setLoading(false); });
   };
 
@@ -567,23 +582,146 @@ export default function Home() {
             )}
           </Card>
 
-          <Card title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'} icon={Music} isDark={isDark} className="md:col-span-2 text-center animate-fadeInUp stagger-8"
-            filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}>
-            <div className="max-w-2xl mx-auto">
-              <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
-              <p className="text-xl font-medium mb-2">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{data.musica.autore}</span></p>
-              <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
-              <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
-              <div className="flex flex-wrap items-center justify-center gap-4">
-                <a href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
-                  {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
-                </a>
-                <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`} target="_blank" rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}>
-                  {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
-                </a>
+          {/* ── CONSIGLIO MUSICALE con copertina vinile ── */}
+          <Card
+            title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'}
+            icon={Music}
+            isDark={isDark}
+            className="md:col-span-2 animate-fadeInUp stagger-8"
+            filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
+          >
+            <div className="flex flex-col md:flex-row gap-10 items-center">
+
+              {/* Copertina vinile */}
+              <div
+                className="group relative flex-shrink-0 select-none"
+                style={{ width: '180px', height: '180px' }}
+                aria-hidden="true"
+              >
+                {/* Disco vinile — z-0, slide a destra al hover */}
+                <svg
+                  viewBox="0 0 180 180"
+                  className="absolute inset-0 w-full h-full transition-transform duration-700 ease-in-out group-hover:translate-x-[60px]"
+                  style={{
+                    zIndex: 0,
+                    filter: 'drop-shadow(3px 3px 10px rgba(0,0,0,0.55))',
+                  }}
+                >
+                  <defs>
+                    <radialGradient id="vinyl-dark" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="#262626" />
+                      <stop offset="40%" stopColor="#111111" />
+                      <stop offset="100%" stopColor="#1c1c1c" />
+                    </radialGradient>
+                    <radialGradient id="vinyl-label" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor={isDark ? '#4a3828' : '#d4b896'} />
+                      <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
+                    </radialGradient>
+                  </defs>
+                  {/* Corpo disco */}
+                  <circle cx="90" cy="90" r="88" fill="url(#vinyl-dark)" />
+                  {/* Solchi sottili */}
+                  {[34, 42, 50, 57, 63, 69, 74, 78, 81, 84].map((r, i) => (
+                    <circle key={i} cx="90" cy="90" r={r}
+                      fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
+                  ))}
+                  {/* Riflesso luce radente */}
+                  <ellipse cx="68" cy="54" rx="26" ry="10" fill="white" opacity="0.035"
+                    transform="rotate(-35 68 54)" />
+                  {/* Etichetta centrale */}
+                  <circle cx="90" cy="90" r="26" fill="url(#vinyl-label)" />
+                  <circle cx="90" cy="90" r="3.5" fill="#0a0a0a" />
+                  {/* Testo etichetta */}
+                  <text x="90" y="86" textAnchor="middle" fontSize="5"
+                    fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
+                    {data.musica.autore.slice(0, 16)}
+                  </text>
+                  <text x="90" y="95" textAnchor="middle" fontSize="4"
+                    fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
+                    {data.musica.brano.slice(0, 18)}
+                  </text>
+                </svg>
+
+                {/* Sleeve (copertina) — z-10, leggerissimo shift opposto al hover */}
+                <div
+                  className="absolute inset-0 rounded-lg overflow-hidden transition-transform duration-700 ease-in-out group-hover:-translate-x-1"
+                  style={{
+                    zIndex: 10,
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {vinylCover ? (
+                    <img
+                      src={vinylCover}
+                      alt={`${data.musica.brano} cover`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#DDD5C4]'}`}>
+                      <Music className={`w-12 h-12 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
+                    </div>
+                  )}
+
+                  {/* Texture grain vintage */}
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <filter id="grain-vintage">
+                      <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.68"
+                        numOctaves="4"
+                        stitchTiles="stitch"
+                        result="noise"
+                      />
+                      <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
+                      <feBlend in="SourceGraphic" in2="gray" mode="soft-light" result="blended" />
+                      <feComponentTransfer in="blended">
+                        <feFuncA type="linear" slope="1" />
+                      </feComponentTransfer>
+                    </filter>
+                    <rect width="100%" height="100%" filter="url(#grain-vintage)" opacity="0.28" />
+                  </svg>
+
+                  {/* Vignette angoli */}
+                  <div
+                    className="absolute inset-0 pointer-events-none rounded-lg"
+                    style={{
+                      background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)',
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* Contenuto testuale */}
+              <div className="flex-1 text-center md:text-left">
+                <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
+                <p className="text-xl font-medium mb-2">
+                  {lingua === 'IT' ? 'di' : 'by'}{' '}
+                  <span className="font-bold">{data.musica.autore}</span>
+                </p>
+                <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
+                <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                  <a
+                    href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
+                  >
+                    {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
+                  </a>
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
+                  >
+                    {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
+                  </a>
+                </div>
+              </div>
+
             </div>
           </Card>
 
@@ -602,7 +740,7 @@ export default function Home() {
 
       </main>
 
-      {/* Portal archivio — montato su document.body, fuori da qualsiasi stacking context */}
+      {/* Portal archivio */}
       {isMounted && createPortal(
         <div
           ref={popoverRef}
