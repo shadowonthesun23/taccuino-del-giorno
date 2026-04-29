@@ -6,6 +6,7 @@ import { EB_Garamond, Caveat } from 'next/font/google';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
+import LiquidGlass from '../components/ui/LiquidGlass';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -330,39 +331,63 @@ export default function Home() {
       <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
-            <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
-                lingua === 'EN' ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/8' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
-              } disabled:opacity-50 disabled:cursor-not-allowed`} aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}>
-              {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
-              <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
-            </button>
+
+            {/* ── Toggle lingua ── */}
+            <LiquidGlass scale={30} borderRadius="9999px">
+              <button
+                onClick={toggleLingua}
+                disabled={traducendo}
+                title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all ${
+                  lingua === 'EN' ? 'text-[#DE6B58]' : `${themeClasses.textMuted} hover:text-[#DE6B58]`
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+              >
+                {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
+                <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
+              </button>
+            </LiquidGlass>
 
             {archivio.length > 0 && (
               <div className="relative">
-                <button
-                  ref={triggerRef}
-                  onClick={() => {
-                    if (!popoverOpen && triggerRef.current) {
-                      const rect = triggerRef.current.getBoundingClientRect();
-                      setPopoverPos({
-                        top: rect.bottom + 10,
-                        right: window.innerWidth - rect.right,
-                      });
-                    }
-                    setPopoverOpen(v => !v);
-                  }}
-                  className={`p-2 rounded-full border ${
-                    popoverOpen ? 'border-[#DE6B58] text-[#DE6B58]' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
-                  } transition-colors`} aria-label="Archivio" aria-expanded={popoverOpen} aria-haspopup="true">
-                  <CalendarDays className="w-5 h-5" />
-                </button>
+                {/* ── Toggle archivio ── */}
+                <LiquidGlass scale={30} borderRadius="9999px">
+                  <button
+                    ref={triggerRef}
+                    onClick={() => {
+                      if (!popoverOpen && triggerRef.current) {
+                        const rect = triggerRef.current.getBoundingClientRect();
+                        setPopoverPos({
+                          top: rect.bottom + 10,
+                          right: window.innerWidth - rect.right,
+                        });
+                      }
+                      setPopoverOpen(v => !v);
+                    }}
+                    className={`p-2 rounded-full ${
+                      popoverOpen ? 'text-[#DE6B58]' : `${themeClasses.textMuted} hover:text-[#DE6B58]`
+                    } transition-colors`}
+                    aria-label="Archivio"
+                    aria-expanded={popoverOpen}
+                    aria-haspopup="true"
+                  >
+                    <CalendarDays className="w-5 h-5" />
+                  </button>
+                </LiquidGlass>
               </div>
             )}
 
-            <button onClick={toggleTheme} className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`} aria-label="Cambia tema">
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            {/* ── Toggle tema ── */}
+            <LiquidGlass scale={30} borderRadius="9999px">
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`}
+                aria-label="Cambia tema"
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </LiquidGlass>
+
           </div>
 
           <div className="flex justify-center mb-6 mt-2">
@@ -431,19 +456,22 @@ export default function Home() {
                 {data.breve_descrizione}
               </p>
 
-              <button
-                onClick={() => setShowExportCard(v => !v)}
-                className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
-                  showExportCard
-                    ? 'border-[#DE6B58] text-[#DE6B58]'
-                    : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                {showExportCard
-                  ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
-                  : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
-              </button>
+              {/* ── Esporta come immagine ── */}
+              <LiquidGlass scale={30} borderRadius="9999px" className="mt-6 inline-block">
+                <button
+                  onClick={() => setShowExportCard(v => !v)}
+                  className={`inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase rounded-full px-4 py-2 transition-all ${
+                    showExportCard
+                      ? 'text-[#DE6B58]'
+                      : `${themeClasses.textMuted} hover:text-[#DE6B58]`
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {showExportCard
+                    ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
+                    : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
+                </button>
+              </LiquidGlass>
             </div>
           </div>
 
@@ -522,9 +550,17 @@ export default function Home() {
                     </div>
                     {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
                     <div className="flex flex-wrap items-center gap-4 pt-2">
-                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
-                        {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
-                      </a>
+                      {/* ── Vedi al museo ── */}
+                      <LiquidGlass scale={40} borderRadius="9999px">
+                        <a
+                          href={opera.met_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center justify-center gap-2 text-[#DE6B58] hover:bg-[#DE6B58]/20 transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}
+                        >
+                          {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
+                        </a>
+                      </LiquidGlass>
                     </div>
                   </div>
                   <div className="order-1 md:order-2">
@@ -699,20 +735,29 @@ export default function Home() {
                 <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
                 <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                  <a
-                    href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
-                  >
-                    {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
-                  </a>
-                  <a
-                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
-                  >
-                    {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
-                  </a>
+
+                  {/* ── Ascolta su Spotify ── */}
+                  <LiquidGlass scale={40} borderRadius="9999px" className="w-full sm:w-auto">
+                    <a
+                      href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className={`inline-flex items-center justify-center text-[#DE6B58] hover:bg-[#DE6B58]/20 transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full`}
+                    >
+                      {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
+                    </a>
+                  </LiquidGlass>
+
+                  {/* ── Ascolta su YouTube ── */}
+                  <LiquidGlass scale={40} borderRadius="9999px" className="w-full sm:w-auto">
+                    <a
+                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className={`inline-flex items-center justify-center text-[#DE6B58] hover:bg-[#DE6B58]/20 transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full`}
+                    >
+                      {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
+                    </a>
+                  </LiquidGlass>
+
                 </div>
               </div>
 
@@ -725,9 +770,43 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center gap-6">
             <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
             <div className="flex items-center justify-center gap-6">
-              <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="X (Twitter)"><XIcon className="w-5 h-5" /></a>
-              <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Instagram"><InstagramIcon className="w-5 h-5" /></a>
-              <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Buy Me a Coffee"><CoffeeIcon className="w-5 h-5" /></a>
+
+              {/* ── X (Twitter) ── */}
+              <LiquidGlass scale={30} borderRadius="9999px">
+                <a
+                  href="https://x.com/antonello23"
+                  target="_blank" rel="noopener noreferrer"
+                  className={`p-3 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-all duration-300`}
+                  aria-label="X (Twitter)"
+                >
+                  <XIcon className="w-5 h-5" />
+                </a>
+              </LiquidGlass>
+
+              {/* ── Instagram ── */}
+              <LiquidGlass scale={30} borderRadius="9999px">
+                <a
+                  href="https://www.instagram.com/antonelloan23/"
+                  target="_blank" rel="noopener noreferrer"
+                  className={`p-3 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-all duration-300`}
+                  aria-label="Instagram"
+                >
+                  <InstagramIcon className="w-5 h-5" />
+                </a>
+              </LiquidGlass>
+
+              {/* ── Buy Me a Coffee ── */}
+              <LiquidGlass scale={30} borderRadius="9999px">
+                <a
+                  href="https://buymeacoffee.com/antonello23"
+                  target="_blank" rel="noopener noreferrer"
+                  className={`p-3 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-all duration-300`}
+                  aria-label="Buy Me a Coffee"
+                >
+                  <CoffeeIcon className="w-5 h-5" />
+                </a>
+              </LiquidGlass>
+
             </div>
           </div>
         </footer>
