@@ -582,108 +582,120 @@ export default function Home() {
             )}
           </Card>
 
-          {/* ── CONSIGLIO MUSICALE con copertina vinile ── */}
+          {/* ── CONSIGLIO MUSICALE ──
+              Layout: Card senza titolo nell'header.
+              Internamente 2 colonne su desktop:
+                sinistra  → solo copertina vinile (centrata verticalmente in modo naturale)
+                destra    → titolo sezione + tutto il contenuto, allineato a sinistra
+          */}
           <Card
-            title={lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'}
-            icon={Music}
             isDark={isDark}
             className="md:col-span-2 animate-fadeInUp stagger-8"
             filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
           >
-            <div className="flex flex-col md:flex-row gap-10 items-center">
+            <div className="flex flex-col md:flex-row gap-10 items-stretch">
 
-              {/* Wrapper copertina — dimensione fissa, my-auto per centraggio verticale reale */}
-              <div
-                className="relative flex-shrink-0 select-none"
-                style={{ width: '240px', height: '240px', margin: 'auto 0' }}
-                aria-hidden="true"
-              >
-                {/* Disco vinile — z-0, animato da stato vinylOpen */}
-                <svg
-                  viewBox="0 0 240 240"
-                  className="absolute inset-0 w-full h-full"
-                  style={{
-                    zIndex: 0,
-                    filter: 'drop-shadow(3px 3px 12px rgba(0,0,0,0.6))',
-                    transform: vinylOpen ? 'translateX(72px)' : 'translateX(0)',
-                    transition: 'transform 700ms ease-in-out',
-                  }}
-                >
-                  <defs>
-                    <radialGradient id="vinyl-dark" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#262626" />
-                      <stop offset="40%" stopColor="#111111" />
-                      <stop offset="100%" stopColor="#1c1c1c" />
-                    </radialGradient>
-                    <radialGradient id="vinyl-label" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor={isDark ? '#4a3828' : '#d4b896'} />
-                      <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
-                    </radialGradient>
-                  </defs>
-                  <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
-                  {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
-                    <circle key={i} cx="120" cy="120" r={r}
-                      fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
-                  ))}
-                  <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
-                    transform="rotate(-35 90 72)" />
-                  <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
-                  <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
-                  <text x="120" y="114" textAnchor="middle" fontSize="6.5"
-                    fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
-                    {data.musica.autore.slice(0, 16)}
-                  </text>
-                  <text x="120" y="126" textAnchor="middle" fontSize="5.5"
-                    fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
-                    {data.musica.brano.slice(0, 18)}
-                  </text>
-                </svg>
-
-                {/* Sleeve — z-10, hover solo su questo elemento */}
+              {/* Colonna sinistra: copertina vinile centrata verticalmente */}
+              <div className="flex items-center justify-center flex-shrink-0 select-none" aria-hidden="true">
                 <div
-                  className="absolute inset-0 rounded-sm overflow-hidden cursor-pointer"
-                  style={{
-                    zIndex: 10,
-                    boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
-                    transform: vinylOpen ? 'translateX(-4px)' : 'translateX(0)',
-                    transition: 'transform 700ms ease-in-out',
-                  }}
-                  onMouseEnter={() => setVinylOpen(true)}
-                  onMouseLeave={() => setVinylOpen(false)}
+                  className="relative"
+                  style={{ width: '240px', height: '240px' }}
                 >
-                  {vinylCover ? (
-                    <img
-                      src={vinylCover}
-                      alt={`${data.musica.brano} cover`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#DDD5C4]'}`}>
-                      <Music className={`w-16 h-16 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
-                    </div>
-                  )}
+                  {/* Disco vinile */}
                   <svg
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
+                    viewBox="0 0 240 240"
+                    className="absolute inset-0 w-full h-full"
+                    style={{
+                      zIndex: 0,
+                      filter: 'drop-shadow(3px 3px 12px rgba(0,0,0,0.6))',
+                      transform: vinylOpen ? 'translateX(72px)' : 'translateX(0)',
+                      transition: 'transform 700ms ease-in-out',
+                    }}
                   >
-                    <filter id="grain-vintage">
-                      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" stitchTiles="stitch" result="noise" />
-                      <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
-                      <feBlend in="SourceGraphic" in2="gray" mode="soft-light" result="blended" />
-                      <feComponentTransfer in="blended"><feFuncA type="linear" slope="1" /></feComponentTransfer>
-                    </filter>
-                    <rect width="100%" height="100%" filter="url(#grain-vintage)" opacity="0.28" />
+                    <defs>
+                      <radialGradient id="vinyl-dark" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#262626" />
+                        <stop offset="40%" stopColor="#111111" />
+                        <stop offset="100%" stopColor="#1c1c1c" />
+                      </radialGradient>
+                      <radialGradient id="vinyl-label" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor={isDark ? '#4a3828' : '#d4b896'} />
+                        <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
+                      </radialGradient>
+                    </defs>
+                    <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
+                    {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
+                      <circle key={i} cx="120" cy="120" r={r}
+                        fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
+                    ))}
+                    <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
+                      transform="rotate(-35 90 72)" />
+                    <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
+                    <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
+                    <text x="120" y="114" textAnchor="middle" fontSize="6.5"
+                      fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
+                      {data.musica.autore.slice(0, 16)}
+                    </text>
+                    <text x="120" y="126" textAnchor="middle" fontSize="5.5"
+                      fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
+                      {data.musica.brano.slice(0, 18)}
+                    </text>
                   </svg>
+
+                  {/* Sleeve — hover solo qui */}
                   <div
-                    className="absolute inset-0 pointer-events-none rounded-sm"
-                    style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)' }}
-                  />
+                    className="absolute inset-0 rounded-sm overflow-hidden cursor-pointer"
+                    style={{
+                      zIndex: 10,
+                      boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
+                      transform: vinylOpen ? 'translateX(-4px)' : 'translateX(0)',
+                      transition: 'transform 700ms ease-in-out',
+                    }}
+                    onMouseEnter={() => setVinylOpen(true)}
+                    onMouseLeave={() => setVinylOpen(false)}
+                  >
+                    {vinylCover ? (
+                      <img
+                        src={vinylCover}
+                        alt={`${data.musica.brano} cover`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#DDD5C4]'}`}>
+                        <Music className={`w-16 h-16 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
+                      </div>
+                    )}
+                    <svg
+                      className="absolute inset-0 w-full h-full pointer-events-none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <filter id="grain-vintage">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" stitchTiles="stitch" result="noise" />
+                        <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
+                        <feBlend in="SourceGraphic" in2="gray" mode="soft-light" result="blended" />
+                        <feComponentTransfer in="blended"><feFuncA type="linear" slope="1" /></feComponentTransfer>
+                      </filter>
+                      <rect width="100%" height="100%" filter="url(#grain-vintage)" opacity="0.28" />
+                    </svg>
+                    <div
+                      className="absolute inset-0 pointer-events-none rounded-sm"
+                      style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)' }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Contenuto testuale */}
-              <div className="flex-1 text-center md:text-left">
+              {/* Colonna destra: titolo sezione + contenuto, tutto allineato a sinistra */}
+              <div className="flex-1 flex flex-col justify-center text-center md:text-left">
+                {/* Titolo sezione (rimpiazza l'header della Card) */}
+                <div className="flex items-center gap-2 mb-5">
+                  <Music className="w-5 h-5 text-[#DE6B58] flex-shrink-0" />
+                  <h3 className={`text-sm font-bold tracking-[0.2em] uppercase ${themeClasses.textMuted}`}>
+                    {lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'}
+                  </h3>
+                </div>
+
                 <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
                 <p className="text-xl font-medium mb-2">
                   {lingua === 'IT' ? 'di' : 'by'}{' '}
