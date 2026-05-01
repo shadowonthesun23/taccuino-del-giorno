@@ -177,28 +177,11 @@ export default function Home() {
   const [showExportCard, setShowExportCard] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
-  // Parallax schizzi: progress 0 (in cima) → 1 (a fondo pagina)
-  const [schizziProgress, setSchizziProgress] = useState(0);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
-
-  // Parallax: calcola progress 0→1 negli ultimi 900px di pagina.
-  // L'img è 120vw × 120vh, centrata. translateY: 160px → 0px | opacity: 0 → max.
-  // Usando un <img> sovradimensionato non ci sono mai bordi visibili né bande bianche.
-  useEffect(() => {
-    const handleScroll = () => {
-      const distanzaDalFondo = document.body.scrollHeight - window.scrollY - window.innerHeight;
-      const range = 900;
-      const progress = Math.max(0, Math.min(1, 1 - distanzaDalFondo / range));
-      setSchizziProgress(progress);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
@@ -224,7 +207,7 @@ export default function Home() {
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false); setSchizziProgress(0);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -335,7 +318,6 @@ export default function Home() {
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
       
-      {/* Layer texture carta */}
       <div 
         className="absolute inset-0 pointer-events-none z-0" 
         style={{ 
@@ -343,33 +325,7 @@ export default function Home() {
           backgroundRepeat: 'repeat',
           filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
         }}
-      />
-
-      {/* Layer schizzi astronomici — parallax dal basso.
-          Il wrapper fixed+overflow:hidden isola l'area.
-          L'<img> è 120vw×120vh (sovradimensionato) centrato con left/top negativi,
-          così translateY(+160px→0) non espone mai bordi né bande colorate. */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
-      >
-        <img
-          src="/images/schizzi-astronomici.webp"
-          alt=""
-          style={{
-            position: 'absolute',
-            width: '120vw',
-            height: '120vh',
-            left: '-10vw',
-            top: '-10vh',
-            objectFit: 'cover',
-            mixBlendMode: isDark ? 'screen' : 'multiply',
-            opacity: schizziProgress * (isDark ? 0.22 : 0.32),
-            transform: `translateY(${(1 - schizziProgress) * 160}px)`,
-            transition: 'none',
-          }}
-        />
-      </div>
+      ></div>
 
       <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
