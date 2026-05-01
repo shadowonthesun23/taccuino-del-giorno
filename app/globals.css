@@ -41,16 +41,6 @@ body {
 }
 
 /* ── Effetto scrittura a mano per il titolo principale ───────────── */
-/*
-  Tecnica: due animazioni composte sullo stesso elemento.
-  1. `handwrite-mask`  — una maschera gradiente scorre da sinistra
-     (opaco) verso destra (trasparente) rivelando il testo.
-     La soglia morbida (20%) evoca il bordo vivo dell'inchiostro fresco.
-  2. `handwrite-blur`  — il filtro blur parte da 4px e va a 0,
-     simulando l'inchiostro che si assesta sulla carta.
-  Entrambe usano cubic-bezier rapido all'inizio e decelerante alla fine,
-  che è il profilo naturale di una mano che scrive.
-*/
 @keyframes handwrite-mask {
   from {
     -webkit-mask-size: 0% 100%;
@@ -78,6 +68,20 @@ body {
   animation:
     handwrite-mask 0.9s cubic-bezier(0.25, 0.1, 0.1, 1) 0.2s forwards,
     handwrite-blur  0.7s cubic-bezier(0.25, 0.1, 0.1, 1) 0.2s forwards;
+}
+
+/* ── Sottolineatura a penna (tapered) ───────────────────────────── */
+.tapered {
+  background-image: linear-gradient(
+    179deg,
+    rgb(254, 97, 158) 0%,
+    rgb(254, 97, 158) 50%,
+    transparent 54%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 0.85em;
+  background-position: 0 0.72em;
 }
 
 .medieval-box::first-letter {
@@ -260,11 +264,6 @@ body {
 }
 
 /* ── Animazioni di ingresso ──────────────────────────────────────── */
-/*
-  Usiamo `translate` come proprieta' CSS standalone (non dentro `transform`)
-  perche' transform creerebbe un nuovo stacking context sul genitore,
-  rompendo gli pseudo-elementi ::before/::after con z-index: -1 delle ombre.
-*/
 @keyframes fadeInUp {
   from {
     opacity: 0;

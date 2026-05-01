@@ -4,7 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import { Download } from 'lucide-react';
 
 interface CardProps {
-  title?: string;
+  title?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   isDark: boolean;
   children: React.ReactNode;
