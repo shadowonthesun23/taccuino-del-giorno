@@ -177,33 +177,33 @@ export default function Home() {
   const [showExportCard, setShowExportCard] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
-  const [schizziOpacity, setSchizziOpacity] = useState(0);
+  // Parallax schizzi: progress 0 (in cima) → 1 (a fondo pagina)
+  const [schizziProgress, setSchizziProgress] = useState(0);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
 
-  // Fade-in schizzi proporzionale alla distanza dal fondo pagina.
-  // Inizia a comparire quando mancano 800px al fondo, completamente visibile a 200px.
+  // Parallax: calcola progress 0→1 negli ultimi 900px di pagina.
+  // translateY: 140px → 0px  |  opacity: 0 → max
   useEffect(() => {
     const handleScroll = () => {
       const distanzaDalFondo = document.body.scrollHeight - window.scrollY - window.innerHeight;
-      const startAt = 800;
-      const endAt = 200;
-      const maxOpacity = isDark ? 0.22 : 0.32;
-      if (distanzaDalFondo >= startAt) {
-        setSchizziOpacity(0);
-      } else if (distanzaDalFondo <= endAt) {
-        setSchizziOpacity(maxOpacity);
-      } else {
-        const progress = 1 - (distanzaDalFondo - endAt) / (startAt - endAt);
-        setSchizziOpacity(progress * maxOpacity);
-      }
+      const range = 900; // px prima del fondo in cui inizia l'animazione
+      const progress = Math.max(0, Math.min(1, 1 - distanzaDalFondo / range));
+      setSchizziProgress(progress);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // calcola subito in caso la pagina sia corta
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isDark]);
+  }, []);
+
+  const schizziStyle = {
+    opacity: schizziProgress * (isDark ? 0.22 : 0.32),
+    transform: `translateY(${(1 - schizziProgress) * 140}px)`,
+    transition: 'none', // interamente guidato dallo scroll, no CSS transition
+  };
 
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
@@ -229,7 +229,7 @@ export default function Home() {
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false); setSchizziOpacity(0);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false); setSchizziProgress(0);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -350,21 +350,23 @@ export default function Home() {
         }}
       />
 
-      {/* Layer schizzi astronomici — sempre presente, opacità 0 in cima, cresce avvicinandosi al fondo */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: "url('/images/schizzi-astronomici.webp')",
-          backgroundPosition: 'center center',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          mixBlendMode: isDark ? 'screen' : 'multiply',
-          opacity: schizziOpacity,
-          transition: 'opacity 200ms ease-out',
-          backgroundColor: isDark ? '#1E1E1E' : '#F4F0E6',
-        }}
-      />
+      {/* Layer schizzi astronomici — parallax dal basso */}
+      {/* overflow-hidden sul wrapper impedisce che la versione traslata sia visibile fuori viewport */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: "url('/images/schizzi-astronomici.webp')",
+            backgroundPosition: 'center center',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            mixBlendMode: isDark ? 'screen' : 'multiply',
+            ...schizziStyle,
+          }}
+        />
+      </div>
 
       <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
