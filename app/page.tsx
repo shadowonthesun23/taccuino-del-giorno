@@ -475,8 +475,13 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <Card title={lingua === 'IT' ? 'Citazione' : 'Quote'} icon={Quote} isDark={isDark} className="md:col-span-2 animate-fadeInUp stagger-3"
-            filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}` }>
+          <Card
+            title={lingua === 'IT' ? <><span className="tapered inline">Citazione</span></> : 'Quote'}
+            icon={Quote}
+            isDark={isDark}
+            className="md:col-span-2 animate-fadeInUp stagger-3"
+            filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
+          >
             <blockquote className="md:px-8">
               <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
               <footer className="text-right text-lg clear-both pt-2">
@@ -554,7 +559,7 @@ export default function Home() {
           </Card>
 
           <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="animate-fadeInUp stagger-7"
-            filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}` }>
+            filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}>
             <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.poesia.testo}</div>
             <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
               <p className="font-bold text-xl">{data.poesia.autore}</p>
