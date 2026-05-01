@@ -177,11 +177,33 @@ export default function Home() {
   const [showExportCard, setShowExportCard] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [schizziOpacity, setSchizziOpacity] = useState(0);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
+
+  // Fade-in schizzi proporzionale alla distanza dal fondo pagina.
+  // Inizia a comparire quando mancano 800px al fondo, completamente visibile a 200px.
+  useEffect(() => {
+    const handleScroll = () => {
+      const distanzaDalFondo = document.body.scrollHeight - window.scrollY - window.innerHeight;
+      const startAt = 800;
+      const endAt = 200;
+      const maxOpacity = isDark ? 0.22 : 0.32;
+      if (distanzaDalFondo >= startAt) {
+        setSchizziOpacity(0);
+      } else if (distanzaDalFondo <= endAt) {
+        setSchizziOpacity(maxOpacity);
+      } else {
+        const progress = 1 - (distanzaDalFondo - endAt) / (startAt - endAt);
+        setSchizziOpacity(progress * maxOpacity);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isDark]);
 
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
@@ -207,7 +229,7 @@ export default function Home() {
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false);
+    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false); setSchizziOpacity(0);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -318,6 +340,7 @@ export default function Home() {
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
       
+      {/* Layer texture carta */}
       <div 
         className="absolute inset-0 pointer-events-none z-0" 
         style={{ 
@@ -325,7 +348,23 @@ export default function Home() {
           backgroundRepeat: 'repeat',
           filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
         }}
-      ></div>
+      />
+
+      {/* Layer schizzi astronomici — sempre presente, opacità 0 in cima, cresce avvicinandosi al fondo */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: "url('/images/schizzi-astronomici.webp')",
+          backgroundPosition: 'center center',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          mixBlendMode: isDark ? 'screen' : 'multiply',
+          opacity: schizziOpacity,
+          transition: 'opacity 200ms ease-out',
+          backgroundColor: isDark ? '#1E1E1E' : '#F4F0E6',
+        }}
+      />
 
       <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
