@@ -177,9 +177,11 @@ export default function Home() {
   const [showExportCard, setShowExportCard] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
 
@@ -204,6 +206,18 @@ export default function Home() {
     function handleKeyDown(e: KeyboardEvent) { if (e.key === 'Escape') setPopoverOpen(false); }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // IntersectionObserver per comparsa graduale del footer
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setFooterVisible(true); },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const caricaGiorno = (dataIso: string | null) => {
@@ -276,6 +290,7 @@ export default function Home() {
     fadeGradient: isDark ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)' : 'linear-gradient(to bottom, transparent 0%, #F4F0E6 100%)',
     photoBg: '#FDFCF8',
     photoBorder: '#EBE5DB',
+    footerBg: isDark ? '#1E1E1E' : '#F4F0E6',
   };
 
   const groupedArchivio = groupByMonth(archivio);
@@ -316,7 +331,7 @@ export default function Home() {
   if (!data) return null;
 
   return (
-    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} ${themeClasses.selection} relative transition-colors duration-300`}>
       
       <div 
         className="absolute inset-0 pointer-events-none z-0" 
@@ -327,7 +342,7 @@ export default function Home() {
         }}
       ></div>
 
-      <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
+      <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10 py-12 px-4 md:px-8">
         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
           <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
             <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
@@ -715,49 +730,53 @@ export default function Home() {
           </Card>
 
         </div>
-
-        {/* ── FOOTER CON PARALLAX ASTRONOMICO ── */}
-        <footer className={`relative text-center pt-24 pb-12 ${themeClasses.textMuted} font-medium overflow-hidden`}>
-
-          {/* Layer parallax: schizzi astronomici con blend mode adattivo */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: "url('/images/schizzi-astronomici.webp')",
-              backgroundAttachment: 'fixed',
-              backgroundPosition: 'center top',
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-              mixBlendMode: isDark ? 'screen' : 'multiply',
-              opacity: isDark ? 0.20 : 0.30,
-            }}
-          />
-
-          {/* Gradiente di ingresso: dissolve dal contenuto sopra verso il footer */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-24 pointer-events-none"
-            style={{
-              background: isDark
-                ? 'linear-gradient(to bottom, #1E1E1E 0%, transparent 100%)'
-                : 'linear-gradient(to bottom, #F4F0E6 0%, transparent 100%)',
-            }}
-          />
-
-          {/* Contenuto footer */}
-          <div className="relative z-10 flex flex-col items-center justify-center gap-6">
-            <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
-            <div className="flex items-center justify-center gap-6">
-              <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="X (Twitter)"><XIcon className="w-5 h-5" /></a>
-              <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Instagram"><InstagramIcon className="w-5 h-5" /></a>
-              <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Buy Me a Coffee"><CoffeeIcon className="w-5 h-5" /></a>
-            </div>
-          </div>
-
-        </footer>
-
       </main>
+
+      {/* ── FOOTER FULL-WIDTH con comparsa graduale ── */}
+      <footer
+        ref={footerRef}
+        className={`relative w-full text-center pt-32 pb-16 ${themeClasses.textMuted} font-medium overflow-hidden`}
+        style={{
+          opacity: footerVisible ? 1 : 0,
+          transform: footerVisible ? 'translateY(0)' : 'translateY(32px)',
+          transition: 'opacity 900ms cubic-bezier(0.16,1,0.3,1), transform 900ms cubic-bezier(0.16,1,0.3,1)',
+        }}
+      >
+        {/* Immagine di sfondo schizzi astronomici */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "url('/images/schizzi-astronomici.webp')",
+            backgroundPosition: 'center center',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            mixBlendMode: isDark ? 'screen' : 'multiply',
+            opacity: isDark ? 0.22 : 0.32,
+          }}
+        />
+
+        {/* Gradiente in cima: sfuma dal colore pagina verso trasparente */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-40 pointer-events-none"
+          style={{
+            background: isDark
+              ? 'linear-gradient(to bottom, #1E1E1E 0%, transparent 100%)'
+              : 'linear-gradient(to bottom, #F4F0E6 0%, transparent 100%)',
+          }}
+        />
+
+        {/* Contenuto footer */}
+        <div className="relative z-10 flex flex-col items-center justify-center gap-6">
+          <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
+          <div className="flex items-center justify-center gap-6">
+            <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="X (Twitter)"><XIcon className="w-5 h-5" /></a>
+            <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Instagram"><InstagramIcon className="w-5 h-5" /></a>
+            <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Buy Me a Coffee"><CoffeeIcon className="w-5 h-5" /></a>
+          </div>
+        </div>
+      </footer>
 
       {isMounted && createPortal(
         <div
