@@ -36,8 +36,8 @@ REGOLE DI CURATELA:
 1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
 2. DESCRIZIONE AUTORE: **DEVE** iniziare esplicitando il motivo della scelta (es. "Nato in questo giorno nel [anno]..." oppure "Scomparso in questa data nel [anno]..."). Questa informazione è fondamentale per il contesto.
 3. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
-4. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni). Includi una "nota" che spieghi brevemente il senso teologico del passaggio.
-5. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale. Includi una "nota" che spieghi perché hai scelto questa poesia.
+4. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni). Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
+5. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 6. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
 7. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
 
