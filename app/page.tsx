@@ -186,24 +186,19 @@ export default function Home() {
   const oggi = new Date().toISOString().split('T')[0];
 
   // Parallax: calcola progress 0→1 negli ultimi 900px di pagina.
-  // translateY: 140px → 0px  |  opacity: 0 → max
+  // L'img è 120vw × 120vh, centrata. translateY: 160px → 0px | opacity: 0 → max.
+  // Usando un <img> sovradimensionato non ci sono mai bordi visibili né bande bianche.
   useEffect(() => {
     const handleScroll = () => {
       const distanzaDalFondo = document.body.scrollHeight - window.scrollY - window.innerHeight;
-      const range = 900; // px prima del fondo in cui inizia l'animazione
+      const range = 900;
       const progress = Math.max(0, Math.min(1, 1 - distanzaDalFondo / range));
       setSchizziProgress(progress);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // calcola subito in caso la pagina sia corta
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const schizziStyle = {
-    opacity: schizziProgress * (isDark ? 0.22 : 0.32),
-    transform: `translateY(${(1 - schizziProgress) * 140}px)`,
-    transition: 'none', // interamente guidato dallo scroll, no CSS transition
-  };
 
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
@@ -350,20 +345,28 @@ export default function Home() {
         }}
       />
 
-      {/* Layer schizzi astronomici — parallax dal basso */}
-      {/* overflow-hidden sul wrapper impedisce che la versione traslata sia visibile fuori viewport */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div
-          aria-hidden="true"
+      {/* Layer schizzi astronomici — parallax dal basso.
+          Il wrapper fixed+overflow:hidden isola l'area.
+          L'<img> è 120vw×120vh (sovradimensionato) centrato con left/top negativi,
+          così translateY(+160px→0) non espone mai bordi né bande colorate. */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+      >
+        <img
+          src="/images/schizzi-astronomici.webp"
+          alt=""
           style={{
             position: 'absolute',
-            inset: 0,
-            backgroundImage: "url('/images/schizzi-astronomici.webp')",
-            backgroundPosition: 'center center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
+            width: '120vw',
+            height: '120vh',
+            left: '-10vw',
+            top: '-10vh',
+            objectFit: 'cover',
             mixBlendMode: isDark ? 'screen' : 'multiply',
-            ...schizziStyle,
+            opacity: schizziProgress * (isDark ? 0.22 : 0.32),
+            transform: `translateY(${(1 - schizziProgress) * 160}px)`,
+            transition: 'none',
           }}
         />
       </div>
