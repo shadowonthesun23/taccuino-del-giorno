@@ -716,8 +716,37 @@ export default function Home() {
 
         </div>
 
-        <footer className={`text-center pt-16 pb-8 ${themeClasses.textMuted} font-medium`}>
-          <div className="flex flex-col items-center justify-center gap-6">
+        {/* ── FOOTER CON PARALLAX ASTRONOMICO ── */}
+        <footer className={`relative text-center pt-24 pb-12 ${themeClasses.textMuted} font-medium overflow-hidden`}>
+
+          {/* Layer parallax: schizzi astronomici con blend mode adattivo */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: "url('/images/schizzi-astronomici.webp')",
+              backgroundAttachment: 'fixed',
+              backgroundPosition: 'center top',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              mixBlendMode: isDark ? 'screen' : 'multiply',
+              opacity: isDark ? 0.20 : 0.30,
+            }}
+          />
+
+          {/* Gradiente di ingresso: dissolve dal contenuto sopra verso il footer */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 h-24 pointer-events-none"
+            style={{
+              background: isDark
+                ? 'linear-gradient(to bottom, #1E1E1E 0%, transparent 100%)'
+                : 'linear-gradient(to bottom, #F4F0E6 0%, transparent 100%)',
+            }}
+          />
+
+          {/* Contenuto footer */}
+          <div className="relative z-10 flex flex-col items-center justify-center gap-6">
             <p className="text-lg italic tracking-wide">Made with love by Antonello</p>
             <div className="flex items-center justify-center gap-6">
               <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="X (Twitter)"><XIcon className="w-5 h-5" /></a>
@@ -725,6 +754,7 @@ export default function Home() {
               <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Buy Me a Coffee"><CoffeeIcon className="w-5 h-5" /></a>
             </div>
           </div>
+
         </footer>
 
       </main>
