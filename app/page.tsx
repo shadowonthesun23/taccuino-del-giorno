@@ -19,8 +19,6 @@ const caveat = Caveat({
   display: 'swap',
 });
 
-const paperTexture = `url("/beige-paper.png")`;
-
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
@@ -267,7 +265,6 @@ export default function Home() {
     border: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
-    texture: paperTexture,
     popoverBg: isDark ? '#1C1C1C' : '#F4F0E6',
     popoverBgClass: isDark ? 'bg-[#1C1C1C]' : 'bg-[#F4F0E6]',
     popoverBorder: isDark ? 'border-[#3D3D3D]' : 'border-[#D4CABC]',
@@ -358,28 +355,12 @@ export default function Home() {
 
   if (loading) return (
     <>
-      <div 
-        className="absolute inset-0 pointer-events-none" 
-        style={{ 
-          backgroundImage: `url("/beige-paper.png")`,
-          filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)',
-          mixBlendMode: isDark ? 'overlay' : 'multiply'
-        }}
-      ></div>
       {archivioPopover}
     </>
   );
 
   if (error) return (
     <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
-      <div 
-        className="absolute inset-0 pointer-events-none z-0" 
-        style={{ 
-          backgroundImage: themeClasses.texture,
-          backgroundRepeat: 'repeat',
-          filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
-        }}
-      ></div>
       <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
@@ -410,15 +391,6 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-      
-      <div 
-        className="absolute inset-0 pointer-events-none z-0" 
-        style={{ 
-          backgroundImage: themeClasses.texture,
-          backgroundRepeat: 'repeat',
-          filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)' 
-        }}
-      ></div>
 
       <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
