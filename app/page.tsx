@@ -569,7 +569,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
           <Card
-            title={lingua === 'IT' ? <><span className="tapered inline">Citazione</span></> : 'Quote'}
+            title={lingua === 'IT' ? 'Citazione' : 'Quote'}
             icon={Quote}
             isDark={isDark}
             className="md:col-span-2 animate-fadeInUp stagger-3"
