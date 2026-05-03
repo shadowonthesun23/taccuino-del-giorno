@@ -280,15 +280,94 @@ export default function Home() {
 
   const groupedArchivio = groupByMonth(archivio);
 
-  if (loading) return (
-    <div 
-      className="absolute inset-0 pointer-events-none" 
-      style={{ 
-        backgroundImage: `url("/beige-paper.png")`,
-        filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)',
-        mixBlendMode: isDark ? 'overlay' : 'multiply'
+  // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
+  const archivioPopover = isMounted ? createPortal(
+    <div
+      ref={popoverRef}
+      role="dialog"
+      aria-label="Archivio dei giorni"
+      className={`fixed z-[9999] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+      style={{
+        top: `${popoverPos.top}px`,
+        right: `${popoverPos.right}px`,
+        width: '320px',
+        maxWidth: 'calc(100vw - 32px)',
+        transformOrigin: 'top right',
+        transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
+        opacity: popoverOpen ? 1 : 0,
+        transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
+        pointerEvents: popoverOpen ? 'auto' : 'none',
+        maxHeight: '380px',
+        height: 'auto',
       }}
-    ></div>
+    >
+      <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
+        <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
+      </svg>
+      <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
+        <div className="flex items-center gap-2">
+          <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
+          <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
+        </div>
+        <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio"><X className="w-4 h-4" /></button>
+      </div>
+      {dataSelezionata && dataSelezionata !== oggi && (
+        <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
+          <button onClick={() => caricaGiorno(null)} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"><ChevronLeft className="w-3.5 h-3.5" />Torna a oggi</button>
+        </div>
+      )}
+      <div className="relative flex-1 min-h-0">
+        <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
+          {archivio.length === 0 ? (
+            <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
+          ) : (
+            Object.entries(groupedArchivio).map(([mese, items]) => (
+              <div key={mese} className="mb-4">
+                <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
+                <ul className="space-y-0.5">
+                  {items.map(item => {
+                    const isOggi = item.data === oggi;
+                    const isSelezionato = item.data === dataSelezionata;
+                    return (
+                      <li key={item.data}>
+                        <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
+                          className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
+                            isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
+                          }`}>
+                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
+                          <span className="flex-1 min-w-0">
+                            <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
+                            <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>{formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}</span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))
+          )}
+        </div>
+        {archivioHasScroll && !archivioAtBottom && (
+          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 rounded-b-2xl" style={{ background: themeClasses.fadeGradient }} />
+        )}
+      </div>
+    </div>,
+    document.body
+  ) : null;
+
+  if (loading) return (
+    <>
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{ 
+          backgroundImage: `url("/beige-paper.png")`,
+          filter: isDark ? 'invert(1) opacity(0.45)' : 'opacity(0.85)',
+          mixBlendMode: isDark ? 'overlay' : 'multiply'
+        }}
+      ></div>
+      {archivioPopover}
+    </>
   );
 
   if (error) return (
@@ -305,11 +384,25 @@ export default function Home() {
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
-          <button onClick={() => setPopoverOpen(true)} className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors">
+          <button
+            ref={triggerRef}
+            onClick={() => {
+              if (!popoverOpen && triggerRef.current) {
+                const rect = triggerRef.current.getBoundingClientRect();
+                setPopoverPos({
+                  top: rect.bottom + 10,
+                  right: window.innerWidth - rect.right,
+                });
+              }
+              setPopoverOpen(v => !v);
+            }}
+            className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
+          >
             <CalendarDays className="w-4 h-4" />Vedi giorni precedenti
           </button>
         )}
       </div>
+      {archivioPopover}
     </div>
   );
 
@@ -733,80 +826,7 @@ export default function Home() {
 
       </main>
 
-      {isMounted && createPortal(
-        <div
-          ref={popoverRef}
-          role="dialog"
-          aria-label="Archivio dei giorni"
-          className={`fixed z-[9999] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
-          style={{
-            top: `${popoverPos.top}px`,
-            right: `${popoverPos.right}px`,
-            width: '320px',
-            maxWidth: 'calc(100vw - 32px)',
-            transformOrigin: 'top right',
-            transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
-            opacity: popoverOpen ? 1 : 0,
-            transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
-            pointerEvents: popoverOpen ? 'auto' : 'none',
-            maxHeight: '380px',
-            height: 'auto',
-          }}
-        >
-          <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
-            <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
-          </svg>
-          <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-            <div className="flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
-              <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
-            </div>
-            <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio"><X className="w-4 h-4" /></button>
-          </div>
-          {dataSelezionata && dataSelezionata !== oggi && (
-            <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-              <button onClick={() => caricaGiorno(null)} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"><ChevronLeft className="w-3.5 h-3.5" />Torna a oggi</button>
-            </div>
-          )}
-          <div className="relative flex-1 min-h-0">
-            <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
-              {archivio.length === 0 ? (
-                <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
-              ) : (
-                Object.entries(groupedArchivio).map(([mese, items]) => (
-                  <div key={mese} className="mb-4">
-                    <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
-                    <ul className="space-y-0.5">
-                      {items.map(item => {
-                        const isOggi = item.data === oggi;
-                        const isSelezionato = item.data === dataSelezionata;
-                        return (
-                          <li key={item.data}>
-                            <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
-                              className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
-                                isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
-                              }`}>
-                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
-                              <span className="flex-1 min-w-0">
-                                <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
-                                <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>{formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}</span>
-                              </span>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))
-              )}
-            </div>
-            {archivioHasScroll && !archivioAtBottom && (
-              <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 rounded-b-2xl" style={{ background: themeClasses.fadeGradient }} />
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      {archivioPopover}
 
     </div>
   );
