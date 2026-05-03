@@ -22,23 +22,12 @@
 
 body {
   background-color: var(--background);
-  /*
-    Layer 1: gradiente radiale ad arco (luce dall'alto), fixed
-    Layer 2: noise SVG inline — il rect di base è #f3ece0 (stesso bg),
-             il turbulence agisce in multiply su quel colore producendo
-             variazioni scure/chiare attorno al beige. Nessun layer
-             separato = nessun flash.
-  */
-  background-image:
-    radial-gradient(
-      ellipse 140% 60% at 50% 0%,
-      rgba(255, 252, 242, 0.65) 0%,
-      transparent 70%
-    ),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix type='saturate' values='0' in='noise' result='gray'/%3E%3CfeComponentTransfer in='gray' result='contrast'%3E%3CfeFuncR type='linear' slope='0.12' intercept='0.44'/%3E%3CfeFuncG type='linear' slope='0.12' intercept='0.44'/%3E%3CfeFuncB type='linear' slope='0.12' intercept='0.44'/%3E%3C/feComponentTransfer%3E%3CfeBlend in='SourceGraphic' in2='contrast' mode='multiply'/%3E%3C/filter%3E%3Crect width='200' height='200' fill='%23f3ece0'/%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  background-size: auto, 200px 200px;
-  background-repeat: no-repeat, repeat;
-  background-attachment: fixed, scroll;
+  background-image: radial-gradient(
+    ellipse 140% 60% at 50% 0%,
+    rgba(255, 252, 242, 0.65) 0%,
+    transparent 70%
+  );
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
