@@ -22,8 +22,17 @@
 
 body {
   background-color: var(--background);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeBlend in='SourceGraphic' mode='multiply' result='noisy'/%3E%3CfeComposite in='noisy' in2='SourceGraphic' operator='in'/%3E%3C/filter%3E%3Crect width='500' height='500' fill='%23f3ece0'/%3E%3Crect width='500' height='500' filter='url(%23paper)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 500px 500px;
+  /* Grana carta: fractal noise SVG inline, grana visibile ma elegante */
+  background-image:
+    radial-gradient(
+      ellipse 120% 80% at 50% 0%,
+      rgba(255, 252, 245, 0.55) 0%,
+      rgba(243, 236, 224, 0.0) 70%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeBlend in='SourceGraphic' mode='multiply' result='noisy'/%3E%3CfeComposite in='noisy' in2='SourceGraphic' operator='in'/%3E%3C/filter%3E%3Crect width='500' height='500' fill='%23f3ece0'/%3E%3Crect width='500' height='500' filter='url(%23paper)' opacity='0.09'/%3E%3C/svg%3E");
+  background-size: auto, 500px 500px;
+  background-repeat: no-repeat, repeat;
+  background-attachment: fixed, scroll;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
