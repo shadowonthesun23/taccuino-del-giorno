@@ -514,13 +514,14 @@ useEffect(() => {
                     }}
                   />
                   <div
-                    className="relative photo-paper-shadow"
-                    style={{
-                      background: themeClasses.photoBg,
-                      border: `1px solid ${themeClasses.photoBorder}`,
-                      padding: '10px 10px 28px 10px',
-                    }}
-                  >
+  className="relative photo-paper-shadow"
+  style={{
+    background: themeClasses.photoBg,
+    border: `1px solid ${themeClasses.photoBorder}`,
+    padding: '10px 10px 28px 10px',
+    boxShadow: '6px 8px 18px -2px rgba(0,0,0,0.35), 2px 3px 6px -1px rgba(0,0,0,0.20)',
+  }}
+>
                     <img
                       src={data.foto_autore_url}
                       alt={data.autore_giorno}
