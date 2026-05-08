@@ -251,13 +251,20 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('theme');
-      setIsDark(savedTheme === 'dark' || (!savedTheme && isSystemDark));
+      const calcolatoDark = savedTheme === 'dark' || (!savedTheme && isSystemDark);
+      setIsDark(calcolatoDark);
+      document.documentElement.classList.toggle('dark', calcolatoDark);
     }
     caricaGiorno(null);
     fetch('/api/archivio').then(res => res.ok ? res.json() : []).then(setArchivio).catch(() => setArchivio([]));
   }, []);
 
-  const toggleTheme = () => { setIsDark(!isDark); localStorage.setItem('theme', !isDark ? 'dark' : 'light'); };
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', next);
+  };
 
   const themeClasses = {
     bg: isDark ? 'bg-[#1E1E1E]' : 'bg-[#F4F0E6]',
