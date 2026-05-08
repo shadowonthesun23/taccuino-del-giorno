@@ -204,7 +204,10 @@ export default function Home() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-
+useEffect(() => {
+  document.body.style.backgroundColor = isDark ? '#1E1E1E' : '#F4F0E6';
+}, [isDark]);
+  
   const caricaGiorno = (dataIso: string | null) => {
     setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
@@ -400,14 +403,21 @@ export default function Home() {
   return (
     <ParallaxBackground>
       <div className={`min-h-screen bg-transparent ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-
+<div className={`fixed top-4 right-4 z-50 flex items-center gap-2`}>
+  {/* pulsante EN */}
+  <button onClick={toggleLingua} disabled={traducendo} ... />
+  {/* pulsante archivio */}
+  {archivio.length > 0 && ( ... )}
+  {/* pulsante tema */}
+  <button onClick={toggleTheme} ... />
+</div>
         <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
          <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
   ${isDark
     ? 'bg-[#1E1E1E]/60 backdrop-blur-sm'
     : 'bg-[#F4F0E6]/60 backdrop-blur-sm'
   }`}>
-            <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
+            
               <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
                   lingua === 'EN' ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/8' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
