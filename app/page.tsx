@@ -402,7 +402,11 @@ export default function Home() {
       <div className={`min-h-screen bg-transparent ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
 
         <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
-          <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1`}>
+         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
+  ${isDark
+    ? 'bg-[#1E1E1E]/60 backdrop-blur-sm'
+    : 'bg-[#F4F0E6]/60 backdrop-blur-sm'
+  }`}>
             <div className="flex justify-center md:justify-end md:absolute md:right-0 md:top-0 items-center gap-2 z-30">
               <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
@@ -456,7 +460,11 @@ export default function Home() {
             <WatercolorDivider isDark={isDark} />
           </header>
 
-          <section className="py-8 animate-fadeInUp stagger-2">
+          <section className={`py-8 animate-fadeInUp stagger-2 rounded-2xl px-4
+  ${isDark
+    ? 'bg-[#1E1E1E]/55 backdrop-blur-sm'
+    : 'bg-[#F4F0E6]/55 backdrop-blur-sm'
+  }`}>
             <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
               {data.foto_autore_url && (
                 <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
