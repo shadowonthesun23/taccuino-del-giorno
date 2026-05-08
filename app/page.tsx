@@ -403,13 +403,63 @@ useEffect(() => {
   return (
     <ParallaxBackground>
       <div className={`min-h-screen bg-transparent ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-<div className={`fixed top-4 right-4 z-50 flex items-center gap-2`}>
-  {/* pulsante EN */}
-  <button onClick={toggleLingua} disabled={traducendo} ... />
-  {/* pulsante archivio */}
-  {archivio.length > 0 && ( ... )}
-  {/* pulsante tema */}
-  <button onClick={toggleTheme} ... />
+<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+  <button
+    onClick={toggleLingua}
+    disabled={traducendo}
+    title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+    className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
+      lingua === 'EN'
+        ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
+        : isDark
+          ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+          : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+    } disabled:opacity-50 disabled:cursor-not-allowed`}
+    aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+  >
+    {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
+    <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
+  </button>
+
+  {archivio.length > 0 && (
+    <button
+      ref={triggerRef}
+      onClick={() => {
+        if (!popoverOpen && triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          setPopoverPos({
+            top: rect.bottom + 10,
+            right: window.innerWidth - rect.right,
+          });
+        }
+        setPopoverOpen(v => !v);
+      }}
+      className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
+        popoverOpen
+          ? 'border-[#DE6B58] text-[#DE6B58]'
+          : isDark
+            ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+            : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+      }`}
+      aria-label="Archivio"
+      aria-expanded={popoverOpen}
+      aria-haspopup="true"
+    >
+      <CalendarDays className="w-5 h-5" />
+    </button>
+  )}
+
+  <button
+    onClick={toggleTheme}
+    className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
+      isDark
+        ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+        : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+    }`}
+    aria-label="Cambia tema"
+  >
+    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+  </button>
 </div>
         <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
          <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
