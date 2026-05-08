@@ -22,8 +22,27 @@ html, body {
 }
 
 body {
+  background-color: var(--background);
+  background-image: radial-gradient(
+    ellipse 140% 60% at 50% 0%,
+    rgba(255, 252, 242, 0.65) 0%,
+    transparent 70%
+  );
+  /* Rimosso background-attachment: fixed — causa problemi su mobile Safari */
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100dvh; /* dvh invece di vh copre correttamente su mobile */
+}
+
+/* Dark mode: forza bg scuro su tutto il viewport */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image: none;
+  }
+}
+.dark body, [data-theme="dark"] body {
+  background-image: none;
+  background-color: #1E1E1E;
 }
 
 /* ── JockyStarline custom font ───────────────────────────────────── */
