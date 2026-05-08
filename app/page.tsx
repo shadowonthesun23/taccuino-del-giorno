@@ -489,8 +489,8 @@ useEffect(() => {
   <WatercolorDivider isDark={isDark} />
 </header>
 
-         <section className="py-8 animate-fadeInUp stagger-2 relative px-4">
-  {/* Sfondo sfumato — mask applicata solo a questo div, non tocca testo e foto */}
+        <section className="py-8 animate-fadeInUp stagger-2 relative px-4">
+  {/* Sfondo sfumato */}
   <div
     aria-hidden="true"
     className="absolute inset-0 rounded-2xl pointer-events-none"
@@ -503,97 +503,98 @@ useEffect(() => {
     }}
   />
 
-  {/* Contenuto — vive sopra lo sfondo, non viene mascherato */}
+  {/* Contenuto */}
   <div className="relative z-10">
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
-              {data.foto_autore_url && (
-                <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
-                  <div
-                    className="masking-tape"
-                    style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      left: '-18px',
-                      transform: 'rotate(-32deg)',
-                      zIndex: 10,
-                      width: '80px',
-                      height: '22px',
-                      opacity: 0.8,
-                    }}
-                  />
-                  <div
-  className="relative photo-paper-shadow"
-  style={{
-    background: themeClasses.photoBg,
-    border: `1px solid ${themeClasses.photoBorder}`,
-    padding: '10px 10px 28px 10px',
-    boxShadow: '6px 8px 18px -2px rgba(0,0,0,0.35), 2px 3px 6px -1px rgba(0,0,0,0.20)',
-  }}
->
-                    <img
-                      src={data.foto_autore_url}
-                      alt={data.autore_giorno}
-                      style={{
-                        display: 'block',
-                        width: '140px',
-                        height: '180px',
-                        objectFit: 'cover',
-                        filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex-1 text-center md:text-left">
-                <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
-                  {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
-                </span>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
-                <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
-                  {data.breve_descrizione}
-                </p>
+      {data.foto_autore_url && (
+        <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+          <div
+            className="masking-tape"
+            style={{
+              position: 'absolute',
+              top: '-8px',
+              left: '-18px',
+              transform: 'rotate(-32deg)',
+              zIndex: 10,
+              width: '80px',
+              height: '22px',
+              opacity: 0.8,
+            }}
+          />
+          <div
+            className="relative photo-paper-shadow"
+            style={{
+              background: themeClasses.photoBg,
+              border: `1px solid ${themeClasses.photoBorder}`,
+              padding: '10px 10px 28px 10px',
+              boxShadow: '6px 8px 18px -2px rgba(0,0,0,0.35), 2px 3px 6px -1px rgba(0,0,0,0.20)',
+            }}
+          >
+            <img
+              src={data.foto_autore_url}
+              alt={data.autore_giorno}
+              style={{
+                display: 'block',
+                width: '140px',
+                height: '180px',
+                objectFit: 'cover',
+                filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+              }}
+            />
+          </div>
+        </div>
+      )}
 
-                <button
-                  onClick={() => setShowExportCard(v => !v)}
-                  className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
-                    showExportCard
-                      ? 'border-[#DE6B58] text-[#DE6B58]'
-                      : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {showExportCard
-                    ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
-                    : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
-                </button>
-             </div>
-            </div> {/* chiude relative z-10 */}
-            <div
-              className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                showExportCard
-                  ? 'max-h-[1400px] opacity-100 translate-y-0 mt-5'
-                  : 'max-h-0 opacity-0 -translate-y-2 mt-0'
-              }`}
-              aria-hidden={!showExportCard}
-            >
-              <div className="pt-1 pb-1">
-                <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4 transition-opacity duration-300 ${showExportCard ? 'opacity-100' : 'opacity-0'}`}>
-                  {lingua === 'IT'
-                    ? 'Anteprima della card da condividere (formato 9:16)'
-                    : 'Preview of the shareable card (9:16 format)'}
-                </p>
-                <AuthorExportCard
-                  autoreGiorno={data.autore_giorno}
-                  breveDescrizione={data.breve_descrizione}
-                  fotoAutoreUrl={data.foto_autore_url}
-                  citazione={data.citazione}
-                  dataOdierna={data.data_odierna}
-                  isDark={isDark}
-                />
-              </div>
-            </div>
-          </section>
+      <div className="flex-1 text-center md:text-left">
+        <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
+          {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+        </span>
+        <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
+        <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
+          {data.breve_descrizione}
+        </p>
+        <button
+          onClick={() => setShowExportCard(v => !v)}
+          className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
+            showExportCard
+              ? 'border-[#DE6B58] text-[#DE6B58]'
+              : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          {showExportCard
+            ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
+            : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
+        </button>
+      </div>
+    </div> {/* chiude mx-auto flex */}
+
+    <div
+      className={`overflow-hidden transition-all duration-500 ease-in-out ${
+        showExportCard
+          ? 'max-h-[1400px] opacity-100 translate-y-0 mt-5'
+          : 'max-h-0 opacity-0 -translate-y-2 mt-0'
+      }`}
+      aria-hidden={!showExportCard}
+    >
+      <div className="pt-1 pb-1">
+        <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4 transition-opacity duration-300 ${showExportCard ? 'opacity-100' : 'opacity-0'}`}>
+          {lingua === 'IT'
+            ? 'Anteprima della card da condividere (formato 9:16)'
+            : 'Preview of the shareable card (9:16 format)'}
+        </p>
+        <AuthorExportCard
+          autoreGiorno={data.autore_giorno}
+          breveDescrizione={data.breve_descrizione}
+          fotoAutoreUrl={data.foto_autore_url}
+          citazione={data.citazione}
+          dataOdierna={data.data_odierna}
+          isDark={isDark}
+        />
+      </div>
+    </div>
+  </div> {/* chiude relative z-10 */}
+</section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
