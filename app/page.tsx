@@ -567,9 +567,8 @@ useEffect(() => {
                     ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
                     : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
                 </button>
-              </div>
-            </div>
-
+             </div>
+            </div> {/* chiude relative z-10 */}
             <div
               className={`overflow-hidden transition-all duration-500 ease-in-out ${
                 showExportCard
