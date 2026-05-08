@@ -466,9 +466,9 @@ useEffect(() => {
   className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
     ${isDark ? 'bg-[#1E1E1E]/60 backdrop-blur-sm' : 'bg-[#F4F0E6]/60 backdrop-blur-sm'}`}
   style={{
-    WebkitMaskImage: `radial-gradient(ellipse 90% 88% at 50% 50%, black 55%, transparent 100%)`,
-    maskImage: `radial-gradient(ellipse 90% 88% at 50% 50%, black 55%, transparent 100%)`,
-  }}
+  WebkitMaskImage: `radial-gradient(ellipse 85% 82% at 50% 50%, black 35%, transparent 100%)`,
+  maskImage: `radial-gradient(ellipse 85% 82% at 50% 50%, black 35%, transparent 100%)`,
+}}
 >
   <div className="flex justify-center mb-6 mt-2">
     <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
@@ -493,9 +493,9 @@ useEffect(() => {
   className={`py-8 animate-fadeInUp stagger-2 rounded-2xl px-4
     ${isDark ? 'bg-[#1E1E1E]/55 backdrop-blur-sm' : 'bg-[#F4F0E6]/55 backdrop-blur-sm'}`}
   style={{
-    WebkitMaskImage: `radial-gradient(ellipse 92% 85% at 50% 50%, black 50%, transparent 100%)`,
-    maskImage: `radial-gradient(ellipse 92% 85% at 50% 50%, black 50%, transparent 100%)`,
-  }}
+  WebkitMaskImage: `radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)`,
+  maskImage: `radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)`,
+}}
 >
             <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
               {data.foto_autore_url && (
