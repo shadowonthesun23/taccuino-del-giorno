@@ -489,15 +489,23 @@ useEffect(() => {
   <WatercolorDivider isDark={isDark} />
 </header>
 
-          <section
-  className={`py-8 animate-fadeInUp stagger-2 rounded-2xl px-4
-    ${isDark ? 'bg-[#1E1E1E]/55 backdrop-blur-sm' : 'bg-[#F4F0E6]/55 backdrop-blur-sm'}`}
-  style={{
-  WebkitMaskImage: `radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)`,
-  maskImage: `radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)`,
-}}
->
-            <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
+         <section className="py-8 animate-fadeInUp stagger-2 relative px-4">
+  {/* Sfondo sfumato — mask applicata solo a questo div, non tocca testo e foto */}
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 rounded-2xl pointer-events-none"
+    style={{
+      background: isDark ? 'rgba(30,30,30,0.55)' : 'rgba(244,240,230,0.55)',
+      backdropFilter: 'blur(4px)',
+      WebkitBackdropFilter: 'blur(4px)',
+      WebkitMaskImage: 'radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)',
+      maskImage: 'radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)',
+    }}
+  />
+
+  {/* Contenuto — vive sopra lo sfondo, non viene mascherato */}
+  <div className="relative z-10">
+    <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
               {data.foto_autore_url && (
                 <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
                   <div
