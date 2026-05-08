@@ -13,8 +13,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
-html,
-body {
+/* Il colore di sfondo è gestito da ParallaxBackground via fixed div.
+   Su html/body manteniamo solo il colore di fallback per i casi
+   in cui il JS non è ancora caricato. */
+html, body {
   background-color: #F4F0E6;
 }
 
