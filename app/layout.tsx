@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   icons: {
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">✒️</text></svg>',
   },
+  // theme-color dice al browser mobile quale colore usare per la chrome
+  // media queries per light/dark mode
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F4F0E6' },
+    { media: '(prefers-color-scheme: dark)', color: '#1E1E1E' },
+  ],
 };
 
 export default function RootLayout({
@@ -29,9 +35,9 @@ export default function RootLayout({
   return (
     <html
       lang="it"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body>
         {children}
         <Analytics />
       </body>
