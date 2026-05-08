@@ -462,63 +462,32 @@ useEffect(() => {
   </button>
 </div>
         <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
-         <header className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
-  ${isDark
-    ? 'bg-[#1E1E1E]/60 backdrop-blur-sm'
-    : 'bg-[#F4F0E6]/60 backdrop-blur-sm'
-  }`}>
-            
-              <button onClick={toggleLingua} disabled={traducendo} title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all ${
-                  lingua === 'EN' ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/8' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
-                } disabled:opacity-50 disabled:cursor-not-allowed`} aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}>
-                {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
-                <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
-              </button>
-
-              {archivio.length > 0 && (
-                <div className="relative">
-                  <button
-                    ref={triggerRef}
-                    onClick={() => {
-                      if (!popoverOpen && triggerRef.current) {
-                        const rect = triggerRef.current.getBoundingClientRect();
-                        setPopoverPos({
-                          top: rect.bottom + 10,
-                          right: window.innerWidth - rect.right,
-                        });
-                      }
-                      setPopoverOpen(v => !v);
-                    }}
-                    className={`p-2 rounded-full border ${
-                      popoverOpen ? 'border-[#DE6B58] text-[#DE6B58]' : `${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58]`
-                    } transition-colors`} aria-label="Archivio" aria-expanded={popoverOpen} aria-haspopup="true">
-                    <CalendarDays className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-
-              <button onClick={toggleTheme} className={`p-2 rounded-full border ${themeClasses.border} ${themeClasses.textMuted} hover:text-[#DE6B58] hover:border-[#DE6B58] transition-colors`} aria-label="Cambia tema">
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-            </div>
-
-            <div className="flex justify-center mb-6 mt-2">
-              <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>{data.data_odierna}</div>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
-              <span className="font-jocky animate-typewriter">
-                {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
-              </span>
-            </h1>
-            <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}>
-              {lingua === 'IT'
-                ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
-                : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
-            </p>
-            {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
-            <WatercolorDivider isDark={isDark} />
-          </header>
+         <header
+  className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
+    ${isDark ? 'bg-[#1E1E1E]/60 backdrop-blur-sm' : 'bg-[#F4F0E6]/60 backdrop-blur-sm'}`}
+  style={{
+    WebkitMaskImage: `radial-gradient(ellipse 90% 88% at 50% 50%, black 55%, transparent 100%)`,
+    maskImage: `radial-gradient(ellipse 90% 88% at 50% 50%, black 55%, transparent 100%)`,
+  }}
+>
+  <div className="flex justify-center mb-6 mt-2">
+    <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+      {data.data_odierna}
+    </div>
+  </div>
+  <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
+    <span className="font-jocky animate-typewriter">
+      {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
+    </span>
+  </h1>
+  <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}>
+    {lingua === 'IT'
+      ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
+      : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
+  </p>
+  {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
+  <WatercolorDivider isDark={isDark} />
+</header>
 
           <section className={`py-8 animate-fadeInUp stagger-2 rounded-2xl px-4
   ${isDark
