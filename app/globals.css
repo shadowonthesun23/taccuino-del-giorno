@@ -13,16 +13,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Il colore di sfondo è gestito da ParallaxBackground via fixed div.
-   Su html/body manteniamo solo il colore di fallback per i casi
-   in cui il JS non è ancora caricato. */
+/* Safari iOS estende il background-color di html/body nelle safe area
+   e dietro le barre del browser, causando fasce opache.
+   Il colore di sfondo è gestito esclusivamente dal div fixed in
+   ParallaxBackground.tsx tramite MutationObserver sulla classe dark. */
 html, body {
-  background-color: #F4F0E6;
-}
-
-html.dark,
-html.dark body {
-  background-color: #1E1E1E;
+  background-color: transparent;
 }
 
 body {
