@@ -28,16 +28,17 @@ interface AuthorExportCardProps {
 const CARD_W = 360;
 const CARD_H = 640;
 
+// Valori in px originali satori (il div interno è 1080px, scalato 1/3 via CSS transform)
 function truncateCitation(testo: string): { testo: string; fontSize: string } {
   const len = testo.length;
-  if (len <= 200) return { testo, fontSize: '13px' };
-  if (len <= 350) return { testo, fontSize: '11.5px' };
+  if (len <= 200) return { testo, fontSize: '39px' };
+  if (len <= 350) return { testo, fontSize: '34px' };
   if (len <= 500) {
     const truncated = testo.slice(0, 350).trimEnd();
-    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: '10.5px' };
+    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: '31px' };
   }
   const truncated = testo.slice(0, 300).trimEnd();
-  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: '9.5px' };
+  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: '28px' };
 }
 
 export default function AuthorExportCard({
@@ -100,6 +101,9 @@ export default function AuthorExportCard({
 
   const { testo: citTesto, fontSize: citFontSize } = truncateCitation(citazione.testo);
 
+  // Scala 1:3 rispetto al PNG satori (1080×1920 → 360×640)
+  const S = 1 / 3;
+
   return (
     <div className="relative group">
       <div className="flex justify-end mb-2">
@@ -121,6 +125,7 @@ export default function AuthorExportCard({
         </button>
       </div>
 
+      {/* Outer wrapper: dimensioni fisse della preview, clip del contenuto */}
       <div
         style={{
           position: 'relative',
@@ -129,69 +134,91 @@ export default function AuthorExportCard({
           margin: '0 auto',
           borderRadius: '16px',
           border: `1px solid ${borderColor}`,
-          overflow: 'visible',
+          overflow: 'hidden',
         }}
       >
+        {/*
+          Inner div: replica la struttura satori in px originali (1080×1920),
+          poi scalata via transform-origin top-left a 1/3.
+          Così font-size, padding e proporzioni sono identici al PNG.
+        */}
         <div
           className={garamond.className}
           style={{
-            width: `${CARD_W}px`,
-            height: `${CARD_H}px`,
-            background: bg,
+            width: '1080px',
+            height: '1920px',
+            transformOrigin: 'top left',
+            transform: `scale(${S})`,
+            backgroundColor: bg,
             backgroundImage: 'url("/beige-paper.png")',
             backgroundRepeat: 'repeat',
-            backgroundBlendMode: 'multiply',
-            overflow: 'hidden',
-            borderRadius: '16px',
+            backgroundBlendMode: 'soft-light',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '20px 24px 16px',
+            padding: '90px 72px 48px',
             boxSizing: 'border-box',
+            position: 'relative',
           }}
         >
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '6px', flexShrink: 0 }}>
-            <div
-              className={caveat.className}
-              style={{
-                fontSize: '20px',
-                fontWeight: 700,
-                color: textMuted,
-                background: '#e8dcc6',
-                padding: '4px 24px 6px',
-                borderRadius: '2px',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                lineHeight: 1,
-                textAlign: 'center',
-                display: 'inline-block',
-              }}
+          {/* ── Washi tape data ── */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '36px', position: 'relative', height: '88px', flexShrink: 0 }}>
+            {/* Tape body con tacche triangolari ai bordi — replica makeWashiTapeSvg */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={560}
+              height={88}
+              viewBox="0 0 560 88"
+              style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' }}
             >
-              {dataOdierna}
+              {/* Tape pieno */}
+              <rect width="560" height="88" fill="#e8dcc6" />
+              {/* Riflesso luce */}
+              <rect x="11" y="0" width="538" height="88" fill="rgba(255,255,255,0.18)" />
+              {/* Tacche sinistra — triangoli che puntano a destra (verso interno) */}
+              {Array.from({ length: Math.ceil(88 / 11) }, (_, i) => (
+                <path key={`l${i}`} d={`M 0,${i * 11} L 11,${i * 11 + 5.5} L 0,${i * 11 + 11} Z`} fill={bg} />
+              ))}
+              {/* Tacche destra */}
+              {Array.from({ length: Math.ceil(88 / 11) }, (_, i) => (
+                <path key={`r${i}`} d={`M 560,${i * 11} L 549,${i * 11 + 5.5} L 560,${i * 11 + 11} Z`} fill={bg} />
+              ))}
+              {/* Ombra bottom */}
+              <rect x="11" y="86" width="538" height="2" fill="rgba(0,0,0,0.07)" />
+            </svg>
+            {/* Testo data centrato sul tape */}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className={caveat.className} style={{ fontSize: '52px', fontWeight: 700, color: textMuted }}>
+                {dataOdierna}
+              </span>
             </div>
           </div>
 
+          {/* ── Etichetta ── */}
           <span
             style={{
-              fontSize: '11px',
+              fontSize: '33px',
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
               color: accent,
-              marginBottom: '8px',
+              marginBottom: '24px',
               flexShrink: 0,
             }}
           >
             Autore del Giorno
           </span>
 
-          {fotoAutoreUrl && (
-            <div style={{ transform: 'rotate(-2deg)', marginBottom: '4px', flexShrink: 0 }}>
+          {/* ── Foto + watermark ── */}
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '12px', position: 'relative', flexShrink: 0 }}>
+            {fotoAutoreUrl && (
               <div
                 style={{
+                  transform: 'rotate(-2deg)',
                   background: cardBg,
-                  border: `1px solid ${borderColor}`,
-                  padding: '8px 8px 20px 8px',
-                  boxShadow: '0 4px 16px -4px rgba(0,0,0,0.18)',
+                  border: `3px solid ${borderColor}`,
+                  padding: '24px 24px 60px 24px',
+                  boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
                 }}
               >
                 <img
@@ -200,23 +227,51 @@ export default function AuthorExportCard({
                   crossOrigin="anonymous"
                   style={{
                     display: 'block',
-                    width: '104px',
-                    height: '132px',
+                    width: '312px',
+                    height: '396px',
                     objectFit: 'cover',
-                    filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
+                    filter: 'grayscale(100%)',
                   }}
                 />
               </div>
+            )}
+            {/* Watermark — stesso posizionamento del PNG: right 0 sul bordo */}
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '22px',
+                  fontWeight: 400,
+                  color: textMuted,
+                  opacity: 0.45,
+                  transform: 'rotate(90deg)',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '0.15em',
+                  display: 'block',
+                }}
+              >
+                ig: @antonelloan23
+              </span>
             </div>
-          )}
+          </div>
 
+          {/* ── Nome autore ── */}
           <h2
             style={{
-              fontSize: '26px',
+              fontSize: '78px',
               fontWeight: 700,
               color: textPrimary,
               textAlign: 'center',
-              margin: '0 0 4px',
+              margin: '0 0 12px',
               lineHeight: 1.1,
               flexShrink: 0,
             }}
@@ -224,83 +279,70 @@ export default function AuthorExportCard({
             {autoreGiorno}
           </h2>
 
+          {/* ── Descrizione ── */}
           <p
             style={{
-              fontSize: '12px',
-              fontWeight: 500,
+              fontSize: '36px',
+              fontWeight: 400,
               color: textMuted,
               textAlign: 'center',
-              margin: '0 0 8px',
+              margin: '0 0 20px',
               lineHeight: 1.45,
-              maxWidth: '290px',
+              maxWidth: '870px',
               flexShrink: 0,
             }}
           >
             {breveDescrizione}
           </p>
 
-          <div
-            aria-hidden="true"
-            style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '4px', flexShrink: 0, pointerEvents: 'none' }}
-          >
-            <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '80%', height: '24px', display: 'block' }}>
-              <defs>
-                <filter id="ec-wc-blur" x="-10%" y="-60%" width="120%" height="220%">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves={4} seed={8} result="noise" />
-                  <feDisplacementMap in="SourceGraphic" in2="noise" scale={5} xChannelSelector="R" yChannelSelector="G" result="displaced" />
-                  <feGaussianBlur in="displaced" stdDeviation={1.2} result="blurred" />
-                  <feComposite in="blurred" in2="SourceGraphic" operator="atop" />
-                </filter>
-                <filter id="ec-wc-edge" x="-5%" y="-80%" width="110%" height="260%">
-                  <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves={3} seed={14} result="noise2" />
-                  <feDisplacementMap in="SourceGraphic" in2="noise2" scale={3} xChannelSelector="R" yChannelSelector="G" />
-                </filter>
-              </defs>
-              <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#ec-wc-blur)" />
-              <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#ec-wc-edge)" />
-              <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={wcColor} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#ec-wc-blur)" />
+          {/* ── Divisore (senza filtri SVG, identico a satori) ── */}
+          <div aria-hidden="true" style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '20px', flexShrink: 0, pointerEvents: 'none' }}>
+            <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '864px', height: '26px', display: 'block' }}>
+              <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" />
+              <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" />
+              <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={wcColor} strokeWidth="3" strokeLinecap="round" opacity="0.18" />
             </svg>
           </div>
 
+          {/* ── Box citazione ── */}
           <div
             style={{
               width: '100%',
-              padding: '10px 14px',
+              padding: '24px 42px 28px',
               background: cardBg,
-              border: `1px solid ${borderColor}`,
-              borderRadius: '10px',
+              border: `3px solid ${borderColor}`,
+              borderRadius: '30px',
               boxSizing: 'border-box',
               flexShrink: 0,
             }}
           >
             <span
               style={{
-                fontSize: '28px',
-                lineHeight: 1,
+                fontSize: '80px',
+                lineHeight: 0.7,
                 color: accent,
                 opacity: 0.35,
-                fontFamily: 'Georgia, serif',
                 display: 'block',
-                marginBottom: '2px',
+                marginBottom: '8px',
               }}
             >
               &ldquo;
             </span>
             <p
               style={{
-                fontSize: citFontSize,
+                fontSize: `${citFontSize}`,
                 fontStyle: 'italic',
-                fontWeight: 500,
+                fontWeight: 400,
                 color: textPrimary,
                 lineHeight: 1.55,
-                margin: '0 0 6px',
+                margin: '0 0 18px',
               }}
             >
               {citTesto}
             </p>
             <p
               style={{
-                fontSize: '10px',
+                fontSize: '30px',
                 fontWeight: 700,
                 color: textMuted,
                 textAlign: 'right',
