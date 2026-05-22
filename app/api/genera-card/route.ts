@@ -179,7 +179,40 @@ export async function POST(req: NextRequest) {
           },
           'Autore del Giorno'
         ),
-        // Contenitore foto + watermark
+        // Watermark verticale — figlio diretto del root (position:relative),
+        // right:0 = vero bordo destro della card
+        React.createElement(
+          'div',
+          {
+            style: {
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          },
+          React.createElement(
+            'div',
+            {
+              style: {
+                fontSize: 22,
+                fontFamily: 'EB Garamond',
+                fontWeight: 400,
+                color: textMuted,
+                opacity: 0.45,
+                transform: 'rotate(90deg)',
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.15em',
+              },
+            },
+            'ig: @antonelloan23'
+          )
+        ),
+        // Contenitore foto
         React.createElement(
           'div',
           {
@@ -188,7 +221,6 @@ export async function POST(req: NextRequest) {
               justifyContent: 'center',
               width: '100%',
               marginBottom: 12,
-              position: 'relative',
             },
           },
           fotoB64
@@ -211,38 +243,7 @@ export async function POST(req: NextRequest) {
                   style: { objectFit: 'cover', filter: 'grayscale(100%)' },
                 })
               )
-            : null,
-          // Watermark verticale — bordo destro della card
-          React.createElement(
-            'div',
-            {
-              style: {
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                bottom: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
-            },
-            React.createElement(
-              'div',
-              {
-                style: {
-                  fontSize: 22,
-                  fontFamily: 'EB Garamond',
-                  fontWeight: 400,
-                  color: textMuted,
-                  opacity: 0.45,
-                  transform: 'rotate(90deg)',
-                  whiteSpace: 'nowrap',
-                  letterSpacing: '0.15em',
-                },
-              },
-              'ig: @antonelloan23'
-            )
-          )
+            : null
         ),
         // Nome autore
         React.createElement(
