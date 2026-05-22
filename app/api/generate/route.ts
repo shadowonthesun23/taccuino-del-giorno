@@ -26,9 +26,19 @@ export async function GET(request: Request) {
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview",
-      generationConfig: { responseMimeType: "application/json" }
-    });
+  model: "gemini-3.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+  },
+});
+
+    // Al momento della chiamata, passa thinkingBudget: 0
+const result = await model.generateContent({
+  contents: [{ role: "user", parts: [{ text: prompt }] }],
+  generationConfig: {
+    thinkingBudget: 0, // disabilita il thinking, risposta diretta e veloce
+  } as any,
+});
 
     const prompt = `Sei un erudito critico letterario e teologo. Cura "Il Taccuino del Giorno" per il ${dataDiOggiStr}.
 
