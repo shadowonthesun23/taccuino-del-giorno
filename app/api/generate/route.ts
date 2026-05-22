@@ -62,12 +62,7 @@ Restituisci questo JSON:
     const maxRetries = 5;
     for (let i = 0; i < maxRetries; i++) {
       try {
-        result = await model.generateContent({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            thinkingBudget: 0,
-          } as any,
-        });
+        result = await model.generateContent(prompt);
         break;
       } catch (err) {
         if (i === maxRetries - 1) throw err;
