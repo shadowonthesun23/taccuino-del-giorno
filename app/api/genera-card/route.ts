@@ -212,13 +212,13 @@ export async function POST(req: NextRequest) {
                 })
               )
             : null,
-          // Watermark verticale — bordo destro card (right: -36 esce dal padding 72)
+          // Watermark verticale — bordo destro della card
           React.createElement(
             'div',
             {
               style: {
                 position: 'absolute',
-                right: -36,
+                right: 0,
                 top: 0,
                 bottom: 0,
                 display: 'flex',
