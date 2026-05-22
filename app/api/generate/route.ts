@@ -26,19 +26,11 @@ export async function GET(request: Request) {
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
     const model = genAI.getGenerativeModel({
-  model: "gemini-3.5-flash",
-  generationConfig: {
-    responseMimeType: "application/json",
-  },
-});
-
-    // Al momento della chiamata, passa thinkingBudget: 0
-const result = await model.generateContent({
-  contents: [{ role: "user", parts: [{ text: prompt }] }],
-  generationConfig: {
-    thinkingBudget: 0, // disabilita il thinking, risposta diretta e veloce
-  } as any,
-});
+      model: "gemini-3.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
 
     const prompt = `Sei un erudito critico letterario e teologo. Cura "Il Taccuino del Giorno" per il ${dataDiOggiStr}.
 
@@ -66,22 +58,22 @@ Restituisci questo JSON:
   "keyword_arte_en": "..."
 }`;
 
-   let result: any = null;
-const maxRetries = 5;
-for (let i = 0; i < maxRetries; i++) {
-  try {
-    result = await model.generateContent({          // <- assegnazione, non dichiarazione
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        thinkingBudget: 0,
-      } as any,
-    });
-    break;
-  } catch (err) {
-    if (i === maxRetries - 1) throw err;
-    await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
-  }
-}
+    let result: any = null;
+    const maxRetries = 5;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        result = await model.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            thinkingBudget: 0,
+          } as any,
+        });
+        break;
+      } catch (err) {
+        if (i === maxRetries - 1) throw err;
+        await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
+      }
+    }
 
     let responseText = result.response.text();
     responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -91,7 +83,7 @@ for (let i = 0; i < maxRetries; i++) {
       { ...data, data: dataIso },
       { onConflict: 'data' }
     );
-    
+
     if (error) {
       console.error("Errore Supabase durante upsert:", error);
       throw error;
