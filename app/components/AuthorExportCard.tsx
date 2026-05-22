@@ -209,8 +209,37 @@ export default function AuthorExportCard({
             Autore del Giorno
           </span>
 
-          {/* ── Foto + watermark ── */}
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '12px', position: 'relative', flexShrink: 0 }}>
+          {/* ── Watermark — figlio diretto del root 1080px, right:0 = vero bordo card ── */}
+          <div
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '22px',
+                fontWeight: 400,
+                color: textMuted,
+                opacity: 0.45,
+                transform: 'rotate(90deg)',
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.15em',
+                display: 'block',
+              }}
+            >
+              ig: @antonelloan23
+            </span>
+          </div>
+
+          {/* ── Foto ── */}
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '12px', flexShrink: 0 }}>
             {fotoAutoreUrl && (
               <div
                 style={{
@@ -235,33 +264,6 @@ export default function AuthorExportCard({
                 />
               </div>
             )}
-            {/* Watermark — stesso posizionamento del PNG: right 0 sul bordo */}
-            <div
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                bottom: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '22px',
-                  fontWeight: 400,
-                  color: textMuted,
-                  opacity: 0.45,
-                  transform: 'rotate(90deg)',
-                  whiteSpace: 'nowrap',
-                  letterSpacing: '0.15em',
-                  display: 'block',
-                }}
-              >
-                ig: @antonelloan23
-              </span>
-            </div>
           </div>
 
           {/* ── Nome autore ── */}
