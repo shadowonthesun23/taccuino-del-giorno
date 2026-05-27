@@ -490,20 +490,6 @@ useEffect(() => {
 </header>
 
         <section className="pt-1 pb-8 md:py-8 animate-fadeInUp stagger-2 relative px-4">
-  {/* Sfondo sfumato */}
-  <div
-    aria-hidden="true"
-    className="absolute inset-0 rounded-2xl pointer-events-none"
-    style={{
-      background: isDark ? 'rgba(30,30,30,0.55)' : 'rgba(244,240,230,0.55)',
-      backdropFilter: 'blur(4px)',
-      WebkitBackdropFilter: 'blur(4px)',
-      WebkitMaskImage: 'radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)',
-      maskImage: 'radial-gradient(ellipse 88% 80% at 50% 50%, black 30%, transparent 100%)',
-    }}
-  />
-
-  {/* Contenuto */}
   <div className="relative z-10">
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
@@ -545,27 +531,49 @@ useEffect(() => {
         </div>
       )}
 
-      <div className="flex-1 text-center md:text-left">
-        <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
-          {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
-        </span>
-        <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
-        <p className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}>
-          {data.breve_descrizione}
-        </p>
-        <button
-          onClick={() => setShowExportCard(v => !v)}
-          className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
-            showExportCard
-              ? 'border-[#DE6B58] text-[#DE6B58]'
-              : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          {showExportCard
-            ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
-            : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
-        </button>
+      <div className="relative flex-1 text-center md:text-left">
+        <div
+          aria-hidden="true"
+          className="absolute -inset-x-5 -inset-y-4 md:-inset-x-10 md:-inset-y-8 pointer-events-none"
+          style={{
+            background: isDark
+              ? 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(30,30,30,0.74) 0%, rgba(30,30,30,0.58) 43%, rgba(30,30,30,0.24) 72%, transparent 100%)'
+              : 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(255,252,242,0.88) 0%, rgba(244,240,230,0.70) 45%, rgba(244,240,230,0.30) 74%, transparent 100%)',
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)',
+            WebkitMaskImage: 'radial-gradient(ellipse 88% 82% at 48% 50%, black 36%, rgba(0,0,0,0.70) 60%, transparent 100%)',
+            maskImage: 'radial-gradient(ellipse 88% 82% at 48% 50%, black 36%, rgba(0,0,0,0.70) 60%, transparent 100%)',
+          }}
+        />
+        <div className="relative z-10">
+          <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
+            {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+          </span>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
+          <p
+            className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}
+            style={{
+              textShadow: isDark
+                ? '0 1px 2px rgba(0,0,0,0.45)'
+                : '0 1px 1px rgba(255,252,242,0.75)',
+            }}
+          >
+            {data.breve_descrizione}
+          </p>
+          <button
+            onClick={() => setShowExportCard(v => !v)}
+            className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
+              showExportCard
+                ? 'border-[#DE6B58] text-[#DE6B58]'
+                : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            {showExportCard
+              ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
+              : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
+          </button>
+        </div>
       </div>
     </div> {/* chiude mx-auto flex */}
 

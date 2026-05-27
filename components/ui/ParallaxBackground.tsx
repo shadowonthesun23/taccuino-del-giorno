@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function ParallaxBackground({ children, isDark }: { children: React.ReactNode; isDark?: boolean }) {
+export default function ParallaxBackground({ children }: { children: React.ReactNode }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [dark, setDark] = useState(false);
 
@@ -51,7 +51,7 @@ export default function ParallaxBackground({ children, isDark }: { children: Rea
             backgroundSize: 'cover',
             backgroundPosition: 'center top',
             transform: `translateY(-${scrollProgress * 33.33}%)`,
-            opacity: 0.25,
+            opacity: 0.2,
           }}
         />
       </div>
