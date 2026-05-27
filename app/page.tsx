@@ -462,32 +462,54 @@ useEffect(() => {
   </button>
 </div>
         <main key={contentKey} className="max-w-4xl mx-auto space-y-6 md:space-y-12 relative z-10">
-         <header
-  className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
-    ${isDark ? 'bg-[#1E1E1E]/60 backdrop-blur-sm' : 'bg-[#F4F0E6]/60 backdrop-blur-sm'}`}
-  style={{
-  WebkitMaskImage: `radial-gradient(ellipse 85% 82% at 50% 50%, black 35%, transparent 100%)`,
-  maskImage: `radial-gradient(ellipse 85% 82% at 50% 50%, black 35%, transparent 100%)`,
-}}
->
-  <div className="flex justify-center mb-6 mt-2">
-    <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
-      {data.data_odierna}
-    </div>
-  </div>
-  <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-4">
-    <span className="font-jocky animate-typewriter">
-      {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
-    </span>
-  </h1>
-  <p className={`italic text-lg ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}>
-    {lingua === 'IT'
-      ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
-      : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
-  </p>
-  {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
-  <WatercolorDivider isDark={isDark} />
-</header>
+          <header className="text-center space-y-6 relative animate-fadeInUp stagger-1 px-4 py-6">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-x-5 -inset-y-4 md:-inset-x-12 md:-inset-y-8 pointer-events-none"
+              style={{
+                background: isDark
+                  ? 'radial-gradient(ellipse 82% 78% at 50% 48%, rgba(30,30,30,0.82) 0%, rgba(30,30,30,0.64) 44%, rgba(30,30,30,0.25) 72%, transparent 100%)'
+                  : 'radial-gradient(ellipse 82% 78% at 50% 48%, rgba(255,252,242,0.88) 0%, rgba(244,240,230,0.72) 45%, rgba(244,240,230,0.30) 74%, transparent 100%)',
+                backdropFilter: 'blur(5px)',
+                WebkitBackdropFilter: 'blur(5px)',
+                WebkitMaskImage: 'radial-gradient(ellipse 86% 82% at 50% 50%, black 34%, rgba(0,0,0,0.72) 60%, transparent 100%)',
+                maskImage: 'radial-gradient(ellipse 86% 82% at 50% 50%, black 34%, rgba(0,0,0,0.72) 60%, transparent 100%)',
+              }}
+            />
+            <div className="relative z-10">
+              <div className="flex justify-center mb-6 mt-2">
+                <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+                  {data.data_odierna}
+                </div>
+              </div>
+              <h1
+                className="text-5xl md:text-6xl font-medium tracking-tight mb-4"
+                style={{
+                  textShadow: isDark
+                    ? '0 2px 10px rgba(0,0,0,0.55)'
+                    : '0 1px 1px rgba(255,252,242,0.75)',
+                }}
+              >
+                <span className="font-jocky animate-typewriter">
+                  {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
+                </span>
+              </h1>
+              <p
+                className={`italic text-lg ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}
+                style={{
+                  textShadow: isDark
+                    ? '0 1px 3px rgba(0,0,0,0.5)'
+                    : '0 1px 1px rgba(255,252,242,0.75)',
+                }}
+              >
+                {lingua === 'IT'
+                  ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
+                  : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
+              </p>
+              {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
+              <WatercolorDivider isDark={isDark} />
+            </div>
+          </header>
 
         <section className="pt-1 pb-8 md:py-8 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
@@ -537,7 +559,7 @@ useEffect(() => {
           className="absolute -inset-x-5 -inset-y-4 md:-inset-x-10 md:-inset-y-8 pointer-events-none"
           style={{
             background: isDark
-              ? 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(30,30,30,0.74) 0%, rgba(30,30,30,0.58) 43%, rgba(30,30,30,0.24) 72%, transparent 100%)'
+              ? 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(30,30,30,0.82) 0%, rgba(30,30,30,0.64) 43%, rgba(30,30,30,0.27) 72%, transparent 100%)'
               : 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(255,252,242,0.88) 0%, rgba(244,240,230,0.70) 45%, rgba(244,240,230,0.30) 74%, transparent 100%)',
             backdropFilter: 'blur(5px)',
             WebkitBackdropFilter: 'blur(5px)',
@@ -549,7 +571,16 @@ useEffect(() => {
           <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
             {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">{data.autore_giorno}</h2>
+          <h2
+            className="text-4xl md:text-5xl font-bold mb-6"
+            style={{
+              textShadow: isDark
+                ? '0 2px 8px rgba(0,0,0,0.5)'
+                : '0 1px 1px rgba(255,252,242,0.75)',
+            }}
+          >
+            {data.autore_giorno}
+          </h2>
           <p
             className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}
             style={{
