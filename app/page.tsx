@@ -461,7 +461,7 @@ useEffect(() => {
     {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
   </button>
 </div>
-        <main key={contentKey} className="max-w-4xl mx-auto space-y-12 relative z-10">
+        <main key={contentKey} className="max-w-4xl mx-auto space-y-6 md:space-y-12 relative z-10">
          <header
   className={`text-center space-y-6 relative animate-fadeInUp stagger-1 rounded-2xl px-4 py-6
     ${isDark ? 'bg-[#1E1E1E]/60 backdrop-blur-sm' : 'bg-[#F4F0E6]/60 backdrop-blur-sm'}`}
@@ -489,7 +489,7 @@ useEffect(() => {
   <WatercolorDivider isDark={isDark} />
 </header>
 
-        <section className="py-8 animate-fadeInUp stagger-2 relative px-4">
+        <section className="pt-1 pb-8 md:py-8 animate-fadeInUp stagger-2 relative px-4">
   {/* Sfondo sfumato */}
   <div
     aria-hidden="true"
