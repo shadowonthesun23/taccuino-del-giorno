@@ -402,7 +402,7 @@ useEffect(() => {
 
   return (
     <ParallaxBackground>
-      <div className={`min-h-screen bg-transparent ${themeClasses.text} ${garamond.className} py-12 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+      <div className={`min-h-screen bg-transparent ${themeClasses.text} ${garamond.className} py-8 md:py-10 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
 <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
   <button
     onClick={toggleLingua}
@@ -461,8 +461,8 @@ useEffect(() => {
     {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
   </button>
 </div>
-        <main key={contentKey} className="max-w-4xl mx-auto space-y-6 md:space-y-12 relative z-10">
-          <header className="text-center space-y-6 relative animate-fadeInUp stagger-1 px-4 py-6">
+        <main key={contentKey} className="max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10">
+          <header className="text-center space-y-5 relative animate-fadeInUp stagger-1 px-4 pt-3 pb-4">
             <div
               aria-hidden="true"
               className="absolute -inset-x-5 -inset-y-4 md:-inset-x-12 md:-inset-y-8 pointer-events-none"
@@ -477,7 +477,7 @@ useEffect(() => {
               }}
             />
             <div className="relative z-10">
-              <div className="flex justify-center mb-6 mt-2">
+              <div className="flex justify-center mb-4">
                 <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
                   {data.data_odierna}
                 </div>
@@ -511,7 +511,7 @@ useEffect(() => {
             </div>
           </header>
 
-        <section className="pt-1 pb-8 md:py-8 animate-fadeInUp stagger-2 relative px-4">
+        <section className="pt-0 pb-6 md:pt-2 md:pb-6 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
@@ -591,19 +591,19 @@ useEffect(() => {
           >
             {data.breve_descrizione}
           </p>
-          <button
-            onClick={() => setShowExportCard(v => !v)}
-            className={`mt-6 inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase border rounded-full px-4 py-2 transition-all ${
-              showExportCard
-                ? 'border-[#DE6B58] text-[#DE6B58]'
-                : `${themeClasses.border} ${themeClasses.textMuted} hover:border-[#DE6B58] hover:text-[#DE6B58]`
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            {showExportCard
-              ? (lingua === 'IT' ? 'Nascondi anteprima' : 'Hide preview')
-              : (lingua === 'IT' ? 'Esporta come immagine' : 'Export as image')}
-          </button>
+          {!showExportCard && (
+            <button
+              onClick={() => setShowExportCard(true)}
+              className={`mt-6 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors ${
+                isDark
+                  ? 'border-[#3D3D3D] bg-[#1E1E1E]/60 text-[#A0A0A0] hover:border-[#DE6B58] hover:text-[#DE6B58]'
+                  : 'border-[#EBE5DB] bg-[#F4F0E6]/60 text-[#8A817C] hover:border-[#DE6B58] hover:text-[#DE6B58]'
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {lingua === 'IT' ? 'Esporta come immagine' : 'Export as image'}
+            </button>
+          )}
         </div>
       </div>
     </div> {/* chiude mx-auto flex */}
@@ -629,6 +629,9 @@ useEffect(() => {
           citazione={data.citazione}
           dataOdierna={data.data_odierna}
           isDark={isDark}
+          onHidePreview={() => setShowExportCard(false)}
+          hidePreviewLabel={lingua === 'IT' ? 'Nascondi' : 'Hide'}
+          saveImageLabel={lingua === 'IT' ? 'Salva' : 'Save'}
         />
       </div>
     </div>

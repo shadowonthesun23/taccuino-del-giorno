@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, EyeOff, Loader2 } from 'lucide-react';
 
 const garamond = EB_Garamond({
   subsets: ['latin'],
@@ -23,6 +23,9 @@ interface AuthorExportCardProps {
   citazione: { testo: string; autore: string; fonte: string };
   dataOdierna: string;
   isDark: boolean;
+  onHidePreview?: () => void;
+  hidePreviewLabel?: string;
+  saveImageLabel?: string;
 }
 
 const CARD_W = 360;
@@ -48,6 +51,9 @@ export default function AuthorExportCard({
   citazione,
   dataOdierna,
   isDark,
+  onHidePreview,
+  hidePreviewLabel = 'Nascondi',
+  saveImageLabel = 'Salva',
 }: AuthorExportCardProps) {
   const [exporting, setExporting] = useState(false);
 
@@ -106,22 +112,35 @@ export default function AuthorExportCard({
 
   return (
     <div className="relative group">
-      <div className="flex justify-end mb-2">
+      <div className="mb-3 flex flex-nowrap items-center justify-center gap-2">
+        {onHidePreview && (
+          <button
+            onClick={onHidePreview}
+            title={hidePreviewLabel}
+            aria-label={hidePreviewLabel}
+            className={`inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors ${
+              isDark
+                ? 'border-[#DE6B58]/55 bg-[#DE6B58]/10 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/15'
+                : 'border-[#DE6B58]/60 bg-[#F4F0E6]/75 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/10'
+            }`}
+          >
+            <EyeOff className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{hidePreviewLabel}</span>
+          </button>
+        )}
         <button
           onClick={handleExport}
           disabled={exporting}
-          title="Esporta come immagine"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-bold tracking-widest uppercase transition-all"
-          style={{
-            borderColor: accent,
-            color: accent,
-            background: 'transparent',
-            opacity: exporting ? 0.6 : 1,
-            cursor: exporting ? 'wait' : 'pointer',
-          }}
+          title={saveImageLabel}
+          aria-label={saveImageLabel}
+          className={`inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors disabled:cursor-wait disabled:opacity-60 ${
+            isDark
+              ? 'border-[#DE6B58]/55 bg-[#DE6B58]/10 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/15'
+              : 'border-[#DE6B58]/60 bg-[#F4F0E6]/75 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/10'
+          }`}
         >
-          {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          {exporting ? 'Generando...' : 'Salva come immagine'}
+          {exporting ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" /> : <Download className="h-3.5 w-3.5 shrink-0" />}
+          <span className="truncate">{exporting ? 'Generando' : saveImageLabel}</span>
         </button>
       </div>
 
