@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import { Download, EyeOff, Loader2 } from 'lucide-react';
+import { clampText, getAuthorCardLayout, getAuthorCardPalette } from '@/app/lib/authorCardDesign';
 
 const garamond = EB_Garamond({
   subsets: ['latin'],
@@ -31,19 +32,6 @@ interface AuthorExportCardProps {
 const CARD_W = 360;
 const CARD_H = 640;
 
-// Valori in px originali satori (il div interno è 1080px, scalato 1/3 via CSS transform)
-function truncateCitation(testo: string): { testo: string; fontSize: string } {
-  const len = testo.length;
-  if (len <= 200) return { testo, fontSize: '39px' };
-  if (len <= 350) return { testo, fontSize: '34px' };
-  if (len <= 500) {
-    const truncated = testo.slice(0, 350).trimEnd();
-    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: '31px' };
-  }
-  const truncated = testo.slice(0, 300).trimEnd();
-  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: '28px' };
-}
-
 export default function AuthorExportCard({
   autoreGiorno,
   breveDescrizione,
@@ -64,7 +52,7 @@ export default function AuthorExportCard({
       const res = await fetch('/api/genera-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna }),
+        body: JSON.stringify({ autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna, isDark }),
       });
 
       if (!res.ok) {
@@ -97,15 +85,10 @@ export default function AuthorExportCard({
     }
   };
 
-  const bg = '#F4F0E6';
-  const textPrimary = '#2A2522';
-  const textMuted = '#8A817C';
-  const accent = '#DE6B58';
-  const cardBg = '#FDFCF8';
-  const borderColor = '#EBE5DB';
-  const wcColor = '#b5956a';
-
-  const { testo: citTesto, fontSize: citFontSize } = truncateCitation(citazione.testo);
+  const palette = getAuthorCardPalette(isDark);
+  const layout = getAuthorCardLayout(citazione.testo, breveDescrizione);
+  const citTesto = clampText(citazione.testo, layout.maxCitationChars);
+  const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
 
   // Scala 1:3 rispetto al PNG satori (1080×1920 → 360×640)
   const S = 1 / 3;
@@ -152,8 +135,9 @@ export default function AuthorExportCard({
           height: `${CARD_H}px`,
           margin: '0 auto',
           borderRadius: '16px',
-          border: `1px solid ${borderColor}`,
+          border: `1px solid ${palette.borderColor}`,
           overflow: 'hidden',
+          boxShadow: isDark ? '0 18px 45px -32px rgba(0,0,0,0.9)' : '0 18px 45px -34px rgba(42,37,34,0.34)',
         }}
       >
         {/*
@@ -168,46 +152,81 @@ export default function AuthorExportCard({
             height: '1920px',
             transformOrigin: 'top left',
             transform: `scale(${S})`,
-            backgroundColor: bg,
-            backgroundImage: 'url("/beige-paper.png")',
-            backgroundRepeat: 'repeat',
-            backgroundBlendMode: 'soft-light',
+            backgroundColor: palette.bg,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '90px 72px 48px',
+            padding: `${layout.topPadding}px ${layout.sidePadding}px ${layout.bottomPadding}px`,
             boxSizing: 'border-box',
             position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/sfondo-taccuino.webp"
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '1080px',
+              height: '1920px',
+              objectFit: 'cover',
+              opacity: palette.imageOpacity,
+              filter: isDark ? 'grayscale(35%) contrast(86%) brightness(0.7)' : 'grayscale(10%) contrast(90%) brightness(1.08)',
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: '64px 44px 54px',
+              borderRadius: '46px',
+              background: palette.spotlight,
+              boxShadow: isDark
+                ? '0 0 120px 96px rgba(30,30,30,0.54)'
+                : '0 0 120px 96px rgba(255,252,242,0.36)',
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: 'url("/beige-paper.png")',
+              backgroundRepeat: 'repeat',
+              opacity: isDark ? 0.06 : 0.16,
+              mixBlendMode: isDark ? 'screen' : 'soft-light',
+            }}
+          />
+
           {/* ── Washi tape data ── */}
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '36px', position: 'relative', height: '88px', flexShrink: 0 }}>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${layout.tapeMarginBottom}px`, position: 'relative', height: `${layout.tapeHeight}px`, flexShrink: 0, zIndex: 1 }}>
             {/* Tape body con tacche triangolari ai bordi — replica makeWashiTapeSvg */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width={560}
-              height={88}
-              viewBox="0 0 560 88"
-              style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' }}
+              width={layout.tapeWidth}
+              height={layout.tapeHeight}
+              viewBox={`0 0 ${layout.tapeWidth} ${layout.tapeHeight}`}
+              style={{ transform: 'rotate(-2deg)' }}
             >
-              {/* Tape pieno */}
-              <rect width="560" height="88" fill="#e8dcc6" />
-              {/* Riflesso luce */}
-              <rect x="11" y="0" width="538" height="88" fill="rgba(255,255,255,0.18)" />
-              {/* Tacche sinistra — triangoli che puntano a destra (verso interno) */}
-              {Array.from({ length: Math.ceil(88 / 11) }, (_, i) => (
-                <path key={`l${i}`} d={`M 0,${i * 11} L 11,${i * 11 + 5.5} L 0,${i * 11 + 11} Z`} fill={bg} />
-              ))}
-              {/* Tacche destra */}
-              {Array.from({ length: Math.ceil(88 / 11) }, (_, i) => (
-                <path key={`r${i}`} d={`M 560,${i * 11} L 549,${i * 11 + 5.5} L 560,${i * 11 + 11} Z`} fill={bg} />
-              ))}
-              {/* Ombra bottom */}
-              <rect x="11" y="86" width="538" height="2" fill="rgba(0,0,0,0.07)" />
+              <polygon
+                points={[
+                  [0.01, 0.02], [0.99, 0], [0.98, 0.12], [1, 0.24],
+                  [0.98, 0.36], [1, 0.48], [0.98, 0.62], [1, 0.74],
+                  [0.98, 0.88], [0.99, 1], [0.02, 0.98], [0, 0.85],
+                  [0.02, 0.7], [0, 0.58], [0.02, 0.44], [0, 0.3],
+                  [0.02, 0.16], [0, 0.05],
+                ].map(([x, y]) => `${Math.round(layout.tapeWidth * x)},${Math.round(layout.tapeHeight * y)}`).join(' ')}
+                fill={palette.tapeBg}
+              />
+              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.2} C ${layout.tapeWidth * 0.34} ${layout.tapeHeight * 0.1}, ${layout.tapeWidth * 0.58} ${layout.tapeHeight * 0.26}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.14}`} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="3" />
+              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.86} C ${layout.tapeWidth * 0.38} ${layout.tapeHeight * 0.96}, ${layout.tapeWidth * 0.6} ${layout.tapeHeight * 0.78}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.9}`} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="2" />
             </svg>
             {/* Testo data centrato sul tape */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span className={caveat.className} style={{ fontSize: '52px', fontWeight: 700, color: textMuted }}>
+              <span className={caveat.className} style={{ fontSize: `${layout.dateFontSize}px`, fontWeight: 700, color: palette.tapeText, transform: 'rotate(-2deg)' }}>
                 {dataOdierna}
               </span>
             </div>
@@ -216,13 +235,15 @@ export default function AuthorExportCard({
           {/* ── Etichetta ── */}
           <span
             style={{
-              fontSize: '33px',
+              fontSize: `${layout.labelFontSize}px`,
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
-              color: accent,
-              marginBottom: '24px',
+              color: palette.accent,
+              marginBottom: `${layout.labelMarginBottom}px`,
               flexShrink: 0,
+              position: 'relative',
+              zIndex: 1,
             }}
           >
             Autore del Giorno
@@ -245,7 +266,7 @@ export default function AuthorExportCard({
               style={{
                 fontSize: '22px',
                 fontWeight: 400,
-                color: textMuted,
+                color: palette.textMuted,
                 opacity: 0.45,
                 transform: 'rotate(90deg)',
                 whiteSpace: 'nowrap',
@@ -258,27 +279,28 @@ export default function AuthorExportCard({
           </div>
 
           {/* ── Foto ── */}
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: `${layout.photoMarginBottom}px`, flexShrink: 0, position: 'relative', zIndex: 1 }}>
             {fotoAutoreUrl && (
               <div
                 style={{
                   transform: 'rotate(-2deg)',
-                  background: cardBg,
-                  border: `3px solid ${borderColor}`,
-                  padding: '24px 24px 60px 24px',
+                  background: isDark ? '#F4F0E6' : '#FDFCF8',
+                  border: `3px solid ${isDark ? '#D8CDBC' : palette.borderColor}`,
+                  padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
                   boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
                 }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={fotoAutoreUrl}
                   alt={autoreGiorno}
                   crossOrigin="anonymous"
                   style={{
                     display: 'block',
-                    width: '312px',
-                    height: '396px',
+                    width: `${layout.photoWidth}px`,
+                    height: `${layout.photoHeight}px`,
                     objectFit: 'cover',
-                    filter: 'grayscale(100%)',
+                    filter: 'grayscale(100%) contrast(92%) brightness(1.04)',
                   }}
                 />
               </div>
@@ -288,13 +310,15 @@ export default function AuthorExportCard({
           {/* ── Nome autore ── */}
           <h2
             style={{
-              fontSize: '78px',
+              fontSize: `${layout.authorFontSize}px`,
               fontWeight: 700,
-              color: textPrimary,
+              color: palette.textPrimary,
               textAlign: 'center',
-              margin: '0 0 12px',
+              margin: `0 0 ${layout.authorMarginBottom}px`,
               lineHeight: 1.1,
               flexShrink: 0,
+              position: 'relative',
+              zIndex: 1,
             }}
           >
             {autoreGiorno}
@@ -303,25 +327,27 @@ export default function AuthorExportCard({
           {/* ── Descrizione ── */}
           <p
             style={{
-              fontSize: '36px',
+              fontSize: `${layout.descFontSize}px`,
               fontWeight: 400,
-              color: textMuted,
+              color: palette.textBody,
               textAlign: 'center',
-              margin: '0 0 20px',
-              lineHeight: 1.45,
-              maxWidth: '870px',
+              margin: `0 0 ${layout.descMarginBottom}px`,
+              lineHeight: layout.descLineHeight,
+              maxWidth: `${layout.descMaxWidth}px`,
               flexShrink: 0,
+              position: 'relative',
+              zIndex: 1,
             }}
           >
-            {breveDescrizione}
+            {descTesto}
           </p>
 
           {/* ── Divisore (senza filtri SVG, identico a satori) ── */}
-          <div aria-hidden="true" style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '20px', flexShrink: 0, pointerEvents: 'none' }}>
+          <div aria-hidden="true" style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${layout.dividerMarginBottom}px`, flexShrink: 0, pointerEvents: 'none', position: 'relative', zIndex: 1 }}>
             <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '864px', height: '26px', display: 'block' }}>
-              <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" />
-              <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" />
-              <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={wcColor} strokeWidth="3" strokeLinecap="round" opacity="0.18" />
+              <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={palette.wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" />
+              <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={palette.wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" />
+              <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={palette.wcColor} strokeWidth="3" strokeLinecap="round" opacity="0.18" />
             </svg>
           </div>
 
@@ -329,43 +355,46 @@ export default function AuthorExportCard({
           <div
             style={{
               width: '100%',
-              padding: '24px 42px 28px',
-              background: cardBg,
-              border: `3px solid ${borderColor}`,
-              borderRadius: '30px',
+              padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px`,
+              background: palette.cardBg,
+              border: `3px solid ${palette.borderColor}`,
+              borderRadius: `${layout.quoteRadius}px`,
               boxSizing: 'border-box',
               flexShrink: 0,
+              position: 'relative',
+              zIndex: 1,
+              boxShadow: palette.quoteShadow,
             }}
           >
             <span
               style={{
-                fontSize: '80px',
+                fontSize: `${layout.quoteMarkFontSize}px`,
                 lineHeight: 0.7,
-                color: accent,
+                color: palette.accent,
                 opacity: 0.35,
                 display: 'block',
-                marginBottom: '8px',
+                marginBottom: `${layout.quoteMarkMarginBottom}px`,
               }}
             >
               &ldquo;
             </span>
             <p
               style={{
-                fontSize: `${citFontSize}`,
+                fontSize: `${layout.quoteFontSize}px`,
                 fontStyle: 'italic',
                 fontWeight: 400,
-                color: textPrimary,
-                lineHeight: 1.55,
-                margin: '0 0 18px',
+                color: palette.textPrimary,
+                lineHeight: layout.quoteLineHeight,
+                margin: `0 0 ${layout.quoteMarginBottom}px`,
               }}
             >
               {citTesto}
             </p>
             <p
               style={{
-                fontSize: '30px',
+                fontSize: `${layout.sourceFontSize}px`,
                 fontWeight: 700,
-                color: textMuted,
+                color: palette.textMuted,
                 textAlign: 'right',
                 margin: 0,
               }}

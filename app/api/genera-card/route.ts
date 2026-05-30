@@ -4,62 +4,44 @@ import sharp from 'sharp';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
+import { clampText, getAuthorCardLayout, getAuthorCardPalette } from '@/app/lib/authorCardDesign';
 
 export const runtime = 'nodejs';
 
 const W = 1080;
 const H = 1920;
 
-function truncateCitation(testo: string): { testo: string; fontSize: number } {
-  const len = testo.length;
-  if (len <= 200) return { testo, fontSize: 39 };
-  if (len <= 350) return { testo, fontSize: 34 };
-  if (len <= 500) {
-    const truncated = testo.slice(0, 350).trimEnd();
-    return { testo: truncated + (testo.length > 350 ? '\u2026' : ''), fontSize: 31 };
-  }
-  const truncated = testo.slice(0, 300).trimEnd();
-  return { testo: truncated + (testo.length > 300 ? '\u2026' : ''), fontSize: 28 };
-}
-
 // Tape: rettangolo pieno + triangoli BG ai bordi che "mordono" verso l'interno
-function makeWashiTapeSvg(bgColor: string): string {
-  const TW = 560;
-  const TH = 88;
-  const T = 11; // altezza dente
-  const D = 11; // profondità dente (verso interno)
-
-  // Triangoli sinistra: puntano verso DESTRA (mordono dentro da sinistra)
-  let leftNotches = '';
-  for (let y = 0; y < TH; y += T) {
-    // triangolo con vertice a destra (dentro il tape)
-    leftNotches += `M 0,${y} L ${D},${y + T / 2} L 0,${y + T} Z `;
-  }
-
-  // Triangoli destra: puntano verso SINISTRA (mordono dentro da destra)
-  let rightNotches = '';
-  for (let y = 0; y < TH; y += T) {
-    rightNotches += `M ${TW},${y} L ${TW - D},${y + T / 2} L ${TW},${y + T} Z `;
-  }
+function makeWashiTapeSvg(bgColor: string, tapeColor: string, width: number, height: number): string {
+  const TW = width;
+  const TH = height;
+  const p = (x: number, y: number) => `${Math.round(TW * x)},${Math.round(TH * y)}`;
+  const points = [
+    p(0.01, 0.02), p(0.99, 0), p(0.98, 0.12), p(1, 0.24),
+    p(0.98, 0.36), p(1, 0.48), p(0.98, 0.62), p(1, 0.74),
+    p(0.98, 0.88), p(0.99, 1), p(0.02, 0.98), p(0, 0.85),
+    p(0.02, 0.7), p(0, 0.58), p(0.02, 0.44), p(0, 0.3),
+    p(0.02, 0.16), p(0, 0.05),
+  ].join(' ');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${TW}" height="${TH}" viewBox="0 0 ${TW} ${TH}">
-  <!-- Tape pieno -->
-  <rect width="${TW}" height="${TH}" fill="#e8dcc6"/>
-  <!-- Riflesso luce -->
-  <rect x="${D}" y="0" width="${TW - D * 2}" height="${TH}" fill="rgba(255,255,255,0.18)"/>
-  <!-- Tacche sinistra: triangoli del colore sfondo che "mangiano" il tape -->
-  <path d="${leftNotches}" fill="${bgColor}"/>
-  <!-- Tacche destra -->
-  <path d="${rightNotches}" fill="${bgColor}"/>
-  <!-- Ombra bottom -->
-  <rect x="${D}" y="${TH - 2}" width="${TW - D * 2}" height="2" fill="rgba(0,0,0,0.07)"/>
+  <rect width="${TW}" height="${TH}" fill="${bgColor}" opacity="0"/>
+  <polygon points="${points}" fill="${tapeColor}"/>
+  <polygon points="${points}" fill="rgba(255,255,255,0.14)"/>
+  <path d="M ${TW * 0.08} ${TH * 0.2} C ${TW * 0.34} ${TH * 0.1}, ${TW * 0.58} ${TH * 0.26}, ${TW * 0.92} ${TH * 0.14}" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  <path d="M ${TW * 0.08} ${TH * 0.86} C ${TW * 0.38} ${TH * 0.96}, ${TW * 0.6} ${TH * 0.78}, ${TW * 0.92} ${TH * 0.9}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
 </svg>`;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna } = body;
+    const { autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna, isDark = false } = body;
+
+    const palette = getAuthorCardPalette(Boolean(isDark));
+    const layout = getAuthorCardLayout(citazione.testo, breveDescrizione);
+    const citTesto = clampText(citazione.testo, layout.maxCitationChars);
+    const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
 
     const fontsDir = path.join(process.cwd(), 'public', 'fonts');
     const [garamondRegular, garamondBold, garamondItalic, caveatBold] = await Promise.all([
@@ -71,6 +53,17 @@ export async function POST(req: NextRequest) {
 
     const paperPath = path.join(process.cwd(), 'public', 'beige-paper.png');
     const paperBuffer = await readFile(paperPath);
+    const backgroundPath = path.join(process.cwd(), 'public', 'images', 'sfondo-taccuino.webp');
+    const backgroundBuffer = await readFile(backgroundPath);
+    const backgroundPng = await sharp(backgroundBuffer)
+      .resize(W, H, { fit: 'cover' })
+      .modulate({
+        brightness: palette.tone === 'dark' ? 0.7 : 1.08,
+        saturation: palette.tone === 'dark' ? 0.35 : 0.9,
+      })
+      .png()
+      .toBuffer();
+    const backgroundB64 = `data:image/png;base64,${backgroundPng.toString('base64')}`;
 
     let fotoB64: string | null = null;
     if (fotoAutoreUrl) {
@@ -84,21 +77,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const bg = '#F4F0E6';
-    const textPrimary = '#2A2522';
-    const textMuted = '#8A817C';
-    const accent = '#DE6B58';
-    const cardBg = '#FDFCF8';
-    const borderColor = '#EBE5DB';
-    const wcColor = '#b5956a';
-
-    const { testo: citTesto, fontSize: citFontSize } = truncateCitation(citazione.testo);
-
-    const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
+    const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${palette.wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${palette.wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${palette.wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
     // Tape con tacche verso l'interno, passando il colore bg per le tacche
-    const washiSvg = makeWashiTapeSvg(bg);
+    const washiSvg = makeWashiTapeSvg(palette.bg, palette.tapeBg, layout.tapeWidth, layout.tapeHeight);
     const washiB64 = `data:image/svg+xml;base64,${Buffer.from(washiSvg).toString('base64')}`;
 
     const svg = await satori(
@@ -108,16 +91,45 @@ export async function POST(req: NextRequest) {
           style: {
             width: W,
             height: H,
-            backgroundColor: bg,
+            backgroundColor: palette.bg,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '90px 72px 48px',
+            padding: `${layout.topPadding}px ${layout.sidePadding}px ${layout.bottomPadding}px`,
             boxSizing: 'border-box',
             fontFamily: 'EB Garamond',
             position: 'relative',
+            overflow: 'hidden',
           },
         },
+        React.createElement('img', {
+          src: backgroundB64,
+          width: W,
+          height: H,
+          style: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: W,
+            height: H,
+            objectFit: 'cover',
+            opacity: palette.imageOpacity,
+          },
+        }),
+        React.createElement('div', {
+          style: {
+            position: 'absolute',
+            top: 64,
+            left: 44,
+            right: 44,
+            bottom: 54,
+            borderRadius: 46,
+            background: palette.spotlight,
+            boxShadow: palette.tone === 'dark'
+              ? '0 0 120px 96px rgba(30,30,30,0.54)'
+              : '0 0 120px 96px rgba(255,252,242,0.36)',
+          },
+        }),
         // Washi tape
         React.createElement(
           'div',
@@ -126,16 +138,16 @@ export async function POST(req: NextRequest) {
               display: 'flex',
               justifyContent: 'center',
               width: '100%',
-              marginBottom: 36,
+              marginBottom: layout.tapeMarginBottom,
               position: 'relative',
-              height: 88,
+              height: layout.tapeHeight,
             },
           },
           React.createElement('img', {
             src: washiB64,
-            width: 560,
-            height: 88,
-            style: { position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)' },
+            width: layout.tapeWidth,
+            height: layout.tapeHeight,
+            style: { transform: 'rotate(-2deg)' },
           }),
           // Testo data sopra il tape — Satori con Caveat
           React.createElement(
@@ -153,10 +165,11 @@ export async function POST(req: NextRequest) {
               'div',
               {
                 style: {
-                  fontSize: 52,
+                  fontSize: layout.dateFontSize,
                   fontFamily: 'Caveat',
                   fontWeight: 700,
-                  color: textMuted,
+                  color: palette.tapeText,
+                  transform: 'rotate(-2deg)',
                 },
               },
               dataOdierna
@@ -168,12 +181,12 @@ export async function POST(req: NextRequest) {
           'div',
           {
             style: {
-              fontSize: 33,
+              fontSize: layout.labelFontSize,
               fontWeight: 700,
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
-              color: accent,
-              marginBottom: 24,
+              color: palette.accent,
+              marginBottom: layout.labelMarginBottom,
               fontFamily: 'EB Garamond',
             },
           },
@@ -202,7 +215,7 @@ export async function POST(req: NextRequest) {
                 fontSize: 22,
                 fontFamily: 'EB Garamond',
                 fontWeight: 400,
-                color: textMuted,
+                color: palette.textMuted,
                 opacity: 0.45,
                 transform: 'rotate(90deg)',
                 whiteSpace: 'nowrap',
@@ -220,7 +233,7 @@ export async function POST(req: NextRequest) {
               display: 'flex',
               justifyContent: 'center',
               width: '100%',
-              marginBottom: 12,
+              marginBottom: layout.photoMarginBottom,
             },
           },
           fotoB64
@@ -229,18 +242,18 @@ export async function POST(req: NextRequest) {
                 {
                   style: {
                     transform: 'rotate(-2deg)',
-                    background: cardBg,
-                    border: `3px solid ${borderColor}`,
-                    padding: '24px 24px 60px 24px',
+                    background: palette.tone === 'dark' ? '#F4F0E6' : '#FDFCF8',
+                    border: `3px solid ${palette.tone === 'dark' ? '#D8CDBC' : palette.borderColor}`,
+                    padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
                     display: 'flex',
                     boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
                   },
                 },
                 React.createElement('img', {
                   src: fotoB64,
-                  width: 312,
-                  height: 396,
-                  style: { objectFit: 'cover', filter: 'grayscale(100%)' },
+                  width: layout.photoWidth,
+                  height: layout.photoHeight,
+                  style: { objectFit: 'cover', filter: 'grayscale(100%) contrast(92%) brightness(1.04)' },
                 })
               )
             : null
@@ -250,11 +263,11 @@ export async function POST(req: NextRequest) {
           'div',
           {
             style: {
-              fontSize: 78,
+              fontSize: layout.authorFontSize,
               fontWeight: 700,
-              color: textPrimary,
+              color: palette.textPrimary,
               textAlign: 'center',
-              marginBottom: 12,
+              marginBottom: layout.authorMarginBottom,
               lineHeight: 1.1,
               fontFamily: 'EB Garamond',
             },
@@ -266,24 +279,24 @@ export async function POST(req: NextRequest) {
           'div',
           {
             style: {
-              fontSize: 36,
+              fontSize: layout.descFontSize,
               fontWeight: 400,
-              color: textMuted,
+              color: palette.textBody,
               textAlign: 'center',
-              marginBottom: 20,
-              lineHeight: 1.45,
-              maxWidth: 870,
+              marginBottom: layout.descMarginBottom,
+              lineHeight: layout.descLineHeight,
+              maxWidth: layout.descMaxWidth,
               fontFamily: 'EB Garamond',
             },
           },
-          breveDescrizione
+          descTesto
         ),
         // Divisore
         React.createElement('img', {
           src: dividerB64,
           width: 864,
           height: 26,
-          style: { marginBottom: 20 },
+          style: { marginBottom: layout.dividerMarginBottom },
         }),
         // Box citazione
         React.createElement(
@@ -291,24 +304,25 @@ export async function POST(req: NextRequest) {
           {
             style: {
               width: '100%',
-              padding: '24px 42px 28px',
-              background: cardBg,
-              border: `3px solid ${borderColor}`,
-              borderRadius: 30,
+              padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px`,
+              background: palette.cardBg,
+              border: `3px solid ${palette.borderColor}`,
+              borderRadius: layout.quoteRadius,
               display: 'flex',
               flexDirection: 'column',
+              boxShadow: palette.quoteShadow,
             },
           },
           React.createElement(
             'div',
             {
               style: {
-                fontSize: 80,
+                fontSize: layout.quoteMarkFontSize,
                 lineHeight: 0.7,
-                color: accent,
+                color: palette.accent,
                 opacity: 0.35,
                 fontFamily: 'EB Garamond',
-                marginBottom: 8,
+                marginBottom: layout.quoteMarkMarginBottom,
               },
             },
             '\u201C'
@@ -317,12 +331,12 @@ export async function POST(req: NextRequest) {
             'div',
             {
               style: {
-                fontSize: citFontSize,
+                fontSize: layout.quoteFontSize,
                 fontStyle: 'italic',
                 fontWeight: 400,
-                color: textPrimary,
-                lineHeight: 1.55,
-                marginBottom: 18,
+                color: palette.textPrimary,
+                lineHeight: layout.quoteLineHeight,
+                marginBottom: layout.quoteMarginBottom,
                 fontFamily: 'EB Garamond',
               },
             },
@@ -332,9 +346,9 @@ export async function POST(req: NextRequest) {
             'div',
             {
               style: {
-                fontSize: 30,
+                fontSize: layout.sourceFontSize,
                 fontWeight: 700,
-                color: textMuted,
+                color: palette.textMuted,
                 textAlign: 'right',
                 fontFamily: 'EB Garamond',
               },
@@ -358,7 +372,7 @@ export async function POST(req: NextRequest) {
     const basePng = await sharp(Buffer.from(svg)).png().toBuffer();
 
     const paperBright = await sharp(paperBuffer)
-      .modulate({ brightness: 3.0, saturation: 0.2 })
+      .modulate({ brightness: palette.paperBrightness, saturation: palette.paperSaturation })
       .png()
       .toBuffer();
 
@@ -367,12 +381,12 @@ export async function POST(req: NextRequest) {
     })
       .composite([{ input: paperBright, tile: true, blend: 'over' }])
       .ensureAlpha()
-      .linear(0.18, 0)
+      .linear(palette.paperOpacity, 0)
       .png()
       .toBuffer();
 
     const pngBuffer = await sharp(basePng)
-      .composite([{ input: paperTiled, blend: 'soft-light' }])
+      .composite([{ input: paperTiled, blend: palette.tone === 'dark' ? 'screen' : 'soft-light' }])
       .png()
       .toBuffer();
 
