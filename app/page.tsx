@@ -515,7 +515,7 @@ useEffect(() => {
   <div className="relative z-10">
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
-        <div className="flex-shrink-0 relative" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+        <div className="relative z-20 flex-shrink-0" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
           <div
             className="masking-tape"
             style={{
@@ -553,11 +553,12 @@ useEffect(() => {
         </div>
       )}
 
-      <div className="relative flex-1 text-center md:text-left">
+      <div className="relative z-10 flex-1 text-center md:text-left">
         <div
           aria-hidden="true"
           className="absolute -inset-x-5 -inset-y-4 md:-inset-x-10 md:-inset-y-8 pointer-events-none"
           style={{
+            zIndex: 0,
             background: isDark
               ? 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(30,30,30,0.82) 0%, rgba(30,30,30,0.64) 43%, rgba(30,30,30,0.27) 72%, transparent 100%)'
               : 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(255,252,242,0.88) 0%, rgba(244,240,230,0.70) 45%, rgba(244,240,230,0.30) 74%, transparent 100%)',
