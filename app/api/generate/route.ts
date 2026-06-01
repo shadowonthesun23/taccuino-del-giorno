@@ -1,7 +1,70 @@
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerateContentResult } from "@google/generative-ai";
 
 export const maxDuration = 60;
+
+function stripJsonCodeFences(text: string) {
+  return text.replace(/```json/gi, '').replace(/```/g, '').trim();
+}
+
+function extractFirstJsonObject(text: string) {
+  const start = text.indexOf('{');
+
+  if (start === -1) {
+    throw new Error('La risposta del modello non contiene un oggetto JSON.');
+  }
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escaped = inString;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === '{') {
+      depth++;
+    } else if (char === '}') {
+      depth--;
+
+      if (depth === 0) {
+        return text.slice(start, i + 1);
+      }
+    }
+  }
+
+  throw new Error('La risposta del modello contiene un JSON incompleto.');
+}
+
+function parseGeneratedJson(responseText: string) {
+  const cleanedText = stripJsonCodeFences(responseText);
+  const jsonText = extractFirstJsonObject(cleanedText);
+
+  try {
+    return JSON.parse(jsonText);
+  } catch (err) {
+    console.error('Risposta Gemini non parsabile:', cleanedText.slice(0, 1000));
+    throw err;
+  }
+}
 
 export async function GET(request: Request) {
   try {
@@ -43,6 +106,8 @@ REGOLE DI CURATELA:
 6. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
 7. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
 
+Restituisci esclusivamente un unico oggetto JSON valido. Non aggiungere testo prima o dopo il JSON.
+
 Restituisci questo JSON:
 {
   "data_odierna": "${dataDiOggiStr}",
@@ -58,7 +123,7 @@ Restituisci questo JSON:
   "keyword_arte_en": "..."
 }`;
 
-    let result: any = null;
+    let result: GenerateContentResult | null = null;
     const maxRetries = 5;
     for (let i = 0; i < maxRetries; i++) {
       try {
@@ -70,9 +135,12 @@ Restituisci questo JSON:
       }
     }
 
-    let responseText = result.response.text();
-    responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const data = JSON.parse(responseText);
+    if (!result) {
+      throw new Error('Nessuna risposta ricevuta dal modello.');
+    }
+
+    const responseText = result.response.text();
+    const data = parseGeneratedJson(responseText);
 
     const { error } = await supabase.from('contenuti_giornalieri').upsert(
       { ...data, data: dataIso },
@@ -85,8 +153,10 @@ Restituisci questo JSON:
     }
 
     return new Response('Successo!');
-  } catch (err: any) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Errore interno del server";
+
     console.error("Errore fatale in /api/generate:", err);
-    return new Response(err.message || "Errore interno del server", { status: 500 });
+    return new Response(message, { status: 500 });
   }
 }
