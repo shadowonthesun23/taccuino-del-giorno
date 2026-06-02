@@ -6,6 +6,10 @@ export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(null, { status: 204 });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const oggi = new Date().toISOString().split('T')[0];
@@ -91,8 +95,8 @@ export async function GET() {
 
     return Response.json(opera);
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Errore in /api/opera:', err);
-    return Response.json({ error: err.message || 'Errore interno' }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Errore interno' }, { status: 500 });
   }
 }

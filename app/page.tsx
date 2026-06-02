@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { EB_Garamond, Caveat } from 'next/font/google';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2 } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2, Search } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -47,7 +47,7 @@ const CoffeeIcon = ({ className, strokeWidth = 1.5 }: { className?: string, stro
 const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
   const color = isDark ? '#7a5c38' : '#b5956a';
   return (
-    <div aria-hidden="true" className="w-full flex justify-center my-2 pointer-events-none select-none">
+    <div aria-hidden="true" className="watercolor-divider w-full flex justify-center my-2 pointer-events-none select-none">
       <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-2xl" style={{ height: '36px', display: 'block' }}>
         <defs>
           <filter id="wc-blur" x="-10%" y="-60%" width="120%" height="220%">
@@ -61,9 +61,9 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
             <feDisplacementMap in="SourceGraphic" in2="noise2" scale={3} xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
-        <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#wc-blur)" />
-        <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#wc-edge)" />
-        <path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#wc-blur)" />
+        <path className="watercolor-stroke stroke-main" d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#wc-blur)" />
+        <path className="watercolor-stroke stroke-edge" d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#wc-edge)" />
+        <path className="watercolor-stroke stroke-ghost" d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#wc-blur)" />
       </svg>
     </div>
   );
@@ -154,6 +154,13 @@ function groupByMonth(items: ArchivioItem[]): Record<string, ArchivioItem[]> {
   return groups;
 }
 
+function normalizeArchiveText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
 const notebookNavItems = [
   { id: 'autore', icon: Feather, labelIT: 'Autore', labelEN: 'Author' },
   { id: 'citazione', icon: Quote, labelIT: 'Citazione', labelEN: 'Quote' },
@@ -223,13 +230,15 @@ export default function Home() {
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [vinylCover, setVinylCover] = useState<string | null>(null);
-  const [vinylOpen, setVinylOpen] = useState(false);
+  const [vinylPreview, setVinylPreview] = useState(false);
+  const [vinylPinned, setVinylPinned] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
+  const [archivioQuery, setArchivioQuery] = useState('');
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
   const [lingua, setLingua] = useState<'IT' | 'EN'>('IT');
   const [traducendo, setTraducendo] = useState(false);
@@ -237,6 +246,7 @@ export default function Home() {
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const [showExportCard, setShowExportCard] = useState(false);
+  const [isTurningPage, setIsTurningPage] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState('autore');
@@ -253,7 +263,7 @@ export default function Home() {
     setArchivioAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 8);
   }, []);
 
-  useEffect(() => { if (popoverOpen) setTimeout(checkArchivioScroll, 50); }, [popoverOpen, archivio, checkArchivioScroll]);
+  useEffect(() => { if (popoverOpen) setTimeout(checkArchivioScroll, 50); }, [popoverOpen, archivio, archivioQuery, checkArchivioScroll]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -297,15 +307,25 @@ export default function Home() {
     document.body.style.backgroundColor = isDark ? '#1E1E1E' : '#F4F0E6';
   }, [isDark]);
   
-  const caricaGiorno = (dataIso: string | null) => {
-    setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false);
+  const caricaGiorno = (dataIso: string | null, usePageTurn = false) => {
+    if (usePageTurn) {
+      setIsTurningPage(true);
+    } else {
+      setLoading(true);
+    }
+    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
+    const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 460)) : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
-      fetch('/api/opera').then(res => (res.ok ? res.json() : null)).catch(() => null),
+      fetch('/api/opera').then(res => {
+        if (res.status === 204) return null;
+        return res.ok ? res.json() : null;
+      }).catch(() => null),
+      minimumTurnDelay,
     ])
       .then(([dati, operaData]) => {
-        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' });
+        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setIsTurningPage(false); setActiveSection('autore'); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' });
         fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
           .then(r => r.json())
           .then(j => {
@@ -318,7 +338,7 @@ export default function Home() {
           })
           .catch(() => setVinylCover(null));
       })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .catch(err => { setError(err.message); setLoading(false); setIsTurningPage(false); });
   };
 
   const toggleLingua = useCallback(async () => {
@@ -371,20 +391,28 @@ export default function Home() {
     bg: isDark ? 'bg-[#1E1E1E]' : 'bg-[#F4F0E6]',
     text: isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]',
     textMuted: isDark ? 'text-[#A0A0A0]' : 'text-[#8A817C]',
-    border: isDark ? 'border-[#3D3D3D]' : 'border-[#EBE5DB]',
+    border: isDark ? 'border-white/10' : 'border-[#EBE5DB]',
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
     popoverBg: isDark ? '#1C1C1C' : '#F4F0E6',
     popoverBgClass: isDark ? 'bg-[#1C1C1C]' : 'bg-[#F4F0E6]',
-    popoverBorder: isDark ? 'border-[#3D3D3D]' : 'border-[#D4CABC]',
+    popoverBorder: isDark ? 'border-white/10' : 'border-[#D4CABC]',
     popoverArrowFill: isDark ? '#1C1C1C' : '#F4F0E6',
-    popoverArrowStroke: isDark ? '#3D3D3D' : '#D4CABC',
+    popoverArrowStroke: isDark ? 'rgba(255,255,255,0.1)' : '#D4CABC',
     fadeGradient: isDark ? 'linear-gradient(to bottom, transparent 0%, #1C1C1C 100%)' : 'linear-gradient(to bottom, transparent 0%, #F4F0E6 100%)',
-    photoBg: '#FDFCF8',
-    photoBorder: '#EBE5DB',
+    photoBg: isDark ? 'rgba(253,252,248,0.94)' : '#FDFCF8',
+    photoBorder: isDark ? 'rgba(255,255,255,0.12)' : '#EBE5DB',
   };
 
-  const groupedArchivio = groupByMonth(archivio);
+  const archivioQueryPulita = normalizeArchiveText(archivioQuery.trim());
+  const archivioFiltrato = archivioQueryPulita
+    ? archivio.filter((item) => {
+      const haystack = normalizeArchiveText(`${item.autore_giorno} ${formatDataItaliana(item.data)} ${item.data}`);
+      return haystack.includes(archivioQueryPulita);
+    })
+    : archivio;
+  const groupedArchivio = groupByMonth(archivioFiltrato);
+  const vinylOpen = vinylPinned || vinylPreview;
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
   const archivioPopover = isMounted ? createPortal(
@@ -419,13 +447,26 @@ export default function Home() {
       </div>
       {dataSelezionata && dataSelezionata !== oggi && (
         <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-          <button onClick={() => caricaGiorno(null)} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"><ChevronLeft className="w-3.5 h-3.5" />Torna a oggi</button>
+          <button onClick={() => caricaGiorno(null, Boolean(data))} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"><ChevronLeft className="w-3.5 h-3.5" />Torna a oggi</button>
         </div>
       )}
+      <div className={`archive-search-wrap px-3 py-3 border-b ${themeClasses.popoverBorder}`}>
+        <label className="archive-search-field">
+          <Search className="archive-search-icon" aria-hidden="true" strokeWidth={1.7} />
+          <input
+            value={archivioQuery}
+            onChange={(event) => setArchivioQuery(event.target.value)}
+            placeholder={lingua === 'IT' ? 'Cerca autore o data' : 'Search author or date'}
+            aria-label={lingua === 'IT' ? 'Cerca nell’archivio' : 'Search archive'}
+          />
+        </label>
+      </div>
       <div className="relative flex-1 min-h-0">
         <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="archive-scroll overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
           {archivio.length === 0 ? (
             <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
+          ) : archivioFiltrato.length === 0 ? (
+            <p className={`archive-empty text-xs italic ${themeClasses.textMuted}`}>{lingua === 'IT' ? 'Nessun risultato trovato.' : 'No results found.'}</p>
           ) : (
             Object.entries(groupedArchivio).map(([mese, items]) => (
               <div key={mese} className="archive-month">
@@ -436,7 +477,7 @@ export default function Home() {
                     const isSelezionato = item.data === dataSelezionata;
                     return (
                       <li key={item.data}>
-                        <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
+                        <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data, Boolean(data)); else setPopoverOpen(false); }}
                           className={`archive-entry ${
                             isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
                           } ${isOggi ? 'is-today' : ''}`}>
@@ -471,7 +512,7 @@ export default function Home() {
 
   if (error) return (
     <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
-      <div className={`${isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
+      <div className={`${isDark ? 'bg-[#2A2A2A] border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
@@ -503,16 +544,16 @@ export default function Home() {
     <ParallaxBackground>
       <div className={`min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-8 md:py-10 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
         <NotebookQuickNav isDark={isDark} lingua={lingua} hasOpera={Boolean(opera)} activeSection={activeSection} />
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2">
           <button
             onClick={toggleLingua}
             disabled={traducendo}
             title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
+            className={`top-control-button top-language-toggle flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
               lingua === 'EN'
                 ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
                 : isDark
-                  ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                  ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                   : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
             aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
@@ -534,11 +575,11 @@ export default function Home() {
                 }
                 setPopoverOpen(v => !v);
               }}
-              className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
+              className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
                 popoverOpen
                   ? 'border-[#DE6B58] text-[#DE6B58]'
                   : isDark
-                    ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                    ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                     : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
               }`}
               aria-label="Archivio"
@@ -551,9 +592,9 @@ export default function Home() {
 
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
+            className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
               isDark
-                ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                 : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
             }`}
             aria-label="Cambia tema"
@@ -561,19 +602,25 @@ export default function Home() {
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
         </div>
-        <main key={contentKey} className="journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10">
-          <header className="text-center space-y-5 relative animate-fadeInUp stagger-1 px-4 pt-3 pb-4">
+        {isTurningPage && (
+          <div className={`page-turn-veil ${isDark ? 'is-dark' : ''}`} role="status" aria-live="polite">
+            <span className="page-turn-mark" aria-hidden="true" />
+            <span>{lingua === 'IT' ? 'Sfoglio il taccuino' : 'Turning the page'}</span>
+          </div>
+        )}
+        <main
+          key={contentKey}
+          className={`journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10 ${isTurningPage ? 'journal-page-turning' : ''}`}
+          aria-busy={isTurningPage}
+        >
+          <header className="journal-hero text-center space-y-5 relative animate-fadeInUp stagger-1 px-4 pt-3 pb-4">
             <div
               aria-hidden="true"
               className="absolute -inset-x-5 -inset-y-4 md:-inset-x-12 md:-inset-y-8 pointer-events-none"
               style={{
                 background: isDark
-                  ? 'radial-gradient(ellipse 82% 78% at 50% 48%, rgba(30,30,30,0.82) 0%, rgba(30,30,30,0.64) 44%, rgba(30,30,30,0.25) 72%, transparent 100%)'
-                  : 'radial-gradient(ellipse 82% 78% at 50% 48%, rgba(255,252,242,0.88) 0%, rgba(244,240,230,0.72) 45%, rgba(244,240,230,0.30) 74%, transparent 100%)',
-                backdropFilter: 'blur(5px)',
-                WebkitBackdropFilter: 'blur(5px)',
-                WebkitMaskImage: 'radial-gradient(ellipse 86% 82% at 50% 50%, black 34%, rgba(0,0,0,0.72) 60%, transparent 100%)',
-                maskImage: 'radial-gradient(ellipse 86% 82% at 50% 50%, black 34%, rgba(0,0,0,0.72) 60%, transparent 100%)',
+                  ? 'none'
+                  : 'radial-gradient(ellipse 78% 72% at 50% 48%, rgba(255,252,242,0.84) 0%, rgba(244,240,230,0.54) 45%, rgba(244,240,230,0.20) 68%, transparent 100%)',
               }}
             />
             <div className="relative z-10">
@@ -611,9 +658,9 @@ export default function Home() {
             </div>
           </header>
 
-        <section id="autore" className="scroll-mt-28 pt-0 pb-6 md:pt-2 md:pb-6 animate-fadeInUp stagger-2 relative px-4">
+        <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-6 md:pt-2 md:pb-6 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
-    <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
+    <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
         <div className="relative z-20 flex-shrink-0" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
           <div
@@ -635,7 +682,9 @@ export default function Home() {
               background: themeClasses.photoBg,
               border: `1px solid ${themeClasses.photoBorder}`,
               padding: '10px 10px 28px 10px',
-              boxShadow: '6px 8px 18px -2px rgba(0,0,0,0.35), 2px 3px 6px -1px rgba(0,0,0,0.20)',
+              boxShadow: isDark
+                ? '0 16px 34px -28px rgba(0,0,0,0.72), 0 2px 8px -6px rgba(0,0,0,0.42)'
+                : '0 16px 34px -28px rgba(42,37,34,0.42), 0 2px 8px -6px rgba(42,37,34,0.2)',
             }}
           >
             <img
@@ -660,12 +709,8 @@ export default function Home() {
           style={{
             zIndex: 0,
             background: isDark
-              ? 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(30,30,30,0.82) 0%, rgba(30,30,30,0.64) 43%, rgba(30,30,30,0.27) 72%, transparent 100%)'
-              : 'radial-gradient(ellipse 88% 82% at 48% 50%, rgba(255,252,242,0.88) 0%, rgba(244,240,230,0.70) 45%, rgba(244,240,230,0.30) 74%, transparent 100%)',
-            backdropFilter: 'blur(5px)',
-            WebkitBackdropFilter: 'blur(5px)',
-            WebkitMaskImage: 'radial-gradient(ellipse 88% 82% at 48% 50%, black 36%, rgba(0,0,0,0.70) 60%, transparent 100%)',
-            maskImage: 'radial-gradient(ellipse 88% 82% at 48% 50%, black 36%, rgba(0,0,0,0.70) 60%, transparent 100%)',
+              ? 'none'
+              : 'radial-gradient(ellipse 84% 76% at 48% 50%, rgba(255,252,242,0.82) 0%, rgba(244,240,230,0.52) 44%, rgba(244,240,230,0.18) 68%, transparent 100%)',
           }}
         />
         <div className="relative z-10">
@@ -697,7 +742,7 @@ export default function Home() {
               onClick={() => setShowExportCard(true)}
               className={`mt-6 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors ${
                 isDark
-                  ? 'border-[#3D3D3D] bg-[#1E1E1E]/60 text-[#A0A0A0] hover:border-[#DE6B58] hover:text-[#DE6B58]'
+                  ? 'border-white/10 bg-[#1E1E1E]/55 text-[#A0A0A0] hover:border-[#DE6B58]/70 hover:text-[#DE6B58]'
                   : 'border-[#EBE5DB] bg-[#F4F0E6]/60 text-[#8A817C] hover:border-[#DE6B58] hover:text-[#DE6B58]'
               }`}
             >
@@ -917,13 +962,13 @@ export default function Home() {
                         zIndex: 10,
                         boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
                       }}
-                      onMouseEnter={() => setVinylOpen(true)}
-                      onMouseLeave={() => setVinylOpen(false)}
-                      onFocus={() => setVinylOpen(true)}
-                      onBlur={() => setVinylOpen(false)}
-                      onClick={() => setVinylOpen(true)}
+                      onMouseEnter={() => setVinylPreview(true)}
+                      onMouseLeave={() => setVinylPreview(false)}
+                      onFocus={() => setVinylPreview(true)}
+                      onBlur={() => setVinylPreview(false)}
+                      onClick={() => setVinylPinned(open => !open)}
                       aria-label={lingua === 'IT' ? 'Apri la copertina del disco' : 'Open the record sleeve'}
-                      aria-pressed={vinylOpen}
+                      aria-pressed={vinylPinned}
                     >
                       {vinylCover ? (
                         <img
@@ -996,12 +1041,29 @@ export default function Home() {
           </div>
 
           {/* ── FOOTER ── */}
-          <footer className={`text-center py-12 ${themeClasses.textMuted} font-medium`}>
-            <p className="text-lg italic tracking-wide mb-6">Made with love by Antonello</p>
-            <div className="flex items-center justify-center gap-6">
-              <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="X (Twitter)"><XIcon className="w-5 h-5" /></a>
-              <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Instagram"><InstagramIcon className="w-5 h-5" /></a>
-              <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className={`p-3 rounded-full border ${themeClasses.border} hover:border-[#DE6B58] hover:text-[#DE6B58] transition-all duration-300 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ${isDark ? 'bg-[#2A2A2A]/50' : 'bg-[#FDFCF8]/50'}`} aria-label="Buy Me a Coffee"><CoffeeIcon className="w-5 h-5" /></a>
+          <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
+            <div className="journal-footer-inner">
+              <p className={`journal-footer-signature ${caveat.className}`}>Antonello</p>
+              <p className="journal-footer-title font-jocky">Il Taccuino del Giorno</p>
+              <p className="journal-footer-note">
+                {lingua === 'IT'
+                  ? 'Un foglio quotidiano di cultura, memoria e ascolto.'
+                  : 'A daily page of culture, memory, and listening.'}
+              </p>
+              <nav className="journal-footer-socials" aria-label={lingua === 'IT' ? 'Collegamenti social' : 'Social links'}>
+                <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="X (Twitter)">
+                  <XIcon className="w-4 h-4" />
+                  <span>X</span>
+                </a>
+                <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="Instagram">
+                  <InstagramIcon className="w-4 h-4" />
+                  <span>Instagram</span>
+                </a>
+                <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="Buy Me a Coffee">
+                  <CoffeeIcon className="w-4 h-4" />
+                  <span>{lingua === 'IT' ? 'Supporta' : 'Support'}</span>
+                </a>
+              </nav>
             </div>
           </footer>
 

@@ -246,7 +246,7 @@ export async function POST(req: NextRequest) {
                     border: `3px solid ${palette.tone === 'dark' ? '#D8CDBC' : palette.borderColor}`,
                     padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
                     display: 'flex',
-                    boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
+                    boxShadow: palette.photoShadow,
                   },
                 },
                 React.createElement('img', {
@@ -310,7 +310,7 @@ export async function POST(req: NextRequest) {
               borderRadius: layout.quoteRadius,
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: palette.quoteShadow,
+              boxShadow: `${palette.quoteShadow}, ${palette.quoteInset}`,
             },
           },
           React.createElement(

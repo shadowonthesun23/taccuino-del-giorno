@@ -44,7 +44,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       <section
         ref={sectionRef}
         className={`${
-          isDark ? 'bg-[#2A2A2A] border-[#3D3D3D]' : 'bg-[#FDFCF8] border-[#EBE5DB]'
+          isDark ? 'bg-[#2A2A2A]/90 border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'
         } border rounded-2xl p-6 md:p-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-colors duration-300 card-paper-shadow relative group h-full`}
       >
         {filename && (
@@ -62,7 +62,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
               disabled:cursor-not-allowed
               ${
                 isDark
-                  ? 'bg-[#2A2A2A] border border-[#3D3D3D] text-[#A0A0A0] hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                  ? 'bg-[#2A2A2A]/90 border border-white/10 text-[#A0A0A0] hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                   : 'bg-[#FDFCF8] border border-[#EBE5DB] text-[#8A817C] hover:text-[#DE6B58] hover:border-[#DE6B58]'
               }
             `}

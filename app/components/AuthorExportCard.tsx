@@ -135,9 +135,9 @@ export default function AuthorExportCard({
           height: `${CARD_H}px`,
           margin: '0 auto',
           borderRadius: '16px',
-          border: `1px solid ${palette.borderColor}`,
+          border: `1px solid ${palette.previewBorder}`,
           overflow: 'hidden',
-          boxShadow: isDark ? '0 18px 45px -32px rgba(0,0,0,0.9)' : '0 18px 45px -34px rgba(42,37,34,0.34)',
+          boxShadow: palette.previewShadow,
         }}
       >
         {/*
@@ -287,7 +287,7 @@ export default function AuthorExportCard({
                   background: isDark ? '#F4F0E6' : '#FDFCF8',
                   border: `3px solid ${isDark ? '#D8CDBC' : palette.borderColor}`,
                   padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
-                  boxShadow: '0 8px 24px -6px rgba(0,0,0,0.2)',
+                  boxShadow: palette.photoShadow,
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -363,7 +363,7 @@ export default function AuthorExportCard({
               flexShrink: 0,
               position: 'relative',
               zIndex: 1,
-              boxShadow: palette.quoteShadow,
+              boxShadow: `${palette.quoteShadow}, ${palette.quoteInset}`,
             }}
           >
             <span

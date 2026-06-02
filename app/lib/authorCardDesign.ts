@@ -14,6 +14,10 @@ export interface AuthorCardPalette {
   wcColor: string;
   spotlight: string;
   quoteShadow: string;
+  quoteInset: string;
+  previewBorder: string;
+  previewShadow: string;
+  photoShadow: string;
   imageOpacity: number;
   paperBrightness: number;
   paperSaturation: number;
@@ -67,12 +71,16 @@ export function getAuthorCardPalette(isDark: boolean): AuthorCardPalette {
         textMuted: '#A79D92',
         accent: '#E27664',
         cardBg: 'rgba(42,42,42,0.88)',
-        borderColor: '#3D3D3D',
+        borderColor: 'rgba(255,255,255,0.12)',
         tapeBg: '#B59A73',
         tapeText: '#1E1E1E',
         wcColor: '#D3AA73',
         spotlight: 'rgba(30,30,30,0.78)',
-        quoteShadow: '0 20px 60px -34px rgba(0,0,0,0.75)',
+        quoteShadow: '0 18px 46px -36px rgba(0,0,0,0.62)',
+        quoteInset: 'inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -18px 42px rgba(0,0,0,0.1)',
+        previewBorder: 'rgba(255,255,255,0.1)',
+        previewShadow: '0 24px 54px -42px rgba(0,0,0,0.92)',
+        photoShadow: '0 14px 34px -24px rgba(0,0,0,0.58)',
         imageOpacity: 0.16,
         paperBrightness: 0.65,
         paperSaturation: 0.25,
@@ -91,7 +99,11 @@ export function getAuthorCardPalette(isDark: boolean): AuthorCardPalette {
         tapeText: '#111111',
         wcColor: '#B5956A',
         spotlight: 'rgba(255,252,242,0.76)',
-        quoteShadow: '0 18px 48px -34px rgba(42,37,34,0.35)',
+        quoteShadow: '0 16px 38px -32px rgba(42,37,34,0.28)',
+        quoteInset: 'inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -18px 42px rgba(181,149,106,0.045)',
+        previewBorder: 'rgba(181,149,106,0.18)',
+        previewShadow: '0 22px 48px -40px rgba(42,37,34,0.46)',
+        photoShadow: '0 14px 34px -26px rgba(42,37,34,0.34)',
         imageOpacity: 0.2,
         paperBrightness: 3.0,
         paperSaturation: 0.2,
