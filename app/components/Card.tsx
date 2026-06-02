@@ -54,18 +54,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
             disabled={exporting}
             aria-label="Scarica come immagine"
             title="Scarica come immagine"
-            className={`
-              absolute top-3 right-3 z-10
-              p-1.5 rounded-lg
-              opacity-0 group-hover:opacity-100
-              transition-opacity duration-200
-              disabled:cursor-not-allowed
-              ${
-                isDark
-                  ? 'bg-[#2A2A2A]/90 border border-white/10 text-[#A0A0A0] hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
-                  : 'bg-[#FDFCF8] border border-[#EBE5DB] text-[#8A817C] hover:text-[#DE6B58] hover:border-[#DE6B58]'
-              }
-            `}
+            className={`card-export-button ${isDark ? 'is-dark' : ''}`}
           >
             {exporting ? (
               <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>

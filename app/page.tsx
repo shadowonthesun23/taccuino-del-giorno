@@ -215,7 +215,7 @@ function NotebookQuickNav({ isDark, lingua, hasOpera, activeSection }: { isDark:
       {visibleItems.map(({ id, icon: Icon, labelIT, labelEN }) => {
         const label = lingua === 'IT' ? labelIT : labelEN;
         return (
-          <a key={id} href={`#${id}`} aria-label={label} title={label} aria-current={activeSection === id ? 'true' : undefined}>
+          <a key={id} href={`#${id}`} aria-label={label} title={label} data-label={label} aria-current={activeSection === id ? 'true' : undefined}>
             <Icon className="h-4 w-4" strokeWidth={1.6} aria-hidden="true" />
           </a>
         );
@@ -603,10 +603,13 @@ export default function Home() {
           </button>
         </div>
         {isTurningPage && (
-          <div className={`page-turn-veil ${isDark ? 'is-dark' : ''}`} role="status" aria-live="polite">
-            <span className="page-turn-mark" aria-hidden="true" />
-            <span>{lingua === 'IT' ? 'Sfoglio il taccuino' : 'Turning the page'}</span>
-          </div>
+          <>
+            <div className={`page-turn-atmosphere ${isDark ? 'is-dark' : ''}`} aria-hidden="true" />
+            <div className={`page-turn-veil ${isDark ? 'is-dark' : ''}`} role="status" aria-live="polite">
+              <span className="page-turn-mark" aria-hidden="true" />
+              <span>{lingua === 'IT' ? 'Cambio pagina' : 'Turning the page'}</span>
+            </div>
+          </>
         )}
         <main
           key={contentKey}
@@ -740,11 +743,7 @@ export default function Home() {
           {!showExportCard && (
             <button
               onClick={() => setShowExportCard(true)}
-              className={`mt-6 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors ${
-                isDark
-                  ? 'border-white/10 bg-[#1E1E1E]/55 text-[#A0A0A0] hover:border-[#DE6B58]/70 hover:text-[#DE6B58]'
-                  : 'border-[#EBE5DB] bg-[#F4F0E6]/60 text-[#8A817C] hover:border-[#DE6B58] hover:text-[#DE6B58]'
-              }`}
+              className={`author-share-trigger ${isDark ? 'is-dark' : ''}`}
             >
               <Sparkles className="h-3.5 w-3.5" />
               {lingua === 'IT' ? 'Esporta come immagine' : 'Export as image'}
@@ -763,22 +762,24 @@ export default function Home() {
       aria-hidden={!showExportCard}
     >
       <div className="pt-1 pb-1">
-        <p className={`text-center text-sm ${themeClasses.textMuted} italic mb-4 transition-opacity duration-300 ${showExportCard ? 'opacity-100' : 'opacity-0'}`}>
+        <p className={`author-export-note ${themeClasses.textMuted} ${showExportCard ? 'opacity-100' : 'opacity-0'}`}>
           {lingua === 'IT'
             ? 'Anteprima della card da condividere (formato 9:16)'
             : 'Preview of the shareable card (9:16 format)'}
         </p>
-        <AuthorExportCard
-          autoreGiorno={data.autore_giorno}
-          breveDescrizione={data.breve_descrizione}
-          fotoAutoreUrl={data.foto_autore_url}
-          citazione={data.citazione}
-          dataOdierna={data.data_odierna}
-          isDark={isDark}
-          onHidePreview={() => setShowExportCard(false)}
-          hidePreviewLabel={lingua === 'IT' ? 'Nascondi' : 'Hide'}
-          saveImageLabel={lingua === 'IT' ? 'Salva' : 'Save'}
-        />
+        <div className={`author-export-shell ${isDark ? 'is-dark' : ''}`}>
+          <AuthorExportCard
+            autoreGiorno={data.autore_giorno}
+            breveDescrizione={data.breve_descrizione}
+            fotoAutoreUrl={data.foto_autore_url}
+            citazione={data.citazione}
+            dataOdierna={data.data_odierna}
+            isDark={isDark}
+            onHidePreview={() => setShowExportCard(false)}
+            hidePreviewLabel={lingua === 'IT' ? 'Nascondi' : 'Hide'}
+            saveImageLabel={lingua === 'IT' ? 'Salva' : 'Save'}
+          />
+        </div>
       </div>
     </div>
   </div> {/* chiude relative z-10 */}
@@ -903,7 +904,7 @@ export default function Home() {
             <Card
               id="musica"
               isDark={isDark}
-              className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
+              className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
               filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
             >
               <div className="music-card-layout">
@@ -916,7 +917,6 @@ export default function Home() {
                       className={`vinyl-record absolute left-0 top-0 ${vinylOpen ? 'is-open' : ''}`}
                       style={{
                         zIndex: 0,
-                        filter: 'drop-shadow(3px 3px 12px rgba(0,0,0,0.6))',
                       }}
                     >
                       <svg
@@ -960,7 +960,6 @@ export default function Home() {
                       className="vinyl-sleeve absolute left-0 top-0 rounded-sm overflow-hidden cursor-pointer"
                       style={{
                         zIndex: 10,
-                        boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
                       }}
                       onMouseEnter={() => setVinylPreview(true)}
                       onMouseLeave={() => setVinylPreview(false)}
@@ -996,7 +995,7 @@ export default function Home() {
                       </svg>
                       <div
                         className="absolute inset-0 pointer-events-none rounded-sm"
-                        style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)' }}
+                        style={{ background: isDark ? 'radial-gradient(ellipse at center, transparent 54%, rgba(0,0,0,0.22) 100%)' : 'radial-gradient(ellipse at center, transparent 56%, rgba(42,37,34,0.16) 100%)' }}
                       />
                     </button>
                   </div>
@@ -1021,16 +1020,18 @@ export default function Home() {
                     <a
                       href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`music-link-button inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 rounded-full uppercase font-bold`}
+                      className={`music-link-button ${isDark ? 'is-dark' : ''}`}
                     >
-                      {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
+                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                      <span>{lingua === 'IT' ? 'Spotify' : 'Spotify'}</span>
                     </a>
                     <a
                       href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`music-link-button inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 rounded-full uppercase font-bold`}
+                      className={`music-link-button ${isDark ? 'is-dark' : ''}`}
                     >
-                      {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
+                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                      <span>{lingua === 'IT' ? 'YouTube' : 'YouTube'}</span>
                     </a>
                   </div>
                 </div>

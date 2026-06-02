@@ -95,17 +95,13 @@ export default function AuthorExportCard({
 
   return (
     <div className="relative group">
-      <div className="mb-3 flex flex-nowrap items-center justify-center gap-2">
+      <div className="author-export-actions">
         {onHidePreview && (
           <button
             onClick={onHidePreview}
             title={hidePreviewLabel}
             aria-label={hidePreviewLabel}
-            className={`inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors ${
-              isDark
-                ? 'border-[#DE6B58]/55 bg-[#DE6B58]/10 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/15'
-                : 'border-[#DE6B58]/60 bg-[#F4F0E6]/75 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/10'
-            }`}
+            className={`author-export-action ${isDark ? 'is-dark' : ''}`}
           >
             <EyeOff className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{hidePreviewLabel}</span>
@@ -116,11 +112,7 @@ export default function AuthorExportCard({
           disabled={exporting}
           title={saveImageLabel}
           aria-label={saveImageLabel}
-          className={`inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-widest backdrop-blur-sm transition-colors disabled:cursor-wait disabled:opacity-60 ${
-            isDark
-              ? 'border-[#DE6B58]/55 bg-[#DE6B58]/10 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/15'
-              : 'border-[#DE6B58]/60 bg-[#F4F0E6]/75 text-[#DE6B58] hover:border-[#DE6B58] hover:bg-[#DE6B58]/10'
-          }`}
+          className={`author-export-action is-primary ${isDark ? 'is-dark' : ''}`}
         >
           {exporting ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" /> : <Download className="h-3.5 w-3.5 shrink-0" />}
           <span className="truncate">{exporting ? 'Generando' : saveImageLabel}</span>
