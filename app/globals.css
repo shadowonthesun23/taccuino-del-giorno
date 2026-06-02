@@ -486,8 +486,7 @@ body {
   width: min(100%, 540px);
 }
 
-.loading-notebook-paper::before,
-.loading-notebook-paper::after {
+.loading-notebook-paper::before {
   content: "";
   pointer-events: none;
   position: absolute;
@@ -502,17 +501,6 @@ body {
   mix-blend-mode: multiply;
   opacity: 0.8;
   z-index: -1;
-}
-
-.loading-notebook-paper::after {
-  background: rgba(232, 227, 200, 0.72);
-  box-shadow: 1px 2px 5px rgba(0,0,0,0.16);
-  clip-path: polygon(2% 4%, 98% 0%, 96% 24%, 100% 42%, 97% 63%, 100% 82%, 96% 100%, 3% 96%, 0% 74%, 3% 52%, 0% 30%);
-  height: 28px;
-  left: 50%;
-  top: -8px;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 138px;
 }
 
 .loading-notebook-paper.is-dark {

@@ -196,7 +196,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
             <span className="loading-pen-line line-three" />
             <span className="loading-pen-line line-four" />
           </div>
-          <p>Sto preparando il foglio di oggi.</p>
+          <p>Sto preparando la pagina del giorno.</p>
         </section>
       </div>
     </ParallaxBackground>
