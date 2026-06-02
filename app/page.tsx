@@ -154,6 +154,69 @@ function groupByMonth(items: ArchivioItem[]): Record<string, ArchivioItem[]> {
   return groups;
 }
 
+const notebookNavItems = [
+  { id: 'autore', icon: Feather, labelIT: 'Autore', labelEN: 'Author' },
+  { id: 'citazione', icon: Quote, labelIT: 'Citazione', labelEN: 'Quote' },
+  { id: 'parola', icon: Type, labelIT: 'Parola del giorno', labelEN: 'Word of the day' },
+  { id: 'santi', icon: Church, labelIT: 'Santi', labelEN: 'Saints' },
+  { id: 'opera', icon: Palette, labelIT: 'Opera del giorno', labelEN: 'Artwork of the day', optional: true },
+  { id: 'avvenimenti', icon: CalendarDays, labelIT: 'Accadde oggi', labelEN: 'This day in history' },
+  { id: 'poesia', icon: Feather, labelIT: 'Poesia', labelEN: 'Poem' },
+  { id: 'bibbia', icon: BookOpen, labelIT: 'Bibbia', labelEN: 'Bible passage' },
+  { id: 'musica', icon: Music, labelIT: 'Musica', labelEN: 'Music' },
+];
+
+function LoadingNotebook({ isDark }: { isDark: boolean }) {
+  return (
+    <ParallaxBackground>
+      <div className={`min-h-screen bg-transparent ${garamond.className} flex items-center justify-center px-5 py-10`}>
+        <section
+          aria-live="polite"
+          aria-label="Il taccuino si sta preparando"
+          className={`loading-notebook-paper ${isDark ? 'is-dark' : ''}`}
+        >
+          <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+            oggi
+          </div>
+          <div className="loading-notebook-head">
+            <span />
+            <BookOpen className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+          </div>
+          <h1 className="font-jocky">Il Taccuino del Giorno</h1>
+          <div className="loading-writing-stack" aria-hidden="true">
+            <span className="loading-pen-line line-one" />
+            <span className="loading-pen-line line-two" />
+            <span className="loading-pen-line line-three" />
+            <span className="loading-pen-line line-four" />
+          </div>
+          <p>Sto preparando il foglio di oggi.</p>
+        </section>
+      </div>
+    </ParallaxBackground>
+  );
+}
+
+function NotebookQuickNav({ isDark, lingua, hasOpera, activeSection }: { isDark: boolean; lingua: 'IT' | 'EN'; hasOpera: boolean; activeSection: string }) {
+  const visibleItems = notebookNavItems.filter((item) => hasOpera || !item.optional);
+
+  return (
+    <nav
+      aria-label={lingua === 'IT' ? 'Sezioni del taccuino' : 'Notebook sections'}
+      className={`notebook-quick-nav ${isDark ? 'is-dark' : ''}`}
+    >
+      <span className="notebook-quick-nav-rail" aria-hidden="true" />
+      {visibleItems.map(({ id, icon: Icon, labelIT, labelEN }) => {
+        const label = lingua === 'IT' ? labelIT : labelEN;
+        return (
+          <a key={id} href={`#${id}`} aria-label={label} title={label} aria-current={activeSection === id ? 'true' : undefined}>
+            <Icon className="h-4 w-4" strokeWidth={1.6} aria-hidden="true" />
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
@@ -176,6 +239,7 @@ export default function Home() {
   const [showExportCard, setShowExportCard] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [activeSection, setActiveSection] = useState('autore');
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
@@ -204,9 +268,34 @@ export default function Home() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-useEffect(() => {
-  document.body.style.backgroundColor = isDark ? '#1E1E1E' : '#F4F0E6';
-}, [isDark]);
+
+  useEffect(() => {
+    if (!data) return;
+
+    const sectionIds = notebookNavItems
+      .filter((item) => Boolean(opera) || !item.optional)
+      .map((item) => item.id);
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((section): section is HTMLElement => Boolean(section));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target.id) setActiveSection(visible.target.id);
+      },
+      { rootMargin: '-28% 0px -55% 0px', threshold: [0.08, 0.2, 0.36] }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [data, opera]);
+
+  useEffect(() => {
+    document.body.style.backgroundColor = isDark ? '#1E1E1E' : '#F4F0E6';
+  }, [isDark]);
   
   const caricaGiorno = (dataIso: string | null) => {
     setLoading(true); setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylOpen(false);
@@ -250,16 +339,25 @@ useEffect(() => {
   }, [lingua, dataOriginale, dataTradotta]);
 
   useEffect(() => {
-    setIsMounted(true);
+    let mountedTimer: number | undefined;
     if (typeof window !== 'undefined') {
       const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const savedTheme = localStorage.getItem('theme');
       const calcolatoDark = savedTheme === 'dark' || (!savedTheme && isSystemDark);
-      setIsDark(calcolatoDark);
+      mountedTimer = window.setTimeout(() => {
+        setIsMounted(true);
+        setIsDark(calcolatoDark);
+      }, 0);
       document.documentElement.classList.toggle('dark', calcolatoDark);
     }
-    caricaGiorno(null);
-    fetch('/api/archivio').then(res => res.ok ? res.json() : []).then(setArchivio).catch(() => setArchivio([]));
+    const loadTimer = window.setTimeout(() => {
+      caricaGiorno(null);
+      fetch('/api/archivio').then(res => res.ok ? res.json() : []).then(setArchivio).catch(() => setArchivio([]));
+    }, 0);
+    return () => {
+      if (mountedTimer !== undefined) window.clearTimeout(mountedTimer);
+      window.clearTimeout(loadTimer);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -294,7 +392,7 @@ useEffect(() => {
       ref={popoverRef}
       role="dialog"
       aria-label="Archivio dei giorni"
-      className={`fixed z-[9999] rounded-2xl border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+      className={`archive-popover ${isDark ? 'is-dark' : ''} fixed z-[9999] border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
       style={{
         top: `${popoverPos.top}px`,
         right: `${popoverPos.right}px`,
@@ -312,7 +410,7 @@ useEffect(() => {
       <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
         <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
       </svg>
-      <div className={`flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
+      <div className={`archive-header flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
         <div className="flex items-center gap-2">
           <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
           <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
@@ -325,27 +423,27 @@ useEffect(() => {
         </div>
       )}
       <div className="relative flex-1 min-h-0">
-        <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
+        <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="archive-scroll overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
           {archivio.length === 0 ? (
             <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
           ) : (
             Object.entries(groupedArchivio).map(([mese, items]) => (
-              <div key={mese} className="mb-4">
-                <p className={`text-xs font-bold tracking-widest uppercase ${themeClasses.textMuted} mb-2 px-1`}>{mese}</p>
-                <ul className="space-y-0.5">
+              <div key={mese} className="archive-month">
+                <p className={`archive-month-tab ${themeClasses.textMuted}`}>{mese}</p>
+                <ul className="archive-list">
                   {items.map(item => {
                     const isOggi = item.data === oggi;
                     const isSelezionato = item.data === dataSelezionata;
                     return (
                       <li key={item.data}>
                         <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data); else setPopoverOpen(false); }}
-                          className={`w-full text-left px-3 py-4 rounded-xl transition-colors flex items-center gap-4 ${
-                            isSelezionato ? 'bg-[#DE6B58]/15 text-[#DE6B58]' : isDark ? 'hover:bg-white/5 text-[#E0E0E0]' : 'hover:bg-[#2A2522]/5 text-[#2A2522]'
-                          }`}>
-                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
-                          <span className="flex-1 min-w-0">
-                            <span className="text-lg font-bold block truncate">{item.autore_giorno}</span>
-                            <span className={`text-sm ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>{formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}</span>
+                          className={`archive-entry ${
+                            isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
+                          } ${isOggi ? 'is-today' : ''}`}>
+                          <span className={`archive-entry-dot ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
+                          <span className="archive-entry-copy">
+                            <span className="archive-entry-title">{item.autore_giorno}</span>
+                            <span className={`archive-entry-date ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>{formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}</span>
                           </span>
                         </button>
                       </li>
@@ -366,6 +464,7 @@ useEffect(() => {
 
   if (loading) return (
     <>
+      <LoadingNotebook isDark={isDark} />
       {archivioPopover}
     </>
   );
@@ -402,66 +501,67 @@ useEffect(() => {
 
   return (
     <ParallaxBackground>
-      <div className={`min-h-screen bg-transparent ${themeClasses.text} ${garamond.className} py-8 md:py-10 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-<div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-  <button
-    onClick={toggleLingua}
-    disabled={traducendo}
-    title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-    className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
-      lingua === 'EN'
-        ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
-        : isDark
-          ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-          : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-    } disabled:opacity-50 disabled:cursor-not-allowed`}
-    aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-  >
-    {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
-    <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
-  </button>
+      <div className={`min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-8 md:py-10 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+        <NotebookQuickNav isDark={isDark} lingua={lingua} hasOpera={Boolean(opera)} activeSection={activeSection} />
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <button
+            onClick={toggleLingua}
+            disabled={traducendo}
+            title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
+              lingua === 'EN'
+                ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
+                : isDark
+                  ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                  : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+          >
+            {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
+            <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
+          </button>
 
-  {archivio.length > 0 && (
-    <button
-      ref={triggerRef}
-      onClick={() => {
-        if (!popoverOpen && triggerRef.current) {
-          const rect = triggerRef.current.getBoundingClientRect();
-          setPopoverPos({
-            top: rect.bottom + 10,
-            right: window.innerWidth - rect.right,
-          });
-        }
-        setPopoverOpen(v => !v);
-      }}
-      className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
-        popoverOpen
-          ? 'border-[#DE6B58] text-[#DE6B58]'
-          : isDark
-            ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-            : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-      }`}
-      aria-label="Archivio"
-      aria-expanded={popoverOpen}
-      aria-haspopup="true"
-    >
-      <CalendarDays className="w-5 h-5" />
-    </button>
-  )}
+          {archivio.length > 0 && (
+            <button
+              ref={triggerRef}
+              onClick={() => {
+                if (!popoverOpen && triggerRef.current) {
+                  const rect = triggerRef.current.getBoundingClientRect();
+                  setPopoverPos({
+                    top: rect.bottom + 10,
+                    right: window.innerWidth - rect.right,
+                  });
+                }
+                setPopoverOpen(v => !v);
+              }}
+              className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
+                popoverOpen
+                  ? 'border-[#DE6B58] text-[#DE6B58]'
+                  : isDark
+                    ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                    : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+              }`}
+              aria-label="Archivio"
+              aria-expanded={popoverOpen}
+              aria-haspopup="true"
+            >
+              <CalendarDays className="w-5 h-5" />
+            </button>
+          )}
 
-  <button
-    onClick={toggleTheme}
-    className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
-      isDark
-        ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-        : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-    }`}
-    aria-label="Cambia tema"
-  >
-    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-  </button>
-</div>
-        <main key={contentKey} className="max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10">
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-full border backdrop-blur-sm transition-colors ${
+              isDark
+                ? 'border-[#3D3D3D] text-[#A0A0A0] bg-[#1E1E1E]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+                : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+            }`}
+            aria-label="Cambia tema"
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        </div>
+        <main key={contentKey} className="journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10">
           <header className="text-center space-y-5 relative animate-fadeInUp stagger-1 px-4 pt-3 pb-4">
             <div
               aria-hidden="true"
@@ -483,7 +583,7 @@ useEffect(() => {
                 </div>
               </div>
               <h1
-                className="text-5xl md:text-6xl font-medium tracking-tight mb-4"
+                className="text-[44px] sm:text-5xl md:text-6xl leading-[0.95] font-medium tracking-tight mb-4"
                 style={{
                   textShadow: isDark
                     ? '0 2px 10px rgba(0,0,0,0.55)'
@@ -495,7 +595,7 @@ useEffect(() => {
                 </span>
               </h1>
               <p
-                className={`italic text-lg ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}
+                className={`italic text-base sm:text-lg leading-relaxed ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}
                 style={{
                   textShadow: isDark
                     ? '0 1px 3px rgba(0,0,0,0.5)'
@@ -511,7 +611,7 @@ useEffect(() => {
             </div>
           </header>
 
-        <section className="pt-0 pb-6 md:pt-2 md:pb-6 animate-fadeInUp stagger-2 relative px-4">
+        <section id="autore" className="scroll-mt-28 pt-0 pb-6 md:pt-2 md:pb-6 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
@@ -553,7 +653,7 @@ useEffect(() => {
         </div>
       )}
 
-      <div className="relative z-10 flex-1 text-center md:text-left">
+      <div className="relative z-10 w-full min-w-0 flex-1 text-center md:text-left">
         <div
           aria-hidden="true"
           className="absolute -inset-x-5 -inset-y-4 md:-inset-x-10 md:-inset-y-8 pointer-events-none"
@@ -642,10 +742,11 @@ useEffect(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
             <Card
+              id="citazione"
               title={lingua === 'IT' ? 'Citazione' : 'Quote'}
               icon={Quote}
               isDark={isDark}
-              className="md:col-span-2 animate-fadeInUp stagger-3"
+              className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-3"
               filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
             >
               <blockquote className="md:px-8">
@@ -657,7 +758,7 @@ useEffect(() => {
               </blockquote>
             </Card>
 
-            <Card title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark} className="animate-fadeInUp stagger-4"
+            <Card id="parola" title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
               <div className="text-center mb-6">
                 <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
@@ -669,7 +770,7 @@ useEffect(() => {
               )}
             </Card>
 
-            <Card title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark} className="animate-fadeInUp stagger-4"
+            <Card id="santi" title={lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints"} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename="santi">
               <ul className="space-y-6">
                 {data.santi.map((santo, idx) => (
@@ -683,7 +784,7 @@ useEffect(() => {
             </Card>
 
             {opera && (
-              <div className="md:col-span-2 notched-card-wrapper animate-fadeInUp stagger-5">
+              <div id="opera" className="scroll-mt-28 md:col-span-2 notched-card-wrapper animate-fadeInUp stagger-5">
                 <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
                   <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                     <div className="space-y-5 order-2 md:order-1">
@@ -709,7 +810,7 @@ useEffect(() => {
               </div>
             )}
 
-            <Card title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="md:col-span-2 animate-fadeInUp stagger-6"
+            <Card id="avvenimenti" title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
               filename="avvenimenti">
               <ul className="space-y-4">
                 {data.avvenimenti.map((evento, idx) => {
@@ -724,7 +825,7 @@ useEffect(() => {
               </ul>
             </Card>
 
-            <Card title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="animate-fadeInUp stagger-7"
+            <Card id="poesia" title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.poesia.testo}</div>
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
@@ -739,7 +840,7 @@ useEffect(() => {
               )}
             </Card>
 
-            <Card title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark} className="animate-fadeInUp stagger-7"
+            <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia">
               <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
@@ -755,67 +856,74 @@ useEffect(() => {
 
             {/* ── CONSIGLIO MUSICALE ── */}
             <Card
+              id="musica"
               isDark={isDark}
-              className="md:col-span-2 animate-fadeInUp stagger-8"
+              className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
               filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
             >
-              <div className="flex flex-col md:flex-row gap-10 items-stretch">
+              <div className="music-card-layout">
 
-                <div className="flex items-center justify-center flex-shrink-0 select-none" aria-hidden="true">
+                <div className="music-media-cell select-none">
                   <div
-                    className="relative"
-                    style={{ width: '240px', height: '240px' }}
+                    className="vinyl-stage relative"
                   >
-                    <svg
-                      viewBox="0 0 240 240"
-                      className="absolute inset-0 w-full h-full"
+                    <div
+                      className={`vinyl-record absolute left-0 top-0 ${vinylOpen ? 'is-open' : ''}`}
                       style={{
                         zIndex: 0,
                         filter: 'drop-shadow(3px 3px 12px rgba(0,0,0,0.6))',
-                        transform: vinylOpen ? 'translateX(72px)' : 'translateX(0)',
-                        transition: 'transform 700ms ease-in-out',
                       }}
                     >
-                      <defs>
-                        <radialGradient id="vinyl-dark" cx="50%" cy="50%" r="50%">
-                          <stop offset="0%" stopColor="#262626" />
-                          <stop offset="40%" stopColor="#111111" />
-                          <stop offset="100%" stopColor="#1c1c1c" />
-                        </radialGradient>
-                        <radialGradient id="vinyl-label" cx="50%" cy="50%" r="50%">
-                          <stop offset="0%" stopColor={isDark ? '#4a3828' : '#d4b896'} />
-                          <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
-                        </radialGradient>
-                      </defs>
-                      <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
-                      {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
-                        <circle key={i} cx="120" cy="120" r={r}
-                          fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
-                      ))}
-                      <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
-                        transform="rotate(-35 90 72)" />
-                      <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
-                      <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
-                      <text x="120" y="114" textAnchor="middle" fontSize="6.5"
-                        fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
-                        {data.musica.autore.slice(0, 16)}
-                      </text>
-                      <text x="120" y="126" textAnchor="middle" fontSize="5.5"
-                        fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
-                        {data.musica.brano.slice(0, 18)}
-                      </text>
-                    </svg>
+                      <svg
+                        viewBox="0 0 240 240"
+                        className={`w-full h-full ${vinylOpen ? 'vinyl-spin' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <defs>
+                          <radialGradient id="vinyl-dark" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="#262626" />
+                            <stop offset="40%" stopColor="#111111" />
+                            <stop offset="100%" stopColor="#1c1c1c" />
+                          </radialGradient>
+                          <radialGradient id="vinyl-label" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor={isDark ? '#4a3828' : '#d4b896'} />
+                            <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
+                          </radialGradient>
+                        </defs>
+                        <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
+                        {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
+                          <circle key={i} cx="120" cy="120" r={r}
+                            fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
+                        ))}
+                        <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
+                          transform="rotate(-35 90 72)" />
+                        <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
+                        <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
+                        <text x="120" y="114" textAnchor="middle" fontSize="6.5"
+                          fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
+                          {data.musica.autore.slice(0, 16)}
+                        </text>
+                        <text x="120" y="126" textAnchor="middle" fontSize="5.5"
+                          fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
+                          {data.musica.brano.slice(0, 18)}
+                        </text>
+                      </svg>
+                    </div>
 
-                    <div
-                      className="absolute inset-0 rounded-sm overflow-hidden cursor-pointer"
+                    <button
+                      type="button"
+                      className="vinyl-sleeve absolute left-0 top-0 rounded-sm overflow-hidden cursor-pointer"
                       style={{
                         zIndex: 10,
                         boxShadow: '0 6px 28px rgba(0,0,0,0.32)',
-                        transform: vinylOpen ? 'translateX(-4px)' : 'translateX(0)',
-                        transition: 'transform 700ms ease-in-out',
                       }}
                       onMouseEnter={() => setVinylOpen(true)}
                       onMouseLeave={() => setVinylOpen(false)}
+                      onFocus={() => setVinylOpen(true)}
+                      onBlur={() => setVinylOpen(false)}
+                      onClick={() => setVinylOpen(true)}
+                      aria-label={lingua === 'IT' ? 'Apri la copertina del disco' : 'Open the record sleeve'}
+                      aria-pressed={vinylOpen}
                     >
                       {vinylCover ? (
                         <img
@@ -845,11 +953,11 @@ useEffect(() => {
                         className="absolute inset-0 pointer-events-none rounded-sm"
                         style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.28) 100%)' }}
                       />
-                    </div>
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex-1 flex flex-col justify-center text-center md:text-left">
+                <div className="music-copy-cell">
                   <div className="flex items-center justify-center md:justify-start gap-2 mb-5">
                     <Music className="w-5 h-5 text-[#DE6B58] flex-shrink-0" />
                     <h3 className={`text-sm font-bold tracking-[0.2em] uppercase ${themeClasses.textMuted}`}>
@@ -864,18 +972,18 @@ useEffect(() => {
                   </p>
                   <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
                   <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                  <div className="music-link-actions">
                     <a
                       href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
+                      className={`music-link-button inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 rounded-full uppercase font-bold`}
                     >
                       {lingua === 'IT' ? 'Ascolta su Spotify' : 'Listen on Spotify'}
                     </a>
                     <a
                       href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-8 py-3 rounded-full uppercase tracking-widest text-sm font-bold w-full sm:w-auto`}
+                      className={`music-link-button inline-flex items-center justify-center border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 rounded-full uppercase font-bold`}
                     >
                       {lingua === 'IT' ? 'Ascolta su YouTube' : 'Listen on YouTube'}
                     </a>

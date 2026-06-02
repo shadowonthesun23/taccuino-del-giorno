@@ -4,6 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import { Download } from 'lucide-react';
 
 interface CardProps {
+  id?: string;
   title?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   isDark: boolean;
@@ -12,7 +13,7 @@ interface CardProps {
   filename?: string;
 }
 
-export default function Card({ title, icon: Icon, isDark, children, className = '', filename }: CardProps) {
+export default function Card({ id, title, icon: Icon, isDark, children, className = '', filename }: CardProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -39,7 +40,7 @@ export default function Card({ title, icon: Icon, isDark, children, className = 
   }, [exporting, filename]);
 
   return (
-    <div className={className}>
+    <div id={id} className={className}>
       <section
         ref={sectionRef}
         className={`${
