@@ -47,6 +47,12 @@ body {
   background-color: #1E1E1E;
 }
 
+.notebook-wordmark {
+  font-kerning: normal;
+  letter-spacing: 0.016em;
+  text-rendering: geometricPrecision;
+}
+
 /* ── Effetto scrittura a mano per il titolo principale ───────────── */
 @keyframes handwrite-mask {
   from {
