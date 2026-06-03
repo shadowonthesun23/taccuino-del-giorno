@@ -67,10 +67,17 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
             <feTurbulence type="turbulence" baseFrequency="0.08 0.6" numOctaves={3} seed={14} result="noise2" />
             <feDisplacementMap in="SourceGraphic" in2="noise2" scale={3} xChannelSelector="R" yChannelSelector="G" />
           </filter>
+          <linearGradient id="wc-fade" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={color} stopOpacity="0" />
+            <stop offset="12%" stopColor={color} stopOpacity="0.72" />
+            <stop offset="48%" stopColor={color} stopOpacity="1" />
+            <stop offset="88%" stopColor={color} stopOpacity="0.7" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
         </defs>
-        <path className="watercolor-stroke stroke-main" d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" opacity="0.55" filter="url(#wc-blur)" />
-        <path className="watercolor-stroke stroke-edge" d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" filter="url(#wc-edge)" />
-        <path className="watercolor-stroke stroke-ghost" d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" opacity="0.18" filter="url(#wc-blur)" />
+        <path className="watercolor-stroke stroke-main" d="M 190 20 Q 270 15 348 18 Q 424 21 494 16 Q 560 12 610 18" fill="none" stroke="url(#wc-fade)" strokeWidth="5.5" strokeLinecap="round" opacity="0.58" filter="url(#wc-blur)" />
+        <path className="watercolor-stroke stroke-edge" d="M 218 16 Q 308 12 392 15 Q 480 19 582 15" fill="none" stroke="url(#wc-fade)" strokeWidth="1.8" strokeLinecap="round" opacity="0.32" filter="url(#wc-edge)" />
+        <path className="watercolor-stroke stroke-ghost" d="M 248 23 Q 355 27 452 21 Q 525 16 574 22" fill="none" stroke="url(#wc-fade)" strokeWidth="2.2" strokeLinecap="round" opacity="0.18" filter="url(#wc-blur)" />
       </svg>
     </div>
   );
