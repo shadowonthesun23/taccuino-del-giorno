@@ -724,7 +724,7 @@ export default function Home() {
           }}
         />
         <div className="relative z-10">
-          <span className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2">
+          <span className={`section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2`}>
             {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
           </span>
           <h2
@@ -1011,7 +1011,7 @@ export default function Home() {
                 <div className="music-copy-cell">
                   <div className="flex items-center justify-center md:justify-start gap-2 mb-5">
                     <Music className="w-5 h-5 text-[#DE6B58] flex-shrink-0" />
-                    <h3 className={`text-sm font-bold tracking-[0.2em] uppercase ${themeClasses.textMuted}`}>
+                    <h3 className={`section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase`}>
                       {lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation'}
                     </h3>
                   </div>

@@ -69,7 +69,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
         {title && (
           <div className="flex items-center justify-center gap-2 mb-6">
             {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
-            <h3 className="text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0">{title}</h3>
+            <h3 className={`section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0`}>{title}</h3>
           </div>
         )}
         <div className={isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'}>{children}</div>

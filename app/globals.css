@@ -611,6 +611,62 @@ body {
   transition: gap 220ms ease;
 }
 
+.section-brush-label {
+  align-items: center;
+  color: #cf5d4f;
+  display: inline-flex;
+  isolation: isolate;
+  line-height: 1.12;
+  padding: 2px 8px 3px;
+  position: relative;
+  text-shadow: 0 1px 1px rgba(255,252,242,0.56);
+}
+
+.section-brush-label::before {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(222,107,88,0.2) 9%, rgba(222,107,88,0.31) 44%, rgba(181,149,106,0.2) 82%, transparent 100%),
+    radial-gradient(ellipse at 24% 44%, rgba(255,252,242,0.26), transparent 58%);
+  border-radius: 9px 5px 8px 6px;
+  clip-path: polygon(1% 24%, 17% 9%, 43% 15%, 68% 6%, 99% 18%, 96% 78%, 72% 91%, 46% 83%, 21% 94%, 3% 76%);
+  content: "";
+  inset: -1px -6px 0 -6px;
+  opacity: 0.95;
+  pointer-events: none;
+  position: absolute;
+  transform: rotate(-0.55deg) skewX(-5deg);
+  z-index: -1;
+}
+
+.section-brush-label::after {
+  background: linear-gradient(90deg, transparent, rgba(222,107,88,0.36), transparent);
+  bottom: 1px;
+  content: "";
+  height: 1px;
+  left: 8%;
+  opacity: 0.5;
+  pointer-events: none;
+  position: absolute;
+  right: 10%;
+  transform: rotate(-1.1deg);
+  z-index: -1;
+}
+
+.section-brush-label.is-dark {
+  color: #efb8ad;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.46);
+}
+
+.section-brush-label.is-dark::before {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(222,107,88,0.15) 10%, rgba(222,107,88,0.24) 46%, rgba(181,149,106,0.14) 84%, transparent 100%),
+    radial-gradient(ellipse at 24% 44%, rgba(255,255,255,0.055), transparent 58%);
+  opacity: 0.92;
+}
+
+.section-brush-label.is-dark::after {
+  opacity: 0.34;
+}
+
 .author-share-trigger {
   align-items: center;
   backdrop-filter: blur(10px);
