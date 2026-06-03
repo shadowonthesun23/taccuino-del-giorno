@@ -169,7 +169,7 @@ const notebookNavItems = [
   { id: 'opera', icon: Palette, labelIT: 'Opera del giorno', labelEN: 'Artwork of the day', optional: true },
   { id: 'avvenimenti', icon: CalendarDays, labelIT: 'Accadde oggi', labelEN: 'This day in history' },
   { id: 'poesia', icon: Feather, labelIT: 'Poesia', labelEN: 'Poem' },
-  { id: 'bibbia', icon: BookOpen, labelIT: 'Bibbia', labelEN: 'Bible passage' },
+  { id: 'bibbia', icon: BookOpen, labelIT: 'Passaggio biblico', labelEN: 'Biblical passage' },
   { id: 'musica', icon: Music, labelIT: 'Musica', labelEN: 'Music' },
 ];
 
@@ -886,7 +886,7 @@ export default function Home() {
               )}
             </Card>
 
-            <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico del giorno' : 'Biblical Passage of the Day'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia">
               <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
@@ -1044,12 +1044,11 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner">
-              <p className={`journal-footer-signature ${caveat.className}`}>Antonello</p>
               <p className="journal-footer-title font-jocky">Il Taccuino del Giorno</p>
               <p className="journal-footer-note">
                 {lingua === 'IT'
-                  ? 'Un foglio quotidiano di cultura, memoria e ascolto.'
-                  : 'A daily page of culture, memory, and listening.'}
+                  ? 'Un foglio quotidiano di cultura, memoria e ascolto. Realizzato con amore da Antonello.'
+                  : 'A daily page of culture, memory, and listening. Made with love by Antonello.'}
               </p>
               <nav className="journal-footer-socials" aria-label={lingua === 'IT' ? 'Collegamenti social' : 'Social links'}>
                 <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="X (Twitter)">

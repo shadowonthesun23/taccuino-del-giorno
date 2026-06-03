@@ -505,16 +505,17 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.36);
   color: #8a817c;
   display: inline-flex;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: inherit;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 500;
   gap: 10px;
   left: 50%;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.012em;
   min-height: 40px;
   padding: 0 15px;
   position: fixed;
-  text-transform: uppercase;
+  text-transform: none;
   top: 82px;
   transform: translateX(-50%);
   white-space: nowrap;
@@ -601,6 +602,15 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.18);
 }
 
+.top-language-toggle {
+  font-family: inherit;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.012em;
+  text-transform: none;
+}
+
 .journal-hero {
   isolation: isolate;
 }
@@ -620,15 +630,16 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.24);
   color: #7d746f;
   display: inline-flex;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 500;
   gap: 8px;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.012em;
   margin-top: 24px;
-  min-height: 40px;
-  padding: 0 14px;
-  text-transform: uppercase;
+  min-height: 42px;
+  padding: 0 16px;
+  text-transform: none;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -719,16 +730,17 @@ body {
   border-radius: 999px;
   color: #7d746f;
   display: inline-flex;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 500;
   gap: 7px;
   justify-content: center;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.012em;
   min-height: 38px;
   min-width: 104px;
   padding: 0 13px;
-  text-transform: uppercase;
+  text-transform: none;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -1005,17 +1017,18 @@ body {
   box-shadow: 0 12px 26px -22px rgba(42,37,34,0.5);
   color: #6f6863;
   content: attr(data-label);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 10px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
   left: calc(100% + 9px);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.012em;
   line-height: 1;
   opacity: 0;
   padding: 7px 9px;
   pointer-events: none;
   position: absolute;
-  text-transform: uppercase;
+  text-transform: none;
   top: 50%;
   transform: translate(-4px, -50%);
   transition:
@@ -1408,18 +1421,19 @@ body {
   border-radius: 999px;
   color: #de6b58;
   display: inline-flex;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 500;
   gap: 7px;
   justify-content: center;
-  letter-spacing: 0.1em;
-  min-height: 40px;
+  letter-spacing: 0.012em;
+  min-height: 42px;
   min-width: 122px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   text-align: center;
   text-decoration: none;
-  text-transform: uppercase;
+  text-transform: none;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -1489,14 +1503,20 @@ body {
   justify-items: center;
   margin: 0 auto;
   max-width: 560px;
+  position: relative;
 }
 
-.journal-footer-signature {
-  color: #de6b58;
-  font-size: 30px;
-  line-height: 1;
-  margin: 0 0 2px;
-  opacity: 0.92;
+.journal-footer-inner::before {
+  background: radial-gradient(ellipse 72% 58% at 50% 50%, rgba(255,252,242,0.72), rgba(244,240,230,0.34) 48%, transparent 74%);
+  content: "";
+  inset: -22px -34px -18px;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.journal-footer.is-dark .journal-footer-inner::before {
+  background: radial-gradient(ellipse 72% 58% at 50% 50%, rgba(0,0,0,0.18), rgba(0,0,0,0.08) 48%, transparent 74%);
 }
 
 .journal-footer-title {
@@ -1504,18 +1524,28 @@ body {
   font-size: clamp(2.1rem, 5vw, 3.2rem);
   line-height: 0.95;
   margin: 0;
+  text-shadow: 0 1px 1px rgba(255,252,242,0.75);
 }
 
 .journal-footer.is-dark .journal-footer-title {
   color: #e0e0e0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.48);
 }
 
 .journal-footer-note {
-  font-size: 16px;
+  color: #5f5752;
+  font-size: 18px;
   font-style: italic;
-  line-height: 1.55;
-  margin: 12px 0 0;
-  max-width: 430px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 14px 0 0;
+  max-width: 520px;
+  text-shadow: 0 1px 1px rgba(255,252,242,0.72);
+}
+
+.journal-footer.is-dark .journal-footer-note {
+  color: #c8c8c8;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
 .journal-footer-socials {
@@ -1533,15 +1563,16 @@ body {
   border-radius: 999px;
   color: inherit;
   display: inline-flex;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: inherit;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 500;
   gap: 7px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.012em;
   min-height: 38px;
   padding: 0 13px;
   text-decoration: none;
-  text-transform: uppercase;
+  text-transform: none;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -1589,7 +1620,7 @@ body {
   }
 
   .page-turn-veil {
-    font-size: 10px;
+    font-size: 14px;
     gap: 8px;
     max-width: calc(100vw - 48px);
     min-height: 36px;
@@ -1613,10 +1644,10 @@ body {
   }
 
   .author-share-trigger {
-    font-size: 10px;
-    letter-spacing: 0.09em;
-    min-height: 38px;
-    padding: 0 12px;
+    font-size: 15px;
+    letter-spacing: 0.012em;
+    min-height: 40px;
+    padding: 0 14px;
   }
 
   .author-export-note {
@@ -1632,8 +1663,8 @@ body {
   }
 
   .author-export-action {
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 15px;
+    letter-spacing: 0.012em;
     min-height: 36px;
     min-width: 96px;
     padding: 0 11px;
@@ -1719,11 +1750,11 @@ body {
   }
 
   .music-link-button {
-    font-size: 10px;
-    letter-spacing: 0.09em;
-    min-height: 38px;
+    font-size: 15px;
+    letter-spacing: 0.012em;
+    min-height: 40px;
     min-width: 108px;
-    padding: 8px 11px;
+    padding: 8px 13px;
   }
 
   .journal-footer {
@@ -1739,13 +1770,9 @@ body {
     width: min(64%, 250px);
   }
 
-  .journal-footer-signature {
-    font-size: 27px;
-  }
-
   .journal-footer-note {
-    font-size: 15px;
-    max-width: 300px;
+    font-size: 16px;
+    max-width: 320px;
   }
 
   .journal-footer-socials {
@@ -1754,7 +1781,7 @@ body {
   }
 
   .journal-footer-link {
-    font-size: 10px;
+    font-size: 14px;
     min-height: 36px;
     padding: 0 10px;
   }
