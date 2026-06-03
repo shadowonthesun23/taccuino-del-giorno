@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { EB_Garamond, Caveat } from 'next/font/google';
+import localFont from 'next/font/local';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2, Search } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
@@ -18,6 +19,12 @@ const caveat = Caveat({
   subsets: ['latin'],
   weight: ['400', '700'],
   display: 'swap',
+});
+const jocky = localFont({
+  src: '../public/fonts/JockyStarline.ttf',
+  display: 'block',
+  preload: true,
+  fallback: ['serif'],
 });
 
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
@@ -189,7 +196,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
             <span />
             <BookOpen className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
           </div>
-          <h1 className="font-jocky">Il Taccuino del Giorno</h1>
+          <h1 className={jocky.className}>Il Taccuino del Giorno</h1>
           <div className="loading-writing-stack" aria-hidden="true">
             <span className="loading-pen-line line-one" />
             <span className="loading-pen-line line-two" />
@@ -640,7 +647,7 @@ export default function Home() {
                     : '0 1px 1px rgba(255,252,242,0.75)',
                 }}
               >
-                <span className="font-jocky animate-typewriter">
+                <span className={`${jocky.className} animate-typewriter`}>
                   {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
                 </span>
               </h1>
@@ -1044,7 +1051,7 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner">
-              <p className="journal-footer-title font-jocky">Il Taccuino del Giorno</p>
+              <p className={`journal-footer-title ${jocky.className}`}>Il Taccuino del Giorno</p>
               <p className="journal-footer-note">
                 {lingua === 'IT'
                   ? 'Un foglio quotidiano di cultura, memoria e ascolto. Realizzato con amore da Antonello.'

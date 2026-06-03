@@ -47,20 +47,6 @@ body {
   background-color: #1E1E1E;
 }
 
-/* ── JockyStarline custom font ───────────────────────────────────── */
-@font-face {
-  font-family: 'JockyStarline';
-  src: url('/fonts/JockyStarline.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-.font-jocky {
-  font-family: 'JockyStarline', serif;
-  letter-spacing: 0;
-}
-
 /* ── Effetto scrittura a mano per il titolo principale ───────────── */
 @keyframes handwrite-mask {
   from {
