@@ -32,18 +32,20 @@ export default function ParallaxBackground({ children }: { children: React.React
     };
   }, []);
 
-  const bgColor = dark ? '#1E1E1E' : '#F4F0E6';
+  const bgColor = dark ? '#201F1D' : '#F4F0E6';
+  const imageOpacity = dark ? 0.44 : 0.2;
+  const imageFilter = dark ? 'grayscale(1) brightness(0.52) contrast(1.08)' : 'none';
 
   return (
     <>
       {/* Sfondo solido che copre tutta la viewport incluse le barre Safari iOS */}
       <div
-        className="fixed inset-0 z-0 pointer-events-none"
+        className="safe-viewport-backdrop fixed z-0 pointer-events-none"
         style={{ backgroundColor: bgColor, transition: 'background-color 300ms' }}
       />
 
       {/* Immagine parallax sovrapposta */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      <div className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden">
         <div
           className="absolute top-0 left-0 w-full h-[150vh] will-change-transform"
           style={{
@@ -51,7 +53,8 @@ export default function ParallaxBackground({ children }: { children: React.React
             backgroundSize: 'cover',
             backgroundPosition: 'center top',
             transform: `translateY(-${scrollProgress * 33.33}%)`,
-            opacity: 0.2,
+            filter: imageFilter,
+            opacity: imageOpacity,
           }}
         />
       </div>

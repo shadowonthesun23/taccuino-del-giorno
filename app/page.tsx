@@ -27,6 +27,42 @@ const jocky = localFont({
   fallback: ['serif'],
 });
 
+const THEME_SURFACE = {
+  light: '#F4F0E6',
+  dark: '#1E1E1E',
+} as const;
+
+function applyBrowserTheme(nextDark: boolean) {
+  if (typeof document === 'undefined') return;
+
+  const scheme = nextDark ? 'dark' : 'light';
+  const color = THEME_SURFACE[scheme];
+  const root = document.documentElement;
+
+  root.classList.toggle('dark', nextDark);
+  root.dataset.theme = scheme;
+  root.style.backgroundColor = color;
+  root.style.colorScheme = scheme;
+
+  document.body.style.backgroundColor = color;
+  document.body.style.colorScheme = scheme;
+
+  document
+    .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+    .forEach((meta) => {
+      meta.content = color;
+    });
+
+  let appThemeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-app-theme="true"]');
+  if (!appThemeMeta) {
+    appThemeMeta = document.createElement('meta');
+    appThemeMeta.name = 'theme-color';
+    appThemeMeta.dataset.appTheme = 'true';
+    document.head.appendChild(appThemeMeta);
+  }
+  appThemeMeta.content = color;
+}
+
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
@@ -318,7 +354,7 @@ export default function Home() {
   }, [data, opera]);
 
   useEffect(() => {
-    document.body.style.backgroundColor = isDark ? '#1E1E1E' : '#F4F0E6';
+    applyBrowserTheme(isDark);
   }, [isDark]);
   
   const caricaGiorno = (dataIso: string | null, usePageTurn = false) => {
@@ -382,7 +418,7 @@ export default function Home() {
         setIsMounted(true);
         setIsDark(calcolatoDark);
       }, 0);
-      document.documentElement.classList.toggle('dark', calcolatoDark);
+      applyBrowserTheme(calcolatoDark);
     }
     const loadTimer = window.setTimeout(() => {
       caricaGiorno(null);
@@ -398,7 +434,7 @@ export default function Home() {
     const next = !isDark;
     setIsDark(next);
     localStorage.setItem('theme', next ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', next);
+    applyBrowserTheme(next);
   };
 
   const themeClasses = {

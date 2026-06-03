@@ -4,6 +4,16 @@
 :root {
   --background: #F4F0E6;
   --foreground: #1f2933;
+  --browser-surface: #F4F0E6;
+  color-scheme: light;
+}
+
+:root.dark,
+:root[data-theme="dark"] {
+  --background: #1E1E1E;
+  --foreground: #E0E0E0;
+  --browser-surface: #1E1E1E;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -13,18 +23,23 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Safari iOS estende il background-color di html/body nelle safe area
-   e dietro le barre del browser, causando fasce opache.
-   Il colore di sfondo è gestito esclusivamente dal div fixed in
-   ParallaxBackground.tsx tramite MutationObserver sulla classe dark. */
+/* iOS/Safari usa html/body e theme-color per le safe area:
+   devono restare allineati allo sfondo base del taccuino. */
 html, body {
-  background-color: transparent;
+  background-color: var(--browser-surface);
   overflow-x: clip;
   scroll-behavior: smooth;
 }
 
+.safe-viewport-backdrop {
+  top: calc(env(safe-area-inset-top, 0px) * -1);
+  right: calc(env(safe-area-inset-right, 0px) * -1);
+  bottom: calc(env(safe-area-inset-bottom, 0px) * -1);
+  left: calc(env(safe-area-inset-left, 0px) * -1);
+}
+
 body {
-  background-color: var(--background);
+  background-color: var(--browser-surface);
   background-image: radial-gradient(
     ellipse 140% 60% at 50% 0%,
     rgba(255, 252, 242, 0.65) 0%,
@@ -873,7 +888,9 @@ body {
   z-index: -1;
 }
 
-.loading-notebook-paper.is-dark {
+.loading-notebook-paper.is-dark,
+.dark .loading-notebook-paper,
+[data-theme="dark"] .loading-notebook-paper {
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 64px 64px,
     linear-gradient(180deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px) 0 0 / 100% 32px,
@@ -946,7 +963,9 @@ body {
   margin: 24px 0 0;
 }
 
-.loading-notebook-paper.is-dark p {
+.loading-notebook-paper.is-dark p,
+.dark .loading-notebook-paper p,
+[data-theme="dark"] .loading-notebook-paper p {
   color: #a0a0a0;
 }
 
@@ -988,7 +1007,9 @@ body {
   width: 42%;
 }
 
-.loading-notebook-paper.is-dark .loading-pen-line {
+.loading-notebook-paper.is-dark .loading-pen-line,
+.dark .loading-notebook-paper .loading-pen-line,
+[data-theme="dark"] .loading-notebook-paper .loading-pen-line {
   background:
     linear-gradient(90deg, transparent, rgba(222,107,88,0.55) 10%, rgba(224,224,224,0.34) 82%, transparent);
 }
