@@ -90,8 +90,8 @@ const CoffeeIcon = ({ className, strokeWidth = 1.5 }: { className?: string, stro
 const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
   const color = isDark ? '#7a5c38' : '#b5956a';
   return (
-    <div aria-hidden="true" className="watercolor-divider w-full flex justify-center my-2 pointer-events-none select-none">
-      <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-2xl" style={{ height: '36px', display: 'block' }}>
+    <div aria-hidden="true" className="watercolor-divider w-full flex justify-center pointer-events-none select-none">
+      <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-2xl" style={{ height: '26px', display: 'block' }}>
         <defs>
           <filter id="wc-blur" x="-10%" y="-60%" width="120%" height="220%">
             <feTurbulence type="fractalNoise" baseFrequency="0.04 0.3" numOctaves={4} seed={8} result="noise" />
@@ -211,6 +211,51 @@ function normalizeArchiveText(value: string): string {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
+function getInitials(value: string): string {
+  return value
+    .replace(/\([^)]*\)/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
+function formatExLibrisDate(dataIso: string): string {
+  const mesiRomani = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+  const [anno, mese, giorno] = dataIso.split('-');
+  return `${parseInt(giorno)} · ${mesiRomani[parseInt(mese) - 1]} · ${anno}`;
+}
+
+function getMarginalia(value: string, maxLength = 150): string {
+  const clean = value.replace(/\s+/g, ' ').trim();
+  if (clean.length <= maxLength) return clean;
+
+  const firstSentence = clean.match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim();
+  if (firstSentence && firstSentence.length <= maxLength) return firstSentence;
+
+  return `${clean.slice(0, maxLength).replace(/\s+\S*$/, '')}…`;
+}
+
+function DoodleArrow({ isDark = false }: { isDark?: boolean }) {
+  const stroke = isDark ? '#D98072' : '#DE6B58';
+  const sharedStyle = {
+    color: stroke,
+    flex: '0 0 auto',
+    height: '26px',
+    overflow: 'visible',
+    width: '42px',
+  } as const;
+
+  return (
+    <svg className="margin-note-doodle" viewBox="0 0 44 28" aria-hidden="true" style={sharedStyle}>
+      <path d="M4 6c5 10 15 15 33 14" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
+      <path d="M31 15l7 5-7 4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
+    </svg>
+  );
+}
+
 const notebookNavItems = [
   { id: 'autore', icon: Feather, labelIT: 'Autore', labelEN: 'Author' },
   { id: 'citazione', icon: Quote, labelIT: 'Citazione', labelEN: 'Quote' },
@@ -266,7 +311,7 @@ function NotebookQuickNav({ isDark, lingua, hasOpera, activeSection }: { isDark:
         const label = lingua === 'IT' ? labelIT : labelEN;
         return (
           <a key={id} href={`#${id}`} aria-label={label} title={label} data-label={label} aria-current={activeSection === id ? 'true' : undefined}>
-            <Icon className="h-4 w-4" strokeWidth={1.6} aria-hidden="true" />
+            <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
           </a>
         );
       })}
@@ -463,6 +508,8 @@ export default function Home() {
     : archivio;
   const groupedArchivio = groupByMonth(archivioFiltrato);
   const vinylOpen = vinylPinned || vinylPreview;
+  const dataExLibris = dataSelezionata ?? oggi;
+  const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
   const archivioPopover = isMounted ? createPortal(
@@ -592,7 +639,7 @@ export default function Home() {
 
   return (
     <ParallaxBackground>
-      <div className={`min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-8 md:py-10 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+      <div className={`min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
         <NotebookQuickNav isDark={isDark} lingua={lingua} hasOpera={Boolean(opera)} activeSection={activeSection} />
         <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2">
           <button
@@ -666,7 +713,7 @@ export default function Home() {
           className={`journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10 ${isTurningPage ? 'journal-page-turning' : ''}`}
           aria-busy={isTurningPage}
         >
-          <header className="journal-hero text-center space-y-5 relative animate-fadeInUp stagger-1 px-4 pt-3 pb-4">
+          <header className="journal-hero text-center relative animate-fadeInUp stagger-1 px-4">
             <div
               aria-hidden="true"
               className="absolute -inset-x-5 -inset-y-4 md:-inset-x-12 md:-inset-y-8 pointer-events-none"
@@ -677,13 +724,13 @@ export default function Home() {
               }}
             />
             <div className="relative z-10">
-              <div className="flex justify-center mb-4">
-                <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+              <div className="flex justify-center mb-2">
+                <div className={`masking-tape journal-date-tape ${caveat.className} text-lg font-bold tracking-wider`}>
                   {data.data_odierna}
                 </div>
               </div>
               <h1
-                className="text-[44px] sm:text-5xl md:text-6xl leading-[0.95] font-medium tracking-tight mb-4"
+                className="text-[44px] sm:text-5xl md:text-6xl leading-[0.95] font-medium tracking-tight mb-2"
                 style={{
                   textShadow: isDark
                     ? '0 2px 10px rgba(0,0,0,0.55)'
@@ -695,7 +742,7 @@ export default function Home() {
                 </span>
               </h1>
               <p
-                className={`italic text-base sm:text-lg leading-relaxed ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} max-w-2xl mx-auto -mb-2`}
+                className={`journal-hero-subtitle italic text-base sm:text-[1.05rem] leading-relaxed ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}
                 style={{
                   textShadow: isDark
                     ? '0 1px 3px rgba(0,0,0,0.5)'
@@ -711,7 +758,7 @@ export default function Home() {
             </div>
           </header>
 
-        <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-6 md:pt-2 md:pb-6 animate-fadeInUp stagger-2 relative px-4">
+        <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
     <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
@@ -771,7 +818,7 @@ export default function Home() {
             {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
           </span>
           <h2
-            className="text-4xl md:text-5xl font-bold mb-6"
+            className="text-4xl md:text-5xl font-bold mb-4"
             style={{
               textShadow: isDark
                 ? '0 2px 8px rgba(0,0,0,0.5)'
@@ -790,6 +837,12 @@ export default function Home() {
           >
             {data.breve_descrizione}
           </p>
+          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
+            <span className="daily-thread-line" aria-hidden="true" />
+            <span className="daily-thread-label">{lingua === 'IT' ? 'Il filo di oggi:' : "Today's thread:"}</span>
+            <strong className={`${caveat.className} daily-thread-theme`}>{data.parola_giorno.parola}</strong>
+            <span className="daily-thread-line is-ending" aria-hidden="true" />
+          </div>
           {!showExportCard && (
             <button
               onClick={() => setShowExportCard(true)}
@@ -846,7 +899,7 @@ export default function Home() {
               filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
             >
               <blockquote className="md:px-8">
-                <p className="medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
+                <p className="card-primary-quote medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
                 <footer className="text-right text-lg clear-both pt-2">
                   <span className="font-bold">{data.citazione.autore}</span>
                   <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
@@ -857,12 +910,18 @@ export default function Home() {
             <Card id="parola" title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
               <div className="text-center mb-6">
-                <h4 className="text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
-                <p className={`${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
+                <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
+                <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
-              <p className="text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
+              <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
               {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
                 <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
+              )}
+              {data.parola_giorno.nota && (
+                <aside className={`margin-note ${isDark ? 'is-dark' : ''}`}>
+                  <DoodleArrow isDark={isDark} />
+                  <span className={caveat.className}>{getMarginalia(data.parola_giorno.nota)}</span>
+                </aside>
               )}
             </Card>
 
@@ -871,39 +930,44 @@ export default function Home() {
               <ul className="space-y-6">
                 {data.santi.map((santo, idx) => (
                   <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
-                    <h4 className="text-2xl font-bold mb-1">{santo.nome}</h4>
-                    <p className="text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
-                    <p className="text-lg font-medium leading-relaxed">{santo.biografia}</p>
+                    <h4 className="card-primary-title text-2xl font-bold mb-1">{santo.nome}</h4>
+                    <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
+                    <p className="card-body-copy text-lg font-medium leading-relaxed">{santo.biografia}</p>
                   </li>
                 ))}
               </ul>
             </Card>
 
             {opera && (
-              <div id="opera" className="scroll-mt-28 md:col-span-2 notched-card-wrapper animate-fadeInUp stagger-5">
-                <Card title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'} icon={Palette} isDark={isDark} className="notched-card">
-                  <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
-                    <div className="space-y-5 order-2 md:order-1">
-                      <div>
-                        <h4 className="text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
-                        <p className="text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
-                      </div>
-                      {(opera.medium || opera.dipartimento) && <p className={`text-lg ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
-                      <div className="flex flex-wrap items-center gap-4 pt-2">
-                        <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center justify-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] hover:bg-[#DE6B58] ${isDark ? 'hover:text-[#1E1E1E]' : 'hover:text-[#FDFCF8]'} transition-colors duration-300 px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold`}>
-                          {lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}<ExternalLink className="w-4 h-4" />
-                        </a>
-                      </div>
+              <Card
+                id="opera"
+                title={lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day'}
+                icon={Palette}
+                isDark={isDark}
+                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-5"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                  <div className="space-y-5 order-2 md:order-1">
+                    <div>
+                      <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
+                      <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
-                    <div className="order-1 md:order-2">
-                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
-                        <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
+                    {(opera.medium || opera.dipartimento) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
+                    <div className="flex flex-wrap items-center gap-4 pt-1">
+                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
+                        <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                        <span>{lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}</span>
                       </a>
-                      <p className={`text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                     </div>
                   </div>
-                </Card>
-              </div>
+                  <div className="order-1 md:order-2">
+                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
+                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
+                    </a>
+                    <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
+                  </div>
+                </div>
+              </Card>
             )}
 
             <Card id="avvenimenti" title={lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History'} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
@@ -912,7 +976,7 @@ export default function Home() {
                 {data.avvenimenti.map((evento, idx) => {
                   const parts = evento.split(':');
                   return (
-                    <li key={idx} className="flex gap-4 text-xl font-medium leading-relaxed">
+                    <li key={idx} className="card-body-copy flex gap-4 text-xl font-medium leading-relaxed">
                       <span className="text-[#DE6B58] font-bold">•</span>
                       <span>{parts.length > 1 ? (<><strong className="font-bold">{parts[0]}:</strong>{parts.slice(1).join(':')}</>) : evento}</span>
                     </li>
@@ -1059,18 +1123,18 @@ export default function Home() {
                     </h3>
                   </div>
 
-                  <h4 className="text-3xl font-bold mb-2">{data.musica.brano}</h4>
-                  <p className="text-xl font-medium mb-2">
+                  <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
+                  <p className="card-byline text-xl font-medium mb-2">
                     {lingua === 'IT' ? 'di' : 'by'}{' '}
                     <span className="font-bold">{data.musica.autore}</span>
                   </p>
-                  <p className="text-[#DE6B58] font-medium italic mb-6">{data.musica.genere}</p>
-                  <p className="text-xl font-medium leading-relaxed mb-8">{data.musica.motivo}</p>
+                  <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
+                  <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
                   <div className="music-link-actions">
                     <a
                       href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`music-link-button ${isDark ? 'is-dark' : ''}`}
+                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
                     >
                       <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                       <span>{lingua === 'IT' ? 'Spotify' : 'Spotify'}</span>
@@ -1078,7 +1142,7 @@ export default function Home() {
                     <a
                       href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`music-link-button ${isDark ? 'is-dark' : ''}`}
+                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
                     >
                       <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                       <span>{lingua === 'IT' ? 'YouTube' : 'YouTube'}</span>
@@ -1094,6 +1158,12 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner">
+              <div className="daily-ex-libris" aria-label={`${lingua === 'IT' ? 'Ex libris del giorno' : 'Daily ex libris'}: ${data.autore_giorno}`}>
+                <span className="daily-ex-libris-ring" aria-hidden="true" />
+                <span className="daily-ex-libris-kicker">Ex Libris</span>
+                <strong>{inizialiExLibris}</strong>
+                <span className="daily-ex-libris-date">{formatExLibrisDate(dataExLibris)}</span>
+              </div>
               <p className={`journal-footer-title ${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</p>
               <p className="journal-footer-note">
                 {lingua === 'IT'

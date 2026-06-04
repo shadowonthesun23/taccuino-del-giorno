@@ -5,12 +5,13 @@ export const maxDuration = 30;
 export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       return new Response(null, { status: 204 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     const oggi = new Date().toISOString().split('T')[0];
 
@@ -88,10 +89,13 @@ export async function GET() {
     }
 
     // 6. Salva in cache nel DB per non ripetere la chiamata
-    await supabase
-      .from('contenuti_giornalieri')
-      .update({ opera_giorno: opera })
-      .eq('data', oggi);
+    if (supabaseServiceKey) {
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      await supabaseAdmin
+        .from('contenuti_giornalieri')
+        .update({ opera_giorno: opera })
+        .eq('data', oggi);
+    }
 
     return Response.json(opera);
 
