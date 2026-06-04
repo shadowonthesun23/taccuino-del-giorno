@@ -192,6 +192,30 @@ function formatDataItaliana(dataIso: string): string {
   return `${parseInt(giorno)} ${mesi[parseInt(mese) - 1]} ${anno}`;
 }
 
+function getMonthNumber(dataIso: string): number {
+  const [, mese] = dataIso.split('-').map(Number);
+  return mese;
+}
+
+function getArchiveMonthMood(dataIso: string, lingua: 'IT' | 'EN'): string {
+  const month = getMonthNumber(dataIso);
+  const moods: Record<number, { IT: string; EN: string }> = {
+    1: { IT: 'silenzio chiaro', EN: 'clear silence' },
+    2: { IT: 'luce breve', EN: 'brief light' },
+    3: { IT: 'soglia verde', EN: 'green threshold' },
+    4: { IT: 'aria nuova', EN: 'new air' },
+    5: { IT: 'piena fioritura', EN: 'full bloom' },
+    6: { IT: 'luce lunga', EN: 'long light' },
+    7: { IT: 'giorni assolati', EN: 'sunlit days' },
+    8: { IT: 'oro lento', EN: 'slow gold' },
+    9: { IT: 'ritorno mite', EN: 'gentle return' },
+    10: { IT: 'rame e memoria', EN: 'copper and memory' },
+    11: { IT: 'ombra raccolta', EN: 'gathered shade' },
+    12: { IT: 'notte luminosa', EN: 'luminous night' },
+  };
+  return moods[month]?.[lingua] ?? '';
+}
+
 function groupByMonth(items: ArchivioItem[]): Record<string, ArchivioItem[]> {
   const mesiNome = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
   const groups: Record<string, ArchivioItem[]> = {};
@@ -256,8 +280,7 @@ function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
 }
 
 function getBookmarkMonth(dataIso: string): number {
-  const [, mese] = dataIso.split('-').map(Number);
-  return mese;
+  return getMonthNumber(dataIso);
 }
 
 function parseIsoUtc(dataIso: string): Date {
@@ -802,9 +825,17 @@ export default function Home() {
           ) : archivioFiltrato.length === 0 ? (
             <p className={`archive-empty text-xs italic ${themeClasses.textMuted}`}>{lingua === 'IT' ? 'Nessun risultato trovato.' : 'No results found.'}</p>
           ) : (
-            Object.entries(groupedArchivio).map(([mese, items]) => (
-              <div key={mese} className="archive-month">
-                <p className={`archive-month-tab ${themeClasses.textMuted}`}>{mese}</p>
+            Object.entries(groupedArchivio).map(([mese, items]) => {
+              const firstItem = items[0];
+              const monthNumber = getMonthNumber(firstItem.data);
+              const monthMood = getArchiveMonthMood(firstItem.data, lingua);
+
+              return (
+              <div key={mese} className={`archive-month archive-month-${monthNumber}`}>
+                <p className={`archive-month-tab ${themeClasses.textMuted}`}>
+                  <span className="archive-month-name">{mese}</span>
+                  <span className="archive-month-note">{monthMood}</span>
+                </p>
                 <ul className="archive-list">
                   {items.map(item => {
                     const isOggi = item.data === oggi;
@@ -826,7 +857,8 @@ export default function Home() {
                   })}
                 </ul>
               </div>
-            ))
+              );
+            })
           )}
         </div>
         {archivioHasScroll && !archivioAtBottom && (

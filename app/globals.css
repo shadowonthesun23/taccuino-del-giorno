@@ -1648,33 +1648,137 @@ body {
 }
 
 .archive-month {
+  --archive-month-edge: rgba(181,149,106,0.22);
+  --archive-month-ink: #6f6359;
+  --archive-month-paper: rgba(181,149,106,0.16);
   margin: 0 0 14px;
   position: relative;
 }
 
 .archive-month-tab {
-  background: rgba(181,149,106,0.16);
-  border: 1px solid rgba(181,149,106,0.22);
+  align-items: flex-start;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.22), transparent),
+    var(--archive-month-paper);
+  border: 1px solid var(--archive-month-edge);
   border-bottom: 0;
   border-radius: 8px 8px 0 0;
   display: inline-flex;
+  flex-direction: column;
   font-family: "EB Garamond", Georgia, serif;
+  gap: 3px;
+  line-height: 1;
+  margin: 0 0 0 8px;
+  padding: 7px 11px 6px;
+}
+
+.archive-month-name {
+  color: var(--archive-month-ink);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
-  line-height: 1;
-  margin: 0 0 0 8px;
-  padding: 7px 10px 6px;
   text-transform: uppercase;
 }
 
+.archive-month-note {
+  color: var(--archive-month-ink);
+  font-size: 0.76rem;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+  opacity: 0.72;
+  text-transform: none;
+}
+
 .archive-list {
-  border-left: 1px solid rgba(181,149,106,0.22);
+  border-left: 1px solid var(--archive-month-edge);
   display: grid;
   gap: 3px;
   list-style: none;
   margin: 0;
   padding: 6px 0 0 7px;
+}
+
+.archive-month-1 {
+  --archive-month-paper: rgba(200,208,207,0.28);
+  --archive-month-ink: #536468;
+  --archive-month-edge: rgba(83,100,104,0.22);
+}
+
+.archive-month-2 {
+  --archive-month-paper: rgba(208,198,210,0.28);
+  --archive-month-ink: #64576c;
+  --archive-month-edge: rgba(100,87,108,0.22);
+}
+
+.archive-month-3 {
+  --archive-month-paper: rgba(216,211,173,0.3);
+  --archive-month-ink: #67704b;
+  --archive-month-edge: rgba(103,112,75,0.22);
+}
+
+.archive-month-4 {
+  --archive-month-paper: rgba(215,200,179,0.28);
+  --archive-month-ink: #766044;
+  --archive-month-edge: rgba(118,96,68,0.22);
+}
+
+.archive-month-5 {
+  --archive-month-paper: rgba(207,217,182,0.3);
+  --archive-month-ink: #61704c;
+  --archive-month-edge: rgba(97,112,76,0.22);
+}
+
+.archive-month-6 {
+  --archive-month-paper: rgba(217,214,169,0.32);
+  --archive-month-ink: #6d6944;
+  --archive-month-edge: rgba(109,105,68,0.23);
+}
+
+.archive-month-7 {
+  --archive-month-paper: rgba(225,197,144,0.3);
+  --archive-month-ink: #856133;
+  --archive-month-edge: rgba(133,97,51,0.23);
+}
+
+.archive-month-8 {
+  --archive-month-paper: rgba(216,183,131,0.3);
+  --archive-month-ink: #815638;
+  --archive-month-edge: rgba(129,86,56,0.23);
+}
+
+.archive-month-9 {
+  --archive-month-paper: rgba(208,164,124,0.3);
+  --archive-month-ink: #78503d;
+  --archive-month-edge: rgba(120,80,61,0.24);
+}
+
+.archive-month-10 {
+  --archive-month-paper: rgba(201,150,117,0.3);
+  --archive-month-ink: #744a3d;
+  --archive-month-edge: rgba(116,74,61,0.24);
+}
+
+.archive-month-11 {
+  --archive-month-paper: rgba(188,168,139,0.3);
+  --archive-month-ink: #665541;
+  --archive-month-edge: rgba(102,85,65,0.23);
+}
+
+.archive-month-12 {
+  --archive-month-paper: rgba(187,200,203,0.3);
+  --archive-month-ink: #52666c;
+  --archive-month-edge: rgba(82,102,108,0.23);
+}
+
+.archive-popover.is-dark .archive-month {
+  --archive-month-paper: rgba(255,255,255,0.055);
+  --archive-month-edge: rgba(255,255,255,0.1);
+}
+
+.archive-popover.is-dark .archive-month-name,
+.archive-popover.is-dark .archive-month-note {
+  color: #d8c7b4;
 }
 
 .archive-entry {
