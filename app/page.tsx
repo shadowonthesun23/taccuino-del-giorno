@@ -228,6 +228,123 @@ function formatExLibrisDate(dataIso: string): string {
   return `${parseInt(giorno)} · ${mesiRomani[parseInt(mese) - 1]} · ${anno}`;
 }
 
+type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
+type MoonPhaseId = 'new' | 'waxing-crescent' | 'first-quarter' | 'waxing-gibbous' | 'full' | 'waning-gibbous' | 'last-quarter' | 'waning-crescent';
+
+const synodicMonth = 29.53058867;
+const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+const dayInMs = 86_400_000;
+
+function getSeason(dataIso: string): SeasonId {
+  const [, meseString, giornoString] = dataIso.split('-');
+  const mese = Number(meseString);
+  const giorno = Number(giornoString);
+  const valore = mese * 100 + giorno;
+
+  if (valore >= 321 && valore < 621) return 'spring';
+  if (valore >= 621 && valore < 923) return 'summer';
+  if (valore >= 923 && valore < 1221) return 'autumn';
+  return 'winter';
+}
+
+function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
+  const [anno, mese, giorno] = dataIso.split('-').map(Number);
+  return new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(anno, mese - 1, giorno));
+}
+
+function getBookmarkMonth(dataIso: string): number {
+  const [, mese] = dataIso.split('-').map(Number);
+  return mese;
+}
+
+function parseIsoUtc(dataIso: string): Date {
+  const [anno, mese, giorno] = dataIso.split('-').map(Number);
+  return new Date(Date.UTC(anno, mese - 1, giorno));
+}
+
+function getMoonPhase(dataIso: string): { phase: MoonPhaseId; illumination: number } {
+  const daysSinceNewMoon = (parseIsoUtc(dataIso).getTime() - knownNewMoon) / dayInMs;
+  const age = ((daysSinceNewMoon % synodicMonth) + synodicMonth) % synodicMonth;
+  const illumination = Math.round((1 - Math.cos((2 * Math.PI * age) / synodicMonth)) * 50);
+
+  if (age < 1.84566 || age >= 27.68493) return { phase: 'new', illumination };
+  if (age < 5.53699) return { phase: 'waxing-crescent', illumination };
+  if (age < 9.22831) return { phase: 'first-quarter', illumination };
+  if (age < 12.91963) return { phase: 'waxing-gibbous', illumination };
+  if (age < 16.61096) return { phase: 'full', illumination };
+  if (age < 20.30228) return { phase: 'waning-gibbous', illumination };
+  if (age < 23.99361) return { phase: 'last-quarter', illumination };
+  return { phase: 'waning-crescent', illumination };
+}
+
+function getNextFullMoonDate(dataIso: string): Date {
+  const daysSinceNewMoon = (parseIsoUtc(dataIso).getTime() - knownNewMoon) / dayInMs;
+  const fullMoonAge = synodicMonth / 2;
+  const cyclesUntilFullMoon = Math.ceil((daysSinceNewMoon - fullMoonAge) / synodicMonth);
+  return new Date(knownNewMoon + ((cyclesUntilFullMoon * synodicMonth) + fullMoonAge) * dayInMs);
+}
+
+function formatUtcDate(date: Date, lingua: 'IT' | 'EN'): string {
+  return new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function getSolarConstellation(dataIso: string, lingua: 'IT' | 'EN'): string {
+  const [, meseString, giornoString] = dataIso.split('-');
+  const value = Number(meseString) * 100 + Number(giornoString);
+  const constellations = [
+    { from: 120, to: 216, IT: 'Capricorno', EN: 'Capricornus' },
+    { from: 216, to: 311, IT: 'Acquario', EN: 'Aquarius' },
+    { from: 311, to: 418, IT: 'Pesci', EN: 'Pisces' },
+    { from: 418, to: 513, IT: 'Ariete', EN: 'Aries' },
+    { from: 513, to: 621, IT: 'Toro', EN: 'Taurus' },
+    { from: 621, to: 720, IT: 'Gemelli', EN: 'Gemini' },
+    { from: 720, to: 810, IT: 'Cancro', EN: 'Cancer' },
+    { from: 810, to: 916, IT: 'Leone', EN: 'Leo' },
+    { from: 916, to: 1030, IT: 'Vergine', EN: 'Virgo' },
+    { from: 1030, to: 1123, IT: 'Bilancia', EN: 'Libra' },
+    { from: 1123, to: 1129, IT: 'Scorpione', EN: 'Scorpius' },
+    { from: 1129, to: 1217, IT: 'Ofiuco', EN: 'Ophiuchus' },
+  ];
+  const constellation = constellations.find(({ from, to }) => value >= from && value < to);
+  return constellation?.[lingua] ?? (lingua === 'IT' ? 'Sagittario' : 'Sagittarius');
+}
+
+function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN', mode: 'long' | 'compact' = 'long'): string {
+  const date = parseIsoUtc(dataIso);
+  const year = date.getUTCFullYear();
+  const events = [
+    { month: 2, day: 21, IT: "all'equinozio di primavera", eventIT: "l'equinozio di primavera", compactIT: "all'equinozio", EN: 'the spring equinox', compactEN: 'equinox' },
+    { month: 5, day: 21, IT: "al solstizio d'estate", eventIT: "il solstizio d'estate", compactIT: 'al solstizio', EN: 'the summer solstice', compactEN: 'solstice' },
+    { month: 8, day: 23, IT: "all'equinozio d'autunno", eventIT: "l'equinozio d'autunno", compactIT: "all'equinozio", EN: 'the autumn equinox', compactEN: 'equinox' },
+    { month: 11, day: 21, IT: "al solstizio d'inverno", eventIT: "il solstizio d'inverno", compactIT: 'al solstizio', EN: 'the winter solstice', compactEN: 'solstice' },
+    { month: 2, day: 21, IT: "all'equinozio di primavera", eventIT: "l'equinozio di primavera", compactIT: "all'equinozio", EN: 'the spring equinox', compactEN: 'equinox', nextYear: true },
+  ];
+  const datedEvents = events
+    .map((event) => ({
+      ...event,
+      date: new Date(Date.UTC(year + (event.nextYear ? 1 : 0), event.month, event.day)),
+    }));
+  const nextEvent = datedEvents.find((event) => event.date >= date) ?? datedEvents[datedEvents.length - 1];
+  const days = Math.round((nextEvent.date.getTime() - date.getTime()) / 86_400_000);
+
+  if (lingua === 'IT') {
+    if (mode === 'compact') return days === 0 ? `oggi ${nextEvent.compactIT}` : `${days}g ${nextEvent.compactIT}`;
+    if (days === 0) return `Oggi: ${nextEvent.eventIT}`;
+    if (days === 1) return `Domani: ${nextEvent.eventIT}`;
+    return `${days} giorni ${nextEvent.IT}`;
+  }
+  if (mode === 'compact') return days === 0 ? `today ${nextEvent.compactEN}` : `${days}d to ${nextEvent.compactEN}`;
+  if (days === 0) return `Today: ${nextEvent.EN}`;
+  if (days === 1) return `Tomorrow: ${nextEvent.EN}`;
+  return `${days} days to ${nextEvent.EN}`;
+}
+
 function getMarginalia(value: string, maxLength = 150): string {
   const clean = value.replace(/\s+/g, ' ').trim();
   if (clean.length <= maxLength) return clean;
@@ -253,6 +370,80 @@ function DoodleArrow({ isDark = false }: { isDark?: boolean }) {
       <path d="M4 6c5 10 15 15 33 14" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
       <path d="M31 15l7 5-7 4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
     </svg>
+  );
+}
+
+function MoonDoodle({ phase }: { phase: MoonPhaseId }) {
+  const isWaning = phase.startsWith('waning') || phase === 'last-quarter';
+  const innerPath = phase === 'full'
+    ? 'M11 10c2-1 3 1 2 2m6 7c2-1 3 1 2 2M12 23c2 1 4 1 5 0'
+    : phase === 'new'
+      ? 'M10 9c4 2 9 9 11 15'
+      : phase.includes('gibbous')
+        ? 'M12 7c6 4 6 14 0 18'
+        : phase.includes('quarter')
+          ? 'M16 6c5 4 5 16 0 20'
+          : 'M20 7c-7 4-7 14 0 18';
+
+  return (
+    <svg className={isWaning ? 'is-waning' : ''} viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="10" />
+      <path d={innerPath} />
+      <path className="moon-doodle-star" d="M26 5v4m-2-2h4" />
+    </svg>
+  );
+}
+
+function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua: 'IT' | 'EN'; isDark: boolean }) {
+  const season = getSeason(dataIso);
+  const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
+    spring: { IT: 'Primavera', EN: 'Spring' },
+    summer: { IT: 'Estate', EN: 'Summer' },
+    autumn: { IT: 'Autunno', EN: 'Autumn' },
+    winter: { IT: 'Inverno', EN: 'Winter' },
+  };
+  const label = seasonLabels[season][lingua];
+  const dateLabel = formatBookmarkDate(dataIso, lingua);
+  const bookmarkMonth = getBookmarkMonth(dataIso);
+  const moon = getMoonPhase(dataIso);
+  const moonLabels: Record<MoonPhaseId, { IT: string; EN: string }> = {
+    new: { IT: 'Luna nuova', EN: 'New moon' },
+    'waxing-crescent': { IT: 'Luna crescente', EN: 'Waxing crescent' },
+    'first-quarter': { IT: 'Primo quarto', EN: 'First quarter' },
+    'waxing-gibbous': { IT: 'Gibbosa crescente', EN: 'Waxing gibbous' },
+    full: { IT: 'Luna piena', EN: 'Full moon' },
+    'waning-gibbous': { IT: 'Gibbosa calante', EN: 'Waning gibbous' },
+    'last-quarter': { IT: 'Ultimo quarto', EN: 'Last quarter' },
+    'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent' },
+  };
+  const moonLabel = moonLabels[moon.phase][lingua];
+  const solarConstellation = getSolarConstellation(dataIso, lingua);
+  const seasonCountdown = getNextAstronomicalSeasonLabel(dataIso, lingua, 'compact');
+  const sunLabel = lingua === 'IT' ? `Sole in ${solarConstellation}` : `Sun in ${solarConstellation}`;
+  const nextFullMoonLabel = formatUtcDate(getNextFullMoonDate(dataIso), lingua);
+  const fullMoonLabel = lingua === 'IT' ? `piena ${nextFullMoonLabel}` : `full ${nextFullMoonLabel}`;
+  const fullMoonAriaLabel = lingua === 'IT' ? 'Prossima luna piena' : 'Next full moon';
+
+  return (
+    <aside
+      className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${isDark ? 'is-dark' : ''}`}
+      aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${sunLabel}. ${seasonCountdown}`}
+      title={lingua === 'IT' ? 'Effemeridi indicative, calcolate localmente' : 'Indicative ephemerides, calculated locally'}
+      tabIndex={0}
+    >
+      <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
+      <span className="seasonal-bookmark-motif"><MoonDoodle phase={moon.phase} /></span>
+      <span className="seasonal-bookmark-copy">
+        <span className="seasonal-bookmark-heading">
+          <strong className="seasonal-bookmark-date">{dateLabel}</strong>
+          <span className="seasonal-bookmark-season">{label}</span>
+        </span>
+        <span className="seasonal-bookmark-astronomy">
+          <span>{moonLabel} · {moon.illumination}% · {fullMoonLabel}</span>
+          <span>{sunLabel} · {seasonCountdown}</span>
+        </span>
+      </span>
+    </aside>
   );
 }
 
@@ -298,15 +489,29 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
   );
 }
 
-function NotebookQuickNav({ isDark, lingua, hasOpera, activeSection }: { isDark: boolean; lingua: 'IT' | 'EN'; hasOpera: boolean; activeSection: string }) {
+function NotebookQuickNav({
+  isDark,
+  lingua,
+  hasOpera,
+  activeSection,
+  readingComplete,
+}: {
+  isDark: boolean;
+  lingua: 'IT' | 'EN';
+  hasOpera: boolean;
+  activeSection: string;
+  readingComplete: boolean;
+}) {
   const visibleItems = notebookNavItems.filter((item) => hasOpera || !item.optional);
 
   return (
     <nav
       aria-label={lingua === 'IT' ? 'Sezioni del taccuino' : 'Notebook sections'}
-      className={`notebook-quick-nav ${isDark ? 'is-dark' : ''}`}
+      className={`notebook-quick-nav ${isDark ? 'is-dark' : ''} ${readingComplete ? 'is-read' : ''}`}
     >
-      <span className="notebook-quick-nav-rail" aria-hidden="true" />
+      <span className="notebook-quick-nav-rail" aria-hidden="true">
+        <span className="notebook-quick-nav-progress" />
+      </span>
       {visibleItems.map(({ id, icon: Icon, labelIT, labelEN }) => {
         const label = lingua === 'IT' ? labelIT : labelEN;
         return (
@@ -345,6 +550,7 @@ export default function Home() {
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState('autore');
+  const [readingComplete, setReadingComplete] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
@@ -399,6 +605,36 @@ export default function Home() {
   }, [data, opera]);
 
   useEffect(() => {
+    if (!data) return;
+
+    let frame: number | null = null;
+    const updateReadingProgress = () => {
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const nextProgress = scrollableHeight <= 0
+        ? 100
+        : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
+      const nextComplete = nextProgress >= 96;
+
+      document.documentElement.style.setProperty('--reading-progress', `${nextProgress}%`);
+      setReadingComplete((current) => current === nextComplete ? current : nextComplete);
+      frame = null;
+    };
+    const handleScroll = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateReadingProgress);
+    };
+
+    updateReadingProgress();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      document.documentElement.style.removeProperty('--reading-progress');
+    };
+  }, [data, contentKey]);
+
+  useEffect(() => {
     applyBrowserTheme(isDark);
   }, [isDark]);
   
@@ -409,6 +645,7 @@ export default function Home() {
       setLoading(true);
     }
     setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
+    document.documentElement.style.setProperty('--reading-progress', '0%'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 460)) : Promise.resolve();
     Promise.all([
@@ -510,6 +747,7 @@ export default function Home() {
   const vinylOpen = vinylPinned || vinylPreview;
   const dataExLibris = dataSelezionata ?? oggi;
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
+  const readingDateLabel = formatBookmarkDate(dataExLibris, lingua);
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
   const archivioPopover = isMounted ? createPortal(
@@ -640,7 +878,14 @@ export default function Home() {
   return (
     <ParallaxBackground>
       <div className={`min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
-        <NotebookQuickNav isDark={isDark} lingua={lingua} hasOpera={Boolean(opera)} activeSection={activeSection} />
+        <NotebookQuickNav
+          isDark={isDark}
+          lingua={lingua}
+          hasOpera={Boolean(opera)}
+          activeSection={activeSection}
+          readingComplete={readingComplete}
+        />
+        <SeasonalBookmark dataIso={dataExLibris} lingua={lingua} isDark={isDark} />
         <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2">
           <button
             onClick={toggleLingua}
@@ -1158,6 +1403,15 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner">
+              <div className={`reading-signature ${readingComplete ? 'is-visible' : ''}`} aria-live="polite" aria-hidden={!readingComplete}>
+                <svg viewBox="0 0 84 20" aria-hidden="true">
+                  <path d="M3 13c13-8 25 5 38-2 12-7 21 3 40-5" />
+                </svg>
+                <span className={caveat.className}>
+                  {lingua === 'IT' ? 'Pagina letta,' : 'Page read,'}
+                  <strong>{readingDateLabel}</strong>
+                </span>
+              </div>
               <div className="daily-ex-libris" aria-label={`${lingua === 'IT' ? 'Ex libris del giorno' : 'Daily ex libris'}: ${data.autore_giorno}`}>
                 <span className="daily-ex-libris-ring" aria-hidden="true" />
                 <span className="daily-ex-libris-kicker">Ex Libris</span>
@@ -1166,9 +1420,19 @@ export default function Home() {
               </div>
               <p className={`journal-footer-title ${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</p>
               <p className="journal-footer-note">
-                {lingua === 'IT'
-                  ? 'Un foglio quotidiano di cultura, memoria e ascolto. Realizzato con amore da Antonello.'
-                  : 'A daily page of culture, memory, and listening. Made with love by Antonello.'}
+              {lingua === 'IT' ? (
+                <>
+                  Un foglio quotidiano di cultura, memoria e ascolto.
+                  <br />
+                  Realizzato con amore da Antonello.
+                </>
+              ) : (
+                <>
+                  A daily page of culture, memory, and listening.
+                  <br />
+                  Made with love by Antonello.
+                </>
+              )}
               </p>
               <nav className="journal-footer-socials" aria-label={lingua === 'IT' ? 'Collegamenti social' : 'Social links'}>
                 <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="X (Twitter)">

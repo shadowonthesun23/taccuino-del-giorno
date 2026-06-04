@@ -1139,13 +1139,35 @@ body {
 
 .notebook-quick-nav-rail {
   background: linear-gradient(to bottom, transparent, rgba(181,149,106,0.28), rgba(222,107,88,0.25), transparent);
+  border-radius: 999px;
   bottom: -20px;
   left: 50%;
+  overflow: hidden;
   position: absolute;
   top: -20px;
   transform: translateX(-50%);
   width: 1.5px;
   z-index: -1;
+}
+
+.notebook-quick-nav-progress {
+  background:
+    linear-gradient(to bottom, rgba(222,107,88,0.18), #de6b58 22%, #a44e45 88%, rgba(164,78,69,0.62));
+  border-radius: inherit;
+  box-shadow: 0 0 5px rgba(222,107,88,0.28);
+  display: block;
+  left: 50%;
+  height: var(--reading-progress, 0%);
+  min-height: 2px;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  transition: height 120ms linear;
+  width: 3px;
+}
+
+.notebook-quick-nav.is-read .notebook-quick-nav-progress {
+  box-shadow: 0 0 7px rgba(222,107,88,0.42);
 }
 
 .notebook-quick-nav a {
@@ -1264,6 +1286,287 @@ body {
     0 0 0 3px rgba(222,107,88,0.08),
     0 12px 26px -18px rgba(42,37,34,0.48);
   transform: translateX(3px) scale(1.05);
+}
+
+/* Linguetta temporale */
+.seasonal-bookmark {
+  --bookmark-paper: #ddd1ad;
+  --bookmark-ink: #645538;
+  --bookmark-edge: rgba(104,84,49,0.22);
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 18% 34%, rgba(255,255,255,0.24) 0 1px, transparent 2px),
+    radial-gradient(ellipse at 72% 68%, rgba(86,67,39,0.08) 0 1px, transparent 2px),
+    radial-gradient(ellipse at 45% 18%, rgba(255,255,255,0.16) 0 9px, transparent 24px),
+    linear-gradient(90deg, rgba(255,255,255,0.26), transparent 32%),
+    linear-gradient(180deg, var(--bookmark-paper), color-mix(in srgb, var(--bookmark-paper) 82%, #8c7652));
+  background-size: 29px 21px, 43px 31px, 100% 100%, 100% 100%, 100% 100%;
+  backdrop-filter: blur(3px);
+  border: 1px solid var(--bookmark-edge);
+  border-radius: 5px 0 0 5px;
+  border-right: 0;
+  box-shadow:
+    -6px 8px 18px -16px rgba(42,37,34,0.62),
+    inset 1px 0 rgba(255,255,255,0.24);
+  color: var(--bookmark-ink);
+  display: none;
+  gap: 8px;
+  height: 58px;
+  justify-content: flex-start;
+  padding: 6px 9px 6px 8px;
+  position: fixed;
+  right: -228px;
+  top: 29%;
+  transition:
+    color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease,
+    right 320ms cubic-bezier(0.22,1,0.36,1);
+  transform: rotate(-0.6deg);
+  transform-origin: right center;
+  width: 272px;
+  z-index: 36;
+}
+
+.seasonal-bookmark::after {
+  background:
+    linear-gradient(180deg, var(--bookmark-paper), color-mix(in srgb, var(--bookmark-paper) 82%, #8c7652));
+  bottom: -1px;
+  clip-path: polygon(44% 0, 100% 0, 100% 100%, 30% 100%, 45% 84%, 22% 65%, 44% 45%, 20% 22%);
+  content: "";
+  left: -9px;
+  opacity: 0.94;
+  position: absolute;
+  top: -1px;
+  width: 11px;
+  z-index: -1;
+}
+
+.seasonal-bookmark:hover,
+.seasonal-bookmark:focus,
+.seasonal-bookmark:focus-visible {
+  outline: none;
+  right: -1px;
+  box-shadow:
+    -9px 10px 22px -18px rgba(42,37,34,0.68),
+    inset 1px 0 rgba(255,255,255,0.26);
+}
+
+.seasonal-bookmark-stitch {
+  background: rgba(100,82,48,0.18);
+  bottom: 4px;
+  left: 5px;
+  overflow: hidden;
+  position: absolute;
+  top: 4px;
+  width: 1px;
+}
+
+.seasonal-bookmark-stitch::before {
+  border-left: 1px dashed rgba(255,255,255,0.44);
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.seasonal-bookmark-stitch > span {
+  background: var(--bookmark-ink);
+  display: block;
+  height: var(--reading-progress, 0%);
+  opacity: 0.48;
+  transition: height 120ms linear;
+  width: 1px;
+}
+
+.seasonal-bookmark-motif {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  height: 28px;
+  justify-content: center;
+  width: 26px;
+}
+
+.seasonal-bookmark-motif svg {
+  fill: none;
+  height: 23px;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  transform: rotate(-4deg);
+  width: 23px;
+}
+
+.seasonal-bookmark-motif svg.is-waning {
+  transform: rotate(4deg) scaleX(-1);
+}
+
+.seasonal-bookmark-motif .moon-doodle-star {
+  opacity: 0.68;
+  stroke-width: 1.2;
+}
+
+.seasonal-bookmark-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  opacity: 0;
+  text-shadow: 0 1px rgba(255,255,255,0.22);
+  transform: translateX(7px);
+  transition:
+    opacity 180ms ease 70ms,
+    transform 260ms cubic-bezier(0.22,1,0.36,1) 40ms;
+}
+
+.seasonal-bookmark:hover .seasonal-bookmark-copy,
+.seasonal-bookmark:focus .seasonal-bookmark-copy,
+.seasonal-bookmark:focus-visible .seasonal-bookmark-copy {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.seasonal-bookmark-heading {
+  align-items: baseline;
+  display: flex;
+  gap: 7px;
+}
+
+.seasonal-bookmark-date {
+  font-size: 0.79rem;
+  font-style: italic;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.seasonal-bookmark-season {
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  opacity: 0.76;
+  text-transform: uppercase;
+}
+
+.seasonal-bookmark-astronomy {
+  display: grid;
+  font-size: 0.54rem;
+  font-weight: 650;
+  gap: 3px;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  opacity: 0.88;
+  white-space: nowrap;
+}
+
+.seasonal-bookmark-astronomy span:last-child {
+  opacity: 0.82;
+}
+
+.seasonal-bookmark.season-spring {
+  --bookmark-paper: #d9d9b5;
+  --bookmark-ink: #65704b;
+  --bookmark-edge: rgba(101,112,75,0.24);
+}
+
+.seasonal-bookmark.season-summer {
+  --bookmark-paper: #e6c88d;
+  --bookmark-ink: #8b6133;
+  --bookmark-edge: rgba(139,97,51,0.24);
+}
+
+.seasonal-bookmark.season-autumn {
+  --bookmark-paper: #cf9d78;
+  --bookmark-ink: #784b3c;
+  --bookmark-edge: rgba(120,75,60,0.26);
+}
+
+.seasonal-bookmark.season-winter {
+  --bookmark-paper: #bcc8cb;
+  --bookmark-ink: #52666c;
+  --bookmark-edge: rgba(82,102,108,0.25);
+}
+
+.seasonal-bookmark.month-1 {
+  --bookmark-paper: #c8d0cf;
+  --bookmark-ink: #536468;
+  --bookmark-edge: rgba(83,100,104,0.25);
+}
+
+.seasonal-bookmark.month-2 {
+  --bookmark-paper: #d0c6d2;
+  --bookmark-ink: #64576c;
+  --bookmark-edge: rgba(100,87,108,0.25);
+}
+
+.seasonal-bookmark.month-3 {
+  --bookmark-paper: #d8d3ad;
+  --bookmark-ink: #67704b;
+  --bookmark-edge: rgba(103,112,75,0.24);
+}
+
+.seasonal-bookmark.month-4 {
+  --bookmark-paper: #d7c8b3;
+  --bookmark-ink: #766044;
+  --bookmark-edge: rgba(118,96,68,0.24);
+}
+
+.seasonal-bookmark.month-5 {
+  --bookmark-paper: #cfd9b6;
+  --bookmark-ink: #61704c;
+  --bookmark-edge: rgba(97,112,76,0.24);
+}
+
+.seasonal-bookmark.month-6 {
+  --bookmark-paper: #d9d6a9;
+  --bookmark-ink: #6d6944;
+  --bookmark-edge: rgba(109,105,68,0.24);
+}
+
+.seasonal-bookmark.month-7 {
+  --bookmark-paper: #e1c590;
+  --bookmark-ink: #856133;
+  --bookmark-edge: rgba(133,97,51,0.24);
+}
+
+.seasonal-bookmark.month-8 {
+  --bookmark-paper: #d8b783;
+  --bookmark-ink: #815638;
+  --bookmark-edge: rgba(129,86,56,0.25);
+}
+
+.seasonal-bookmark.month-9 {
+  --bookmark-paper: #d0a47c;
+  --bookmark-ink: #78503d;
+  --bookmark-edge: rgba(120,80,61,0.25);
+}
+
+.seasonal-bookmark.month-10 {
+  --bookmark-paper: #c99675;
+  --bookmark-ink: #744a3d;
+  --bookmark-edge: rgba(116,74,61,0.26);
+}
+
+.seasonal-bookmark.month-11 {
+  --bookmark-paper: #bca88b;
+  --bookmark-ink: #665541;
+  --bookmark-edge: rgba(102,85,65,0.25);
+}
+
+.seasonal-bookmark.month-12 {
+  --bookmark-paper: #bbc8cb;
+  --bookmark-ink: #52666c;
+  --bookmark-edge: rgba(82,102,108,0.25);
+}
+
+.seasonal-bookmark.is-dark {
+  filter: saturate(0.72) brightness(0.74);
+  box-shadow:
+    -8px 12px 26px -17px rgba(0,0,0,0.78),
+    inset 1px 0 rgba(255,255,255,0.1);
 }
 
 /* Archivio come schedario */
@@ -1453,6 +1756,10 @@ body {
 
 @media (min-width: 1180px) {
   .notebook-quick-nav {
+    display: flex;
+  }
+
+  .seasonal-bookmark {
     display: flex;
   }
 }
@@ -1672,6 +1979,50 @@ body {
   margin: 0 auto;
   max-width: 560px;
   position: relative;
+}
+
+.reading-signature {
+  color: #a44e45;
+  display: grid;
+  justify-items: center;
+  margin: -10px 0 20px;
+  opacity: 0;
+  transform: translateY(8px) rotate(-1.5deg);
+  transition:
+    opacity 420ms ease,
+    transform 520ms cubic-bezier(0.22,1,0.36,1);
+}
+
+.reading-signature.is-visible {
+  opacity: 0.78;
+  transform: translateY(0) rotate(-1.5deg);
+}
+
+.reading-signature svg {
+  fill: none;
+  height: 16px;
+  margin-bottom: -2px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.25;
+  width: 84px;
+}
+
+.reading-signature span {
+  font-size: 1.04rem;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.reading-signature strong {
+  display: block;
+  font-size: 1.14rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.journal-footer.is-dark .reading-signature {
+  color: #d88a7d;
 }
 
 .daily-ex-libris {
@@ -2027,6 +2378,10 @@ body {
   .journal-footer {
     margin-top: 4px;
     padding: 52px 0 34px;
+  }
+
+  .reading-signature {
+    margin-bottom: 17px;
   }
 
   .daily-ex-libris {
