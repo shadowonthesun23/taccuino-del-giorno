@@ -747,7 +747,6 @@ export default function Home() {
   const vinylOpen = vinylPinned || vinylPreview;
   const dataExLibris = dataSelezionata ?? oggi;
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
-  const readingDateLabel = formatBookmarkDate(dataExLibris, lingua);
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
   const archivioPopover = isMounted ? createPortal(
@@ -1403,15 +1402,6 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner">
-              <div className={`reading-signature ${readingComplete ? 'is-visible' : ''}`} aria-live="polite" aria-hidden={!readingComplete}>
-                <svg viewBox="0 0 84 20" aria-hidden="true">
-                  <path d="M3 13c13-8 25 5 38-2 12-7 21 3 40-5" />
-                </svg>
-                <span className={caveat.className}>
-                  {lingua === 'IT' ? 'Pagina letta,' : 'Page read,'}
-                  <strong>{readingDateLabel}</strong>
-                </span>
-              </div>
               <div className="daily-ex-libris" aria-label={`${lingua === 'IT' ? 'Ex libris del giorno' : 'Daily ex libris'}: ${data.autore_giorno}`}>
                 <span className="daily-ex-libris-ring" aria-hidden="true" />
                 <span className="daily-ex-libris-kicker">Ex Libris</span>
