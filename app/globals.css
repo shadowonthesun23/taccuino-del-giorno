@@ -865,6 +865,12 @@ body {
   padding-top: 0;
 }
 
+.journal-hero-title {
+  line-height: 1.12;
+  overflow: visible;
+  padding: 0.08em 0 0.04em;
+}
+
 .journal-date-tape {
   padding-bottom: 5px;
   padding-top: 5px;
