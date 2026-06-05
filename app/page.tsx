@@ -368,14 +368,8 @@ function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN', mo
   return `${days} days to ${nextEvent.EN}`;
 }
 
-function getMarginalia(value: string, maxLength = 150): string {
-  const clean = value.replace(/\s+/g, ' ').trim();
-  if (clean.length <= maxLength) return clean;
-
-  const firstSentence = clean.match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim();
-  if (firstSentence && firstSentence.length <= maxLength) return firstSentence;
-
-  return `${clean.slice(0, maxLength).replace(/\s+\S*$/, '')}…`;
+function getMarginalia(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 function DoodleArrow({ isDark = false }: { isDark?: boolean }) {
