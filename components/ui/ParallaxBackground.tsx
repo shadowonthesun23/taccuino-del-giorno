@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function ParallaxBackground({ children }: { children: React.ReactNode }) {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const imageRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -16,19 +16,37 @@ export default function ParallaxBackground({ children }: { children: React.React
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let frame: number | null = null;
+
+    const updateParallax = () => {
+      const image = imageRef.current;
+      if (!image) {
+        frame = null;
+        return;
+      }
+
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight;
       const winHeight = window.innerHeight;
       const maxScroll = docHeight - winHeight;
-      setScrollProgress(maxScroll > 0 ? scrollTop / maxScroll : 0);
+      const scrollProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+
+      image.style.transform = `translate3d(0, -${scrollProgress * 33.33}%, 0)`;
+      frame = null;
     };
+
+    const handleScroll = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateParallax);
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll);
-    handleScroll();
+    updateParallax();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -47,12 +65,15 @@ export default function ParallaxBackground({ children }: { children: React.React
       {/* Immagine parallax sovrapposta */}
       <div className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden">
         <div
+          ref={imageRef}
           className="absolute top-0 left-0 w-full h-[150vh] will-change-transform"
           style={{
             backgroundImage: `url('/images/sfondo-taccuino.webp')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center top',
-            transform: `translateY(-${scrollProgress * 33.33}%)`,
+            backfaceVisibility: 'hidden',
+            contain: 'layout paint style',
+            transform: 'translate3d(0, 0, 0)',
             filter: imageFilter,
             opacity: imageOpacity,
           }}

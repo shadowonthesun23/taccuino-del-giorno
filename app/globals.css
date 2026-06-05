@@ -1157,12 +1157,12 @@ body {
   box-shadow: 0 0 5px rgba(222,107,88,0.28);
   display: block;
   left: 50%;
-  height: var(--reading-progress, 0%);
+  height: 100%;
   min-height: 2px;
   position: absolute;
   top: 0;
-  transform: translateX(-50%);
-  transition: height 120ms linear;
+  transform: translateX(-50%) scaleY(var(--reading-progress-scale, 0));
+  transform-origin: top center;
   width: 3px;
 }
 
@@ -1372,9 +1372,10 @@ body {
 .seasonal-bookmark-stitch > span {
   background: var(--bookmark-ink);
   display: block;
-  height: var(--reading-progress, 0%);
+  height: 100%;
   opacity: 0.48;
-  transition: height 120ms linear;
+  transform: scaleY(var(--reading-progress-scale, 0));
+  transform-origin: top center;
   width: 1px;
 }
 

@@ -638,7 +638,7 @@ export default function Home() {
         : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
       const nextComplete = nextProgress >= 96;
 
-      document.documentElement.style.setProperty('--reading-progress', `${nextProgress}%`);
+      document.documentElement.style.setProperty('--reading-progress-scale', `${nextProgress / 100}`);
       setReadingComplete((current) => current === nextComplete ? current : nextComplete);
       frame = null;
     };
@@ -653,7 +653,7 @@ export default function Home() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
       if (frame !== null) window.cancelAnimationFrame(frame);
-      document.documentElement.style.removeProperty('--reading-progress');
+      document.documentElement.style.removeProperty('--reading-progress-scale');
     };
   }, [data, contentKey]);
 
@@ -668,7 +668,7 @@ export default function Home() {
       setLoading(true);
     }
     setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
-    document.documentElement.style.setProperty('--reading-progress', '0%'); setReadingComplete(false);
+    document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 460)) : Promise.resolve();
     Promise.all([
