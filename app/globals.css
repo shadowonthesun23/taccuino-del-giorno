@@ -1054,37 +1054,37 @@ body {
   display: inline-flex;
   isolation: isolate;
   line-height: 1.12;
-  padding: 2px 8px 3px;
+  padding: 2px 4px 4px;
   position: relative;
-  text-shadow: 0 1px 1px rgba(255,252,242,0.56);
+  text-shadow: 0 1px 1px rgba(255,252,242,0.7);
 }
 
 .section-brush-label::before {
   background:
-    linear-gradient(90deg, transparent 0%, rgba(222,107,88,0.2) 9%, rgba(222,107,88,0.31) 44%, rgba(181,149,106,0.2) 82%, transparent 100%),
-    radial-gradient(ellipse at 24% 44%, rgba(255,252,242,0.26), transparent 58%);
-  border-radius: 9px 5px 8px 6px;
-  clip-path: polygon(1% 24%, 17% 9%, 43% 15%, 68% 6%, 99% 18%, 96% 78%, 72% 91%, 46% 83%, 21% 94%, 3% 76%);
+    linear-gradient(90deg, transparent 0%, rgba(181,149,106,0.12) 11%, rgba(181,149,106,0.16) 48%, rgba(207,93,79,0.08) 82%, transparent 100%),
+    radial-gradient(ellipse at 32% 58%, rgba(255,252,242,0.4), transparent 68%);
+  border-radius: 10px 7px 9px 6px;
+  clip-path: polygon(0 36%, 18% 28%, 44% 34%, 69% 25%, 100% 35%, 96% 86%, 73% 93%, 45% 88%, 20% 96%, 2% 84%);
   content: "";
-  inset: -1px -6px 0 -6px;
-  opacity: 0.95;
+  inset: 42% -4px 1px -4px;
+  opacity: 0.82;
   pointer-events: none;
   position: absolute;
-  transform: rotate(-0.55deg) skewX(-5deg);
+  transform: rotate(-0.45deg) skewX(-4deg);
   z-index: -1;
 }
 
 .section-brush-label::after {
-  background: linear-gradient(90deg, transparent, rgba(222,107,88,0.36), transparent);
-  bottom: 1px;
+  background: linear-gradient(90deg, transparent, rgba(207,93,79,0.18) 18%, rgba(181,149,106,0.26) 52%, rgba(207,93,79,0.12) 80%, transparent);
+  bottom: 2px;
   content: "";
   height: 1px;
-  left: 8%;
-  opacity: 0.5;
+  left: 3%;
+  opacity: 0.64;
   pointer-events: none;
   position: absolute;
-  right: 10%;
-  transform: rotate(-1.1deg);
+  right: 5%;
+  transform: rotate(-0.7deg);
   z-index: -1;
 }
 
@@ -1095,13 +1095,14 @@ body {
 
 .section-brush-label.is-dark::before {
   background:
-    linear-gradient(90deg, transparent 0%, rgba(222,107,88,0.15) 10%, rgba(222,107,88,0.24) 46%, rgba(181,149,106,0.14) 84%, transparent 100%),
-    radial-gradient(ellipse at 24% 44%, rgba(255,255,255,0.055), transparent 58%);
-  opacity: 0.92;
+    linear-gradient(90deg, transparent 0%, rgba(181,149,106,0.12) 10%, rgba(181,149,106,0.17) 48%, rgba(239,184,173,0.08) 84%, transparent 100%),
+    radial-gradient(ellipse at 32% 58%, rgba(255,255,255,0.045), transparent 68%);
+  opacity: 0.72;
 }
 
 .section-brush-label.is-dark::after {
-  opacity: 0.34;
+  background: linear-gradient(90deg, transparent, rgba(239,184,173,0.2) 18%, rgba(181,149,106,0.24) 52%, rgba(239,184,173,0.12) 80%, transparent);
+  opacity: 0.42;
 }
 
 .author-share-trigger {
