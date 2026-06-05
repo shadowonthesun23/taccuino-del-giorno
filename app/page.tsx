@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
@@ -372,6 +373,80 @@ function getMarginalia(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
+function TypewriterText({ text, className = '' }: { text: string; className?: string }) {
+  const [visibleText, setVisibleText] = useState('');
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cancelled = false;
+    let index = 0;
+    const timeoutIds = new Set<number>();
+
+    const schedule = (callback: () => void, delay: number) => {
+      const timeoutId = window.setTimeout(() => {
+        timeoutIds.delete(timeoutId);
+        callback();
+      }, delay);
+      timeoutIds.add(timeoutId);
+    };
+
+    if (reduceMotion) {
+      schedule(() => setVisibleText(text), 0);
+      return () => {
+        cancelled = true;
+        timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      };
+    }
+
+    schedule(() => setVisibleText(''), 0);
+
+    const tick = () => {
+      if (cancelled) return;
+      index += 1;
+      setVisibleText(text.slice(0, index));
+      if (index >= text.length) return;
+
+      const current = text[index - 1];
+      const next = text[index];
+      const baseDelay = 34 + ((text.charCodeAt(index) || index) % 4) * 14;
+      const pause = current === ' ' || next === ' ' ? 92 : 0;
+      schedule(tick, baseDelay + pause);
+    };
+
+    schedule(tick, 260);
+
+    return () => {
+      cancelled = true;
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    };
+  }, [text]);
+
+  return (
+    <span className={`typewriter-text ${className}`} aria-label={text}>
+      <span className="typewriter-measure" aria-hidden="true">{text}</span>
+      <span className="typewriter-live" aria-hidden="true">
+        {visibleText}
+        {visibleText.length < text.length && <span className="typewriter-caret" />}
+      </span>
+    </span>
+  );
+}
+
+function EditorialQuoteText({ text }: { text: string }) {
+  const [firstLetter = '', ...restLetters] = Array.from(text.trim());
+  const rest = restLetters.join('');
+
+  return (
+    <p
+      className="card-primary-quote quote-editorial-text text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium"
+      aria-label={text}
+    >
+      <span className="quote-editorial-dropcap" aria-hidden="true">{firstLetter}</span>
+      <span className="quote-editorial-copy" aria-hidden="true">{rest}</span>
+    </p>
+  );
+}
+
 function DoodleArrow({ isDark = false }: { isDark?: boolean }) {
   const stroke = isDark ? '#D98072' : '#DE6B58';
   const sharedStyle = {
@@ -664,7 +739,7 @@ export default function Home() {
     setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
-    const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 460)) : Promise.resolve();
+    const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 680)) : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
       fetch('/api/opera').then(res => {
@@ -771,7 +846,7 @@ export default function Home() {
       ref={popoverRef}
       role="dialog"
       aria-label="Archivio dei giorni"
-      className={`archive-popover ${isDark ? 'is-dark' : ''} fixed z-[9999] border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+      className={`archive-popover ${popoverOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} fixed z-[9999] border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
       style={{
         top: `${popoverPos.top}px`,
         right: `${popoverPos.right}px`,
@@ -831,7 +906,7 @@ export default function Home() {
                   <span className="archive-month-note">{monthMood}</span>
                 </p>
                 <ul className="archive-list">
-                  {items.map(item => {
+                  {items.map((item, index) => {
                     const isOggi = item.data === oggi;
                     const isSelezionato = item.data === dataSelezionata;
                     return (
@@ -839,7 +914,8 @@ export default function Home() {
                         <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data, Boolean(data)); else setPopoverOpen(false); }}
                           className={`archive-entry ${
                             isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
-                          } ${isOggi ? 'is-today' : ''}`}>
+                          } ${isOggi ? 'is-today' : ''}`}
+                          style={{ '--archive-entry-delay': `${80 + Math.min(index, 7) * 34}ms` } as CSSProperties}>
                           <span className={`archive-entry-dot ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
                           <span className="archive-entry-copy">
                             <span className="archive-entry-title">{item.autore_giorno}</span>
@@ -1007,7 +1083,7 @@ export default function Home() {
                     : '0 1px 1px rgba(255,252,242,0.75)',
                 }}
               >
-                <span className={`${jocky.className} notebook-wordmark animate-typewriter`}>
+                <span className={`${jocky.className} notebook-wordmark hero-ink-title animate-handwrite`}>
                   {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
                 </span>
               </h1>
@@ -1032,9 +1108,9 @@ export default function Home() {
   <div className="relative z-10">
     <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
-        <div className="relative z-20 flex-shrink-0" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+        <div className="author-photo-wrap relative z-20 flex-shrink-0" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
           <div
-            className="masking-tape"
+            className="masking-tape author-photo-tape"
             style={{
               position: 'absolute',
               top: '-8px',
@@ -1047,7 +1123,7 @@ export default function Home() {
             }}
           />
           <div
-            className="relative photo-paper-shadow"
+            className="author-photo-paper relative photo-paper-shadow"
             style={{
               background: themeClasses.photoBg,
               border: `1px solid ${themeClasses.photoBorder}`,
@@ -1095,7 +1171,7 @@ export default function Home() {
                 : '0 1px 1px rgba(255,252,242,0.75)',
             }}
           >
-            {data.autore_giorno}
+            <TypewriterText text={data.autore_giorno} />
           </h2>
           <p
             className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}
@@ -1110,7 +1186,9 @@ export default function Home() {
           <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
             <span className="daily-thread-line" aria-hidden="true" />
             <span className="daily-thread-label">{lingua === 'IT' ? 'Il filo di oggi:' : "Today's thread:"}</span>
-            <strong className={`${caveat.className} daily-thread-theme`}>{data.parola_giorno.parola}</strong>
+            <strong className={`${caveat.className} daily-thread-theme`}>
+              <span>{data.parola_giorno.parola}</span>
+            </strong>
             <span className="daily-thread-line is-ending" aria-hidden="true" />
           </div>
           {!showExportCard && (
@@ -1168,9 +1246,9 @@ export default function Home() {
               className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-3"
               filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
             >
-              <blockquote className="md:px-8">
-                <p className="card-primary-quote medieval-box text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium">{data.citazione.testo}</p>
-                <footer className="text-right text-lg clear-both pt-2">
+              <blockquote className="quote-editorial md:px-8">
+                <EditorialQuoteText text={data.citazione.testo} />
+                <footer className="quote-editorial-footer text-right text-lg clear-both pt-2">
                   <span className="font-bold">{data.citazione.autore}</span>
                   <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
                 </footer>
