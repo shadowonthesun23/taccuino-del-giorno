@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2, Search } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2, Search, FileDown, Printer, Stamp } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -544,6 +544,225 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
   );
 }
 
+function getPassportCode(dataIso: string, initials: string): string {
+  return `${dataIso.replace(/-/g, '')}-${initials || 'TDG'}`;
+}
+
+function DailyPassport({
+  data,
+  opera,
+  lingua,
+  isDark,
+  dataIso,
+  initials,
+  onClose,
+}: {
+  data: DatiTaccuino;
+  opera: OperaGiorno | null;
+  lingua: 'IT' | 'EN';
+  isDark: boolean;
+  dataIso: string;
+  initials: string;
+  onClose: () => void;
+}) {
+  const moon = getMoonPhase(dataIso);
+  const season = getSeason(dataIso);
+  const moonLabels: Record<MoonPhaseId, { IT: string; EN: string }> = {
+    new: { IT: 'Luna nuova', EN: 'New moon' },
+    'waxing-crescent': { IT: 'Luna crescente', EN: 'Waxing crescent' },
+    'first-quarter': { IT: 'Primo quarto', EN: 'First quarter' },
+    'waxing-gibbous': { IT: 'Gibbosa crescente', EN: 'Waxing gibbous' },
+    full: { IT: 'Luna piena', EN: 'Full moon' },
+    'waning-gibbous': { IT: 'Gibbosa calante', EN: 'Waning gibbous' },
+    'last-quarter': { IT: 'Ultimo quarto', EN: 'Last quarter' },
+    'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent' },
+  };
+  const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
+    spring: { IT: 'Primavera', EN: 'Spring' },
+    summer: { IT: 'Estate', EN: 'Summer' },
+    autumn: { IT: 'Autunno', EN: 'Autumn' },
+    winter: { IT: 'Inverno', EN: 'Winter' },
+  };
+  const label = {
+    title: lingua === 'IT' ? 'Passaporto del Giorno' : 'Passport of the Day',
+    subtitle: lingua === 'IT'
+      ? 'Una mappa pieghevole da scaricare, stampare e conservare.'
+      : 'A foldable map to download, print, and keep.',
+    download: lingua === 'IT' ? 'Scarica PDF' : 'Download PDF',
+    print: lingua === 'IT' ? 'Apri stampa' : 'Open print',
+    close: lingua === 'IT' ? 'Chiudi' : 'Close',
+    author: lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day',
+    quote: lingua === 'IT' ? 'Citazione' : 'Quote',
+    word: lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day',
+    saints: lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints",
+    events: lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History',
+    poem: lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day',
+    bible: lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage',
+    music: lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation',
+    artwork: lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day',
+    stamp: lingua === 'IT' ? 'Visitato' : 'Visited',
+    number: lingua === 'IT' ? 'N.' : 'No.',
+    theme: lingua === 'IT' ? 'Filo' : 'Thread',
+    foldHint: lingua === 'IT' ? 'Piega lungo i tratteggi' : 'Fold on dashed lines',
+    authorPhoto: lingua === 'IT' ? 'Ritratto dell’autore' : 'Author portrait',
+    artworkImage: lingua === 'IT' ? 'Immagine dell’opera' : 'Artwork image',
+  };
+  const passportCode = getPassportCode(dataIso, initials);
+  const moonLabel = moonLabels[moon.phase][lingua];
+  const solarConstellation = getSolarConstellation(dataIso, lingua);
+
+  return (
+    <div className={`daily-passport-overlay ${garamond.className} ${isDark ? 'is-dark' : ''}`} role="dialog" aria-modal="true" aria-labelledby="daily-passport-title">
+      <div className="daily-passport-toolbar">
+        <div>
+          <span className="daily-passport-kicker">
+            <Stamp className="h-4 w-4" strokeWidth={1.6} aria-hidden="true" />
+            {lingua === 'IT' ? 'Da conservare' : 'Keepsake'}
+          </span>
+          <h2 id="daily-passport-title">{lingua === 'IT' ? 'Anteprima del passaporto' : 'Passport preview'}</h2>
+          <p>{label.subtitle}</p>
+        </div>
+        <div className="daily-passport-actions">
+          <button type="button" className="daily-passport-print-button" onClick={() => window.print()}>
+            <FileDown className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
+            <span>{label.download}</span>
+          </button>
+          <button type="button" className="daily-passport-close-button" onClick={onClose} aria-label={label.close}>
+            <X className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <div className="daily-passport-preview">
+        <article className="daily-passport-document" aria-label={`${label.title}: ${data.data_odierna}`}>
+          <div className="daily-passport-paper-grain" aria-hidden="true" />
+          <div className="daily-passport-folds" aria-hidden="true">
+            <span /><span /><span /><span /><span />
+          </div>
+
+          <section className="daily-passport-cover-panel">
+            <p className="daily-passport-small-label">{label.number} {passportCode}</p>
+            <h3>{label.title}</h3>
+            <p className="daily-passport-date">{data.data_odierna}</p>
+            <div className="daily-passport-stamp">
+              <span>{label.stamp}</span>
+              <strong>{initials}</strong>
+              <em>{formatExLibrisDate(dataIso)}</em>
+            </div>
+            <div className="daily-passport-route">
+              <span>{label.theme}</span>
+              <strong className={caveat.className}>{data.parola_giorno.parola}</strong>
+              <span>{seasonLabels[season][lingua]} · {moonLabel} {moon.illumination}% · {solarConstellation}</span>
+            </div>
+            {data.foto_autore_url && (
+              <figure className="daily-passport-author-photo">
+                <img src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} />
+              </figure>
+            )}
+            <p className="daily-passport-fold-hint">{label.foldHint}</p>
+          </section>
+
+          <section className="daily-passport-content-flow">
+            <section>
+              <span>{label.author}</span>
+              <h4>{data.autore_giorno}</h4>
+              <p>{data.breve_descrizione}</p>
+            </section>
+
+            <section>
+              <span>{label.quote}</span>
+              <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
+              <p className="daily-passport-source">{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
+            </section>
+
+            <section>
+              <span>{label.word}</span>
+              <h4>{data.parola_giorno.parola}</h4>
+              <p><strong>{data.parola_giorno.etimologia}</strong></p>
+              <p>{data.parola_giorno.definizione}</p>
+              {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
+                <blockquote>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
+              )}
+              {data.parola_giorno.nota && <p>{data.parola_giorno.nota}</p>}
+            </section>
+
+            <section>
+              <span>{label.saints}</span>
+              {data.santi.map((santo, index) => (
+                <div key={index} className="daily-passport-mini-entry">
+                  <h5>{santo.nome}</h5>
+                  <p><strong>{santo.ruolo}</strong>{santo.anni ? ` · ${santo.anni}` : ''}</p>
+                  <p>{santo.biografia}</p>
+                </div>
+              ))}
+            </section>
+
+            <section>
+              <span>{label.events}</span>
+              <ul className="daily-passport-events">
+                {data.avvenimenti.map((evento, index) => (
+                  <li key={index}>{evento}</li>
+                ))}
+              </ul>
+            </section>
+
+            <section>
+              <span>{label.poem}</span>
+              <h4>{data.poesia.autore}</h4>
+              <p className="daily-passport-source">{data.poesia.fonte}</p>
+              <p className="daily-passport-poem">{data.poesia.testo}</p>
+              {data.poesia.nota && <p>{data.poesia.nota}</p>}
+            </section>
+
+            <section>
+              <span>{label.bible}</span>
+              <h4>{data.bibbia.fonte}</h4>
+              <p>{data.bibbia.testo}</p>
+              {data.bibbia.nota && <p>{data.bibbia.nota}</p>}
+            </section>
+
+          </section>
+
+          <aside className="daily-passport-art-panel">
+            <section>
+              <span>{label.music}</span>
+              <h4>{data.musica.brano}</h4>
+              <p className="daily-passport-source">{data.musica.autore} · {data.musica.genere}</p>
+              <p>{data.musica.motivo}</p>
+            </section>
+
+            {opera && (
+              <section>
+                <span>{label.artwork}</span>
+                {opera.immagine_url_hd || opera.immagine_url ? (
+                  <figure className="daily-passport-artwork">
+                    <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${label.artworkImage}: ${opera.titolo}`} />
+                  </figure>
+                ) : null}
+                <h4>{opera.titolo}</h4>
+                <p className="daily-passport-source">{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
+                <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
+              </section>
+            )}
+
+            <footer className="daily-passport-signature">
+              <strong className={`${jocky.className} notebook-wordmark`}>{lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}</strong>
+              <span>{lingua === 'IT' ? 'Realizzato con amore da Antonello.' : 'Made with love by Antonello.'}</span>
+            </footer>
+          </aside>
+        </article>
+      </div>
+
+      <div className="daily-passport-mobile-actions">
+        <button type="button" className="daily-passport-print-button" onClick={() => window.print()}>
+          <Printer className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
+          <span>{label.print}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const notebookNavItems = [
   { id: 'autore', icon: Feather, labelIT: 'Autore', labelEN: 'Author' },
   { id: 'citazione', icon: Quote, labelIT: 'Citazione', labelEN: 'Quote' },
@@ -643,6 +862,7 @@ export default function Home() {
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const [showExportCard, setShowExportCard] = useState(false);
+  const [showDailyPassport, setShowDailyPassport] = useState(false);
   const [isTurningPage, setIsTurningPage] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
@@ -672,10 +892,24 @@ export default function Home() {
   }, [popoverOpen]);
 
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) { if (e.key === 'Escape') setPopoverOpen(false); }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setPopoverOpen(false);
+        setShowDailyPassport(false);
+      }
+    }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (!showDailyPassport) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showDailyPassport]);
 
   useEffect(() => {
     if (!data) return;
@@ -741,7 +975,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
+    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 680)) : Promise.resolve();
@@ -1548,12 +1782,32 @@ export default function Home() {
                   <span>{lingua === 'IT' ? 'Supporta' : 'Support'}</span>
                 </a>
               </nav>
+              <button
+                type="button"
+                className={`daily-passport-open-button ${isDark ? 'is-dark' : ''}`}
+                onClick={() => setShowDailyPassport(true)}
+              >
+                <FileDown className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
+                <span>{lingua === 'IT' ? 'Crea il passaporto del giorno' : 'Create today’s passport'}</span>
+              </button>
             </div>
           </footer>
 
         </main>
 
         {archivioPopover}
+        {isMounted && showDailyPassport && createPortal(
+          <DailyPassport
+            data={data}
+            opera={opera}
+            lingua={lingua}
+            isDark={isDark}
+            dataIso={dataExLibris}
+            initials={inizialiExLibris}
+            onClose={() => setShowDailyPassport(false)}
+          />,
+          document.body
+        )}
 
       </div>
     </ParallaxBackground>
