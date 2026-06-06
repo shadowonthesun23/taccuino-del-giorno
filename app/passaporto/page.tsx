@@ -1,21 +1,17 @@
-'use client';
-
-import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { EB_Garamond, Caveat } from 'next/font/google';
+import { createClient } from '@supabase/supabase-js';
+import { EB_Garamond } from 'next/font/google';
 import localFont from 'next/font/local';
+import PrintButton from './PrintButton';
 import styles from './passaporto.module.css';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const garamond = EB_Garamond({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
-  display: 'swap',
-});
-
-const caveat = Caveat({
-  subsets: ['latin'],
-  weight: ['400', '700'],
   display: 'swap',
 });
 
@@ -49,6 +45,8 @@ interface DatiTaccuino {
   poesia: { testo: string; autore: string; fonte: string; nota: string };
   musica: { brano: string; autore: string; genere: string; motivo: string };
   foto_autore_url?: string | null;
+  keyword_arte_en?: string | null;
+  opera_giorno?: OperaGiorno | null;
 }
 
 function getInitials(name: string): string {
@@ -80,40 +78,104 @@ function entry(label: string, children: ReactNode) {
   );
 }
 
-export default function PassportPage() {
-  const [data, setData] = useState<DatiTaccuino | null>(null);
-  const [opera, setOpera] = useState<OperaGiorno | null>(null);
-  const [dataIso, setDataIso] = useState('');
-  const [error, setError] = useState<string | null>(null);
+async function getFotoAutore(nomeAutore: string): Promise<string | null> {
+  try {
+    const encoded = encodeURIComponent(nomeAutore);
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`, {
+      headers: { 'User-Agent': 'TaccuinoDelGiorno/1.0' },
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.thumbnail?.source ?? json?.originalimage?.source ?? null;
+  } catch {
+    return null;
+  }
+}
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const requestedDate = params.get('data') || new Date().toISOString().split('T')[0];
-    setDataIso(requestedDate);
+async function findArtwork(keyword: string | null | undefined): Promise<OperaGiorno | null> {
+  if (!keyword) return null;
 
-    Promise.all([
-      fetch(`/api/oggi?data=${requestedDate}`).then((res) => {
-        if (!res.ok) throw new Error('Nessun contenuto disponibile per questa data.');
-        return res.json();
-      }),
-      fetch('/api/opera').then((res) => res.ok ? res.json() : null).catch(() => null),
-    ])
-      .then(([nextData, nextOpera]) => {
-        setData(nextData);
-        setOpera(nextOpera);
-      })
-      .catch((err: Error) => setError(err.message));
-  }, []);
+  try {
+    const searchRes = await fetch(
+      `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${encodeURIComponent(keyword)}&hasImages=true&isPublicDomain=true`,
+      { next: { revalidate: 86400 } }
+    );
+    const searchData = await searchRes.json();
+    const objectIDs = Array.isArray(searchData.objectIDs) ? searchData.objectIDs.slice(0, 25) : [];
+    if (objectIDs.length === 0) return null;
 
-  const initials = useMemo(() => data ? getInitials(data.autore_giorno) : 'TDG', [data]);
-
-  if (error) {
-    return <main className={`${styles.error} ${garamond.className}`}>{error}</main>;
+    for (const objectID of objectIDs.slice(0, 6)) {
+      const objRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${objectID}`, {
+        next: { revalidate: 86400 },
+      });
+      if (!objRes.ok) continue;
+      const obj = await objRes.json();
+      if (obj.primaryImageSmall && obj.title) {
+        return {
+          titolo: obj.title,
+          artista: obj.artistDisplayName || 'Artista sconosciuto',
+          anno: obj.objectDate || '',
+          immagine_url: obj.primaryImageSmall,
+          immagine_url_hd: obj.primaryImage || obj.primaryImageSmall,
+          museo: 'Metropolitan Museum of Art',
+          medium: obj.medium || '',
+          dipartimento: obj.department || '',
+        };
+      }
+    }
+  } catch {
+    return null;
   }
 
-  if (!data) {
-    return <main className={`${styles.loading} ${garamond.className}`}>Preparo il passaporto...</main>;
+  return null;
+}
+
+async function getPassportData(dataIso: string): Promise<{ data: DatiTaccuino; opera: OperaGiorno | null }> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const { data, error } = await supabase
+    .from('contenuti_giornalieri')
+    .select('*')
+    .eq('data', dataIso)
+    .single();
+
+  if (error || !data) {
+    throw new Error('Nessun contenuto disponibile per questa data.');
   }
+
+  const fotoUrl = await getFotoAutore(data.autore_giorno);
+  const opera = data.opera_giorno ?? await findArtwork(data.keyword_arte_en);
+
+  return {
+    data: { ...data, foto_autore_url: fotoUrl },
+    opera,
+  };
+}
+
+export default async function PassportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ data?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const dataParam = Array.isArray(params.data) ? params.data[0] : params.data;
+  const dataIso = dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)
+    ? dataParam
+    : new Date().toISOString().split('T')[0];
+
+  let payload: { data: DatiTaccuino; opera: OperaGiorno | null };
+  try {
+    payload = await getPassportData(dataIso);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Errore nel caricamento del passaporto.';
+    return <main className={`${styles.error} ${garamond.className}`}>{message}</main>;
+  }
+
+  const { data, opera } = payload;
+  const initials = getInitials(data.autore_giorno);
 
   return (
     <main className={`${styles.page} ${garamond.className}`}>
@@ -122,9 +184,7 @@ export default function PassportPage() {
           <h1>Passaporto del Giorno</h1>
           <p>Una mappa A4 orizzontale da stampare e conservare.</p>
         </div>
-        <button className={styles.printButton} type="button" onClick={() => window.print()}>
-          Scarica PDF
-        </button>
+        <PrintButton />
       </header>
 
       <div className={styles.sheetWrap}>
