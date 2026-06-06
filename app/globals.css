@@ -3472,10 +3472,6 @@ body {
     width: 297mm !important;
   }
 
-  body > :not(.daily-passport-overlay) {
-    display: none !important;
-  }
-
   .daily-passport-overlay,
   .daily-passport-overlay *,
   .daily-passport-document,
