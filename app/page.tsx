@@ -1758,7 +1758,7 @@ export default function Home() {
               <button
                 type="button"
                 className={`daily-passport-open-button ${isDark ? 'is-dark' : ''}`}
-                onClick={() => setShowDailyPassport(true)}
+                onClick={() => window.open(`/passaporto?data=${dataExLibris}`, '_blank', 'noopener,noreferrer')}
               >
                 <FileDown className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
                 <span>{lingua === 'IT' ? 'Crea il passaporto del giorno' : 'Create today’s passport'}</span>
