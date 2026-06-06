@@ -565,24 +565,6 @@ function DailyPassport({
   initials: string;
   onClose: () => void;
 }) {
-  const moon = getMoonPhase(dataIso);
-  const season = getSeason(dataIso);
-  const moonLabels: Record<MoonPhaseId, { IT: string; EN: string }> = {
-    new: { IT: 'Luna nuova', EN: 'New moon' },
-    'waxing-crescent': { IT: 'Luna crescente', EN: 'Waxing crescent' },
-    'first-quarter': { IT: 'Primo quarto', EN: 'First quarter' },
-    'waxing-gibbous': { IT: 'Gibbosa crescente', EN: 'Waxing gibbous' },
-    full: { IT: 'Luna piena', EN: 'Full moon' },
-    'waning-gibbous': { IT: 'Gibbosa calante', EN: 'Waning gibbous' },
-    'last-quarter': { IT: 'Ultimo quarto', EN: 'Last quarter' },
-    'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent' },
-  };
-  const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
-    spring: { IT: 'Primavera', EN: 'Spring' },
-    summer: { IT: 'Estate', EN: 'Summer' },
-    autumn: { IT: 'Autunno', EN: 'Autumn' },
-    winter: { IT: 'Inverno', EN: 'Winter' },
-  };
   const label = {
     title: lingua === 'IT' ? 'Passaporto del Giorno' : 'Passport of the Day',
     subtitle: lingua === 'IT'
@@ -602,14 +584,11 @@ function DailyPassport({
     artwork: lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day',
     stamp: lingua === 'IT' ? 'Visitato' : 'Visited',
     number: lingua === 'IT' ? 'N.' : 'No.',
-    theme: lingua === 'IT' ? 'Filo' : 'Thread',
     foldHint: lingua === 'IT' ? 'Piega lungo i tratteggi' : 'Fold on dashed lines',
     authorPhoto: lingua === 'IT' ? 'Ritratto dell’autore' : 'Author portrait',
     artworkImage: lingua === 'IT' ? 'Immagine dell’opera' : 'Artwork image',
   };
   const passportCode = getPassportCode(dataIso, initials);
-  const moonLabel = moonLabels[moon.phase][lingua];
-  const solarConstellation = getSolarConstellation(dataIso, lingua);
 
   return (
     <div className={`daily-passport-overlay ${garamond.className} ${isDark ? 'is-dark' : ''}`} role="dialog" aria-modal="true" aria-labelledby="daily-passport-title">
@@ -649,10 +628,10 @@ function DailyPassport({
               <strong>{initials}</strong>
               <em>{formatExLibrisDate(dataIso)}</em>
             </div>
-            <div className="daily-passport-route">
-              <span>{label.theme}</span>
-              <strong className={caveat.className}>{data.parola_giorno.parola}</strong>
-              <span>{seasonLabels[season][lingua]} · {moonLabel} {moon.illumination}% · {solarConstellation}</span>
+            <div className="daily-passport-cover-author">
+              <span>{label.author}</span>
+              <h4>{data.autore_giorno}</h4>
+              <p>{data.breve_descrizione}</p>
             </div>
             {data.foto_autore_url && (
               <figure className="daily-passport-author-photo">
@@ -663,12 +642,6 @@ function DailyPassport({
           </section>
 
           <section className="daily-passport-content-flow">
-            <section>
-              <span>{label.author}</span>
-              <h4>{data.autore_giorno}</h4>
-              <p>{data.breve_descrizione}</p>
-            </section>
-
             <section>
               <span>{label.quote}</span>
               <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
@@ -717,7 +690,7 @@ function DailyPassport({
             <section>
               <span>{label.bible}</span>
               <h4>{data.bibbia.fonte}</h4>
-              <p>{data.bibbia.testo}</p>
+              <p className="daily-passport-bible-text">{data.bibbia.testo}</p>
               {data.bibbia.nota && <p>{data.bibbia.nota}</p>}
             </section>
 

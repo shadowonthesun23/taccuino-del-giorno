@@ -3138,10 +3138,10 @@ body {
 }
 
 .daily-passport-small-label,
+.daily-passport-cover-author > span,
 .daily-passport-content-flow section > span,
 .daily-passport-art-panel section > span,
-.daily-passport-route > span:first-child,
-.daily-passport-signature {
+.daily-passport-route > span:first-child {
   color: #9d5147;
   font-size: clamp(0.52rem, 0.72vw, 0.7rem);
   font-weight: 800;
@@ -3170,6 +3170,7 @@ body {
   font-weight: 700;
   line-height: 1.15;
   margin: 0;
+  text-align: center;
 }
 
 .daily-passport-stamp {
@@ -3244,6 +3245,33 @@ body {
   font-weight: 600;
 }
 
+.daily-passport-cover-author {
+  border-bottom: 1px solid rgba(181,149,106,0.24);
+  border-top: 1px solid rgba(181,149,106,0.2);
+  display: grid;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.daily-passport-cover-author h4 {
+  color: #2a2522;
+  font-size: clamp(0.82rem, 1.02vw, 0.98rem);
+  font-weight: 800;
+  line-height: 1.04;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.daily-passport-cover-author p {
+  color: #4a433f;
+  font-size: clamp(0.52rem, 0.66vw, 0.62rem);
+  font-weight: 500;
+  hyphens: auto;
+  line-height: 1.18;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
 .daily-passport-content-flow section {
   break-inside: auto;
   margin: 0 0 11px;
@@ -3283,6 +3311,10 @@ body {
   font-size: clamp(0.58rem, 0.78vw, 0.74rem);
   font-style: italic;
   margin: 2px 0 5px;
+}
+
+.daily-passport-bible-text {
+  font-style: italic;
 }
 
 .daily-passport-art-panel {
@@ -3400,9 +3432,12 @@ body {
 }
 
 .daily-passport-signature strong {
-  font-size: clamp(0.72rem, 1.02vw, 0.98rem);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  color: #a44e45;
+  font-size: clamp(1.05rem, 1.45vw, 1.36rem);
+  font-weight: 400;
+  letter-spacing: 0.016em;
+  line-height: 0.9;
+  text-transform: none;
 }
 
 .daily-passport-signature span {
@@ -3505,10 +3540,12 @@ body {
     font-size: 14pt;
   }
 
+  .daily-passport-cover-author h4,
   .daily-passport-content-flow h4 {
     font-size: 7.2pt;
   }
 
+  .daily-passport-cover-author p,
   .daily-passport-content-flow p,
   .daily-passport-content-flow blockquote,
   .daily-passport-content-flow li,
@@ -3517,6 +3554,7 @@ body {
   }
 
   .daily-passport-content-flow section > span,
+  .daily-passport-cover-author > span,
   .daily-passport-art-panel section > span,
   .daily-passport-small-label {
     font-size: 4.6pt;
