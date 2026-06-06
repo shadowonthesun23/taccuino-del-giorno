@@ -182,12 +182,16 @@ body {
   isolation: isolate;
   overflow: hidden;
   position: relative;
+  box-shadow:
+    -5px 12px 30px -34px rgba(42,37,34,0.18),
+    6px 16px 34px -38px rgba(42,37,34,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.18);
   transform: translate3d(0,0,0) rotate(0deg);
   transition:
-    background-color 0.3s ease,
-    border-color 0.3s ease,
-    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    background-color 420ms ease,
+    border-color 420ms ease,
+    transform 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 960ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .card-paper-shadow,
@@ -203,12 +207,12 @@ body {
 }
 
 .card-paper-shadow:hover {
-  border-color: rgba(222,107,88,0.28);
+  border-color: rgba(222,107,88,0.18);
   box-shadow:
-    -10px 18px 36px -30px rgba(42,37,34,0.34),
-    10px 24px 42px -34px rgba(42,37,34,0.24),
-    inset 0 1px 0 rgba(255,255,255,0.34);
-  transform: translate3d(0,-3px,0) rotate(-0.12deg) scale(1.003);
+    -7px 15px 34px -33px rgba(42,37,34,0.22),
+    8px 20px 40px -37px rgba(42,37,34,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.24);
+  transform: translate3d(0,-1px,0) rotate(-0.05deg) scale(1.001);
 }
 
 .card-paper-shadow:focus-within {
@@ -236,8 +240,8 @@ body {
   transform: scaleY(0.18);
   transform-origin: center;
   transition:
-    opacity 220ms ease,
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 520ms ease,
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
   width: 3px;
 }
 
@@ -248,19 +252,19 @@ body {
   opacity: 0;
   transform: translateX(-38%) skewX(-10deg);
   transition:
-    opacity 360ms ease,
-    transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 680ms ease,
+    transform 980ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-paper-shadow:hover::before,
 .card-paper-shadow:focus-within::before {
-  opacity: 1;
+  opacity: 0.72;
   transform: scaleY(1);
 }
 
 .card-paper-shadow:hover::after,
 .card-paper-shadow:focus-within::after {
-  opacity: 1;
+  opacity: 0.22;
   transform: translateX(28%) skewX(-10deg);
 }
 
@@ -302,11 +306,17 @@ body {
 }
 
 .quote-editorial-dropcap {
-  animation: quoteDropcapSettle 620ms cubic-bezier(0.22, 1, 0.36, 1) 1320ms both;
-  background-color: #9e2a2b;
+  animation: quoteDropcapSettle 760ms cubic-bezier(0.2, 0.9, 0.2, 1) 1260ms both;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,252,242,0.18), transparent 30%),
+    linear-gradient(145deg, #b13a35 0%, #8f2426 58%, #6f1f23 100%);
   border: 3px double #b08d57;
   border-radius: 4px;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
+  box-shadow:
+    0 9px 20px -17px rgba(42,37,34,0.66),
+    2px 2px 5px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,252,242,0.2),
+    inset 0 -5px 14px rgba(42,18,18,0.18);
   color: #ffffff;
   float: left;
   font-family: 'Cinzel Decorative', serif;
@@ -327,14 +337,17 @@ body {
 
 @keyframes quoteDropcapSettle {
   from {
+    filter: saturate(0.7) blur(1.2px);
     opacity: 0;
-    transform: translateY(10px) rotate(-2deg) scale(0.92);
+    transform: translateY(13px) rotate(-4deg) scale(1.12);
   }
-  70% {
+  58% {
+    filter: saturate(1.08) blur(0);
     opacity: 1;
-    transform: translateY(-1px) rotate(0.7deg) scale(1.015);
+    transform: translateY(-1px) rotate(0.9deg) scale(0.985);
   }
   to {
+    filter: saturate(1) blur(0);
     opacity: 1;
     transform: translateY(0) rotate(0deg) scale(1);
   }
@@ -342,12 +355,16 @@ body {
 
 @keyframes quoteCopyBloom {
   from {
-    filter: blur(2px);
+    filter: blur(2px) contrast(0.92);
     opacity: 0;
-    transform: translateY(7px);
+    transform: translateY(8px);
+  }
+  62% {
+    filter: blur(0.4px) contrast(1.06);
+    opacity: 0.92;
   }
   to {
-    filter: blur(0);
+    filter: blur(0) contrast(1);
     opacity: 1;
     transform: translateY(0);
   }
@@ -1018,6 +1035,7 @@ body {
 
 .margin-note {
   align-items: flex-start;
+  animation: marginaliaNoteSettle 720ms cubic-bezier(0.22, 1, 0.36, 1) 260ms both;
   color: #8a6f61;
   display: flex;
   font-size: 1.08rem;
@@ -1028,9 +1046,11 @@ body {
   opacity: 0.82;
   text-align: right;
   transform: rotate(-1.1deg);
+  transform-origin: 78% 16%;
 }
 
 .margin-note-doodle {
+  animation: marginaliaDoodleArrive 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
   flex: 0 0 auto;
   margin-top: -4px;
   opacity: 0.72;
@@ -1045,6 +1065,21 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
+.margin-note-doodle-line,
+.margin-note-doodle-head {
+  animation: marginaliaStrokeDraw 780ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.margin-note-doodle-head {
+  animation-delay: 220ms;
+}
+
+.margin-note span {
+  animation: marginaliaInkBloom 620ms cubic-bezier(0.22, 1, 0.36, 1) 360ms both;
+}
+
 .margin-note.is-dark {
   color: #b7a49b;
   opacity: 0.78;
@@ -1052,6 +1087,97 @@ body {
 
 .margin-note.is-dark .margin-note-doodle {
   opacity: 0.78;
+}
+
+@keyframes marginaliaNoteSettle {
+  from {
+    filter: blur(1px);
+    opacity: 0;
+    transform: translateY(9px) rotate(-2.4deg);
+  }
+  to {
+    filter: blur(0);
+    opacity: 0.82;
+    transform: translateY(0) rotate(-1.1deg);
+  }
+}
+
+@keyframes marginaliaDoodleArrive {
+  from {
+    opacity: 0;
+    transform: translate(-5px, 4px) rotate(-8deg);
+  }
+  to {
+    opacity: 0.72;
+    transform: translate(0, 0) rotate(-4deg);
+  }
+}
+
+@keyframes marginaliaStrokeDraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes marginaliaInkBloom {
+  from {
+    filter: blur(1.2px);
+    opacity: 0;
+    transform: translateY(4px) skewX(-2deg);
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) skewX(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .quote-editorial-dropcap,
+    .quote-editorial-copy,
+    .quote-editorial-footer,
+    .margin-note,
+    .margin-note-doodle,
+    .margin-note-doodle-line,
+    .margin-note-doodle-head,
+    .margin-note span {
+      animation-delay: 0s;
+      animation-timeline: view();
+    }
+
+    .quote-editorial-dropcap {
+      animation-range: entry 4% cover 20%;
+    }
+
+    .quote-editorial-copy {
+      animation-range: entry 7% cover 24%;
+    }
+
+    .quote-editorial-footer {
+      animation-range: entry 18% cover 34%;
+    }
+
+    .margin-note {
+      animation-range: entry 4% cover 24%;
+    }
+
+    .margin-note-doodle,
+    .margin-note-doodle-line {
+      animation-range: entry 6% cover 22%;
+    }
+
+    .margin-note-doodle-head {
+      animation-range: entry 14% cover 28%;
+    }
+
+    .margin-note span {
+      animation-range: entry 18% cover 34%;
+    }
+  }
 }
 
 .section-brush-label {
@@ -1647,12 +1773,12 @@ body {
     inset 1px 0 rgba(255,255,255,0.24);
   color: var(--bookmark-ink);
   display: none;
-  gap: 8px;
-  height: 58px;
+  gap: 12px;
+  height: 124px;
   justify-content: flex-start;
-  padding: 6px 9px 6px 8px;
+  padding: 11px 16px 11px 14px;
   position: fixed;
-  right: -228px;
+  right: -354px;
   top: 29%;
   transition:
     color 220ms ease,
@@ -1661,7 +1787,7 @@ body {
     right 320ms cubic-bezier(0.22,1,0.36,1);
   transform: rotate(-0.6deg);
   transform-origin: right center;
-  width: 272px;
+  width: 408px;
   z-index: 36;
 }
 
@@ -1681,9 +1807,10 @@ body {
 
 .seasonal-bookmark:hover,
 .seasonal-bookmark:focus,
+.seasonal-bookmark:focus-within,
 .seasonal-bookmark:focus-visible {
   outline: none;
-  right: -1px;
+  right: -3px;
   box-shadow:
     -9px 10px 22px -18px rgba(42,37,34,0.68),
     inset 1px 0 rgba(255,255,255,0.26);
@@ -1720,21 +1847,21 @@ body {
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  height: 28px;
+  height: 52px;
   justify-content: center;
-  width: 26px;
+  width: 48px;
 }
 
 .seasonal-bookmark-motif svg {
   fill: none;
-  height: 23px;
+  height: 39px;
   overflow: visible;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.5;
+  stroke-width: 1.35;
   transform: rotate(-4deg);
-  width: 23px;
+  width: 39px;
 }
 
 .seasonal-bookmark-motif svg.is-waning {
@@ -1748,11 +1875,11 @@ body {
 
 .seasonal-bookmark-copy {
   display: grid;
-  gap: 5px;
+  gap: 7px;
   min-width: 0;
-  opacity: 0;
+  opacity: 1;
   text-shadow: 0 1px rgba(255,255,255,0.22);
-  transform: translateX(7px);
+  transform: translateX(0);
   transition:
     opacity 180ms ease 70ms,
     transform 260ms cubic-bezier(0.22,1,0.36,1) 40ms;
@@ -1760,30 +1887,42 @@ body {
 
 .seasonal-bookmark:hover .seasonal-bookmark-copy,
 .seasonal-bookmark:focus .seasonal-bookmark-copy,
+.seasonal-bookmark:focus-within .seasonal-bookmark-copy,
 .seasonal-bookmark:focus-visible .seasonal-bookmark-copy {
   opacity: 1;
   transform: translateX(0);
 }
 
+.seasonal-bookmark-label {
+  border-bottom: 1px solid color-mix(in srgb, var(--bookmark-ink) 28%, transparent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
 .seasonal-bookmark-heading {
   align-items: baseline;
   display: flex;
-  gap: 7px;
+  gap: 10px;
 }
 
 .seasonal-bookmark-date {
-  font-size: 0.79rem;
+  font-size: 1.06rem;
   font-style: italic;
-  font-weight: 650;
-  letter-spacing: 0.025em;
+  font-weight: 700;
+  letter-spacing: 0.012em;
   line-height: 1.05;
   white-space: nowrap;
 }
 
 .seasonal-bookmark-season {
-  font-size: 0.48rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
   line-height: 1;
   opacity: 0.76;
   text-transform: uppercase;
@@ -1791,17 +1930,36 @@ body {
 
 .seasonal-bookmark-astronomy {
   display: grid;
-  font-size: 0.54rem;
-  font-weight: 650;
-  gap: 3px;
-  letter-spacing: 0.025em;
-  line-height: 1;
+  font-size: 0.82rem;
+  gap: 4px;
+  letter-spacing: 0.006em;
+  line-height: 1.16;
   opacity: 0.88;
-  white-space: nowrap;
 }
 
-.seasonal-bookmark-astronomy span:last-child {
-  opacity: 0.82;
+.seasonal-bookmark-astronomy span {
+  align-items: baseline;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 48px minmax(0, 1fr);
+}
+
+.seasonal-bookmark-astronomy em {
+  font-size: 0.67rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  opacity: 0.64;
+  text-transform: uppercase;
+}
+
+.seasonal-bookmark-astronomy strong {
+  font-weight: 700;
+  min-width: 0;
+}
+
+.seasonal-bookmark-astronomy span:nth-child(3) {
+  opacity: 0.84;
 }
 
 .seasonal-bookmark.season-spring {
@@ -2947,6 +3105,11 @@ body {
   .author-photo-paper,
   .author-photo-tape,
   .daily-thread-theme::after,
+  .margin-note,
+  .margin-note-doodle,
+  .margin-note-doodle-line,
+  .margin-note-doodle-head,
+  .margin-note span,
   .quote-editorial-dropcap,
   .quote-editorial-copy,
   .quote-editorial-footer,
@@ -2963,4 +3126,21 @@ body {
     opacity: 1;
     transform: scaleX(1) rotate(-1.8deg);
   }
+
+  .margin-note,
+  .margin-note-doodle,
+  .margin-note span,
+  .quote-editorial-dropcap,
+  .quote-editorial-copy,
+  .quote-editorial-footer {
+    filter: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .margin-note-doodle-line,
+  .margin-note-doodle-head {
+    stroke-dashoffset: 0;
+  }
+
 }

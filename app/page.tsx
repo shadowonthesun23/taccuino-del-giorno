@@ -459,8 +459,8 @@ function DoodleArrow({ isDark = false }: { isDark?: boolean }) {
 
   return (
     <svg className="margin-note-doodle" viewBox="0 0 44 28" aria-hidden="true" style={sharedStyle}>
-      <path d="M4 6c5 10 15 15 33 14" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
-      <path d="M31 15l7 5-7 4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
+      <path className="margin-note-doodle-line" d="M4 6c5 10 15 15 33 14" pathLength="1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
+      <path className="margin-note-doodle-head" d="M31 15l7 5-7 4" pathLength="1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ strokeWidth: 2.25 }} />
     </svg>
   );
 }
@@ -513,8 +513,11 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
   const seasonCountdown = getNextAstronomicalSeasonLabel(dataIso, lingua, 'compact');
   const sunLabel = lingua === 'IT' ? `Sole in ${solarConstellation}` : `Sun in ${solarConstellation}`;
   const nextFullMoonLabel = formatUtcDate(getNextFullMoonDate(dataIso), lingua);
-  const fullMoonLabel = lingua === 'IT' ? `piena ${nextFullMoonLabel}` : `full ${nextFullMoonLabel}`;
   const fullMoonAriaLabel = lingua === 'IT' ? 'Prossima luna piena' : 'Next full moon';
+  const almanacLabel = lingua === 'IT' ? 'Effemeridi' : 'Almanac';
+  const moonRowLabel = lingua === 'IT' ? 'Luna' : 'Moon';
+  const fullMoonRowLabel = lingua === 'IT' ? 'Piena' : 'Full';
+  const sunRowLabel = lingua === 'IT' ? 'Sole' : 'Sun';
 
   return (
     <aside
@@ -526,13 +529,15 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
       <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
       <span className="seasonal-bookmark-motif"><MoonDoodle phase={moon.phase} /></span>
       <span className="seasonal-bookmark-copy">
+        <span className="seasonal-bookmark-label">{almanacLabel}</span>
         <span className="seasonal-bookmark-heading">
           <strong className="seasonal-bookmark-date">{dateLabel}</strong>
           <span className="seasonal-bookmark-season">{label}</span>
         </span>
         <span className="seasonal-bookmark-astronomy">
-          <span>{moonLabel} · {moon.illumination}% · {fullMoonLabel}</span>
-          <span>{sunLabel} · {seasonCountdown}</span>
+          <span><em>{moonRowLabel}</em><strong>{moonLabel} · {moon.illumination}%</strong></span>
+          <span><em>{fullMoonRowLabel}</em><strong>{nextFullMoonLabel}</strong></span>
+          <span><em>{sunRowLabel}</em><strong>{solarConstellation} · {seasonCountdown}</strong></span>
         </span>
       </span>
     </aside>
@@ -1460,6 +1465,7 @@ export default function Home() {
                         style={{ background: isDark ? 'radial-gradient(ellipse at center, transparent 54%, rgba(0,0,0,0.22) 100%)' : 'radial-gradient(ellipse at center, transparent 56%, rgba(42,37,34,0.16) 100%)' }}
                       />
                     </button>
+
                   </div>
                 </div>
 
