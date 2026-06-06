@@ -3512,6 +3512,8 @@ body {
     border-radius: 0 !important;
     box-sizing: border-box !important;
     box-shadow: none !important;
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
     height: 210mm !important;
     left: auto !important;
     margin: 0 !important;
@@ -3520,6 +3522,26 @@ body {
     position: relative !important;
     top: auto !important;
     width: 297mm !important;
+  }
+
+  .daily-passport-cover-panel {
+    grid-column: 1 !important;
+    overflow: hidden !important;
+  }
+
+  .daily-passport-content-flow {
+    column-count: 4 !important;
+    column-fill: auto !important;
+    grid-column: 2 / 6 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .daily-passport-art-panel {
+    border-left: 1px solid rgba(181,149,106,0.18) !important;
+    display: flex !important;
+    grid-column: 6 !important;
+    overflow: hidden !important;
   }
 
   .daily-passport-toolbar,
@@ -3564,9 +3586,22 @@ body {
     padding: 2.8mm !important;
     width: 29mm !important;
   }
+
+  .daily-passport-author-photo {
+    aspect-ratio: 3 / 4 !important;
+    max-height: 58mm !important;
+    width: 100% !important;
+  }
+
+  .daily-passport-author-photo img,
+  .daily-passport-artwork img {
+    height: 100% !important;
+    object-fit: cover !important;
+    width: 100% !important;
+  }
 }
 
-@media (max-width: 760px) {
+@media screen and (max-width: 760px) {
   .daily-passport-overlay {
     align-items: stretch;
     padding: 14px 12px;
