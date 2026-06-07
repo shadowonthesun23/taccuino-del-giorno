@@ -92,6 +92,14 @@ function zinePage(pageNumber: number, label: string, children: ReactNode, classN
   );
 }
 
+function printablePage(pageNumber: number, label: string, children: ReactNode, className = '') {
+  return zinePage(pageNumber, label, children, className);
+}
+
+function digitalPage(pageNumber: number, label: string, children: ReactNode, className = '') {
+  return zinePage(pageNumber, label, children, `${styles.digitalPage} ${className}`);
+}
+
 function textDensityClass(text: string) {
   const length = text.trim().length;
 
@@ -249,10 +257,122 @@ export default async function PassportPage({
 
   const { data, opera } = payload;
   const initials = getInitials(data.autore_giorno);
-  const zineId = 'daily-zine-sheet';
+  const printableZineId = 'daily-zine-print-sheet';
+  const digitalZineId = 'daily-zine-digital-sheet';
   const zineEvents = summarizeEventsForZine(data.avvenimenti);
   const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
   const artworkImageUrlHd = proxiedImageUrl(opera?.immagine_url_hd);
+  const coverContent = (
+    <div className={styles.cover}>
+      <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
+      <h2 className={styles.title}>Passaporto del Giorno</h2>
+      <p className={styles.date}>{data.data_odierna}</p>
+      <div className={styles.stamp}>
+        <span>Visitato</span>
+        <strong>{initials}</strong>
+        <em>{formatExLibrisDate(dataIso)}</em>
+      </div>
+      <p className={styles.zineNote}>Un foglio A4, otto facciate di cultura quotidiana.</p>
+    </div>
+  );
+  const authorContent = (
+    <>
+      <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
+        {data.foto_autore_url && (
+          <figure className={styles.authorPhoto}>
+            <img crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
+          </figure>
+        )}
+        <div className={styles.authorBio}>
+          <h2>{data.autore_giorno}</h2>
+          <p>{data.breve_descrizione}</p>
+        </div>
+      </div>
+      <div className={styles.quoteBlock}>
+        <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
+        <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
+      </div>
+    </>
+  );
+  const wordSaintsContent = (
+    <>
+      {entry('Parola del Giorno', (
+        <>
+          <h2>{data.parola_giorno.parola}</h2>
+          <p className={styles.source}>{data.parola_giorno.etimologia}</p>
+          <p>{data.parola_giorno.definizione}</p>
+          {data.parola_giorno.esempio && data.parola_giorno.esempio !== 'null' && (
+            <blockquote>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
+          )}
+        </>
+      ))}
+      {entry('I Santi di Oggi', (
+        <>
+          {data.santi.slice(0, 2).map((santo, index) => (
+            <div key={index} className={styles.miniEntry}>
+              <h3>{santo.nome}</h3>
+              <p><strong>{santo.ruolo}</strong>{santo.anni ? ` · ${santo.anni}` : ''}</p>
+              <p>{santo.biografia}</p>
+            </div>
+          ))}
+        </>
+      ))}
+    </>
+  );
+  const eventsContent = (
+    <ul className={styles.events}>
+      {zineEvents.map((evento, index) => (
+        <li key={index}>{evento}</li>
+      ))}
+    </ul>
+  );
+  const poetryContent = (
+    <>
+      <h2>{data.poesia.autore}</h2>
+      <p className={styles.source}>{data.poesia.fonte}</p>
+      <p className={`${styles.poem} ${textDensityClass(data.poesia.testo)}`}>{data.poesia.testo}</p>
+    </>
+  );
+  const bibleContent = (
+    <>
+      <h2>{data.bibbia.fonte}</h2>
+      <p className={`${styles.bibleText} ${textDensityClass(data.bibbia.testo)}`}>{data.bibbia.testo}</p>
+    </>
+  );
+  const musicContent = (
+    <>
+      <h2>{data.musica.brano}</h2>
+      <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
+      <p>{data.musica.motivo}</p>
+    </>
+  );
+  const artworkContent = (
+    <>
+      {opera && (
+        <>
+          {artworkImageUrl && (
+            <figure className={styles.artwork}>
+              <img
+                decoding="sync"
+                fetchPriority="high"
+                loading="eager"
+                src={artworkImageUrl}
+                srcSet={artworkImageUrlHd ? `${artworkImageUrlHd} 2x` : undefined}
+                alt={`Opera del Giorno: ${opera.titolo}`}
+              />
+            </figure>
+          )}
+          <h2>{opera.titolo}</h2>
+          <p className={styles.source}>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
+          <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
+        </>
+      )}
+      <footer className={styles.signature}>
+        <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
+        <span>Realizzato con amore da Antonello.</span>
+      </footer>
+    </>
+  );
 
   return (
     <main className={`${styles.page} ${garamond.className}`}>
@@ -261,134 +381,56 @@ export default async function PassportPage({
           <h1>Passaporto del Giorno</h1>
           <p>Zine A4 a 8 facciate, pensata per essere piegata e conservata.</p>
         </div>
-        <ExportJpegButton targetId={zineId} filename={`passaporto-zine-${dataIso}.jpg`} />
+        <div className={styles.exportActions}>
+          <ExportJpegButton targetId={printableZineId} filename={`passaporto-zine-stampabile-${dataIso}.jpg`}>
+            Scarica zine stampabile
+          </ExportJpegButton>
+          <ExportJpegButton targetId={digitalZineId} filename={`passaporto-zine-digitale-${dataIso}.jpg`}>
+            Scarica versione digitale
+          </ExportJpegButton>
+        </div>
       </header>
 
       <div className={styles.sheetWrap}>
-        <article id={zineId} className={styles.zineSheet} aria-label={`Passaporto del Giorno in formato zine: ${data.data_odierna}`}>
+        <article id={printableZineId} className={styles.zineSheet} aria-label={`Passaporto del Giorno in formato zine stampabile: ${data.data_odierna}`}>
           <div className={styles.foldGuides} aria-hidden="true">
             <span /><span /><span />
             <i />
           </div>
 
-          {zinePage(5, 'Poesia del Giorno', (
-            <>
-              <h2>{data.poesia.autore}</h2>
-              <p className={styles.source}>{data.poesia.fonte}</p>
-              <p className={`${styles.poem} ${textDensityClass(data.poesia.testo)}`}>{data.poesia.testo}</p>
-            </>
-          ), styles.isInverted)}
+          {printablePage(5, 'Poesia del Giorno', poetryContent, styles.isInverted)}
+          {printablePage(4, 'Accadde Oggi', eventsContent, styles.isInverted)}
+          {printablePage(3, '', wordSaintsContent, `${styles.isInverted} ${styles.wordSaintsPage}`)}
+          {printablePage(2, 'Autore del giorno', authorContent, `${styles.isInverted} ${styles.authorPage}`)}
+          {printablePage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
+          {printablePage(7, 'Consiglio Musicale', musicContent)}
+          {printablePage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
+          {printablePage(1, '', coverContent)}
+        </article>
+      </div>
 
-          {zinePage(4, 'Accadde Oggi', (
-            <ul className={styles.events}>
-              {zineEvents.map((evento, index) => (
-                <li key={index}>{evento}</li>
-              ))}
-            </ul>
-          ), styles.isInverted)}
+      <section className={styles.tutorial} aria-label="Guida rapida alla piegatura della zine">
+        <div>
+          <h2>Guida rapida</h2>
+          <p>Stampa, piega lungo i tratteggi, taglia solo la linea centrale e richiudi a libretto.</p>
+        </div>
+        <ol className={styles.tutorialSteps}>
+          <li><span className={styles.tutorialIconFold} />Piega in otto</li>
+          <li><span className={styles.tutorialIconCut} />Taglia al centro</li>
+          <li><span className={styles.tutorialIconBook} />Richiudi</li>
+        </ol>
+      </section>
 
-          {zinePage(3, '', (
-            <>
-              {entry('Parola del Giorno', (
-                <>
-                  <h2>{data.parola_giorno.parola}</h2>
-                  <p className={styles.source}>{data.parola_giorno.etimologia}</p>
-                  <p>{data.parola_giorno.definizione}</p>
-                  {data.parola_giorno.esempio && data.parola_giorno.esempio !== 'null' && (
-                    <blockquote>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
-                  )}
-                </>
-              ))}
-              {entry('I Santi di Oggi', (
-                <>
-                  {data.santi.slice(0, 2).map((santo, index) => (
-                    <div key={index} className={styles.miniEntry}>
-                      <h3>{santo.nome}</h3>
-                      <p><strong>{santo.ruolo}</strong>{santo.anni ? ` · ${santo.anni}` : ''}</p>
-                      <p>{santo.biografia}</p>
-                    </div>
-                  ))}
-                </>
-              ))}
-            </>
-          ), `${styles.isInverted} ${styles.wordSaintsPage}`)}
-
-          {zinePage(2, 'Autore del giorno', (
-            <>
-              <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
-                {data.foto_autore_url && (
-                  <figure className={styles.authorPhoto}>
-                    <img crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
-                  </figure>
-                )}
-                <div className={styles.authorBio}>
-                  <h2>{data.autore_giorno}</h2>
-                  <p>{data.breve_descrizione}</p>
-                </div>
-              </div>
-              <div className={styles.quoteBlock}>
-                <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
-                <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
-              </div>
-            </>
-          ), `${styles.isInverted} ${styles.authorPage}`)}
-
-          {zinePage(6, 'Passaggio biblico del giorno', (
-            <>
-              <h2>{data.bibbia.fonte}</h2>
-              <p className={`${styles.bibleText} ${textDensityClass(data.bibbia.testo)}`}>{data.bibbia.testo}</p>
-            </>
-          ), styles.biblePage)}
-
-          {zinePage(7, 'Consiglio Musicale', (
-            <>
-              <h2>{data.musica.brano}</h2>
-              <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
-              <p>{data.musica.motivo}</p>
-            </>
-          ))}
-
-          {zinePage(8, 'Opera del giorno', (
-            <>
-              {opera && (
-                <>
-                  {artworkImageUrl && (
-                    <figure className={styles.artwork}>
-                      <img
-                        decoding="sync"
-                        fetchPriority="high"
-                        loading="eager"
-                        src={artworkImageUrl}
-                        srcSet={artworkImageUrlHd ? `${artworkImageUrlHd} 2x` : undefined}
-                        alt={`Opera del Giorno: ${opera.titolo}`}
-                      />
-                    </figure>
-                  )}
-                  <h2>{opera.titolo}</h2>
-                  <p className={styles.source}>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
-                  <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
-                </>
-              )}
-              <footer className={styles.signature}>
-                <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
-                <span>Realizzato con amore da Antonello.</span>
-              </footer>
-            </>
-          ), styles.artworkPage)}
-
-          {zinePage(1, '', (
-            <div className={styles.cover}>
-              <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
-              <h2 className={styles.title}>Passaporto del Giorno</h2>
-              <p className={styles.date}>{data.data_odierna}</p>
-              <div className={styles.stamp}>
-                <span>Visitato</span>
-                <strong>{initials}</strong>
-                <em>{formatExLibrisDate(dataIso)}</em>
-              </div>
-              <p className={styles.zineNote}>Un foglio A4, otto facciate di cultura quotidiana.</p>
-            </div>
-          ))}
+      <div className={styles.exportOnly} aria-hidden="true">
+        <article id={digitalZineId} className={`${styles.zineSheet} ${styles.digitalSheet}`} aria-label={`Passaporto del Giorno in versione digitale: ${data.data_odierna}`}>
+          {digitalPage(1, '', coverContent)}
+          {digitalPage(2, 'Autore del giorno', authorContent, styles.authorPage)}
+          {digitalPage(3, '', wordSaintsContent, styles.wordSaintsPage)}
+          {digitalPage(4, 'Accadde Oggi', eventsContent)}
+          {digitalPage(5, 'Poesia del Giorno', poetryContent)}
+          {digitalPage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
+          {digitalPage(7, 'Consiglio Musicale', musicContent)}
+          {digitalPage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
         </article>
       </div>
     </main>

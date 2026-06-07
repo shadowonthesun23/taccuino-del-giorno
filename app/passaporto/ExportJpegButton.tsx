@@ -8,6 +8,7 @@ import styles from './passaporto.module.css';
 interface ExportJpegButtonProps {
   targetId: string;
   filename: string;
+  children?: React.ReactNode;
 }
 
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
@@ -26,7 +27,7 @@ async function waitForImages(node: HTMLElement) {
   );
 }
 
-export default function ExportJpegButton({ targetId, filename }: ExportJpegButtonProps) {
+export default function ExportJpegButton({ targetId, filename, children }: ExportJpegButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
   async function handleDownload() {
@@ -42,6 +43,7 @@ export default function ExportJpegButton({ targetId, filename }: ExportJpegButto
         backgroundColor: '#fbf7ee',
         cacheBust: true,
         imagePlaceholder: transparentPixel,
+        includeQueryParams: true,
         pixelRatio: 3,
         quality: 0.96,
       });
@@ -58,7 +60,7 @@ export default function ExportJpegButton({ targetId, filename }: ExportJpegButto
   return (
     <button className={styles.exportButton} type="button" onClick={handleDownload} disabled={isExporting}>
       <Download aria-hidden="true" size={18} strokeWidth={1.8} />
-      <span>{isExporting ? 'Preparo JPEG' : 'Scarica JPEG'}</span>
+      <span>{isExporting ? 'Preparo JPEG' : children ?? 'Scarica JPEG'}</span>
     </button>
   );
 }

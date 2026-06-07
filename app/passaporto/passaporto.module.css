@@ -16,6 +16,13 @@
   max-width: 1188px;
 }
 
+.exportActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .toolbar h1 {
   font-size: clamp(1.45rem, 2vw, 2.1rem);
   font-style: italic;
@@ -197,11 +204,18 @@
 
 .cover {
   align-items: center;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 252, 242, 0.78), transparent 28%),
+    radial-gradient(circle at 78% 76%, rgba(181, 149, 106, 0.16), transparent 36%),
+    repeating-linear-gradient(32deg, rgba(157, 81, 71, 0.045) 0 1px, transparent 1px 12px),
+    linear-gradient(145deg, rgba(253, 252, 248, 0.78), rgba(243, 230, 209, 0.74));
+  border: 1px solid rgba(181, 149, 106, 0.18);
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
   min-height: 0;
+  padding: 14px;
   text-align: center;
 }
 
@@ -322,11 +336,9 @@
 
 .authorFeature {
   align-items: start;
-  border-bottom: 1px solid rgba(181, 149, 106, 0.22);
   display: grid;
-  gap: 11px;
-  grid-template-columns: 104px minmax(0, 1fr);
-  padding-bottom: 8px;
+  gap: 9px;
+  grid-template-columns: 84px minmax(0, 1fr);
 }
 
 .authorFeatureNoPhoto {
@@ -335,28 +347,42 @@
 
 .authorBio {
   display: grid;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
 }
 
 .authorBio h2 {
-  font-size: 20px;
+  color: #6d635c;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.04;
 }
 
 .authorBio p {
-  font-size: 10.7px;
-  line-height: 1.22;
+  color: #6d635c;
+  font-size: 9.8px;
+  line-height: 1.18;
 }
 
 .quoteBlock {
+  border-top: 1px solid rgba(181, 149, 106, 0.28);
   display: grid;
-  gap: 4px;
-  margin-top: 2px;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .quoteBlock blockquote {
-  font-size: 12.5px;
-  line-height: 1.24;
+  color: #2a2522;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.quoteBlock .source {
+  color: #8a8179 !important;
+  font-size: 11px;
+  font-weight: 600 !important;
 }
 
 .authorPhoto,
@@ -462,6 +488,106 @@
   font-weight: 600;
 }
 
+.tutorial {
+  align-items: center;
+  background: rgba(253, 252, 248, 0.64);
+  border: 1px solid rgba(181, 149, 106, 0.24);
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin: 16px auto 0;
+  max-width: 1188px;
+  padding: 14px 16px;
+}
+
+.tutorial h2 {
+  color: #9d5147;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.tutorial p {
+  color: #6d635c;
+  font-size: 0.92rem;
+  font-style: italic;
+  margin: 0;
+}
+
+.tutorialSteps {
+  display: flex;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tutorialSteps li {
+  align-items: center;
+  color: #4a433f;
+  display: flex;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.tutorialIconFold,
+.tutorialIconCut,
+.tutorialIconBook {
+  background: #fbf7ee;
+  border: 1px solid rgba(171, 77, 67, 0.34);
+  display: inline-block;
+  height: 24px;
+  position: relative;
+  width: 32px;
+}
+
+.tutorialIconFold::before {
+  border-left: 1px dashed rgba(171, 77, 67, 0.7);
+  content: "";
+  inset: 3px auto 3px 50%;
+  position: absolute;
+}
+
+.tutorialIconCut::before {
+  border-top: 1px dashed rgba(171, 77, 67, 0.7);
+  content: "";
+  left: 5px;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+}
+
+.tutorialIconBook::before {
+  border-left: 2px solid rgba(171, 77, 67, 0.7);
+  content: "";
+  inset: 3px auto 3px 50%;
+  position: absolute;
+}
+
+.exportOnly {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 1px;
+}
+
+.digitalSheet {
+  box-shadow: none;
+  max-width: none;
+  width: 1188px;
+}
+
+.digitalPage .zinePageInner {
+  transform: none;
+}
+
 .loading,
 .error {
   align-items: center;
@@ -480,12 +606,26 @@
     flex-direction: column;
   }
 
+  .exportActions,
   .exportButton {
     width: 100%;
+  }
+
+  .exportActions {
+    justify-content: stretch;
   }
 
   .zineSheet {
     min-width: 920px;
     width: 920px;
+  }
+
+  .tutorial {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tutorialSteps {
+    flex-direction: column;
   }
 }
