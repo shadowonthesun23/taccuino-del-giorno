@@ -209,6 +209,14 @@ export default async function PassportPage({
             <i />
           </div>
 
+          {zinePage(5, 'Poesia del Giorno', (
+            <>
+              <h2>{data.poesia.autore}</h2>
+              <p className={styles.source}>{data.poesia.fonte}</p>
+              <p className={styles.poem}>{data.poesia.testo}</p>
+            </>
+          ), styles.isInverted)}
+
           {zinePage(4, 'Accadde Oggi', (
             <ul className={styles.events}>
               {data.avvenimenti.map((evento, index) => (
@@ -263,28 +271,6 @@ export default async function PassportPage({
             </>
           ), `${styles.isInverted} ${styles.authorPage}`)}
 
-          {zinePage(1, '', (
-            <div className={styles.cover}>
-              <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
-              <h2 className={styles.title}>Passaporto del Giorno</h2>
-              <p className={styles.date}>{data.data_odierna}</p>
-              <div className={styles.stamp}>
-                <span>Visitato</span>
-                <strong>{initials}</strong>
-                <em>{formatExLibrisDate(dataIso)}</em>
-              </div>
-              <p className={styles.zineNote}>Un foglio A4, otto facciate di cultura quotidiana.</p>
-            </div>
-          ), styles.isInverted)}
-
-          {zinePage(5, 'Poesia del Giorno', (
-            <>
-              <h2>{data.poesia.autore}</h2>
-              <p className={styles.source}>{data.poesia.fonte}</p>
-              <p className={styles.poem}>{data.poesia.testo}</p>
-            </>
-          ))}
-
           {zinePage(6, 'Passaggio biblico del giorno', (
             <>
               <h2>{data.bibbia.fonte}</h2>
@@ -320,6 +306,20 @@ export default async function PassportPage({
               </footer>
             </>
           ), styles.artworkPage)}
+
+          {zinePage(1, '', (
+            <div className={styles.cover}>
+              <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
+              <h2 className={styles.title}>Passaporto del Giorno</h2>
+              <p className={styles.date}>{data.data_odierna}</p>
+              <div className={styles.stamp}>
+                <span>Visitato</span>
+                <strong>{initials}</strong>
+                <em>{formatExLibrisDate(dataIso)}</em>
+              </div>
+              <p className={styles.zineNote}>Un foglio A4, otto facciate di cultura quotidiana.</p>
+            </div>
+          ))}
         </article>
       </div>
     </main>

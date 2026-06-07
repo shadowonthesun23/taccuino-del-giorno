@@ -72,8 +72,6 @@
 .zineSheet {
   aspect-ratio: 297 / 210;
   background:
-    linear-gradient(90deg, rgba(117, 91, 57, 0.045) 1px, transparent 1px) 0 0 / 36px 36px,
-    linear-gradient(180deg, rgba(117, 91, 57, 0.034) 1px, transparent 1px) 0 0 / 100% 28px,
     radial-gradient(circle at 20% 24%, rgba(255, 255, 255, 0.58), transparent 33%),
     #fbf7ee;
   border: 1px solid rgba(181, 149, 106, 0.42);
@@ -87,15 +85,6 @@
   width: min(100%, calc((100dvh - 112px) * 1.4142857));
 }
 
-.zineSheet::before {
-  border: 1px solid rgba(171, 77, 67, 0.1);
-  content: "";
-  inset: 10px;
-  pointer-events: none;
-  position: absolute;
-  z-index: 4;
-}
-
 .foldGuides {
   inset: 0;
   pointer-events: none;
@@ -104,7 +93,7 @@
 }
 
 .foldGuides span {
-  border-left: 1px dashed rgba(171, 77, 67, 0.16);
+  border-left: 1px dashed rgba(171, 77, 67, 0.18);
   bottom: 10px;
   position: absolute;
   top: 10px;
@@ -115,7 +104,7 @@
 .foldGuides span:nth-child(3) { left: 75%; }
 
 .foldGuides::before {
-  border-top: 1px dashed rgba(171, 77, 67, 0.16);
+  border-top: 1px dashed rgba(171, 77, 67, 0.18);
   content: "";
   left: 10px;
   position: absolute;
@@ -124,31 +113,12 @@
 }
 
 .foldGuides i {
-  border-top: 1px dashed rgba(171, 77, 67, 0.22);
+  border-top: 1px dashed rgba(171, 77, 67, 0.24);
   left: 25%;
   position: absolute;
   top: calc(50% - 1px);
   width: 50%;
 }
-
-.foldGuides i::before,
-.foldGuides i::after {
-  background: rgba(251, 247, 238, 0.72);
-  color: rgba(157, 81, 71, 0.18);
-  content: "taglio";
-  font-size: 7px;
-  font-style: italic;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  padding: 0 3px;
-  position: absolute;
-  text-transform: uppercase;
-  top: -0.48em;
-}
-
-.foldGuides i::before { left: 8px; }
-.foldGuides i::after { right: 8px; }
 
 .zinePage {
   min-width: 0;
@@ -156,14 +126,6 @@
   padding: 13px;
   position: relative;
   z-index: 1;
-}
-
-.zinePage::after {
-  border: 1px solid rgba(181, 149, 106, 0.1);
-  content: "";
-  inset: 10px;
-  pointer-events: none;
-  position: absolute;
 }
 
 .zinePageInner {
@@ -193,10 +155,13 @@
 .number,
 .sectionLabel {
   color: #9d5147;
+  display: block;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.15em;
   line-height: 1.05;
+  margin: 0 12px 2px;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -300,7 +265,6 @@
 }
 
 .entry + .entry {
-  border-top: 1px solid rgba(181, 149, 106, 0.24);
   margin-top: 2px;
   padding-top: 7px;
 }
