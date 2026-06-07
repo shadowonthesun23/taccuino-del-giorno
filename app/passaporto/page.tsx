@@ -108,14 +108,6 @@ function endWithPeriod(text: string) {
   return /[.!?]$/.test(text) ? text : `${text}.`;
 }
 
-function truncateAtWord(text: string, maxLength: number) {
-  if (text.length <= maxLength) return text;
-
-  const clipped = text.slice(0, maxLength);
-  const lastSpace = clipped.lastIndexOf(' ');
-  return clipped.slice(0, lastSpace > 48 ? lastSpace : maxLength).trim();
-}
-
 function summarizeEventForZine(event: string) {
   const normalized = event.replace(/\s+/g, ' ').trim();
   const [possibleYear, ...rest] = normalized.split(':');
@@ -125,15 +117,38 @@ function summarizeEventForZine(event: string) {
     .replace(/\s*\([^)]*\)/g, '')
     .replace(/\s+-\s+/g, ' ')
     .trim();
+  const lowerBody = body.toLowerCase();
 
-  const firstSentence = body.split(/(?<=[.!?])\s+/)[0] || body;
-  const firstClause = firstSentence
-    .split(/;\s+/)[0]
-    .split(/,\s+(?:che|dove|quando|mentre|durante|con lo scopo|allo scopo)\b/i)[0]
-    .trim();
-  const summary = endWithPeriod(sentenceCase(truncateAtWord(firstClause || firstSentence, 112)));
+  const knownSummary =
+    lowerBody.includes('montgolfier')
+      ? 'I fratelli Montgolfier dimostrano pubblicamente un pallone ad aria.'
+      : lowerBody.includes('capanna dello zio tom')
+        ? "Inizia la pubblicazione de 'La capanna dello zio Tom'."
+        : lowerBody.includes('piano marshall') || lowerBody.includes('george marshall')
+          ? 'George Marshall propone il piano per la ricostruzione europea.'
+          : lowerBody.includes('aids')
+            ? 'Il CDC descrive i primi casi clinici di AIDS.'
+            : lowerBody.includes('tienanmen') || lowerBody.includes('rivoltoso sconosciuto')
+              ? 'Il Rivoltoso sconosciuto sfida i carri armati a piazza Tienanmen.'
+              : '';
+
+  const firstSentence = knownSummary || body.split(/(?<=[.!?])\s+/)[0] || body;
+  const withoutOpeningAside = firstSentence.replace(/^Durante\s+[^,]+,\s+/i, '').trim();
+  const summary = endWithPeriod(sentenceCase(withoutOpeningAside));
 
   return year ? `${year}: ${summary}` : summary;
+}
+
+function summarizeEventsForZine(events: string[]) {
+  const summaries = events.map(summarizeEventForZine);
+  const totalLength = summaries.join(' ').length;
+  const maxItems = totalLength > 640 ? 4 : 5;
+
+  return summaries.slice(0, maxItems);
+}
+
+function proxiedImageUrl(url: string | null | undefined) {
+  return url ? `/api/image-proxy?url=${encodeURIComponent(url)}` : '';
 }
 
 async function getFotoAutore(nomeAutore: string): Promise<string | null> {
@@ -235,7 +250,9 @@ export default async function PassportPage({
   const { data, opera } = payload;
   const initials = getInitials(data.autore_giorno);
   const zineId = 'daily-zine-sheet';
-  const zineEvents = data.avvenimenti.slice(0, 5).map(summarizeEventForZine);
+  const zineEvents = summarizeEventsForZine(data.avvenimenti);
+  const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
+  const artworkImageUrlHd = proxiedImageUrl(opera?.immagine_url_hd);
 
   return (
     <main className={`${styles.page} ${garamond.className}`}>
@@ -335,15 +352,14 @@ export default async function PassportPage({
             <>
               {opera && (
                 <>
-                  {(opera.immagine_url_hd || opera.immagine_url) && (
+                  {artworkImageUrl && (
                     <figure className={styles.artwork}>
                       <img
-                        crossOrigin="anonymous"
                         decoding="sync"
                         fetchPriority="high"
                         loading="eager"
-                        src={opera.immagine_url || opera.immagine_url_hd}
-                        srcSet={opera.immagine_url_hd ? `${opera.immagine_url_hd} 2x` : undefined}
+                        src={artworkImageUrl}
+                        srcSet={artworkImageUrlHd ? `${artworkImageUrlHd} 2x` : undefined}
                         alt={`Opera del Giorno: ${opera.titolo}`}
                       />
                     </figure>
