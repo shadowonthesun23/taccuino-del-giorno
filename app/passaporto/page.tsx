@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { EB_Garamond } from 'next/font/google';
 import localFont from 'next/font/local';
-import PrintButton from './PrintButton';
+import ExportJpegButton from './ExportJpegButton';
 import styles from './passaporto.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -74,6 +74,18 @@ function entry(label: string, children: ReactNode) {
     <section className={styles.entry}>
       <span className={styles.sectionLabel}>{label}</span>
       {children}
+    </section>
+  );
+}
+
+function zinePage(pageNumber: number, label: string, children: ReactNode, className = '') {
+  return (
+    <section className={`${styles.zinePage} ${className}`} aria-label={`Facciata ${pageNumber}: ${label}`}>
+      <div className={styles.zinePageInner}>
+        <span className={styles.pageNumber}>{pageNumber}</span>
+        <span className={styles.sectionLabel}>{label}</span>
+        {children}
+      </div>
     </section>
   );
 }
@@ -176,132 +188,136 @@ export default async function PassportPage({
 
   const { data, opera } = payload;
   const initials = getInitials(data.autore_giorno);
+  const zineId = 'daily-zine-sheet';
 
   return (
     <main className={`${styles.page} ${garamond.className}`}>
       <header className={styles.toolbar}>
         <div>
           <h1>Passaporto del Giorno</h1>
-          <p>Una mappa A4 orizzontale da stampare e conservare.</p>
+          <p>Zine A4 a 8 facciate, pensata per essere piegata e conservata.</p>
         </div>
-        <PrintButton />
+        <ExportJpegButton targetId={zineId} filename={`passaporto-zine-${dataIso}.jpg`} />
       </header>
 
       <div className={styles.sheetWrap}>
-        <article className={styles.sheet} aria-label={`Passaporto del Giorno: ${data.data_odierna}`}>
-          <div className={styles.folds} aria-hidden="true">
-            <span /><span /><span /><span /><span />
+        <article id={zineId} className={styles.zineSheet} aria-label={`Passaporto del Giorno in formato zine: ${data.data_odierna}`}>
+          <div className={styles.foldGuides} aria-hidden="true">
+            <span /><span /><span />
+            <i />
           </div>
 
-          <section className={`${styles.panel} ${styles.cover}`}>
-            <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
-            <h2 className={styles.title}>Passaporto del Giorno</h2>
-            <p className={styles.date}>{data.data_odierna}</p>
-            <div className={styles.stamp}>
-              <span>Visitato</span>
-              <strong>{initials}</strong>
-              <em>{formatExLibrisDate(dataIso)}</em>
-            </div>
-            <div className={styles.coverAuthor}>
-              <span className={styles.sectionLabel}>Autore del Giorno</span>
-              <h2>{data.autore_giorno}</h2>
-              <p>{data.breve_descrizione}</p>
-            </div>
-            {data.foto_autore_url && (
-              <figure className={styles.authorPhoto}>
-                <img src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
-              </figure>
-            )}
-            <p className={styles.foldHint}>Piega lungo i tratteggi</p>
-          </section>
+          {zinePage(4, 'Accadde Oggi', (
+            <ul className={styles.events}>
+              {data.avvenimenti.map((evento, index) => (
+                <li key={index}>{evento}</li>
+              ))}
+            </ul>
+          ), styles.isInverted)}
 
-          <section className={styles.panel}>
-            {entry('Citazione', (
-              <>
-                <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
-                <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
-              </>
-            ))}
-            {entry('Parola del Giorno', (
-              <>
-                <h2>{data.parola_giorno.parola}</h2>
-                <p><strong>{data.parola_giorno.etimologia}</strong></p>
-                <p>{data.parola_giorno.definizione}</p>
-                {data.parola_giorno.esempio && data.parola_giorno.esempio !== 'null' && (
-                  <blockquote>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
-                )}
-                {data.parola_giorno.nota && <p>{data.parola_giorno.nota}</p>}
-              </>
-            ))}
-          </section>
+          {zinePage(3, 'Parola e Santi', (
+            <>
+              {entry('Parola del Giorno', (
+                <>
+                  <h2>{data.parola_giorno.parola}</h2>
+                  <p className={styles.source}>{data.parola_giorno.etimologia}</p>
+                  <p>{data.parola_giorno.definizione}</p>
+                  {data.parola_giorno.esempio && data.parola_giorno.esempio !== 'null' && (
+                    <blockquote>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
+                  )}
+                </>
+              ))}
+              {entry('I Santi di Oggi', (
+                <>
+                  {data.santi.slice(0, 2).map((santo, index) => (
+                    <div key={index} className={styles.miniEntry}>
+                      <h3>{santo.nome}</h3>
+                      <p><strong>{santo.ruolo}</strong>{santo.anni ? ` · ${santo.anni}` : ''}</p>
+                      <p>{santo.biografia}</p>
+                    </div>
+                  ))}
+                </>
+              ))}
+            </>
+          ), styles.isInverted)}
 
-          <section className={styles.panel}>
-            {entry('I Santi di Oggi', (
-              <>
-                {data.santi.map((santo, index) => (
-                  <div key={index} className={styles.entry}>
-                    <h2>{santo.nome}</h2>
-                    <p><strong>{santo.ruolo}</strong>{santo.anni ? ` · ${santo.anni}` : ''}</p>
-                    <p>{santo.biografia}</p>
-                  </div>
-                ))}
-              </>
-            ))}
-            {entry('Accadde Oggi', (
-              <ul className={styles.events}>
-                {data.avvenimenti.map((evento, index) => (
-                  <li key={index}>{evento}</li>
-                ))}
-              </ul>
-            ))}
-          </section>
-
-          <section className={styles.panel}>
-            {entry('Poesia del Giorno', (
-              <>
-                <h2>{data.poesia.autore}</h2>
-                <p className={styles.source}>{data.poesia.fonte}</p>
-                <p className={styles.poem}>{data.poesia.testo}</p>
-                {data.poesia.nota && <p>{data.poesia.nota}</p>}
-              </>
-            ))}
-          </section>
-
-          <section className={styles.panel}>
-            {entry('Passaggio Biblico', (
-              <>
-                <h2>{data.bibbia.fonte}</h2>
-                <p className={styles.bibleText}>{data.bibbia.testo}</p>
-                {data.bibbia.nota && <p>{data.bibbia.nota}</p>}
-              </>
-            ))}
-          </section>
-
-          <section className={styles.panel}>
-            {entry('Consiglio Musicale', (
-              <>
-                <h2>{data.musica.brano}</h2>
-                <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
-                <p>{data.musica.motivo}</p>
-              </>
-            ))}
-            {opera && entry('Opera del Giorno', (
-              <>
-                {(opera.immagine_url_hd || opera.immagine_url) && (
-                  <figure className={styles.artwork}>
-                    <img src={opera.immagine_url_hd || opera.immagine_url} alt={`Opera del Giorno: ${opera.titolo}`} />
+          {zinePage(2, 'Autore e Citazione', (
+            <>
+              <div className={styles.authorGrid}>
+                {data.foto_autore_url && (
+                  <figure className={styles.authorPhoto}>
+                    <img crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
                   </figure>
                 )}
-                <h2>{opera.titolo}</h2>
-                <p className={styles.source}>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
-                <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
-              </>
-            ))}
-            <footer className={styles.signature}>
-              <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
-              <span>Realizzato con amore da Antonello.</span>
-            </footer>
-          </section>
+                <div>
+                  <h2>{data.autore_giorno}</h2>
+                  <p>{data.breve_descrizione}</p>
+                </div>
+              </div>
+              <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
+              <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
+            </>
+          ), styles.isInverted)}
+
+          {zinePage(1, 'Copertina', (
+            <div className={styles.cover}>
+              <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
+              <h2 className={styles.title}>Passaporto del Giorno</h2>
+              <p className={styles.date}>{data.data_odierna}</p>
+              <div className={styles.stamp}>
+                <span>Visitato</span>
+                <strong>{initials}</strong>
+                <em>{formatExLibrisDate(dataIso)}</em>
+              </div>
+              <p className={styles.zineNote}>Un foglio A4, otto facciate di cultura quotidiana.</p>
+            </div>
+          ), styles.isInverted)}
+
+          {zinePage(5, 'Poesia del Giorno', (
+            <>
+              <h2>{data.poesia.autore}</h2>
+              <p className={styles.source}>{data.poesia.fonte}</p>
+              <p className={styles.poem}>{data.poesia.testo}</p>
+              {data.poesia.nota && <p>{data.poesia.nota}</p>}
+            </>
+          ))}
+
+          {zinePage(6, 'Passaggio Biblico', (
+            <>
+              <h2>{data.bibbia.fonte}</h2>
+              <p className={styles.bibleText}>{data.bibbia.testo}</p>
+              {data.bibbia.nota && <p>{data.bibbia.nota}</p>}
+            </>
+          ))}
+
+          {zinePage(7, 'Consiglio Musicale', (
+            <>
+              <h2>{data.musica.brano}</h2>
+              <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
+              <p>{data.musica.motivo}</p>
+            </>
+          ))}
+
+          {zinePage(8, 'Opera e Firma', (
+            <>
+              {opera && (
+                <>
+                  {(opera.immagine_url_hd || opera.immagine_url) && (
+                    <figure className={styles.artwork}>
+                      <img crossOrigin="anonymous" src={opera.immagine_url_hd || opera.immagine_url} alt={`Opera del Giorno: ${opera.titolo}`} />
+                    </figure>
+                  )}
+                  <h2>{opera.titolo}</h2>
+                  <p className={styles.source}>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
+                  <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
+                </>
+              )}
+              <footer className={styles.signature}>
+                <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
+                <span>Realizzato con amore da Antonello.</span>
+              </footer>
+            </>
+          ))}
         </article>
       </div>
     </main>
