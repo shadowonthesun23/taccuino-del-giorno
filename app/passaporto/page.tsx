@@ -92,6 +92,14 @@ function zinePage(pageNumber: number, label: string, children: ReactNode, classN
   );
 }
 
+function textDensityClass(text: string) {
+  const length = text.trim().length;
+
+  if (length > 900) return styles.longText;
+  if (length > 620) return styles.mediumText;
+  return styles.shortText;
+}
+
 async function getFotoAutore(nomeAutore: string): Promise<string | null> {
   try {
     const encoded = encodeURIComponent(nomeAutore);
@@ -213,7 +221,7 @@ export default async function PassportPage({
             <>
               <h2>{data.poesia.autore}</h2>
               <p className={styles.source}>{data.poesia.fonte}</p>
-              <p className={styles.poem}>{data.poesia.testo}</p>
+              <p className={`${styles.poem} ${textDensityClass(data.poesia.testo)}`}>{data.poesia.testo}</p>
             </>
           ), styles.isInverted)}
 
@@ -274,7 +282,7 @@ export default async function PassportPage({
           {zinePage(6, 'Passaggio biblico del giorno', (
             <>
               <h2>{data.bibbia.fonte}</h2>
-              <p className={styles.bibleText}>{data.bibbia.testo}</p>
+              <p className={`${styles.bibleText} ${textDensityClass(data.bibbia.testo)}`}>{data.bibbia.testo}</p>
             </>
           ), styles.biblePage)}
 

@@ -123,7 +123,7 @@
 .zinePage {
   min-width: 0;
   overflow: hidden;
-  padding: 13px;
+  padding: 17px 18px;
   position: relative;
   z-index: 1;
 }
@@ -131,7 +131,7 @@
 .zinePageInner {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
   height: 100%;
   min-height: 0;
   position: relative;
@@ -152,25 +152,28 @@
   top: 0;
 }
 
-.number,
-.sectionLabel {
+.number {
   color: #9d5147;
   display: block;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.15em;
   line-height: 1.05;
-  margin: 0 12px 2px;
+  margin: 0 14px 2px;
   text-align: center;
   text-transform: uppercase;
 }
 
-.authorPage > .zinePageInner > .sectionLabel,
-.wordSaintsPage .entry > .sectionLabel,
-.biblePage > .zinePageInner > .sectionLabel,
-.artworkPage > .zinePageInner > .sectionLabel {
-  font-size: 12px;
+.sectionLabel {
+  color: #9d5147;
+  display: block;
+  font-size: 11.5px;
+  font-weight: 800;
   letter-spacing: 0.13em;
+  line-height: 1.05;
+  margin: 0 18px 3px;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .title {
@@ -417,10 +420,23 @@
 
 .poem,
 .bibleText {
-  font-size: 11.5px !important;
   font-style: italic;
-  line-height: 1.2 !important;
   white-space: pre-wrap;
+}
+
+.shortText {
+  font-size: 13px !important;
+  line-height: 1.34 !important;
+}
+
+.mediumText {
+  font-size: 12.2px !important;
+  line-height: 1.27 !important;
+}
+
+.longText {
+  font-size: 11.4px !important;
+  line-height: 1.2 !important;
 }
 
 .signature {
