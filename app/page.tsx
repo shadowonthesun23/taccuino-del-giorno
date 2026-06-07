@@ -1562,7 +1562,7 @@ export default function Home() {
 
             <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia">
-              <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6">{data.bibbia.testo}</div>
+              <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.bibbia.testo}</div>
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
               </div>

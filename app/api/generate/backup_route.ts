@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 REGOLE DI CURATELA:
 1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
 2. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
-3. BIBBIA: Traduzione CEI 2008. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali (fondamentale per Salmi e Inni).
+3. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti.
 4. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale.
 5. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
 
