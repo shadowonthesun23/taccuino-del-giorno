@@ -100,6 +100,42 @@ function textDensityClass(text: string) {
   return styles.shortText;
 }
 
+function sentenceCase(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function endWithPeriod(text: string) {
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+}
+
+function truncateAtWord(text: string, maxLength: number) {
+  if (text.length <= maxLength) return text;
+
+  const clipped = text.slice(0, maxLength);
+  const lastSpace = clipped.lastIndexOf(' ');
+  return clipped.slice(0, lastSpace > 48 ? lastSpace : maxLength).trim();
+}
+
+function summarizeEventForZine(event: string) {
+  const normalized = event.replace(/\s+/g, ' ').trim();
+  const [possibleYear, ...rest] = normalized.split(':');
+  const hasYear = /^\d{3,4}$/.test(possibleYear.trim());
+  const year = hasYear ? possibleYear.trim() : '';
+  const body = (hasYear ? rest.join(':') : normalized)
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s+-\s+/g, ' ')
+    .trim();
+
+  const firstSentence = body.split(/(?<=[.!?])\s+/)[0] || body;
+  const firstClause = firstSentence
+    .split(/;\s+/)[0]
+    .split(/,\s+(?:che|dove|quando|mentre|durante|con lo scopo|allo scopo)\b/i)[0]
+    .trim();
+  const summary = endWithPeriod(sentenceCase(truncateAtWord(firstClause || firstSentence, 112)));
+
+  return year ? `${year}: ${summary}` : summary;
+}
+
 async function getFotoAutore(nomeAutore: string): Promise<string | null> {
   try {
     const encoded = encodeURIComponent(nomeAutore);
@@ -199,6 +235,7 @@ export default async function PassportPage({
   const { data, opera } = payload;
   const initials = getInitials(data.autore_giorno);
   const zineId = 'daily-zine-sheet';
+  const zineEvents = data.avvenimenti.slice(0, 5).map(summarizeEventForZine);
 
   return (
     <main className={`${styles.page} ${garamond.className}`}>
@@ -227,7 +264,7 @@ export default async function PassportPage({
 
           {zinePage(4, 'Accadde Oggi', (
             <ul className={styles.events}>
-              {data.avvenimenti.map((evento, index) => (
+              {zineEvents.map((evento, index) => (
                 <li key={index}>{evento}</li>
               ))}
             </ul>
@@ -300,7 +337,15 @@ export default async function PassportPage({
                 <>
                   {(opera.immagine_url_hd || opera.immagine_url) && (
                     <figure className={styles.artwork}>
-                      <img crossOrigin="anonymous" src={opera.immagine_url_hd || opera.immagine_url} alt={`Opera del Giorno: ${opera.titolo}`} />
+                      <img
+                        crossOrigin="anonymous"
+                        decoding="sync"
+                        fetchPriority="high"
+                        loading="eager"
+                        src={opera.immagine_url || opera.immagine_url_hd}
+                        srcSet={opera.immagine_url_hd ? `${opera.immagine_url_hd} 2x` : undefined}
+                        alt={`Opera del Giorno: ${opera.titolo}`}
+                      />
                     </figure>
                   )}
                   <h2>{opera.titolo}</h2>
