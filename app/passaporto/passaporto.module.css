@@ -133,15 +133,18 @@
 
 .foldGuides i::before,
 .foldGuides i::after {
+  background: rgba(251, 247, 238, 0.72);
   color: rgba(157, 81, 71, 0.18);
   content: "taglio";
-  font-size: 8px;
+  font-size: 7px;
   font-style: italic;
   font-weight: 600;
   letter-spacing: 0.08em;
+  line-height: 1;
+  padding: 0 3px;
   position: absolute;
   text-transform: uppercase;
-  top: -17px;
+  top: -0.48em;
 }
 
 .foldGuides i::before { left: 8px; }
@@ -195,6 +198,14 @@
   letter-spacing: 0.15em;
   line-height: 1.05;
   text-transform: uppercase;
+}
+
+.authorPage > .zinePageInner > .sectionLabel,
+.wordSaintsPage .entry > .sectionLabel,
+.biblePage > .zinePageInner > .sectionLabel,
+.artworkPage > .zinePageInner > .sectionLabel {
+  font-size: 12px;
+  letter-spacing: 0.13em;
 }
 
 .title {
@@ -458,15 +469,15 @@
 
 .signature strong {
   color: #a44e45;
-  font-size: 26px;
+  font-size: 17px;
   font-weight: 400;
   letter-spacing: 0.016em;
-  line-height: 0.9;
+  line-height: 0.95;
 }
 
 .signature span {
   color: #6d635c;
-  font-size: 12px;
+  font-size: 9px;
   font-style: italic;
   font-weight: 600;
 }

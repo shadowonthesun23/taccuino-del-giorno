@@ -79,11 +79,13 @@ function entry(label: string, children: ReactNode) {
 }
 
 function zinePage(pageNumber: number, label: string, children: ReactNode, className = '') {
+  const ariaLabel = label ? `Facciata ${pageNumber}: ${label}` : `Facciata ${pageNumber}`;
+
   return (
-    <section className={`${styles.zinePage} ${className}`} aria-label={`Facciata ${pageNumber}: ${label}`}>
+    <section className={`${styles.zinePage} ${className}`} aria-label={ariaLabel}>
       <div className={styles.zinePageInner}>
         <span className={styles.pageNumber}>{pageNumber}</span>
-        <span className={styles.sectionLabel}>{label}</span>
+        {label && <span className={styles.sectionLabel}>{label}</span>}
         {children}
       </div>
     </section>
@@ -215,7 +217,7 @@ export default async function PassportPage({
             </ul>
           ), styles.isInverted)}
 
-          {zinePage(3, 'Parola e Santi', (
+          {zinePage(3, '', (
             <>
               {entry('Parola del Giorno', (
                 <>
@@ -239,9 +241,9 @@ export default async function PassportPage({
                 </>
               ))}
             </>
-          ), styles.isInverted)}
+          ), `${styles.isInverted} ${styles.wordSaintsPage}`)}
 
-          {zinePage(2, 'Autore e Citazione', (
+          {zinePage(2, 'Autore del giorno', (
             <>
               <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
                 {data.foto_autore_url && (
@@ -259,9 +261,9 @@ export default async function PassportPage({
                 <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
               </div>
             </>
-          ), styles.isInverted)}
+          ), `${styles.isInverted} ${styles.authorPage}`)}
 
-          {zinePage(1, 'Copertina', (
+          {zinePage(1, '', (
             <div className={styles.cover}>
               <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
               <h2 className={styles.title}>Passaporto del Giorno</h2>
@@ -283,12 +285,12 @@ export default async function PassportPage({
             </>
           ))}
 
-          {zinePage(6, 'Passaggio Biblico', (
+          {zinePage(6, 'Passaggio biblico del giorno', (
             <>
               <h2>{data.bibbia.fonte}</h2>
               <p className={styles.bibleText}>{data.bibbia.testo}</p>
             </>
-          ))}
+          ), styles.biblePage)}
 
           {zinePage(7, 'Consiglio Musicale', (
             <>
@@ -298,7 +300,7 @@ export default async function PassportPage({
             </>
           ))}
 
-          {zinePage(8, 'Opera e Firma', (
+          {zinePage(8, 'Opera del giorno', (
             <>
               {opera && (
                 <>
@@ -317,7 +319,7 @@ export default async function PassportPage({
                 <span>Realizzato con amore da Antonello.</span>
               </footer>
             </>
-          ))}
+          ), styles.artworkPage)}
         </article>
       </div>
     </main>
