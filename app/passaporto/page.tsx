@@ -243,19 +243,21 @@ export default async function PassportPage({
 
           {zinePage(2, 'Autore e Citazione', (
             <>
-              <div className={styles.authorGrid}>
+              <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
                 {data.foto_autore_url && (
                   <figure className={styles.authorPhoto}>
                     <img crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
                   </figure>
                 )}
-                <div>
+                <div className={styles.authorBio}>
                   <h2>{data.autore_giorno}</h2>
                   <p>{data.breve_descrizione}</p>
                 </div>
               </div>
-              <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
-              <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
+              <div className={styles.quoteBlock}>
+                <blockquote>&ldquo;{data.citazione.testo}&rdquo;</blockquote>
+                <p className={styles.source}>{data.citazione.autore}{data.citazione.fonte ? `, ${data.citazione.fonte}` : ''}</p>
+              </div>
             </>
           ), styles.isInverted)}
 
@@ -278,7 +280,6 @@ export default async function PassportPage({
               <h2>{data.poesia.autore}</h2>
               <p className={styles.source}>{data.poesia.fonte}</p>
               <p className={styles.poem}>{data.poesia.testo}</p>
-              {data.poesia.nota && <p>{data.poesia.nota}</p>}
             </>
           ))}
 
@@ -286,7 +287,6 @@ export default async function PassportPage({
             <>
               <h2>{data.bibbia.fonte}</h2>
               <p className={styles.bibleText}>{data.bibbia.testo}</p>
-              {data.bibbia.nota && <p>{data.bibbia.nota}</p>}
             </>
           ))}
 

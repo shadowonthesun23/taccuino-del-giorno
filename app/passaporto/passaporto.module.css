@@ -88,7 +88,7 @@
 }
 
 .zineSheet::before {
-  border: 1px solid rgba(171, 77, 67, 0.2);
+  border: 1px solid rgba(171, 77, 67, 0.1);
   content: "";
   inset: 10px;
   pointer-events: none;
@@ -104,7 +104,7 @@
 }
 
 .foldGuides span {
-  border-left: 1px dashed rgba(171, 77, 67, 0.42);
+  border-left: 1px dashed rgba(171, 77, 67, 0.16);
   bottom: 10px;
   position: absolute;
   top: 10px;
@@ -115,7 +115,7 @@
 .foldGuides span:nth-child(3) { left: 75%; }
 
 .foldGuides::before {
-  border-top: 1px dashed rgba(171, 77, 67, 0.42);
+  border-top: 1px dashed rgba(171, 77, 67, 0.16);
   content: "";
   left: 10px;
   position: absolute;
@@ -124,7 +124,7 @@
 }
 
 .foldGuides i {
-  border-top: 3px solid rgba(171, 77, 67, 0.74);
+  border-top: 1px dashed rgba(171, 77, 67, 0.22);
   left: 25%;
   position: absolute;
   top: calc(50% - 1px);
@@ -133,11 +133,11 @@
 
 .foldGuides i::before,
 .foldGuides i::after {
-  color: #9d5147;
+  color: rgba(157, 81, 71, 0.18);
   content: "taglio";
   font-size: 8px;
   font-style: italic;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   position: absolute;
   text-transform: uppercase;
@@ -156,7 +156,7 @@
 }
 
 .zinePage::after {
-  border: 1px solid rgba(181, 149, 106, 0.18);
+  border: 1px solid rgba(181, 149, 106, 0.1);
   content: "";
   inset: 10px;
   pointer-events: none;
@@ -295,7 +295,7 @@
 }
 
 .entry h2,
-.authorGrid h2,
+.authorBio h2,
 .zinePageInner > h2 {
   color: #2a2522;
   font-size: 18px;
@@ -315,7 +315,7 @@
 .entry p,
 .entry li,
 .miniEntry p,
-.authorGrid p,
+.authorBio p,
 .zinePageInner > p {
   color: #4a433f;
   font-size: 11px;
@@ -342,10 +342,43 @@
   font-weight: 700 !important;
 }
 
-.authorGrid {
+.authorFeature {
+  align-items: start;
+  border-bottom: 1px solid rgba(181, 149, 106, 0.22);
   display: grid;
-  gap: 10px;
-  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 11px;
+  grid-template-columns: 104px minmax(0, 1fr);
+  padding-bottom: 8px;
+}
+
+.authorFeatureNoPhoto {
+  grid-template-columns: 1fr;
+}
+
+.authorBio {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.authorBio h2 {
+  font-size: 20px;
+}
+
+.authorBio p {
+  font-size: 10.7px;
+  line-height: 1.22;
+}
+
+.quoteBlock {
+  display: grid;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.quoteBlock blockquote {
+  font-size: 12.5px;
+  line-height: 1.24;
 }
 
 .authorPhoto,
@@ -360,7 +393,7 @@
 
 .authorPhoto {
   aspect-ratio: 3 / 4;
-  transform: rotate(-1.5deg);
+  transform: rotate(-1deg);
 }
 
 .artwork {
