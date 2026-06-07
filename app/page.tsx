@@ -432,18 +432,46 @@ function TypewriterText({ text, className = '' }: { text: string; className?: st
   );
 }
 
-function EditorialQuoteText({ text }: { text: string }) {
+function DecorativeInitialText({
+  text,
+  className,
+  initialTone = 'red',
+  initialClassName = '',
+  copyClassName = '',
+}: {
+  text: string;
+  className: string;
+  initialTone?: 'red' | 'blue';
+  initialClassName?: string;
+  copyClassName?: string;
+}) {
   const [firstLetter = '', ...restLetters] = Array.from(text.trim());
   const rest = restLetters.join('');
 
   return (
     <p
-      className="card-primary-quote quote-editorial-text text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium"
+      className={`decorative-initial-text ${className}`}
       aria-label={text}
     >
-      <span className="quote-editorial-dropcap" aria-hidden="true">{firstLetter}</span>
-      <span className="quote-editorial-copy" aria-hidden="true">{rest}</span>
+      <span
+        className={`decorative-initial decorative-initial-${initialTone} ${initialClassName}`}
+        aria-hidden="true"
+      >
+        {firstLetter}
+      </span>
+      <span className={`decorative-initial-copy ${copyClassName}`} aria-hidden="true">{rest}</span>
     </p>
+  );
+}
+
+function EditorialQuoteText({ text }: { text: string }) {
+  return (
+    <DecorativeInitialText
+      text={text}
+      className="card-primary-quote quote-editorial-text text-left text-2xl md:text-3xl italic leading-relaxed mb-6 font-medium"
+      initialClassName="quote-editorial-dropcap"
+      copyClassName="quote-editorial-copy"
+    />
   );
 }
 
@@ -1547,7 +1575,11 @@ export default function Home() {
 
             <Card id="poesia" title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}>
-              <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.poesia.testo}</div>
+              <DecorativeInitialText
+                text={data.poesia.testo}
+                className="whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6"
+                initialTone="blue"
+              />
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
                 <p className="font-bold text-xl">{data.poesia.autore}</p>
                 <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
@@ -1562,7 +1594,10 @@ export default function Home() {
 
             <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia">
-              <div className="medieval-box whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6">{data.bibbia.testo}</div>
+              <DecorativeInitialText
+                text={data.bibbia.testo}
+                className="whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6"
+              />
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
               </div>
