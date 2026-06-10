@@ -13,6 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
 const themeBootstrapScript = `
 (() => {
   try {
@@ -35,8 +41,21 @@ const themeBootstrapScript = `
 `;
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Il giorno da custodire",
   description: "Ogni giorno porta con sé qualcosa da non perdere: una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Uno spazio per raccoglierli, leggerli con calma e custodirli sulla carta o nel cuore.",
+  openGraph: {
+    title: "Il giorno da custodire",
+    description: "Ogni giorno porta con sé qualcosa da non perdere: una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Uno spazio per raccoglierli, leggerli con calma e custodirli sulla carta o nel cuore.",
+    locale: "it_IT",
+    siteName: "Il giorno da custodire",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Il giorno da custodire",
+    description: "Una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Un luogo quotidiano in cui raccoglierli e custodirli.",
+  },
   icons: {
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">✒️</text></svg>',
   },
