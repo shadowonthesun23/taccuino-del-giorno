@@ -390,7 +390,7 @@ export default async function PassportPage({
       <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
       <p>{data.musica.motivo}</p>
       <footer className={styles.signature}>
-        <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
+        <strong className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</strong>
         <span>Realizzato con amore da Antonello.</span>
       </footer>
     </>

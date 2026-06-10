@@ -35,8 +35,8 @@ const themeBootstrapScript = `
 `;
 
 export const metadata: Metadata = {
-  title: "Il Taccuino del Giorno",
-  description: "Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno e musica. Cultura quotidiana, generata automaticamente.",
+  title: "Il giorno da custodire",
+  description: "Ogni giorno porta con sé qualcosa da non perdere: una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Uno spazio per raccoglierli, leggerli con calma e custodirli sulla carta o nel cuore.",
   icons: {
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">✒️</text></svg>',
   },

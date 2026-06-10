@@ -747,7 +747,7 @@ function DailyPassport({
             )}
 
             <footer className="daily-passport-signature">
-              <strong className={`${jocky.className} notebook-wordmark`}>{lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}</strong>
+              <strong className={`${jocky.className} notebook-wordmark`}>{lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}</strong>
               <span>{lingua === 'IT' ? 'Realizzato con amore da Antonello.' : 'Made with love by Antonello.'}</span>
             </footer>
           </aside>
@@ -792,7 +792,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
             <span />
             <BookOpen className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
           </div>
-          <h1 className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</h1>
+          <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
           <div className="loading-writing-stack" aria-hidden="true">
             <span className="loading-pen-line line-one" />
             <span className="loading-pen-line line-two" />
@@ -1324,7 +1324,7 @@ export default function Home() {
                 }}
               >
                 <span className={`${jocky.className} notebook-wordmark hero-ink-title animate-handwrite`}>
-                  {lingua === 'IT' ? 'Il Taccuino del Giorno' : 'The Daily Notebook'}
+                  {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
                 </span>
               </h1>
               <p
@@ -1336,8 +1336,8 @@ export default function Home() {
                 }}
               >
                 {lingua === 'IT'
-                  ? '"Ogni giorno un taccuino diverso: citazioni, poesia, santi, avvenimenti storici, parola del giorno, musica e un\u2019opera d\u2019arte. Cultura quotidiana, scelta con cura."'
-                  : '"Every day a different notebook: quotes, poetry, saints, historical events, word of the day, music and a work of art. Daily culture, chosen with care."'}
+                  ? 'Ogni giorno porta con sé qualcosa da non perdere: una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Uno spazio per raccoglierli, leggerli con calma e custodirli sulla carta o nel cuore.'
+                  : 'Every day carries something worth keeping: a line, a poem, an image, a word, a memory, a passage of faith. A quiet space to gather them, read slowly, and keep them on paper or in the heart.'}
               </p>
               {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
               <WatercolorDivider isDark={isDark} />
@@ -1760,7 +1760,9 @@ export default function Home() {
                 <strong>{inizialiExLibris}</strong>
                 <span className="daily-ex-libris-date">{formatExLibrisDate(dataExLibris)}</span>
               </div>
-              <p className={`journal-footer-title ${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</p>
+              <p className={`journal-footer-title ${jocky.className} notebook-wordmark`}>
+                {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
+              </p>
               <p className="journal-footer-note">
               {lingua === 'IT' ? (
                 <>

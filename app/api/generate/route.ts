@@ -95,7 +95,7 @@ export async function GET(request: Request) {
       },
     });
 
-    const prompt = `Sei un erudito critico letterario e teologo. Cura "Il Taccuino del Giorno" per il ${dataDiOggiStr}.
+    const prompt = `Sei un erudito critico letterario e teologo. Cura "Il giorno da custodire" per il ${dataDiOggiStr}.
 
 REGOLE DI CURATELA:
 1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
