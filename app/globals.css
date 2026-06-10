@@ -81,7 +81,10 @@ body {
 }
 
 .hero-ink-title {
-  line-height: inherit;
+  box-sizing: content-box;
+  line-height: 1.12;
+  margin: -0.18em -0.14em -0.2em;
+  padding: 0.18em 0.14em 0.2em;
 }
 
 .typewriter-text {
