@@ -50,9 +50,11 @@ export default function ParallaxBackground({ children }: { children: React.React
     };
   }, []);
 
-  const bgColor = dark ? '#201F1D' : '#F4F0E6';
-  const imageOpacity = dark ? 0.44 : 0.2;
-  const imageFilter = dark ? 'grayscale(1) brightness(0.52) contrast(1.08)' : 'none';
+  const bgColor = dark ? '#252422' : '#F8F6F0';
+  const imageOpacity = dark ? 0.29 : 0.13;
+  const imageFilter = dark
+    ? 'grayscale(1) brightness(0.68) contrast(1.02)'
+    : 'saturate(0.72) brightness(1.04) contrast(0.94)';
 
   return (
     <>

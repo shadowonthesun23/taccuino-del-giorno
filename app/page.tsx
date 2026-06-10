@@ -29,8 +29,8 @@ const jocky = localFont({
 });
 
 const THEME_SURFACE = {
-  light: '#F4F0E6',
-  dark: '#1E1E1E',
+  light: '#F8F6F0',
+  dark: '#252422',
 } as const;
 
 function applyBrowserTheme(nextDark: boolean) {
@@ -1052,7 +1052,7 @@ export default function Home() {
   };
 
   const themeClasses = {
-    bg: isDark ? 'bg-[#1E1E1E]' : 'bg-[#F4F0E6]',
+    bg: isDark ? 'bg-[#252422]' : 'bg-[#F8F6F0]',
     text: isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]',
     textMuted: isDark ? 'text-[#A0A0A0]' : 'text-[#8A817C]',
     border: isDark ? 'border-white/10' : 'border-[#EBE5DB]',

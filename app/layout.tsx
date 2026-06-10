@@ -19,7 +19,7 @@ const themeBootstrapScript = `
     const savedTheme = localStorage.getItem('theme');
     const dark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     const scheme = dark ? 'dark' : 'light';
-    const color = dark ? '#1E1E1E' : '#F4F0E6';
+    const color = dark ? '#252422' : '#F8F6F0';
     const root = document.documentElement;
     root.classList.toggle('dark', dark);
     root.dataset.theme = scheme;
@@ -48,8 +48,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F4F0E6' },
-    { media: '(prefers-color-scheme: dark)', color: '#1E1E1E' },
+    { media: '(prefers-color-scheme: light)', color: '#F8F6F0' },
+    { media: '(prefers-color-scheme: dark)', color: '#252422' },
   ],
 };
 
