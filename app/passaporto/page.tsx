@@ -43,7 +43,7 @@ interface DatiTaccuino {
   santi: { nome: string; ruolo: string; anni: string; biografia: string }[];
   bibbia: { testo: string; fonte: string; nota: string };
   poesia: { testo: string; autore: string; fonte: string; nota: string };
-  musica: { brano: string; autore: string; genere: string; motivo: string };
+  musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca?: string };
   foto_autore_url?: string | null;
   keyword_arte_en?: string | null;
   opera_giorno?: OperaGiorno | null;
@@ -212,7 +212,33 @@ async function findArtwork(keyword: string | null | undefined): Promise<OperaGio
   return null;
 }
 
-async function getPassportData(dataIso: string): Promise<{ data: DatiTaccuino; opera: OperaGiorno | null }> {
+async function findAlbumCover(musica: DatiTaccuino['musica']): Promise<string | null> {
+  const searchTerm = musica.chiave_ricerca?.trim() || `${musica.brano} ${musica.autore}`.trim();
+  if (!searchTerm) return null;
+
+  try {
+    const response = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&entity=album&limit=5&country=IT`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    const result = Array.isArray(payload.results)
+      ? payload.results.find((item: { artworkUrl100?: string }) => item.artworkUrl100)
+      : null;
+
+    return result?.artworkUrl100?.replace('100x100bb', '600x600bb') ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function getPassportData(dataIso: string): Promise<{
+  data: DatiTaccuino;
+  opera: OperaGiorno | null;
+  albumCover: string | null;
+}> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -227,12 +253,16 @@ async function getPassportData(dataIso: string): Promise<{ data: DatiTaccuino; o
     throw new Error('Nessun contenuto disponibile per questa data.');
   }
 
-  const fotoUrl = await getFotoAutore(data.autore_giorno);
-  const opera = data.opera_giorno ?? await findArtwork(data.keyword_arte_en);
+  const [fotoUrl, opera, albumCover] = await Promise.all([
+    getFotoAutore(data.autore_giorno),
+    data.opera_giorno ? Promise.resolve(data.opera_giorno) : findArtwork(data.keyword_arte_en),
+    findAlbumCover(data.musica),
+  ]);
 
   return {
     data: { ...data, foto_autore_url: fotoUrl },
     opera,
+    albumCover,
   };
 }
 
@@ -247,7 +277,11 @@ export default async function PassportPage({
     ? dataParam
     : new Date().toISOString().split('T')[0];
 
-  let payload: { data: DatiTaccuino; opera: OperaGiorno | null };
+  let payload: {
+    data: DatiTaccuino;
+    opera: OperaGiorno | null;
+    albumCover: string | null;
+  };
   try {
     payload = await getPassportData(dataIso);
   } catch (error) {
@@ -255,13 +289,14 @@ export default async function PassportPage({
     return <main className={`${styles.error} ${garamond.className}`}>{message}</main>;
   }
 
-  const { data, opera } = payload;
+  const { data, opera, albumCover } = payload;
   const initials = getInitials(data.autore_giorno);
   const printableZineId = 'daily-zine-print-sheet';
   const digitalZineId = 'daily-zine-digital-sheet';
   const zineEvents = summarizeEventsForZine(data.avvenimenti);
   const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
   const artworkImageUrlHd = proxiedImageUrl(opera?.immagine_url_hd);
+  const albumCoverUrl = proxiedImageUrl(albumCover);
   const coverContent = (
     <div className={styles.cover}>
       <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
@@ -341,9 +376,23 @@ export default async function PassportPage({
   );
   const musicContent = (
     <>
+      {albumCoverUrl && (
+        <figure className={styles.albumCover}>
+          <img
+            decoding="sync"
+            loading="eager"
+            src={albumCoverUrl}
+            alt={`Copertina di ${data.musica.brano}`}
+          />
+        </figure>
+      )}
       <h2>{data.musica.brano}</h2>
       <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
       <p>{data.musica.motivo}</p>
+      <footer className={styles.signature}>
+        <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
+        <span>Realizzato con amore da Antonello.</span>
+      </footer>
     </>
   );
   const artworkContent = (
@@ -367,10 +416,6 @@ export default async function PassportPage({
           <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
         </>
       )}
-      <footer className={styles.signature}>
-        <strong className={`${jocky.className} notebook-wordmark`}>Il Taccuino del Giorno</strong>
-        <span>Realizzato con amore da Antonello.</span>
-      </footer>
     </>
   );
 
@@ -399,8 +444,8 @@ export default async function PassportPage({
           {digitalPage(4, 'Accadde Oggi', eventsContent)}
           {digitalPage(5, 'Poesia del Giorno', poetryContent)}
           {digitalPage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
-          {digitalPage(7, 'Consiglio Musicale', musicContent)}
-          {digitalPage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
+          {digitalPage(7, 'Opera del giorno', artworkContent, styles.artworkPage)}
+          {digitalPage(8, 'Consiglio Musicale', musicContent, styles.musicPage)}
         </article>
       </div>
 
@@ -428,8 +473,8 @@ export default async function PassportPage({
           {printablePage(3, '', wordSaintsContent, `${styles.isInverted} ${styles.wordSaintsPage}`)}
           {printablePage(2, 'Autore del giorno', authorContent, `${styles.isInverted} ${styles.authorPage}`)}
           {printablePage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
-          {printablePage(7, 'Consiglio Musicale', musicContent)}
-          {printablePage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
+          {printablePage(7, 'Opera del giorno', artworkContent, styles.artworkPage)}
+          {printablePage(8, 'Consiglio Musicale', musicContent, styles.musicPage)}
           {printablePage(1, '', coverContent)}
         </article>
       </div>
