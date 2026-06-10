@@ -379,33 +379,28 @@ export default async function PassportPage({
       <header className={styles.toolbar}>
         <div>
           <h1>Passaporto del Giorno</h1>
-          <p>Zine A4 a 8 facciate, pensata per essere piegata e conservata.</p>
+          <p>Anteprima digitale, con zine A4 stampabile e pieghevole.</p>
         </div>
         <div className={styles.exportActions}>
-          <ExportJpegButton targetId={printableZineId} filename={`passaporto-zine-stampabile-${dataIso}.jpg`}>
-            Scarica zine stampabile
-          </ExportJpegButton>
           <ExportJpegButton targetId={digitalZineId} filename={`passaporto-zine-digitale-${dataIso}.jpg`}>
             Scarica versione digitale
+          </ExportJpegButton>
+          <ExportJpegButton targetId={printableZineId} filename={`passaporto-zine-stampabile-${dataIso}.jpg`}>
+            Scarica zine stampabile
           </ExportJpegButton>
         </div>
       </header>
 
       <div className={styles.sheetWrap}>
-        <article id={printableZineId} className={styles.zineSheet} aria-label={`Passaporto del Giorno in formato zine stampabile: ${data.data_odierna}`}>
-          <div className={styles.foldGuides} aria-hidden="true">
-            <span /><span /><span />
-            <i />
-          </div>
-
-          {printablePage(5, 'Poesia del Giorno', poetryContent, styles.isInverted)}
-          {printablePage(4, 'Accadde Oggi', eventsContent, styles.isInverted)}
-          {printablePage(3, '', wordSaintsContent, `${styles.isInverted} ${styles.wordSaintsPage}`)}
-          {printablePage(2, 'Autore del giorno', authorContent, `${styles.isInverted} ${styles.authorPage}`)}
-          {printablePage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
-          {printablePage(7, 'Consiglio Musicale', musicContent)}
-          {printablePage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
-          {printablePage(1, '', coverContent)}
+        <article id={digitalZineId} className={`${styles.zineSheet} ${styles.digitalSheet}`} aria-label={`Passaporto del Giorno in versione digitale: ${data.data_odierna}`}>
+          {digitalPage(1, '', coverContent)}
+          {digitalPage(2, 'Autore del giorno', authorContent, styles.authorPage)}
+          {digitalPage(3, '', wordSaintsContent, styles.wordSaintsPage)}
+          {digitalPage(4, 'Accadde Oggi', eventsContent)}
+          {digitalPage(5, 'Poesia del Giorno', poetryContent)}
+          {digitalPage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
+          {digitalPage(7, 'Consiglio Musicale', musicContent)}
+          {digitalPage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
         </article>
       </div>
 
@@ -422,15 +417,20 @@ export default async function PassportPage({
       </section>
 
       <div className={styles.exportOnly} aria-hidden="true">
-        <article id={digitalZineId} className={`${styles.zineSheet} ${styles.digitalSheet}`} aria-label={`Passaporto del Giorno in versione digitale: ${data.data_odierna}`}>
-          {digitalPage(1, '', coverContent)}
-          {digitalPage(2, 'Autore del giorno', authorContent, styles.authorPage)}
-          {digitalPage(3, '', wordSaintsContent, styles.wordSaintsPage)}
-          {digitalPage(4, 'Accadde Oggi', eventsContent)}
-          {digitalPage(5, 'Poesia del Giorno', poetryContent)}
-          {digitalPage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
-          {digitalPage(7, 'Consiglio Musicale', musicContent)}
-          {digitalPage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
+        <article id={printableZineId} className={`${styles.zineSheet} ${styles.exportSheet}`} aria-label={`Passaporto del Giorno in formato zine stampabile: ${data.data_odierna}`}>
+          <div className={styles.foldGuides} aria-hidden="true">
+            <span /><span /><span />
+            <i />
+          </div>
+
+          {printablePage(5, 'Poesia del Giorno', poetryContent, styles.isInverted)}
+          {printablePage(4, 'Accadde Oggi', eventsContent, styles.isInverted)}
+          {printablePage(3, '', wordSaintsContent, `${styles.isInverted} ${styles.wordSaintsPage}`)}
+          {printablePage(2, 'Autore del giorno', authorContent, `${styles.isInverted} ${styles.authorPage}`)}
+          {printablePage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
+          {printablePage(7, 'Consiglio Musicale', musicContent)}
+          {printablePage(8, 'Opera del giorno', artworkContent, styles.artworkPage)}
+          {printablePage(1, '', coverContent)}
         </article>
       </div>
     </main>
