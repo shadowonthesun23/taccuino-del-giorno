@@ -84,7 +84,7 @@ function zinePage(pageNumber: number, label: string, children: ReactNode, classN
   return (
     <section className={`${styles.zinePage} ${className}`} aria-label={ariaLabel}>
       <div className={styles.zinePageInner}>
-        <span className={styles.pageNumber}>{pageNumber}</span>
+        {pageNumber !== 1 && <span className={styles.pageNumber}>{pageNumber}</span>}
         {label && <span className={styles.sectionLabel}>{label}</span>}
         {children}
       </div>
