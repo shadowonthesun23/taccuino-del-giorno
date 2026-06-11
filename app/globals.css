@@ -188,6 +188,11 @@ body {
   color: #24478f;
 }
 
+.dark .decorative-initial,
+[data-theme="dark"] .decorative-initial {
+  color: #f7f4ed;
+}
+
 .decorative-initial-copy {
   white-space: inherit;
 }
