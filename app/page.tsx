@@ -373,29 +373,6 @@ function getMarginalia(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-function InkUnderline({ children }: { children: React.ReactNode }) {
-  const [marked, setMarked] = useState(false);
-
-  return (
-    <span
-      className={`ink-underline ${marked ? 'is-marked' : ''}`}
-      onPointerEnter={() => setMarked(true)}
-      onPointerDown={() => setMarked(true)}
-    >
-      <span className="ink-underline-copy">{children}</span>
-      <svg
-        className="ink-underline-mark"
-        viewBox="0 0 120 10"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path className="ink-underline-stroke is-main" pathLength="1" d="M3 5.8C21 4.2 35 6.8 54 5.1C76 3.2 92 6.2 117 4.6" />
-        <path className="ink-underline-stroke is-echo" pathLength="1" d="M7 7.5C31 6.3 48 8.1 70 6.5C88 5.4 101 7.1 114 6.1" />
-      </svg>
-    </span>
-  );
-}
-
 function TypewriterText({ text, className = '' }: { text: string; className?: string }) {
   const [visibleText, setVisibleText] = useState('');
 
@@ -1635,9 +1612,7 @@ export default function Home() {
                 : '0 1px 1px rgba(255,252,242,0.75)',
             }}
           >
-            <InkUnderline>
-              <TypewriterText text={data.autore_giorno} />
-            </InkUnderline>
+            <TypewriterText text={data.autore_giorno} />
           </h2>
           <p
             className={`text-xl md:text-2xl leading-relaxed font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'}`}
@@ -1724,9 +1699,7 @@ export default function Home() {
             <Card id="parola" title={lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
               <div className="text-center mb-6">
-                <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">
-                  <InkUnderline>{data.parola_giorno.parola}</InkUnderline>
-                </h4>
+                <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
                 <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
               <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
@@ -1746,9 +1719,7 @@ export default function Home() {
               <ul className="space-y-6">
                 {data.santi.map((santo, idx) => (
                   <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
-                    <h4 className="card-primary-title text-2xl font-bold mb-1">
-                      <InkUnderline>{santo.nome}</InkUnderline>
-                    </h4>
+                    <h4 className="card-primary-title text-2xl font-bold mb-1">{santo.nome}</h4>
                     <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-2">{santo.ruolo} ({santo.anni})</p>
                     <p className="card-body-copy text-lg font-medium leading-relaxed">{santo.biografia}</p>
                   </li>
@@ -1767,9 +1738,7 @@ export default function Home() {
                 <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                   <div className="space-y-5 order-2 md:order-1">
                     <div>
-                      <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">
-                        <InkUnderline>{opera.titolo}</InkUnderline>
-                      </h4>
+                      <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
                       <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
                     {(opera.medium || opera.dipartimento) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
@@ -1951,9 +1920,7 @@ export default function Home() {
                     </h3>
                   </div>
 
-                  <h4 className="card-primary-title text-3xl font-bold mb-2">
-                    <InkUnderline>{data.musica.brano}</InkUnderline>
-                  </h4>
+                  <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
                   <p className="card-byline text-xl font-medium mb-2">
                     {lingua === 'IT' ? 'di' : 'by'}{' '}
                     <span className="font-bold">{data.musica.autore}</span>

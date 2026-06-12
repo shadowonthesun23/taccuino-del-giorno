@@ -313,66 +313,6 @@ body {
   text-wrap: balance;
 }
 
-.ink-underline {
-  --ink-underline: #c64f47;
-  --ink-underline-soft: rgba(198,79,71,0.5);
-  cursor: default;
-  display: inline-block;
-  max-width: 100%;
-  outline: none;
-  padding: 0 0.08em 0.13em;
-  position: relative;
-  vertical-align: baseline;
-}
-
-.ink-underline-copy {
-  position: relative;
-  z-index: 1;
-}
-
-.ink-underline-mark {
-  bottom: -0.09em;
-  height: 0.24em;
-  left: -0.09em;
-  overflow: visible;
-  pointer-events: none;
-  position: absolute;
-  width: calc(100% + 0.18em);
-}
-
-.ink-underline-stroke {
-  fill: none;
-  stroke: var(--ink-underline);
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.ink-underline-stroke.is-main {
-  opacity: 0.9;
-  stroke-width: 2.15;
-  transition: stroke-dashoffset 720ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.ink-underline-stroke.is-echo {
-  opacity: 0.48;
-  stroke: var(--ink-underline-soft);
-  stroke-width: 1.25;
-  transition: stroke-dashoffset 560ms cubic-bezier(0.32, 0.72, 0, 1) 190ms;
-}
-
-.ink-underline.is-marked .ink-underline-stroke {
-  stroke-dashoffset: 0;
-}
-
-.dark .ink-underline,
-[data-theme="dark"] .ink-underline {
-  --ink-underline: #de766a;
-  --ink-underline-soft: rgba(222,118,106,0.48);
-}
-
 .card-primary-quote {
   text-wrap: pretty;
 }
