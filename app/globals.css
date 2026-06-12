@@ -117,6 +117,77 @@ html, body {
   [data-theme="dark"] .seasonal-reveal-content .card-paper-shadow {
     background-color: rgba(42, 42, 42, 0.91) !important;
   }
+
+  .seasonal-reveal-content .readability-ink-panel {
+    isolation: isolate;
+  }
+
+  .seasonal-reveal-content .readability-ink-panel::before {
+    backdrop-filter: blur(7px) saturate(0.72);
+    background:
+      radial-gradient(ellipse 78% 66% at 50% 47%, rgba(253, 252, 248, 0.88) 0 42%, rgba(253, 252, 248, 0.56) 64%, transparent 88%),
+      radial-gradient(ellipse 48% 38% at 28% 62%, rgba(248, 246, 240, 0.34), transparent 82%);
+    content: "";
+    inset: -20px -42px;
+    pointer-events: none;
+    position: absolute;
+    -webkit-backdrop-filter: blur(7px) saturate(0.72);
+    z-index: -1;
+  }
+
+  .seasonal-reveal-content .readability-ink-panel.is-author::before {
+    inset: -22px -34px;
+  }
+
+  .dark .seasonal-reveal-content .readability-ink-panel::before,
+  [data-theme="dark"] .seasonal-reveal-content .readability-ink-panel::before {
+    background:
+      radial-gradient(ellipse 78% 66% at 50% 47%, rgba(37, 36, 34, 0.88) 0 42%, rgba(37, 36, 34, 0.58) 64%, transparent 88%),
+      radial-gradient(ellipse 48% 38% at 28% 62%, rgba(30, 30, 30, 0.36), transparent 82%);
+  }
+
+  .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .editorial-link-button,
+    .daily-passport-open-button
+  ) {
+    backdrop-filter: blur(8px) saturate(0.76);
+    -webkit-backdrop-filter: blur(8px) saturate(0.76);
+  }
+
+  .seasonal-reveal-content .top-control-button {
+    background-color: rgba(244, 240, 230, 0.88) !important;
+    box-shadow:
+      0 10px 26px -22px rgba(42, 37, 34, 0.46),
+      inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  }
+
+  .dark .seasonal-reveal-content .top-control-button,
+  [data-theme="dark"] .seasonal-reveal-content .top-control-button {
+    background-color: rgba(30, 30, 30, 0.86) !important;
+  }
+
+  .seasonal-reveal-content :is(
+    .author-share-trigger,
+    .editorial-link-button,
+    .daily-passport-open-button
+  ) {
+    background-color: rgba(253, 252, 248, 0.9);
+  }
+
+  .dark .seasonal-reveal-content :is(
+    .author-share-trigger,
+    .editorial-link-button,
+    .daily-passport-open-button
+  ),
+  [data-theme="dark"] .seasonal-reveal-content :is(
+    .author-share-trigger,
+    .editorial-link-button,
+    .daily-passport-open-button
+  ) {
+    background-color: rgba(30, 30, 30, 0.88);
+  }
 }
 
 body {
