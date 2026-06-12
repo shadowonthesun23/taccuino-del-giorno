@@ -4422,12 +4422,25 @@ body {
     .daily-passport-open-button,
     .journal-footer-link
   ) {
-    background: rgba(253, 252, 248, 0.98) !important;
-    border-color: rgba(181, 149, 106, 0.42) !important;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    contain: paint;
+    clip-path: inset(0 round 999px);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 252, 247, 0.22)),
+      rgba(253, 252, 248, 0.52) !important;
+    background-clip: padding-box !important;
+    border-color: rgba(255, 255, 255, 0.74) !important;
     box-shadow:
       0 12px 30px -22px rgba(42, 37, 34, 0.58),
-      inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+      inset 0 1px 0 rgba(255, 255, 255, 0.88),
+      inset 0 -1px 0 rgba(181, 149, 106, 0.16) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(1.12);
+    backdrop-filter: blur(10px) saturate(1.12);
+    text-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.82),
+      0 0 10px rgba(255, 255, 255, 0.34);
   }
 
   .seasonal-reveal-content :is(
@@ -4437,7 +4450,7 @@ body {
     .daily-passport-open-button,
     .journal-footer-link
   ) {
-    color: #b84f43;
+    color: #a8443a;
   }
 
   .seasonal-reveal-content :is(
@@ -4448,9 +4461,15 @@ body {
     .daily-passport-open-button,
     .journal-footer-link
   ):is(:hover, :focus-visible) {
-    background: #f9eee8 !important;
-    border-color: rgba(222, 107, 88, 0.72) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 244, 238, 0.3)),
+      rgba(250, 238, 232, 0.6) !important;
+    border-color: rgba(222, 107, 88, 0.58) !important;
     color: #a94238;
+    box-shadow:
+      0 14px 32px -21px rgba(98, 55, 46, 0.58),
+      inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      inset 0 -1px 0 rgba(222, 107, 88, 0.18) !important;
   }
 
   .dark .seasonal-reveal-content :is(
@@ -4469,11 +4488,16 @@ body {
     .daily-passport-open-button,
     .journal-footer-link
   ) {
-    background: rgba(30, 30, 30, 0.97) !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.025)),
+      rgba(28, 27, 26, 0.66) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
     box-shadow:
       0 12px 30px -20px rgba(0, 0, 0, 0.78),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
+    -webkit-backdrop-filter: blur(11px) saturate(1.08);
+    backdrop-filter: blur(11px) saturate(1.08);
     color: #e5a297;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.82);
   }
@@ -4494,9 +4518,15 @@ body {
     .daily-passport-open-button,
     .journal-footer-link
   ):is(:hover, :focus-visible) {
-    background: #342725 !important;
-    border-color: rgba(222, 107, 88, 0.64) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(222, 107, 88, 0.045)),
+      rgba(52, 39, 37, 0.7) !important;
+    border-color: rgba(222, 107, 88, 0.54) !important;
     color: #f0b0a5;
+    box-shadow:
+      0 14px 32px -20px rgba(0, 0, 0, 0.82),
+      inset 0 1px 0 rgba(255, 255, 255, 0.17),
+      inset 0 -1px 0 rgba(222, 107, 88, 0.12) !important;
   }
 }
 
