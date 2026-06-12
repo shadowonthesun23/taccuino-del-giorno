@@ -791,21 +791,29 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
           aria-label="Il taccuino si sta preparando"
           className={`loading-notebook-paper ${isDark ? 'is-dark' : ''}`}
         >
-          <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
-            oggi
+          <img
+            className="loading-notebook-sheet"
+            src="/images/loading-paper-torn.webp"
+            alt=""
+            aria-hidden="true"
+          />
+          <div className="loading-notebook-content">
+            <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
+              oggi
+            </div>
+            <div className="loading-notebook-head">
+              <span />
+              <BookOpen className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
+            </div>
+            <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
+            <div className="loading-writing-stack" aria-hidden="true">
+              <span className="loading-pen-line line-one" />
+              <span className="loading-pen-line line-two" />
+              <span className="loading-pen-line line-three" />
+              <span className="loading-pen-line line-four" />
+            </div>
+            <p>Sto preparando la pagina del giorno.</p>
           </div>
-          <div className="loading-notebook-head">
-            <span />
-            <BookOpen className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
-          </div>
-          <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
-          <div className="loading-writing-stack" aria-hidden="true">
-            <span className="loading-pen-line line-one" />
-            <span className="loading-pen-line line-two" />
-            <span className="loading-pen-line line-three" />
-            <span className="loading-pen-line line-four" />
-          </div>
-          <p>Sto preparando la pagina del giorno.</p>
         </section>
       </div>
     </ParallaxBackground>

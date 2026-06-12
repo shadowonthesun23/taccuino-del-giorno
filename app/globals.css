@@ -1625,56 +1625,52 @@ body {
 /* Loading: foglio che si compila */
 .loading-notebook-paper {
   align-items: center;
-  background:
-    linear-gradient(90deg, rgba(80, 55, 24, 0.035) 1px, transparent 1px) 0 0 / 64px 64px,
-    linear-gradient(180deg, rgba(80, 55, 24, 0.03) 1px, transparent 1px) 0 0 / 100% 32px,
-    radial-gradient(circle at 18% 16%, rgba(255,255,255,0.56), transparent 38%),
-    #fdfcf8;
-  border: 1px solid #ebe5db;
-  box-shadow:
-    0 26px 70px -36px rgba(42, 37, 34, 0.55),
-    inset 0 0 0 1px rgba(255,255,255,0.4);
+  aspect-ratio: 1202 / 913;
   color: #2a2522;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   isolation: isolate;
-  max-width: 540px;
-  min-height: 420px;
-  overflow: hidden;
-  padding: 46px;
+  max-width: 680px;
   position: relative;
   text-align: center;
-  width: min(100%, 540px);
+  width: min(100%, 680px);
 }
 
-.loading-notebook-paper::before {
-  content: "";
+.loading-notebook-sheet {
+  filter: drop-shadow(0 28px 30px rgba(42, 37, 34, 0.2));
+  grid-area: 1 / 1;
+  height: 100%;
+  object-fit: fill;
   pointer-events: none;
-  position: absolute;
+  user-select: none;
+  width: 100%;
 }
 
-.loading-notebook-paper::before {
-  background:
-    radial-gradient(circle at 22% 36%, rgba(117, 91, 57, 0.08) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 72% 58%, rgba(117, 91, 57, 0.06) 0 1px, transparent 1.5px);
-  background-size: 34px 34px, 46px 46px;
-  inset: 0;
-  mix-blend-mode: multiply;
-  opacity: 0.8;
-  z-index: -1;
+.loading-notebook-content {
+  align-items: center;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1;
+  justify-self: center;
+  padding: 74px 84px 64px;
+  position: relative;
+  width: 82%;
+  z-index: 1;
+}
+
+.loading-notebook-paper.is-dark .loading-notebook-sheet,
+.dark .loading-notebook-paper .loading-notebook-sheet,
+[data-theme="dark"] .loading-notebook-paper .loading-notebook-sheet {
+  filter:
+    brightness(0.78)
+    sepia(0.08)
+    drop-shadow(0 30px 34px rgba(0, 0, 0, 0.48));
 }
 
 .loading-notebook-paper.is-dark,
 .dark .loading-notebook-paper,
 [data-theme="dark"] .loading-notebook-paper {
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 64px 64px,
-    linear-gradient(180deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px) 0 0 / 100% 32px,
-    radial-gradient(circle at 18% 16%, rgba(255,255,255,0.08), transparent 38%),
-    #2a2a2a;
-  border-color: #3d3d3d;
-  color: #e0e0e0;
-  box-shadow: 0 26px 70px -36px rgba(0,0,0,0.85);
+  color: #2a2522;
 }
 
 .loading-notebook-head {
@@ -1708,9 +1704,12 @@ body {
 
 @media (max-width: 430px) {
   .loading-notebook-paper {
-    max-width: calc(100vw - 40px);
-    min-height: 386px;
-    padding: 34px 22px;
+    max-width: calc(100vw - 20px);
+  }
+
+  .loading-notebook-content {
+    padding: 52px 30px 44px;
+    width: 86%;
   }
 
   .loading-notebook-head {
@@ -1742,7 +1741,7 @@ body {
 .loading-notebook-paper.is-dark p,
 .dark .loading-notebook-paper p,
 [data-theme="dark"] .loading-notebook-paper p {
-  color: #a0a0a0;
+  color: #6f6660;
 }
 
 .loading-writing-stack {
