@@ -1763,8 +1763,17 @@ body {
   left: 50%;
   position: fixed;
   transform: translateX(-50%);
+  transition:
+    opacity 180ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
   width: min(290px, calc(100vw - 92px));
   z-index: 48;
+}
+
+.mobile-reading-thread.is-footer-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, calc(100% + 34px));
 }
 
 .mobile-reading-thread-tab {
@@ -3782,6 +3791,10 @@ body {
     transform: translateY(-18px);
   }
 
+  .daily-passport-open-button {
+    display: none;
+  }
+
   .daily-passport-overlay {
     align-items: stretch;
     padding: 14px 12px;
@@ -4174,6 +4187,7 @@ body {
   }
 
   .mobile-reading-thread-menu,
+  .mobile-reading-thread,
   .mobile-reading-thread-chevron,
   .mobile-reading-thread-progress span,
   .top-control-panel {

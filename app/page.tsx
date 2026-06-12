@@ -847,6 +847,7 @@ function MobileReadingThread({
   hasOpera,
   activeSection,
   open,
+  hidden,
   onToggle,
   onNavigate,
 }: {
@@ -855,6 +856,7 @@ function MobileReadingThread({
   hasOpera: boolean;
   activeSection: string;
   open: boolean;
+  hidden: boolean;
   onToggle: () => void;
   onNavigate: () => void;
 }) {
@@ -864,7 +866,11 @@ function MobileReadingThread({
   const activeLabel = lingua === 'IT' ? activeItem.labelIT : activeItem.labelEN;
 
   return (
-    <div className={`mobile-reading-thread ${isDark ? 'is-dark' : ''} ${open ? 'is-open' : ''}`}>
+    <div
+      className={`mobile-reading-thread ${isDark ? 'is-dark' : ''} ${open ? 'is-open' : ''} ${hidden ? 'is-footer-hidden' : ''}`}
+      aria-hidden={hidden}
+      inert={hidden}
+    >
       <nav
         id="mobile-reading-thread-menu"
         aria-label={lingua === 'IT' ? 'Indice di lettura' : 'Reading index'}
@@ -936,11 +942,13 @@ export default function Home() {
   const [readingComplete, setReadingComplete] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
   const archiveSearchRef = useRef<HTMLInputElement>(null);
   const wasPopoverOpenRef = useRef(false);
+  const footerRef = useRef<HTMLElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
 
@@ -1054,6 +1062,22 @@ export default function Home() {
       if (frame !== null) window.cancelAnimationFrame(frame);
       document.documentElement.style.removeProperty('--reading-progress-scale');
     };
+  }, [data, contentKey]);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setFooterInView(entry.isIntersecting);
+        if (entry.isIntersecting) setMobileNavOpen(false);
+      },
+      { rootMargin: '0px 0px -80px 0px', threshold: 0.01 }
+    );
+
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, [data, contentKey]);
 
   useEffect(() => {
@@ -1320,6 +1344,7 @@ export default function Home() {
           hasOpera={Boolean(opera)}
           activeSection={activeSection}
           open={mobileNavOpen}
+          hidden={footerInView}
           onToggle={() => {
             setControlsHidden(false);
             setMobileNavOpen((current) => !current);
@@ -1852,7 +1877,7 @@ export default function Home() {
           </div>
 
           {/* ── FOOTER ── */}
-          <footer className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
+          <footer ref={footerRef} className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner">
               <div className="daily-ex-libris" aria-label={`${lingua === 'IT' ? 'Ex libris del giorno' : 'Daily ex libris'}: ${data.autore_giorno}`}>
                 <span className="daily-ex-libris-ring" aria-hidden="true" />
