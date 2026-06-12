@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, Languages, Loader2, Search, FileDown, Printer, Stamp } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -841,6 +841,71 @@ function NotebookQuickNav({
   );
 }
 
+function MobileReadingThread({
+  isDark,
+  lingua,
+  hasOpera,
+  activeSection,
+  open,
+  onToggle,
+  onNavigate,
+}: {
+  isDark: boolean;
+  lingua: 'IT' | 'EN';
+  hasOpera: boolean;
+  activeSection: string;
+  open: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+}) {
+  const visibleItems = notebookNavItems.filter((item) => hasOpera || !item.optional);
+  const activeItem = visibleItems.find((item) => item.id === activeSection) ?? visibleItems[0];
+  const ActiveIcon = activeItem.icon;
+  const activeLabel = lingua === 'IT' ? activeItem.labelIT : activeItem.labelEN;
+
+  return (
+    <div className={`mobile-reading-thread ${isDark ? 'is-dark' : ''} ${open ? 'is-open' : ''}`}>
+      <nav
+        id="mobile-reading-thread-menu"
+        aria-label={lingua === 'IT' ? 'Indice di lettura' : 'Reading index'}
+        className="mobile-reading-thread-menu"
+        aria-hidden={!open}
+        inert={!open}
+      >
+        {visibleItems.map(({ id, icon: Icon, labelIT, labelEN }) => {
+          const label = lingua === 'IT' ? labelIT : labelEN;
+          return (
+            <a
+              key={id}
+              href={`#${id}`}
+              aria-current={activeSection === id ? 'true' : undefined}
+              onClick={onNavigate}
+            >
+              <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden="true" />
+              <span>{label}</span>
+            </a>
+          );
+        })}
+      </nav>
+      <button
+        type="button"
+        className="mobile-reading-thread-tab"
+        aria-expanded={open}
+        aria-controls="mobile-reading-thread-menu"
+        onClick={onToggle}
+      >
+        <span className="mobile-reading-thread-progress" aria-hidden="true"><span /></span>
+        <ActiveIcon className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
+        <span className="mobile-reading-thread-copy">
+          <small>{lingua === 'IT' ? 'Filo di lettura' : 'Reading thread'}</small>
+          <strong>{activeLabel}</strong>
+        </span>
+        <ChevronUp className="mobile-reading-thread-chevron h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
@@ -869,9 +934,13 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState('autore');
   const [readingComplete, setReadingComplete] = useState(false);
+  const [controlsHidden, setControlsHidden] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
+  const archiveSearchRef = useRef<HTMLInputElement>(null);
+  const wasPopoverOpenRef = useRef(false);
 
   const oggi = new Date().toISOString().split('T')[0];
 
@@ -883,6 +952,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => { if (popoverOpen) setTimeout(checkArchivioScroll, 50); }, [popoverOpen, archivio, archivioQuery, checkArchivioScroll]);
+
+  useEffect(() => {
+    if (popoverOpen) {
+      wasPopoverOpenRef.current = true;
+      const focusTimer = window.setTimeout(() => archiveSearchRef.current?.focus(), 80);
+      return () => window.clearTimeout(focusTimer);
+    }
+    if (wasPopoverOpenRef.current) {
+      wasPopoverOpenRef.current = false;
+      triggerRef.current?.focus();
+    }
+  }, [popoverOpen]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -940,15 +1021,24 @@ export default function Home() {
     if (!data) return;
 
     let frame: number | null = null;
+    let lastScrollY = window.scrollY;
     const updateReadingProgress = () => {
       const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
       const nextProgress = scrollableHeight <= 0
         ? 100
         : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
       const nextComplete = nextProgress >= 96;
+      const scrollDelta = window.scrollY - lastScrollY;
 
       document.documentElement.style.setProperty('--reading-progress-scale', `${nextProgress / 100}`);
       setReadingComplete((current) => current === nextComplete ? current : nextComplete);
+      if (window.scrollY < 120 || scrollDelta < -8) {
+        setControlsHidden(false);
+      } else if (scrollDelta > 8) {
+        setControlsHidden(true);
+        setMobileNavOpen(false);
+      }
+      lastScrollY = window.scrollY;
       frame = null;
     };
     const handleScroll = () => {
@@ -1081,22 +1171,19 @@ export default function Home() {
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
-  const archivioPopover = isMounted ? createPortal(
+  const archivioPopover = isMounted && popoverOpen ? createPortal(
     <div
       ref={popoverRef}
       role="dialog"
+      aria-modal="false"
       aria-label="Archivio dei giorni"
-      className={`archive-popover ${popoverOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} fixed z-[9999] border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+      className={`archive-popover is-open ${isDark ? 'is-dark' : ''} fixed z-[9999] border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
       style={{
         top: `${popoverPos.top}px`,
         right: `${popoverPos.right}px`,
         width: '320px',
         maxWidth: 'calc(100vw - 32px)',
         transformOrigin: 'top right',
-        transition: 'opacity 180ms cubic-bezier(0.16,1,0.3,1), transform 180ms cubic-bezier(0.16,1,0.3,1)',
-        opacity: popoverOpen ? 1 : 0,
-        transform: popoverOpen ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-6px)',
-        pointerEvents: popoverOpen ? 'auto' : 'none',
         maxHeight: '380px',
         height: 'auto',
       }}
@@ -1120,6 +1207,7 @@ export default function Home() {
         <label className="archive-search-field">
           <Search className="archive-search-icon" aria-hidden="true" strokeWidth={1.7} />
           <input
+            ref={archiveSearchRef}
             value={archivioQuery}
             onChange={(event) => setArchivioQuery(event.target.value)}
             placeholder={lingua === 'IT' ? 'Cerca autore o data' : 'Search author or date'}
@@ -1226,8 +1314,20 @@ export default function Home() {
           activeSection={activeSection}
           readingComplete={readingComplete}
         />
+        <MobileReadingThread
+          isDark={isDark}
+          lingua={lingua}
+          hasOpera={Boolean(opera)}
+          activeSection={activeSection}
+          open={mobileNavOpen}
+          onToggle={() => {
+            setControlsHidden(false);
+            setMobileNavOpen((current) => !current);
+          }}
+          onNavigate={() => setMobileNavOpen(false)}
+        />
         <SeasonalBookmark dataIso={dataExLibris} lingua={lingua} isDark={isDark} />
-        <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2">
+        <div className={`top-control-panel ${controlsHidden && !popoverOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
           <button
             onClick={toggleLingua}
             disabled={traducendo}
