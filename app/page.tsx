@@ -27,6 +27,12 @@ const jocky = localFont({
   preload: true,
   fallback: ['serif'],
 });
+const stampwriter = localFont({
+  src: '../public/fonts/STAMPWRITER-KIT.ttf',
+  display: 'swap',
+  preload: true,
+  fallback: ['Courier New', 'monospace'],
+});
 
 const THEME_SURFACE = {
   light: '#F8F6F0',
@@ -1582,7 +1588,7 @@ export default function Home() {
 
       <div className="relative z-10 w-full min-w-0 flex-1 text-center md:text-left">
         <div className="relative z-10">
-          <span className={`section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2`}>
+          <span className={`${stampwriter.className} section-typewriter-label section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm uppercase block mb-2`}>
             {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
           </span>
           <h2
@@ -1662,7 +1668,11 @@ export default function Home() {
 
             <Card
               id="citazione"
-              title={lingua === 'IT' ? 'Citazione' : 'Quote'}
+              title={(
+                <span className={`${stampwriter.className} section-typewriter-label`}>
+                  {lingua === 'IT' ? 'Citazione' : 'Quote'}
+                </span>
+              )}
               icon={Quote}
               isDark={isDark}
               className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-3"

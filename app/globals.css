@@ -1372,6 +1372,13 @@ body {
   text-shadow: 0 1px 1px rgba(255,252,242,0.7);
 }
 
+.section-typewriter-label {
+  font-size: 1.08em;
+  font-weight: 400;
+  letter-spacing: 0.115em;
+  line-height: 1;
+}
+
 .section-brush-label::before {
   background:
     linear-gradient(90deg, transparent 0%, rgba(181,149,106,0.12) 11%, rgba(181,149,106,0.16) 48%, rgba(207,93,79,0.08) 82%, transparent 100%),
