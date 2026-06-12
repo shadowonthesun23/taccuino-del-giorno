@@ -57,6 +57,8 @@ html, body {
   --paint-head-ry: 108px;
   --paint-wake-r: 92px;
   --paint-tail-r: 72px;
+  --paint-edge-x: 50vw;
+  --paint-edge-y: 50vh;
   background-image: url('/images/seasonal/botticelli-primavera.webp');
   background-position: center;
   background-size: cover;
@@ -67,11 +69,13 @@ html, body {
   -webkit-mask-image:
     radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
     radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%),
+    radial-gradient(ellipse 62px 43px at var(--paint-edge-x) var(--paint-edge-y), rgba(0, 0, 0, 0.58) 0 24%, rgba(0, 0, 0, 0.16) 67%, transparent 93%);
   mask-image:
     radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
     radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%),
+    radial-gradient(ellipse 62px 43px at var(--paint-edge-x) var(--paint-edge-y), rgba(0, 0, 0, 0.58) 0 24%, rgba(0, 0, 0, 0.16) 67%, transparent 93%);
 }
 
 .seasonal-paint-reveal.is-dark {
@@ -108,14 +112,14 @@ html, body {
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .seasonal-reveal-content .card-paper-shadow {
-    background-color: rgba(253, 252, 248, 0.86) !important;
-    backdrop-filter: blur(1.4px) saturate(0.88);
-    -webkit-backdrop-filter: blur(1.4px) saturate(0.88);
+    background-color: rgba(253, 252, 248, 0.93) !important;
+    backdrop-filter: blur(5px) saturate(0.78);
+    -webkit-backdrop-filter: blur(5px) saturate(0.78);
   }
 
   .dark .seasonal-reveal-content .card-paper-shadow,
   [data-theme="dark"] .seasonal-reveal-content .card-paper-shadow {
-    background-color: rgba(42, 42, 42, 0.84) !important;
+    background-color: rgba(42, 42, 42, 0.91) !important;
   }
 }
 
