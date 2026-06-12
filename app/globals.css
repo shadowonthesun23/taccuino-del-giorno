@@ -1377,6 +1377,7 @@ body {
   font-weight: 400;
   letter-spacing: 0.115em;
   line-height: 1;
+  text-transform: none;
 }
 
 .section-brush-label::before {

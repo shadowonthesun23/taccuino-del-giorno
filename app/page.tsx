@@ -1588,8 +1588,8 @@ export default function Home() {
 
       <div className="relative z-10 w-full min-w-0 flex-1 text-center md:text-left">
         <div className="relative z-10">
-          <span className={`${stampwriter.className} section-typewriter-label section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm uppercase block mb-2`}>
-            {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}
+          <span className={`${stampwriter.className} section-typewriter-label section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm block mb-2`}>
+            {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
           </span>
           <h2
             className="text-4xl md:text-5xl font-bold mb-4"
