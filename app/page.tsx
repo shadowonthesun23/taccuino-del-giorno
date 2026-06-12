@@ -1501,15 +1501,6 @@ export default function Home() {
           aria-busy={isTurningPage}
         >
           <header className="journal-hero text-center relative animate-fadeInUp stagger-1 px-4">
-            <div
-              aria-hidden="true"
-              className="absolute -inset-x-5 -inset-y-4 md:-inset-x-12 md:-inset-y-8 pointer-events-none"
-              style={{
-                background: isDark
-                  ? 'none'
-                  : 'radial-gradient(ellipse 78% 72% at 50% 48%, rgba(255,252,242,0.84) 0%, rgba(244,240,230,0.54) 45%, rgba(244,240,230,0.20) 68%, transparent 100%)',
-              }}
-            />
             <div className="relative z-10">
               <div className="flex justify-center mb-2">
                 <div className={`masking-tape journal-date-tape ${caveat.className} text-lg font-bold tracking-wider`}>
@@ -1590,16 +1581,6 @@ export default function Home() {
       )}
 
       <div className="relative z-10 w-full min-w-0 flex-1 text-center md:text-left">
-        <div
-          aria-hidden="true"
-          className="absolute -inset-x-5 -inset-y-4 md:-inset-x-10 md:-inset-y-8 pointer-events-none"
-          style={{
-            zIndex: 0,
-            background: isDark
-              ? 'none'
-              : 'radial-gradient(ellipse 84% 76% at 48% 50%, rgba(255,252,242,0.82) 0%, rgba(244,240,230,0.52) 44%, rgba(244,240,230,0.18) 68%, transparent 100%)',
-          }}
-        />
         <div className="relative z-10">
           <span className={`section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase block mb-2`}>
             {lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day'}

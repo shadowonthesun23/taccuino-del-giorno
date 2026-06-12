@@ -3077,19 +3077,6 @@ body {
   border-color: rgba(222,107,88,0.3);
 }
 
-.journal-footer-inner::before {
-  background: radial-gradient(ellipse 72% 58% at 50% 50%, rgba(255,252,242,0.72), rgba(244,240,230,0.34) 48%, transparent 74%);
-  content: "";
-  inset: -22px -34px -18px;
-  pointer-events: none;
-  position: absolute;
-  z-index: -1;
-}
-
-.journal-footer.is-dark .journal-footer-inner::before {
-  background: radial-gradient(ellipse 72% 58% at 50% 50%, rgba(0,0,0,0.18), rgba(0,0,0,0.08) 48%, transparent 74%);
-}
-
 .journal-footer-title {
   color: #2a2522;
   font-size: clamp(2.1rem, 5vw, 3.2rem);
