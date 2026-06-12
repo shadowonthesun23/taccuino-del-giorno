@@ -1698,31 +1698,74 @@ body {
   }
 }
 
-@media (max-width: 430px) {
+@media (max-width: 639px) {
   .loading-notebook-paper {
-    max-width: calc(100vw - 20px);
+    aspect-ratio: auto;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,0.62), transparent 38%),
+      rgba(253, 252, 248, 0.96);
+    border: 1px solid rgba(181, 149, 106, 0.22);
+    border-radius: 28px;
+    box-shadow:
+      0 24px 54px -38px rgba(42, 37, 34, 0.48),
+      inset 0 1px 0 rgba(255,255,255,0.72);
+    max-width: 430px;
+    min-height: 410px;
+    width: 100%;
+  }
+
+  .loading-notebook-sheet {
+    display: none;
   }
 
   .loading-notebook-content {
-    padding: 52px 30px 44px;
-    width: 86%;
+    padding: 38px 28px 34px;
+    width: 100%;
+  }
+
+  .loading-notebook-paper.is-dark,
+  .dark .loading-notebook-paper,
+  [data-theme="dark"] .loading-notebook-paper {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,0.055), transparent 38%),
+      rgba(42, 42, 42, 0.96);
+    border-color: rgba(255,255,255,0.09);
+    color: #e0e0e0;
+    box-shadow:
+      0 24px 54px -34px rgba(0,0,0,0.82),
+      inset 0 1px 0 rgba(255,255,255,0.05);
   }
 
   .loading-notebook-head {
-    margin: 24px 0 16px;
+    margin: 22px 0 15px;
   }
 
   .loading-notebook-head span {
-    width: 72px;
+    width: 66px;
   }
 
   .loading-notebook-paper h1 {
-    font-size: 42px;
-    margin-bottom: 24px;
+    font-size: clamp(38px, 12vw, 48px);
+    line-height: 0.94;
+    margin-bottom: 22px;
+    max-width: 100%;
   }
 
-  .loading-notebook-paper p {
+  .loading-notebook-paper .loading-notebook-content p {
     font-size: 16px;
+    margin-top: 20px;
+    max-width: 100%;
+  }
+
+  .loading-notebook-paper .loading-writing-stack {
+    gap: 11px;
+    width: min(100%, 290px);
+  }
+
+  .loading-notebook-paper.is-dark .loading-notebook-content p,
+  .dark .loading-notebook-paper .loading-notebook-content p,
+  [data-theme="dark"] .loading-notebook-paper .loading-notebook-content p {
+    color: #aaa19b;
   }
 }
 
