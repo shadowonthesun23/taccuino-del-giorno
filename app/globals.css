@@ -4413,6 +4413,93 @@ body {
   }
 }
 
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ) {
+    background: rgba(253, 252, 248, 0.98) !important;
+    border-color: rgba(181, 149, 106, 0.42) !important;
+    box-shadow:
+      0 12px 30px -22px rgba(42, 37, 34, 0.58),
+      inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  .seasonal-reveal-content :is(
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ) {
+    color: #b84f43;
+  }
+
+  .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ):is(:hover, :focus-visible) {
+    background: #f9eee8 !important;
+    border-color: rgba(222, 107, 88, 0.72) !important;
+    color: #a94238;
+  }
+
+  .dark .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ),
+  [data-theme="dark"] .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ) {
+    background: rgba(30, 30, 30, 0.97) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    box-shadow:
+      0 12px 30px -20px rgba(0, 0, 0, 0.78),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    color: #e5a297;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.82);
+  }
+
+  .dark .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ):is(:hover, :focus-visible),
+  [data-theme="dark"] .seasonal-reveal-content :is(
+    .top-control-button,
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ):is(:hover, :focus-visible) {
+    background: #342725 !important;
+    border-color: rgba(222, 107, 88, 0.64) !important;
+    color: #f0b0a5;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html, body {
     scroll-behavior: auto;
