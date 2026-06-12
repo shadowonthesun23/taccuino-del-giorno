@@ -793,7 +793,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
         >
           <img
             className="loading-notebook-sheet"
-            src="/images/loading-paper-torn.webp"
+            src="/images/loading-paper-torn.png"
             alt=""
             aria-hidden="true"
           />

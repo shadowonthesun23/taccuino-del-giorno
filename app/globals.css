@@ -1625,7 +1625,7 @@ body {
 /* Loading: foglio che si compila */
 .loading-notebook-paper {
   align-items: center;
-  aspect-ratio: 1202 / 913;
+  aspect-ratio: 1226 / 940;
   color: #2a2522;
   display: grid;
   isolation: isolate;
