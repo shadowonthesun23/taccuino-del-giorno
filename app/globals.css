@@ -47,28 +47,56 @@ html, body {
 }
 
 .seasonal-paint-reveal {
-  --paint-x: 50vw;
-  --paint-y: 50vh;
+  --paint-head-x: 50vw;
+  --paint-head-y: 50vh;
+  --paint-wake-x: 50vw;
+  --paint-wake-y: 50vh;
+  --paint-tail-x: 50vw;
+  --paint-tail-y: 50vh;
+  --paint-head-rx: 128px;
+  --paint-head-ry: 108px;
+  --paint-wake-r: 92px;
   background-image: url('/images/seasonal/botticelli-primavera.webp');
   background-position: center;
   background-size: cover;
-  filter: saturate(0.84) sepia(0.08) brightness(1.04) contrast(0.93);
+  filter: saturate(0.94) sepia(0.04) brightness(1.06) contrast(0.97);
   opacity: 0;
-  transition: opacity 540ms ease-out;
+  transition: opacity 360ms ease-out;
   will-change: opacity, mask-image;
   -webkit-mask-image:
-    radial-gradient(ellipse 210px 145px at var(--paint-x) var(--paint-y), #000 4%, rgba(0, 0, 0, 0.88) 39%, rgba(0, 0, 0, 0.32) 68%, transparent 84%),
-    radial-gradient(ellipse 112px 82px at calc(var(--paint-x) - 126px) calc(var(--paint-y) + 38px), rgba(0, 0, 0, 0.76) 7%, rgba(0, 0, 0, 0.26) 64%, transparent 82%),
-    radial-gradient(ellipse 92px 118px at calc(var(--paint-x) + 139px) calc(var(--paint-y) - 27px), rgba(0, 0, 0, 0.67) 4%, rgba(0, 0, 0, 0.19) 62%, transparent 83%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
+    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.82) 0 34%, rgba(0, 0, 0, 0.3) 69%, transparent 91%),
+    radial-gradient(circle 67px at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.62) 0 25%, rgba(0, 0, 0, 0.18) 67%, transparent 92%);
   mask-image:
-    radial-gradient(ellipse 210px 145px at var(--paint-x) var(--paint-y), #000 4%, rgba(0, 0, 0, 0.88) 39%, rgba(0, 0, 0, 0.32) 68%, transparent 84%),
-    radial-gradient(ellipse 112px 82px at calc(var(--paint-x) - 126px) calc(var(--paint-y) + 38px), rgba(0, 0, 0, 0.76) 7%, rgba(0, 0, 0, 0.26) 64%, transparent 82%),
-    radial-gradient(ellipse 92px 118px at calc(var(--paint-x) + 139px) calc(var(--paint-y) - 27px), rgba(0, 0, 0, 0.67) 4%, rgba(0, 0, 0, 0.19) 62%, transparent 83%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
+    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.82) 0 34%, rgba(0, 0, 0, 0.3) 69%, transparent 91%),
+    radial-gradient(circle 67px at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.62) 0 25%, rgba(0, 0, 0, 0.18) 67%, transparent 92%);
 }
 
 .seasonal-paint-reveal.is-dark {
-  filter: saturate(0.7) sepia(0.12) brightness(0.68) contrast(0.92);
-  mix-blend-mode: luminosity;
+  filter: saturate(0.76) sepia(0.08) brightness(0.8) contrast(0.96);
+}
+
+.seasonal-line-art {
+  --paint-head-x: 50vw;
+  --paint-head-y: 50vh;
+  --paint-head-rx: 128px;
+  --paint-head-ry: 108px;
+}
+
+.seasonal-line-art.is-disturbed {
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
+    rgba(0, 0, 0, 0.06) 0 38%,
+    rgba(0, 0, 0, 0.34) 61%,
+    #000 91%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
+    rgba(0, 0, 0, 0.06) 0 38%,
+    rgba(0, 0, 0, 0.34) 61%,
+    #000 91%
+  );
 }
 
 @media (hover: none), (pointer: coarse) {

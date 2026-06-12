@@ -12,6 +12,7 @@ export default function ParallaxBackground({
   season?: SeasonId;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
+  const lineArtRef = useRef<HTMLDivElement>(null);
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(false);
 
@@ -61,25 +62,63 @@ export default function ParallaxBackground({
 
   useEffect(() => {
     const reveal = seasonalRevealRef.current;
-    if (!reveal || season !== 'spring') return;
+    const lineArt = lineArtRef.current;
+    if (!reveal || !lineArt || season !== 'spring') return;
 
     const pointerQuery = window.matchMedia(
       '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
     );
     let frame: number | null = null;
+    let hideTimer: number | null = null;
     let initialized = false;
-    let currentX = 0;
-    let currentY = 0;
     let targetX = 0;
     let targetY = 0;
+    let headX = 0;
+    let headY = 0;
+    let wakeX = 0;
+    let wakeY = 0;
+    let tailX = 0;
+    let tailY = 0;
+    let previousTargetX = 0;
+    let previousTargetY = 0;
+    let velocity = 0;
 
-    const paintFrame = () => {
-      currentX += (targetX - currentX) * 0.16;
-      currentY += (targetY - currentY) * 0.16;
-      reveal.style.setProperty('--paint-x', `${currentX}px`);
-      reveal.style.setProperty('--paint-y', `${currentY}px`);
+    const setPaintVariable = (name: string, value: string) => {
+      reveal.style.setProperty(name, value);
+      lineArt.style.setProperty(name, value);
+    };
 
-      if (Math.abs(targetX - currentX) > 0.2 || Math.abs(targetY - currentY) > 0.2) {
+    const paintFrame = (time: number) => {
+      headX += (targetX - headX) * 0.3;
+      headY += (targetY - headY) * 0.3;
+      wakeX += (headX - wakeX) * 0.13;
+      wakeY += (headY - wakeY) * 0.13;
+      tailX += (wakeX - tailX) * 0.07;
+      tailY += (wakeY - tailY) * 0.07;
+      velocity *= 0.91;
+
+      const pulse = Math.sin(time * 0.006) * 9;
+      const headRadiusX = Math.min(215, 128 + velocity * 1.7 + pulse);
+      const headRadiusY = Math.min(170, 108 + velocity * 0.72 - pulse * 0.35);
+      const wakeRadius = Math.min(142, 92 + velocity * 0.55);
+
+      setPaintVariable('--paint-head-x', `${headX}px`);
+      setPaintVariable('--paint-head-y', `${headY}px`);
+      setPaintVariable('--paint-wake-x', `${wakeX}px`);
+      setPaintVariable('--paint-wake-y', `${wakeY}px`);
+      setPaintVariable('--paint-tail-x', `${tailX}px`);
+      setPaintVariable('--paint-tail-y', `${tailY}px`);
+      setPaintVariable('--paint-head-rx', `${headRadiusX}px`);
+      setPaintVariable('--paint-head-ry', `${headRadiusY}px`);
+      setPaintVariable('--paint-wake-r', `${wakeRadius}px`);
+
+      const distance =
+        Math.abs(targetX - headX) +
+        Math.abs(targetY - headY) +
+        Math.abs(headX - wakeX) +
+        Math.abs(headY - wakeY);
+
+      if (distance > 0.8 || velocity > 0.3) {
         frame = window.requestAnimationFrame(paintFrame);
       } else {
         frame = null;
@@ -92,17 +131,37 @@ export default function ParallaxBackground({
       targetX = event.clientX;
       targetY = event.clientY;
       if (!initialized) {
-        currentX = targetX;
-        currentY = targetY;
+        headX = wakeX = tailX = targetX;
+        headY = wakeY = tailY = targetY;
+        previousTargetX = targetX;
+        previousTargetY = targetY;
         initialized = true;
       }
 
-      reveal.style.opacity = dark ? '0.2' : '0.42';
+      const pointerDistance = Math.hypot(
+        targetX - previousTargetX,
+        targetY - previousTargetY,
+      );
+      velocity = Math.min(52, velocity * 0.45 + pointerDistance * 0.55);
+      previousTargetX = targetX;
+      previousTargetY = targetY;
+
+      if (hideTimer !== null) {
+        window.clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+      reveal.style.opacity = dark ? '0.54' : '0.82';
+      lineArt.classList.add('is-disturbed');
       if (frame === null) frame = window.requestAnimationFrame(paintFrame);
     };
 
     const hideReveal = () => {
       reveal.style.opacity = '0';
+      if (hideTimer !== null) window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => {
+        lineArt.classList.remove('is-disturbed');
+        hideTimer = null;
+      }, 360);
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
@@ -114,6 +173,7 @@ export default function ParallaxBackground({
       window.removeEventListener('blur', hideReveal);
       document.documentElement.removeEventListener('pointerleave', hideReveal);
       if (frame !== null) window.cancelAnimationFrame(frame);
+      if (hideTimer !== null) window.clearTimeout(hideTimer);
     };
   }, [dark, season]);
 
@@ -142,7 +202,12 @@ export default function ParallaxBackground({
       )}
 
       {/* Immagine parallax sovrapposta */}
-      <div className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden">
+      <div
+        ref={lineArtRef}
+        className={`safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden ${
+          season === 'spring' ? 'seasonal-line-art' : ''
+        }`}
+      >
         <div
           ref={imageRef}
           className="absolute top-0 left-0 w-full h-[150vh] will-change-transform"
