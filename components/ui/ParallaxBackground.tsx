@@ -2,8 +2,17 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-export default function ParallaxBackground({ children }: { children: React.ReactNode }) {
+type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
+
+export default function ParallaxBackground({
+  children,
+  season,
+}: {
+  children: React.ReactNode;
+  season?: SeasonId;
+}) {
   const imageRef = useRef<HTMLDivElement>(null);
+  const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -50,6 +59,64 @@ export default function ParallaxBackground({ children }: { children: React.React
     };
   }, []);
 
+  useEffect(() => {
+    const reveal = seasonalRevealRef.current;
+    if (!reveal || season !== 'spring') return;
+
+    const pointerQuery = window.matchMedia(
+      '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
+    );
+    let frame: number | null = null;
+    let initialized = false;
+    let currentX = 0;
+    let currentY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    const paintFrame = () => {
+      currentX += (targetX - currentX) * 0.16;
+      currentY += (targetY - currentY) * 0.16;
+      reveal.style.setProperty('--paint-x', `${currentX}px`);
+      reveal.style.setProperty('--paint-y', `${currentY}px`);
+
+      if (Math.abs(targetX - currentX) > 0.2 || Math.abs(targetY - currentY) > 0.2) {
+        frame = window.requestAnimationFrame(paintFrame);
+      } else {
+        frame = null;
+      }
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!pointerQuery.matches || event.pointerType === 'touch') return;
+
+      targetX = event.clientX;
+      targetY = event.clientY;
+      if (!initialized) {
+        currentX = targetX;
+        currentY = targetY;
+        initialized = true;
+      }
+
+      reveal.style.opacity = dark ? '0.2' : '0.42';
+      if (frame === null) frame = window.requestAnimationFrame(paintFrame);
+    };
+
+    const hideReveal = () => {
+      reveal.style.opacity = '0';
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('blur', hideReveal);
+    document.documentElement.addEventListener('pointerleave', hideReveal);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('blur', hideReveal);
+      document.documentElement.removeEventListener('pointerleave', hideReveal);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, [dark, season]);
+
   const bgColor = dark ? '#252422' : '#F8F6F0';
   const imageOpacity = dark ? 0.29 : 0.13;
   const imageFilter = dark
@@ -63,6 +130,16 @@ export default function ParallaxBackground({ children }: { children: React.React
         className="safe-viewport-backdrop fixed z-0 pointer-events-none"
         style={{ backgroundColor: bgColor, transition: 'background-color 300ms' }}
       />
+
+      {season === 'spring' && (
+        <div
+          ref={seasonalRevealRef}
+          aria-hidden="true"
+          className={`seasonal-paint-reveal safe-viewport-backdrop fixed z-0 pointer-events-none ${
+            dark ? 'is-dark' : ''
+          }`}
+        />
+      )}
 
       {/* Immagine parallax sovrapposta */}
       <div className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden">

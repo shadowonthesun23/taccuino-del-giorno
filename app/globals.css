@@ -46,6 +46,37 @@ html, body {
   left: calc(env(safe-area-inset-left, 0px) * -1);
 }
 
+.seasonal-paint-reveal {
+  --paint-x: 50vw;
+  --paint-y: 50vh;
+  background-image: url('/images/seasonal/botticelli-primavera.webp');
+  background-position: center;
+  background-size: cover;
+  filter: saturate(0.84) sepia(0.08) brightness(1.04) contrast(0.93);
+  opacity: 0;
+  transition: opacity 540ms ease-out;
+  will-change: opacity, mask-image;
+  -webkit-mask-image:
+    radial-gradient(ellipse 210px 145px at var(--paint-x) var(--paint-y), #000 4%, rgba(0, 0, 0, 0.88) 39%, rgba(0, 0, 0, 0.32) 68%, transparent 84%),
+    radial-gradient(ellipse 112px 82px at calc(var(--paint-x) - 126px) calc(var(--paint-y) + 38px), rgba(0, 0, 0, 0.76) 7%, rgba(0, 0, 0, 0.26) 64%, transparent 82%),
+    radial-gradient(ellipse 92px 118px at calc(var(--paint-x) + 139px) calc(var(--paint-y) - 27px), rgba(0, 0, 0, 0.67) 4%, rgba(0, 0, 0, 0.19) 62%, transparent 83%);
+  mask-image:
+    radial-gradient(ellipse 210px 145px at var(--paint-x) var(--paint-y), #000 4%, rgba(0, 0, 0, 0.88) 39%, rgba(0, 0, 0, 0.32) 68%, transparent 84%),
+    radial-gradient(ellipse 112px 82px at calc(var(--paint-x) - 126px) calc(var(--paint-y) + 38px), rgba(0, 0, 0, 0.76) 7%, rgba(0, 0, 0, 0.26) 64%, transparent 82%),
+    radial-gradient(ellipse 92px 118px at calc(var(--paint-x) + 139px) calc(var(--paint-y) - 27px), rgba(0, 0, 0, 0.67) 4%, rgba(0, 0, 0, 0.19) 62%, transparent 83%);
+}
+
+.seasonal-paint-reveal.is-dark {
+  filter: saturate(0.7) sepia(0.12) brightness(0.68) contrast(0.92);
+  mix-blend-mode: luminosity;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .seasonal-paint-reveal {
+    display: none;
+  }
+}
+
 body {
   background-color: var(--browser-surface);
   background-image: radial-gradient(
