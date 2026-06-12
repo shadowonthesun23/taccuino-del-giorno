@@ -91,16 +91,18 @@ export default function ParallaxBackground({
     const paintFrame = (time: number) => {
       headX += (targetX - headX) * 0.3;
       headY += (targetY - headY) * 0.3;
-      wakeX += (headX - wakeX) * 0.13;
-      wakeY += (headY - wakeY) * 0.13;
-      tailX += (wakeX - tailX) * 0.07;
-      tailY += (wakeY - tailY) * 0.07;
+      tailX += (headX - tailX) * 0.085;
+      tailY += (headY - tailY) * 0.085;
+      wakeX = (headX + tailX) / 2;
+      wakeY = (headY + tailY) / 2;
       velocity *= 0.91;
 
       const pulse = Math.sin(time * 0.006) * 9;
+      const trailDistance = Math.hypot(headX - tailX, headY - tailY);
       const headRadiusX = Math.min(215, 128 + velocity * 1.7 + pulse);
       const headRadiusY = Math.min(170, 108 + velocity * 0.72 - pulse * 0.35);
-      const wakeRadius = Math.min(142, 92 + velocity * 0.55);
+      const wakeRadius = Math.min(228, Math.max(94, trailDistance * 0.54 + 48));
+      const tailRadius = Math.min(108, 72 + trailDistance * 0.09);
 
       setPaintVariable('--paint-head-x', `${headX}px`);
       setPaintVariable('--paint-head-y', `${headY}px`);
@@ -111,6 +113,7 @@ export default function ParallaxBackground({
       setPaintVariable('--paint-head-rx', `${headRadiusX}px`);
       setPaintVariable('--paint-head-ry', `${headRadiusY}px`);
       setPaintVariable('--paint-wake-r', `${wakeRadius}px`);
+      setPaintVariable('--paint-tail-r', `${tailRadius}px`);
 
       const distance =
         Math.abs(targetX - headX) +
@@ -225,7 +228,7 @@ export default function ParallaxBackground({
       </div>
 
       {/* Contenuto */}
-      <div className="relative z-10">
+      <div className={`relative z-10 ${season === 'spring' ? 'seasonal-reveal-content' : ''}`}>
         {children}
       </div>
     </>
