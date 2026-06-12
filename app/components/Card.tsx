@@ -11,6 +11,16 @@ const stampwriter = localFont({
   fallback: ['Courier New', 'monospace'],
 });
 
+const badgeVariants: Record<string, string> = {
+  citazione: 'badge-tilt-right badge-washi-right',
+  parola: 'badge-tilt-left',
+  santi: 'badge-tilt-right',
+  opera: 'badge-tilt-left badge-washi-left',
+  avvenimenti: 'badge-tilt-right',
+  poesia: 'badge-tilt-left',
+  bibbia: 'badge-tilt-right badge-washi-right',
+};
+
 interface CardProps {
   id?: string;
   title?: React.ReactNode;
@@ -76,7 +86,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
 
         {title && (
           <div className="card-section-heading flex items-center justify-center">
-            <h3 className={`${stampwriter.className} section-typewriter-badge text-sm text-center m-0`}>
+            <h3 className={`${stampwriter.className} section-typewriter-badge ${id ? badgeVariants[id] ?? '' : ''} text-sm text-center m-0`}>
               {Icon && <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />}
               <span>{title}</span>
             </h3>
