@@ -1588,7 +1588,7 @@ export default function Home() {
 
       <div className="relative z-10 w-full min-w-0 flex-1 text-center md:text-left">
         <div className="relative z-10">
-          <span className={`${stampwriter.className} section-typewriter-badge badge-tilt-left badge-washi-right text-sm mb-3`}>
+          <span className={`${stampwriter.className} section-typewriter-badge badge-tilt-left text-sm mb-3`}>
             {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
           </span>
           <h2
@@ -1901,7 +1901,7 @@ export default function Home() {
 
                 <div className="music-copy-cell">
                   <div className="flex items-center justify-center md:justify-start mb-5">
-                    <h3 className={`${stampwriter.className} section-typewriter-badge badge-tilt-right badge-washi-left text-sm`}>
+                    <h3 className={`${stampwriter.className} section-typewriter-badge badge-tilt-right text-sm`}>
                       <Music className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />
                       <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
                     </h3>

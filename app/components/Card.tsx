@@ -12,13 +12,13 @@ const stampwriter = localFont({
 });
 
 const badgeVariants: Record<string, string> = {
-  citazione: 'badge-tilt-right badge-washi-right',
+  citazione: 'badge-tilt-right',
   parola: 'badge-tilt-left',
   santi: 'badge-tilt-right',
-  opera: 'badge-tilt-left badge-washi-left',
+  opera: 'badge-tilt-left',
   avvenimenti: 'badge-tilt-right',
   poesia: 'badge-tilt-left',
-  bibbia: 'badge-tilt-right badge-washi-right',
+  bibbia: 'badge-tilt-right',
 };
 
 interface CardProps {

@@ -1412,32 +1412,6 @@ body {
   --badge-rotation: 0.55deg;
 }
 
-.section-typewriter-badge:is(.badge-washi-left, .badge-washi-right)::before {
-  background:
-    linear-gradient(105deg, rgba(255,255,255,0.12), transparent 48%),
-    #b5956a;
-  box-shadow: 0 2px 5px -3px rgba(42,37,34,0.58);
-  clip-path: polygon(2% 8%, 98% 0, 96% 18%, 100% 35%, 97% 54%, 100% 72%, 96% 100%, 3% 94%, 0 76%, 3% 54%, 0 33%);
-  content: "";
-  height: 12px;
-  opacity: 0.82;
-  pointer-events: none;
-  position: absolute;
-  top: -7px;
-  width: 36px;
-  z-index: -1;
-}
-
-.section-typewriter-badge.badge-washi-left::before {
-  left: 10px;
-  transform: rotate(-5deg);
-}
-
-.section-typewriter-badge.badge-washi-right::before {
-  right: 10px;
-  transform: rotate(6deg);
-}
-
 .section-brush-label::before {
   background:
     linear-gradient(90deg, transparent 0%, rgba(181,149,106,0.12) 11%, rgba(181,149,106,0.16) 48%, rgba(207,93,79,0.08) 82%, transparent 100%),
