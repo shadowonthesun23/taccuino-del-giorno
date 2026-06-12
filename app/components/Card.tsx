@@ -1,7 +1,15 @@
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
+import localFont from 'next/font/local';
 import { Download } from 'lucide-react';
+
+const stampwriter = localFont({
+  src: '../../public/fonts/STAMPWRITER-KIT.ttf',
+  display: 'swap',
+  preload: true,
+  fallback: ['Courier New', 'monospace'],
+});
 
 interface CardProps {
   id?: string;
@@ -67,9 +75,11 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
         )}
 
         {title && (
-          <div className="card-section-heading flex items-center justify-center gap-2">
-            {Icon && <Icon className="w-5 h-5 text-[#DE6B58]" strokeWidth={1.5} />}
-            <h3 className={`section-brush-label ${isDark ? 'is-dark' : ''} text-[#DE6B58] text-sm font-bold tracking-[0.2em] uppercase text-center m-0`}>{title}</h3>
+          <div className="card-section-heading flex items-center justify-center">
+            <h3 className={`${stampwriter.className} section-typewriter-badge text-sm text-center m-0`}>
+              {Icon && <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />}
+              <span>{title}</span>
+            </h3>
           </div>
         )}
         <div className={`card-content ${isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'}`}>{children}</div>

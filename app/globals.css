@@ -1380,7 +1380,8 @@ body {
   text-transform: none;
 }
 
-.author-typewriter-badge {
+.section-typewriter-badge {
+  align-items: center;
   background: #cf5d4f;
   border: 1px solid rgba(158, 42, 43, 0.18);
   border-radius: 3px 2px 4px 2px;
@@ -1389,10 +1390,12 @@ body {
     inset 0 1px 0 rgba(255, 244, 225, 0.18);
   color: #f4f0e6;
   display: inline-flex;
+  gap: 7px;
   font-weight: 400;
   letter-spacing: 0.09em;
   line-height: 1;
   padding: 7px 11px 6px;
+  -webkit-text-stroke: 0.22px currentColor;
   text-shadow: 0 1px 0 rgba(82, 31, 27, 0.22);
   text-transform: none;
   transform: rotate(-0.35deg);
