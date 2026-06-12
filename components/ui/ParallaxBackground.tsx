@@ -82,33 +82,27 @@ export default function ParallaxBackground({
     let previousTargetX = 0;
     let previousTargetY = 0;
     let velocity = 0;
-    let directionX = 0.86;
-    let directionY = 0.5;
 
     const setPaintVariable = (name: string, value: string) => {
       reveal.style.setProperty(name, value);
       lineArt.style.setProperty(name, value);
     };
 
-    const paintFrame = () => {
+    const paintFrame = (time: number) => {
       headX += (targetX - headX) * 0.3;
       headY += (targetY - headY) * 0.3;
-      const restingTrail = 104;
-      const tailTargetX = headX - directionX * restingTrail;
-      const tailTargetY = headY - directionY * restingTrail;
-      tailX += (tailTargetX - tailX) * 0.11;
-      tailY += (tailTargetY - tailY) * 0.11;
-      velocity *= 0.91;
-
+      tailX += (headX - tailX) * 0.085;
+      tailY += (headY - tailY) * 0.085;
       wakeX = (headX + tailX) / 2;
       wakeY = (headY + tailY) / 2;
+      velocity *= 0.91;
+
+      const pulse = Math.sin(time * 0.006) * 9;
       const trailDistance = Math.hypot(headX - tailX, headY - tailY);
-      const headRadiusX = Math.min(218, 158 + velocity * 1.15);
-      const headRadiusY = Math.min(126, 94 + velocity * 0.34);
-      const wakeRadiusX = Math.min(166, 126 + trailDistance * 0.18);
-      const wakeRadiusY = Math.min(102, 78 + trailDistance * 0.08);
-      const tailRadiusX = Math.min(118, 88 + trailDistance * 0.12);
-      const tailRadiusY = Math.min(78, 58 + trailDistance * 0.05);
+      const headRadiusX = Math.min(215, 128 + velocity * 1.7 + pulse);
+      const headRadiusY = Math.min(170, 108 + velocity * 0.72 - pulse * 0.35);
+      const wakeRadius = Math.min(228, Math.max(94, trailDistance * 0.54 + 48));
+      const tailRadius = Math.min(108, 72 + trailDistance * 0.09);
 
       setPaintVariable('--paint-head-x', `${headX}px`);
       setPaintVariable('--paint-head-y', `${headY}px`);
@@ -118,18 +112,16 @@ export default function ParallaxBackground({
       setPaintVariable('--paint-tail-y', `${tailY}px`);
       setPaintVariable('--paint-head-rx', `${headRadiusX}px`);
       setPaintVariable('--paint-head-ry', `${headRadiusY}px`);
-      setPaintVariable('--paint-wake-rx', `${wakeRadiusX}px`);
-      setPaintVariable('--paint-wake-ry', `${wakeRadiusY}px`);
-      setPaintVariable('--paint-tail-rx', `${tailRadiusX}px`);
-      setPaintVariable('--paint-tail-ry', `${tailRadiusY}px`);
+      setPaintVariable('--paint-wake-r', `${wakeRadius}px`);
+      setPaintVariable('--paint-tail-r', `${tailRadius}px`);
 
-      const settleDistance =
+      const distance =
         Math.abs(targetX - headX) +
         Math.abs(targetY - headY) +
-        Math.abs(tailTargetX - tailX) +
-        Math.abs(tailTargetY - tailY);
+        Math.abs(headX - wakeX) +
+        Math.abs(headY - wakeY);
 
-      if (settleDistance > 0.8 || velocity > 0.3) {
+      if (distance > 0.8 || velocity > 0.3) {
         frame = window.requestAnimationFrame(paintFrame);
       } else {
         frame = null;
@@ -153,15 +145,6 @@ export default function ParallaxBackground({
         targetX - previousTargetX,
         targetY - previousTargetY,
       );
-      if (pointerDistance > 1.5) {
-        const nextDirectionX = (targetX - previousTargetX) / pointerDistance;
-        const nextDirectionY = (targetY - previousTargetY) / pointerDistance;
-        directionX += (nextDirectionX - directionX) * 0.28;
-        directionY += (nextDirectionY - directionY) * 0.28;
-        const directionLength = Math.hypot(directionX, directionY) || 1;
-        directionX /= directionLength;
-        directionY /= directionLength;
-      }
       velocity = Math.min(52, velocity * 0.45 + pointerDistance * 0.55);
       previousTargetX = targetX;
       previousTargetY = targetY;
