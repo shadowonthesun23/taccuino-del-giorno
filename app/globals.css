@@ -53,12 +53,12 @@ html, body {
   --paint-wake-y: 50vh;
   --paint-tail-x: 50vw;
   --paint-tail-y: 50vh;
-  --paint-head-rx: 128px;
-  --paint-head-ry: 108px;
-  --paint-wake-r: 92px;
-  --paint-tail-r: 72px;
-  --paint-edge-x: 50vw;
-  --paint-edge-y: 50vh;
+  --paint-head-rx: 158px;
+  --paint-head-ry: 94px;
+  --paint-wake-rx: 126px;
+  --paint-wake-ry: 78px;
+  --paint-tail-rx: 88px;
+  --paint-tail-ry: 58px;
   background-image: url('/images/seasonal/botticelli-primavera.webp');
   background-position: center;
   background-size: cover;
@@ -67,15 +67,13 @@ html, body {
   transition: opacity 360ms ease-out;
   will-change: opacity, mask-image;
   -webkit-mask-image:
-    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
-    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%),
-    radial-gradient(ellipse 62px 43px at var(--paint-edge-x) var(--paint-edge-y), rgba(0, 0, 0, 0.58) 0 24%, rgba(0, 0, 0, 0.16) 67%, transparent 93%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 28%, rgba(0, 0, 0, 0.9) 48%, rgba(0, 0, 0, 0.26) 76%, transparent 94%),
+    radial-gradient(ellipse var(--paint-wake-rx) var(--paint-wake-ry) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.88) 0 35%, rgba(0, 0, 0, 0.32) 72%, transparent 95%),
+    radial-gradient(ellipse var(--paint-tail-rx) var(--paint-tail-ry) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.72) 0 29%, rgba(0, 0, 0, 0.2) 70%, transparent 95%);
   mask-image:
-    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
-    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%),
-    radial-gradient(ellipse 62px 43px at var(--paint-edge-x) var(--paint-edge-y), rgba(0, 0, 0, 0.58) 0 24%, rgba(0, 0, 0, 0.16) 67%, transparent 93%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 28%, rgba(0, 0, 0, 0.9) 48%, rgba(0, 0, 0, 0.26) 76%, transparent 94%),
+    radial-gradient(ellipse var(--paint-wake-rx) var(--paint-wake-ry) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.88) 0 35%, rgba(0, 0, 0, 0.32) 72%, transparent 95%),
+    radial-gradient(ellipse var(--paint-tail-rx) var(--paint-tail-ry) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.72) 0 29%, rgba(0, 0, 0, 0.2) 70%, transparent 95%);
 }
 
 .seasonal-paint-reveal.is-dark {

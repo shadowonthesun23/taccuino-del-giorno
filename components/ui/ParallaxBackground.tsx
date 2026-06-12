@@ -90,29 +90,25 @@ export default function ParallaxBackground({
       lineArt.style.setProperty(name, value);
     };
 
-    const paintFrame = (time: number) => {
+    const paintFrame = () => {
       headX += (targetX - headX) * 0.3;
       headY += (targetY - headY) * 0.3;
-      const restingTrail = 46;
+      const restingTrail = 104;
       const tailTargetX = headX - directionX * restingTrail;
       const tailTargetY = headY - directionY * restingTrail;
-      tailX += (tailTargetX - tailX) * 0.085;
-      tailY += (tailTargetY - tailY) * 0.085;
+      tailX += (tailTargetX - tailX) * 0.11;
+      tailY += (tailTargetY - tailY) * 0.11;
       velocity *= 0.91;
 
-      const pulse = Math.sin(time * 0.006) * 9;
-      const sideDrift = 13 + Math.sin(time * 0.0028) * 4;
-      const normalX = -directionY;
-      const normalY = directionX;
-      wakeX = (headX + tailX) / 2 + normalX * sideDrift;
-      wakeY = (headY + tailY) / 2 + normalY * sideDrift;
+      wakeX = (headX + tailX) / 2;
+      wakeY = (headY + tailY) / 2;
       const trailDistance = Math.hypot(headX - tailX, headY - tailY);
-      const headRadiusX = Math.min(215, 128 + velocity * 1.7 + pulse);
-      const headRadiusY = Math.min(170, 108 + velocity * 0.72 - pulse * 0.35);
-      const wakeRadius = Math.min(228, Math.max(94, trailDistance * 0.54 + 48));
-      const tailRadius = Math.min(108, 72 + trailDistance * 0.09);
-      const edgeX = headX + normalX * 76 - directionX * 12;
-      const edgeY = headY + normalY * 76 - directionY * 12;
+      const headRadiusX = Math.min(218, 158 + velocity * 1.15);
+      const headRadiusY = Math.min(126, 94 + velocity * 0.34);
+      const wakeRadiusX = Math.min(166, 126 + trailDistance * 0.18);
+      const wakeRadiusY = Math.min(102, 78 + trailDistance * 0.08);
+      const tailRadiusX = Math.min(118, 88 + trailDistance * 0.12);
+      const tailRadiusY = Math.min(78, 58 + trailDistance * 0.05);
 
       setPaintVariable('--paint-head-x', `${headX}px`);
       setPaintVariable('--paint-head-y', `${headY}px`);
@@ -122,10 +118,10 @@ export default function ParallaxBackground({
       setPaintVariable('--paint-tail-y', `${tailY}px`);
       setPaintVariable('--paint-head-rx', `${headRadiusX}px`);
       setPaintVariable('--paint-head-ry', `${headRadiusY}px`);
-      setPaintVariable('--paint-wake-r', `${wakeRadius}px`);
-      setPaintVariable('--paint-tail-r', `${tailRadius}px`);
-      setPaintVariable('--paint-edge-x', `${edgeX}px`);
-      setPaintVariable('--paint-edge-y', `${edgeY}px`);
+      setPaintVariable('--paint-wake-rx', `${wakeRadiusX}px`);
+      setPaintVariable('--paint-wake-ry', `${wakeRadiusY}px`);
+      setPaintVariable('--paint-tail-rx', `${tailRadiusX}px`);
+      setPaintVariable('--paint-tail-ry', `${tailRadiusY}px`);
 
       const settleDistance =
         Math.abs(targetX - headX) +
