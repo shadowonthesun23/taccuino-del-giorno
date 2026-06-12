@@ -1636,7 +1636,6 @@ body {
 }
 
 .loading-notebook-sheet {
-  filter: drop-shadow(0 28px 30px rgba(42, 37, 34, 0.2));
   grid-area: 1 / 1;
   height: 100%;
   object-fit: fill;
@@ -1661,10 +1660,7 @@ body {
 .loading-notebook-paper.is-dark .loading-notebook-sheet,
 .dark .loading-notebook-paper .loading-notebook-sheet,
 [data-theme="dark"] .loading-notebook-paper .loading-notebook-sheet {
-  filter:
-    brightness(0.78)
-    sepia(0.08)
-    drop-shadow(0 30px 34px rgba(0, 0, 0, 0.48));
+  filter: brightness(0.78) sepia(0.08);
 }
 
 .loading-notebook-paper.is-dark,
