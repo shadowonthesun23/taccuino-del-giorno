@@ -1380,6 +1380,24 @@ body {
   text-transform: none;
 }
 
+.author-typewriter-badge {
+  background: #cf5d4f;
+  border: 1px solid rgba(158, 42, 43, 0.18);
+  border-radius: 3px 2px 4px 2px;
+  box-shadow:
+    0 4px 10px -8px rgba(42, 37, 34, 0.72),
+    inset 0 1px 0 rgba(255, 244, 225, 0.18);
+  color: #f4f0e6;
+  display: inline-flex;
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  padding: 7px 11px 6px;
+  text-shadow: 0 1px 0 rgba(82, 31, 27, 0.22);
+  text-transform: none;
+  transform: rotate(-0.35deg);
+}
+
 .section-brush-label::before {
   background:
     linear-gradient(90deg, transparent 0%, rgba(181,149,106,0.12) 11%, rgba(181,149,106,0.16) 48%, rgba(207,93,79,0.08) 82%, transparent 100%),
