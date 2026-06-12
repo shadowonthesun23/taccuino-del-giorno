@@ -118,75 +118,101 @@ html, body {
     background-color: rgba(42, 42, 42, 0.91) !important;
   }
 
-  .seasonal-reveal-content .readability-ink-panel {
-    isolation: isolate;
+  .seasonal-reveal-content :is(
+    .journal-hero-title,
+    .journal-hero-subtitle,
+    .author-feature h2,
+    .author-feature p,
+    .daily-thread,
+    .journal-footer-title,
+    .journal-footer-note,
+    .daily-ex-libris
+  ) {
+    text-shadow:
+      0 0 2px rgba(253, 252, 248, 1),
+      0 0 7px rgba(253, 252, 248, 0.96),
+      0 0 15px rgba(248, 246, 240, 0.78),
+      0 1px 1px rgba(255, 252, 242, 0.9) !important;
   }
 
-  .seasonal-reveal-content .readability-ink-panel::before {
-    backdrop-filter: blur(7px) saturate(0.72);
-    background:
-      radial-gradient(ellipse 78% 66% at 50% 47%, rgba(253, 252, 248, 0.88) 0 42%, rgba(253, 252, 248, 0.56) 64%, transparent 88%),
-      radial-gradient(ellipse 48% 38% at 28% 62%, rgba(248, 246, 240, 0.34), transparent 82%);
-    content: "";
-    inset: -20px -42px;
-    pointer-events: none;
-    position: absolute;
-    -webkit-backdrop-filter: blur(7px) saturate(0.72);
-    z-index: -1;
-  }
-
-  .seasonal-reveal-content .readability-ink-panel.is-author::before {
-    inset: -22px -34px;
-  }
-
-  .dark .seasonal-reveal-content .readability-ink-panel::before,
-  [data-theme="dark"] .seasonal-reveal-content .readability-ink-panel::before {
-    background:
-      radial-gradient(ellipse 78% 66% at 50% 47%, rgba(37, 36, 34, 0.88) 0 42%, rgba(37, 36, 34, 0.58) 64%, transparent 88%),
-      radial-gradient(ellipse 48% 38% at 28% 62%, rgba(30, 30, 30, 0.36), transparent 82%);
+  .dark .seasonal-reveal-content :is(
+    .journal-hero-title,
+    .journal-hero-subtitle,
+    .author-feature h2,
+    .author-feature p,
+    .daily-thread,
+    .journal-footer-title,
+    .journal-footer-note,
+    .daily-ex-libris
+  ),
+  [data-theme="dark"] .seasonal-reveal-content :is(
+    .journal-hero-title,
+    .journal-hero-subtitle,
+    .author-feature h2,
+    .author-feature p,
+    .daily-thread,
+    .journal-footer-title,
+    .journal-footer-note,
+    .daily-ex-libris
+  ) {
+    text-shadow:
+      0 0 2px rgba(24, 23, 22, 0.98),
+      0 0 8px rgba(24, 23, 22, 0.92),
+      0 0 16px rgba(24, 23, 22, 0.7),
+      0 1px 2px rgba(0, 0, 0, 0.92) !important;
   }
 
   .seasonal-reveal-content :is(
     .top-control-button,
     .author-share-trigger,
     .editorial-link-button,
-    .daily-passport-open-button
+    .daily-passport-open-button,
+    .journal-footer-link
   ) {
-    backdrop-filter: blur(8px) saturate(0.76);
-    -webkit-backdrop-filter: blur(8px) saturate(0.76);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .seasonal-reveal-content .top-control-button {
-    background-color: rgba(244, 240, 230, 0.88) !important;
+    background-color: rgba(244, 240, 230, 0.95) !important;
     box-shadow:
-      0 10px 26px -22px rgba(42, 37, 34, 0.46),
-      inset 0 1px 0 rgba(255, 255, 255, 0.46);
+      0 10px 26px -20px rgba(42, 37, 34, 0.52),
+      inset 0 1px 0 rgba(255, 255, 255, 0.68);
   }
 
   .dark .seasonal-reveal-content .top-control-button,
   [data-theme="dark"] .seasonal-reveal-content .top-control-button {
-    background-color: rgba(30, 30, 30, 0.86) !important;
+    background-color: rgba(30, 30, 30, 0.94) !important;
   }
 
   .seasonal-reveal-content :is(
     .author-share-trigger,
     .editorial-link-button,
-    .daily-passport-open-button
+    .daily-passport-open-button,
+    .journal-footer-link
   ) {
-    background-color: rgba(253, 252, 248, 0.9);
+    background-color: rgba(253, 252, 248, 0.94);
+    box-shadow:
+      0 12px 28px -22px rgba(42, 37, 34, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.58);
   }
 
   .dark .seasonal-reveal-content :is(
     .author-share-trigger,
     .editorial-link-button,
-    .daily-passport-open-button
+    .daily-passport-open-button,
+    .journal-footer-link
   ),
   [data-theme="dark"] .seasonal-reveal-content :is(
     .author-share-trigger,
     .editorial-link-button,
-    .daily-passport-open-button
+    .daily-passport-open-button,
+    .journal-footer-link
   ) {
-    background-color: rgba(30, 30, 30, 0.88);
+    background-color: rgba(30, 30, 30, 0.93);
+    box-shadow:
+      0 12px 28px -20px rgba(0, 0, 0, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 }
 
