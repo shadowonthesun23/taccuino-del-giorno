@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { EB_Garamond, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -942,9 +942,14 @@ export default function Home() {
   const [readingComplete, setReadingComplete] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [footerInView, setFooterInView] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const desktopArchiveTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileArchiveTriggerRef = useRef<HTMLButtonElement>(null);
+  const lastArchiveTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const mobileToolsRef = useRef<HTMLDivElement>(null);
+  const mobileToolsTriggerRef = useRef<HTMLButtonElement>(null);
   const archivioScrollRef = useRef<HTMLDivElement>(null);
   const archiveSearchRef = useRef<HTMLInputElement>(null);
   const wasPopoverOpenRef = useRef(false);
@@ -969,22 +974,33 @@ export default function Home() {
     }
     if (wasPopoverOpenRef.current) {
       wasPopoverOpenRef.current = false;
-      triggerRef.current?.focus();
+      lastArchiveTriggerRef.current?.focus();
     }
   }, [popoverOpen]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node) && triggerRef.current && !triggerRef.current.contains(e.target as Node)) setPopoverOpen(false);
+      const target = e.target as Node;
+      const clickedArchiveTrigger =
+        desktopArchiveTriggerRef.current?.contains(target) ||
+        mobileArchiveTriggerRef.current?.contains(target);
+
+      if (popoverRef.current && !popoverRef.current.contains(target) && !clickedArchiveTrigger) {
+        setPopoverOpen(false);
+      }
+      if (mobileToolsRef.current && !mobileToolsRef.current.contains(target)) {
+        setMobileToolsOpen(false);
+      }
     }
-    if (popoverOpen) document.addEventListener('mousedown', handleClickOutside);
+    if (popoverOpen || mobileToolsOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [popoverOpen]);
+  }, [popoverOpen, mobileToolsOpen]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setPopoverOpen(false);
+        setMobileToolsOpen(false);
         setShowDailyPassport(false);
       }
     }
@@ -1045,6 +1061,7 @@ export default function Home() {
       } else if (scrollDelta > 8) {
         setControlsHidden(true);
         setMobileNavOpen(false);
+        setMobileToolsOpen(false);
       }
       lastScrollY = window.scrollY;
       frame = null;
@@ -1163,6 +1180,18 @@ export default function Home() {
     setIsDark(next);
     localStorage.setItem('theme', next ? 'dark' : 'light');
     applyBrowserTheme(next);
+  };
+
+  const toggleArchive = (trigger: HTMLButtonElement, returnFocus = trigger) => {
+    lastArchiveTriggerRef.current = returnFocus;
+    if (!popoverOpen) {
+      const rect = trigger.getBoundingClientRect();
+      setPopoverPos({
+        top: rect.bottom + 10,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setPopoverOpen((current) => !current);
   };
 
   const themeClasses = {
@@ -1305,17 +1334,8 @@ export default function Home() {
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
         {archivio.length > 0 && (
           <button
-            ref={triggerRef}
-            onClick={() => {
-              if (!popoverOpen && triggerRef.current) {
-                const rect = triggerRef.current.getBoundingClientRect();
-                setPopoverPos({
-                  top: rect.bottom + 10,
-                  right: window.innerWidth - rect.right,
-                });
-              }
-              setPopoverOpen(v => !v);
-            }}
+            ref={desktopArchiveTriggerRef}
+            onClick={(event) => toggleArchive(event.currentTarget)}
             className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
           >
             <CalendarDays className="w-4 h-4" />Vedi giorni precedenti
@@ -1347,6 +1367,7 @@ export default function Home() {
           hidden={footerInView}
           onToggle={() => {
             setControlsHidden(false);
+            setMobileToolsOpen(false);
             setMobileNavOpen((current) => !current);
           }}
           onNavigate={() => setMobileNavOpen(false)}
@@ -1372,17 +1393,8 @@ export default function Home() {
 
           {archivio.length > 0 && (
             <button
-              ref={triggerRef}
-              onClick={() => {
-                if (!popoverOpen && triggerRef.current) {
-                  const rect = triggerRef.current.getBoundingClientRect();
-                  setPopoverPos({
-                    top: rect.bottom + 10,
-                    right: window.innerWidth - rect.right,
-                  });
-                }
-                setPopoverOpen(v => !v);
-              }}
+              ref={desktopArchiveTriggerRef}
+              onClick={(event) => toggleArchive(event.currentTarget)}
               className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
                 popoverOpen
                   ? 'border-[#DE6B58] text-[#DE6B58]'
@@ -1408,6 +1420,70 @@ export default function Home() {
             aria-label="Cambia tema"
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        </div>
+        <div
+          ref={mobileToolsRef}
+          className={`mobile-tools ${isDark ? 'is-dark' : ''} ${mobileToolsOpen ? 'is-open' : ''} ${controlsHidden && !mobileToolsOpen && !popoverOpen ? 'is-hidden' : ''}`}
+        >
+          <div
+            id="mobile-tools-menu"
+            className="mobile-tools-menu"
+            aria-hidden={!mobileToolsOpen}
+            inert={!mobileToolsOpen}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setMobileToolsOpen(false);
+                void toggleLingua();
+              }}
+              disabled={traducendo}
+              aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
+            >
+              {traducendo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+              <span>{lingua === 'IT' ? 'English' : 'Italiano'}</span>
+            </button>
+            {archivio.length > 0 && (
+              <button
+                ref={mobileArchiveTriggerRef}
+                type="button"
+                onClick={(event) => {
+                  setMobileToolsOpen(false);
+                  toggleArchive(event.currentTarget, mobileToolsTriggerRef.current ?? event.currentTarget);
+                }}
+                aria-expanded={popoverOpen}
+                aria-haspopup="dialog"
+              >
+                <CalendarDays className="h-4 w-4" />
+                <span>{lingua === 'IT' ? 'Archivio' : 'Archive'}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileToolsOpen(false);
+                toggleTheme();
+              }}
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <span>{lingua === 'IT' ? (isDark ? 'Tema chiaro' : 'Tema scuro') : (isDark ? 'Light theme' : 'Dark theme')}</span>
+            </button>
+          </div>
+          <button
+            ref={mobileToolsTriggerRef}
+            type="button"
+            className="mobile-tools-trigger"
+            aria-label={lingua === 'IT' ? 'Apri strumenti' : 'Open tools'}
+            aria-expanded={mobileToolsOpen}
+            aria-controls="mobile-tools-menu"
+            onClick={() => {
+              setControlsHidden(false);
+              setMobileNavOpen(false);
+              setMobileToolsOpen((current) => !current);
+            }}
+          >
+            <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
           </button>
         </div>
         {isTurningPage && (
