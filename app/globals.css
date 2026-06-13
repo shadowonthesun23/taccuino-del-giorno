@@ -2211,12 +2211,12 @@ body {
   color: var(--bookmark-ink);
   display: none;
   gap: 12px;
-  height: 124px;
+  height: 198px;
   justify-content: flex-start;
   padding: 11px 16px 11px 14px;
   position: fixed;
-  right: -354px;
-  top: 29%;
+  right: -376px;
+  top: 24%;
   transition:
     color 220ms ease,
     background-color 220ms ease,
@@ -2224,7 +2224,7 @@ body {
     right 320ms cubic-bezier(0.22,1,0.36,1);
   transform: rotate(-0.6deg);
   transform-origin: right center;
-  width: 408px;
+  width: 430px;
   z-index: 36;
 }
 
@@ -2284,7 +2284,7 @@ body {
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  height: 52px;
+  height: 64px;
   justify-content: center;
   width: 48px;
 }
@@ -2312,7 +2312,7 @@ body {
 
 .seasonal-bookmark-copy {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
   opacity: 1;
   text-shadow: 0 1px rgba(255,255,255,0.22);
@@ -2367,8 +2367,8 @@ body {
 
 .seasonal-bookmark-astronomy {
   display: grid;
-  font-size: 0.82rem;
-  gap: 4px;
+  font-size: 0.78rem;
+  gap: 3px;
   letter-spacing: 0.006em;
   line-height: 1.16;
   opacity: 0.88;
@@ -2378,11 +2378,11 @@ body {
   align-items: baseline;
   display: grid;
   gap: 8px;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 126px minmax(0, 1fr);
 }
 
 .seasonal-bookmark-astronomy em {
-  font-size: 0.67rem;
+  font-size: 0.62rem;
   font-style: normal;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -2397,6 +2397,111 @@ body {
 
 .seasonal-bookmark-astronomy span:nth-child(3) {
   opacity: 0.84;
+}
+
+.seasonal-bookmark-planets {
+  border-top: 1px solid color-mix(in srgb, var(--bookmark-ink) 18%, transparent);
+  display: grid;
+  gap: 4px;
+  padding-top: 6px;
+}
+
+.seasonal-bookmark-planets-heading {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.seasonal-bookmark-planets-heading > strong {
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.seasonal-bookmark-regions {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+}
+
+.seasonal-bookmark-regions button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 700;
+  opacity: 0.55;
+  padding: 1px 0 2px;
+  position: relative;
+}
+
+.seasonal-bookmark-regions button::after {
+  background: currentColor;
+  bottom: 0;
+  content: "";
+  height: 1px;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  transform: scaleX(0.35);
+  transition: opacity 160ms ease, transform 180ms ease;
+  width: 100%;
+}
+
+.seasonal-bookmark-regions button:hover,
+.seasonal-bookmark-regions button:focus-visible,
+.seasonal-bookmark-regions button.is-active {
+  opacity: 1;
+  outline: none;
+}
+
+.seasonal-bookmark-regions button:focus-visible::after,
+.seasonal-bookmark-regions button.is-active::after {
+  opacity: 0.72;
+  transform: scaleX(1);
+}
+
+.seasonal-bookmark-planet-list {
+  display: flex;
+  gap: 11px;
+  min-height: 16px;
+}
+
+.seasonal-bookmark-planet-list > span {
+  align-items: baseline;
+  display: flex;
+  font-size: 0.72rem;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.seasonal-bookmark-planet-list > span + span::before {
+  content: "·";
+  margin-right: 5px;
+  opacity: 0.42;
+}
+
+.seasonal-bookmark-planet-list > span > strong {
+  font-weight: 800;
+}
+
+.seasonal-bookmark-planet-list > span > span,
+.seasonal-bookmark-planet-list > em {
+  font-size: 0.68rem;
+  font-style: italic;
+  opacity: 0.78;
+}
+
+.seasonal-bookmark-planets small {
+  font-size: 0.56rem;
+  font-style: italic;
+  letter-spacing: 0.025em;
+  opacity: 0.58;
 }
 
 .seasonal-bookmark.season-spring {

@@ -10,6 +10,14 @@ import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import type { Artwork } from '@/lib/artwork';
+import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
+
+const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: string; cityEN: string }[] = [
+  { id: 'north', IT: 'Nord', EN: 'North', cityIT: 'Milano', cityEN: 'Milan' },
+  { id: 'center', IT: 'Centro', EN: 'Central', cityIT: 'Roma', cityEN: 'Rome' },
+  { id: 'south', IT: 'Sud', EN: 'South', cityIT: 'Palermo', cityEN: 'Palermo' },
+];
+const SKY_REGION_STORAGE_KEY = 'taccuino-sky-region-v1';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -312,36 +320,15 @@ function formatUtcDate(date: Date, lingua: 'IT' | 'EN'): string {
   }).format(new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-function getSolarConstellation(dataIso: string, lingua: 'IT' | 'EN'): string {
-  const [, meseString, giornoString] = dataIso.split('-');
-  const value = Number(meseString) * 100 + Number(giornoString);
-  const constellations = [
-    { from: 120, to: 216, IT: 'Capricorno', EN: 'Capricornus' },
-    { from: 216, to: 311, IT: 'Acquario', EN: 'Aquarius' },
-    { from: 311, to: 418, IT: 'Pesci', EN: 'Pisces' },
-    { from: 418, to: 513, IT: 'Ariete', EN: 'Aries' },
-    { from: 513, to: 621, IT: 'Toro', EN: 'Taurus' },
-    { from: 621, to: 720, IT: 'Gemelli', EN: 'Gemini' },
-    { from: 720, to: 810, IT: 'Cancro', EN: 'Cancer' },
-    { from: 810, to: 916, IT: 'Leone', EN: 'Leo' },
-    { from: 916, to: 1030, IT: 'Vergine', EN: 'Virgo' },
-    { from: 1030, to: 1123, IT: 'Bilancia', EN: 'Libra' },
-    { from: 1123, to: 1129, IT: 'Scorpione', EN: 'Scorpius' },
-    { from: 1129, to: 1217, IT: 'Ofiuco', EN: 'Ophiuchus' },
-  ];
-  const constellation = constellations.find(({ from, to }) => value >= from && value < to);
-  return constellation?.[lingua] ?? (lingua === 'IT' ? 'Sagittario' : 'Sagittarius');
-}
-
-function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN', mode: 'long' | 'compact' = 'long'): string {
+function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN'): { event: string; countdown: string } {
   const date = parseIsoUtc(dataIso);
   const year = date.getUTCFullYear();
   const events = [
-    { month: 2, day: 21, IT: "all'equinozio di primavera", eventIT: "l'equinozio di primavera", compactIT: "all'equinozio", EN: 'the spring equinox', compactEN: 'equinox' },
-    { month: 5, day: 21, IT: "al solstizio d'estate", eventIT: "il solstizio d'estate", compactIT: 'al solstizio', EN: 'the summer solstice', compactEN: 'solstice' },
-    { month: 8, day: 23, IT: "all'equinozio d'autunno", eventIT: "l'equinozio d'autunno", compactIT: "all'equinozio", EN: 'the autumn equinox', compactEN: 'equinox' },
-    { month: 11, day: 21, IT: "al solstizio d'inverno", eventIT: "il solstizio d'inverno", compactIT: 'al solstizio', EN: 'the winter solstice', compactEN: 'solstice' },
-    { month: 2, day: 21, IT: "all'equinozio di primavera", eventIT: "l'equinozio di primavera", compactIT: "all'equinozio", EN: 'the spring equinox', compactEN: 'equinox', nextYear: true },
+    { month: 2, day: 21, IT: 'Equinozio di primavera', EN: 'Spring equinox' },
+    { month: 5, day: 21, IT: "Solstizio d'estate", EN: 'Summer solstice' },
+    { month: 8, day: 23, IT: "Equinozio d'autunno", EN: 'Autumn equinox' },
+    { month: 11, day: 21, IT: "Solstizio d'inverno", EN: 'Winter solstice' },
+    { month: 2, day: 21, IT: 'Equinozio di primavera', EN: 'Spring equinox', nextYear: true },
   ];
   const datedEvents = events
     .map((event) => ({
@@ -351,16 +338,12 @@ function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN', mo
   const nextEvent = datedEvents.find((event) => event.date >= date) ?? datedEvents[datedEvents.length - 1];
   const days = Math.round((nextEvent.date.getTime() - date.getTime()) / 86_400_000);
 
-  if (lingua === 'IT') {
-    if (mode === 'compact') return days === 0 ? `oggi ${nextEvent.compactIT}` : `${days}g ${nextEvent.compactIT}`;
-    if (days === 0) return `Oggi: ${nextEvent.eventIT}`;
-    if (days === 1) return `Domani: ${nextEvent.eventIT}`;
-    return `${days} giorni ${nextEvent.IT}`;
-  }
-  if (mode === 'compact') return days === 0 ? `today ${nextEvent.compactEN}` : `${days}d to ${nextEvent.compactEN}`;
-  if (days === 0) return `Today: ${nextEvent.EN}`;
-  if (days === 1) return `Tomorrow: ${nextEvent.EN}`;
-  return `${days} days to ${nextEvent.EN}`;
+  return {
+    event: nextEvent[lingua],
+    countdown: lingua === 'IT'
+      ? days === 0 ? 'oggi' : days === 1 ? 'domani' : `tra ${days} giorni`
+      : days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`,
+  };
 }
 
 function getMarginalia(value: string): string {
@@ -509,6 +492,8 @@ function MoonDoodle({ phase }: { phase: MoonPhaseId }) {
 }
 
 function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua: 'IT' | 'EN'; isDark: boolean }) {
+  const [skyRegion, setSkyRegion] = useState<SkyRegion>('center');
+  const [planetResult, setPlanetResult] = useState<{ key: string; planets: VisiblePlanet[] } | null>(null);
   const season = getSeason(dataIso);
   const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
     spring: { IT: 'Primavera', EN: 'Spring' },
@@ -531,20 +516,57 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
     'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent' },
   };
   const moonLabel = moonLabels[moon.phase][lingua];
-  const solarConstellation = getSolarConstellation(dataIso, lingua);
-  const seasonCountdown = getNextAstronomicalSeasonLabel(dataIso, lingua, 'compact');
-  const sunLabel = lingua === 'IT' ? `Sole in ${solarConstellation}` : `Sun in ${solarConstellation}`;
+  const seasonEvent = getNextAstronomicalSeasonLabel(dataIso, lingua);
   const nextFullMoonLabel = formatUtcDate(getNextFullMoonDate(dataIso), lingua);
   const fullMoonAriaLabel = lingua === 'IT' ? 'Prossima luna piena' : 'Next full moon';
   const almanacLabel = lingua === 'IT' ? 'Effemeridi' : 'Almanac';
   const moonRowLabel = lingua === 'IT' ? 'Luna' : 'Moon';
-  const fullMoonRowLabel = lingua === 'IT' ? 'Piena' : 'Full';
-  const sunRowLabel = lingua === 'IT' ? 'Sole' : 'Sun';
+  const fullMoonRowLabel = lingua === 'IT' ? 'Luna piena' : 'Full moon';
+  const planetsLabel = lingua === 'IT' ? 'Pianeti osservabili' : 'Observable planets';
+  const selectedRegion = SKY_REGION_OPTIONS.find((region) => region.id === skyRegion) ?? SKY_REGION_OPTIONS[1];
+  const planetResultKey = `${dataIso}:${skyRegion}:${lingua}`;
+  const visiblePlanets = planetResult?.key === planetResultKey ? planetResult.planets : null;
+  const planetSummary = visiblePlanets?.length
+    ? visiblePlanets.map((planet) => `${planet.name}, ${planet.direction}, ${planet.bestTime}`).join('. ')
+    : lingua === 'IT' ? 'Nessun pianeta ben osservabile' : 'No planet clearly observable';
+
+  useEffect(() => {
+    const savedRegion = window.localStorage.getItem(SKY_REGION_STORAGE_KEY);
+    if (savedRegion !== 'north' && savedRegion !== 'center' && savedRegion !== 'south') return;
+
+    const frame = window.requestAnimationFrame(() => setSkyRegion(savedRegion));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const desktopQuery = window.matchMedia('(min-width: 1180px)');
+    if (!desktopQuery.matches) return;
+
+    let cancelled = false;
+
+    void import('@/lib/visible-planets').then(({ getVisiblePlanets }) => {
+      if (!cancelled) {
+        setPlanetResult({
+          key: planetResultKey,
+          planets: getVisiblePlanets(dataIso, skyRegion, lingua),
+        });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dataIso, lingua, planetResultKey, skyRegion]);
+
+  const selectSkyRegion = (region: SkyRegion) => {
+    setSkyRegion(region);
+    window.localStorage.setItem(SKY_REGION_STORAGE_KEY, region);
+  };
 
   return (
     <aside
       className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${isDark ? 'is-dark' : ''}`}
-      aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${sunLabel}. ${seasonCountdown}`}
+      aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
       tabIndex={0}
     >
       <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
@@ -558,7 +580,47 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
         <span className="seasonal-bookmark-astronomy">
           <span><em>{moonRowLabel}</em><strong>{moonLabel} · {moon.illumination}%</strong></span>
           <span><em>{fullMoonRowLabel}</em><strong>{nextFullMoonLabel}</strong></span>
-          <span><em>{sunRowLabel}</em><strong>{solarConstellation} · {seasonCountdown}</strong></span>
+          <span><em>{seasonEvent.event}</em><strong>{seasonEvent.countdown}</strong></span>
+        </span>
+        <span className="seasonal-bookmark-planets">
+          <span className="seasonal-bookmark-planets-heading">
+            <strong>{planetsLabel}</strong>
+            <span
+              className="seasonal-bookmark-regions"
+              role="group"
+              aria-label={lingua === 'IT' ? 'Zona italiana di riferimento' : 'Reference area in Italy'}
+            >
+              {SKY_REGION_OPTIONS.map((region) => (
+                <button
+                  key={region.id}
+                  type="button"
+                  className={skyRegion === region.id ? 'is-active' : ''}
+                  aria-pressed={skyRegion === region.id}
+                  aria-label={`${region[lingua]}, ${lingua === 'IT' ? region.cityIT : region.cityEN}`}
+                  onClick={() => selectSkyRegion(region.id)}
+                >
+                  {region[lingua]}
+                </button>
+              ))}
+            </span>
+          </span>
+          <span className="seasonal-bookmark-planet-list" aria-live="polite">
+            {visiblePlanets === null ? (
+              <em>{lingua === 'IT' ? 'Calcolo del cielo…' : 'Reading the sky…'}</em>
+            ) : visiblePlanets.length > 0 ? visiblePlanets.map((planet) => (
+              <span key={planet.body}>
+                <strong>{planet.name}</strong>
+                <span>{planet.direction} · {planet.bestTime}</span>
+              </span>
+            )) : (
+              <em>{lingua === 'IT' ? 'Nessuno ben osservabile stanotte' : 'None clearly observable tonight'}</em>
+            )}
+          </span>
+          <small>
+            {lingua === 'IT' ? 'Riferimento' : 'Reference'}: {lingua === 'IT' ? selectedRegion.cityIT : selectedRegion.cityEN}
+            {' · '}
+            {lingua === 'IT' ? 'cielo sereno' : 'clear sky'}
+          </small>
         </span>
       </span>
     </aside>
