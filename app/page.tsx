@@ -1006,6 +1006,7 @@ export default function Home() {
   const [showExportCard, setShowExportCard] = useState(false);
   const [showDailyPassport, setShowDailyPassport] = useState(false);
   const [isTurningPage, setIsTurningPage] = useState(false);
+  const [pageTurnPhase, setPageTurnPhase] = useState<'idle' | 'covering' | 'revealing'>('idle');
   const [contentKey, setContentKey] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState('autore');
@@ -1174,13 +1175,16 @@ export default function Home() {
   const caricaGiorno = (dataIso: string | null, usePageTurn = false) => {
     if (usePageTurn) {
       setIsTurningPage(true);
+      setPageTurnPhase('covering');
     } else {
       setLoading(true);
     }
     setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false); setSaintArtwork(null);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
-    const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 680)) : Promise.resolve();
+    const minimumTurnDelay = usePageTurn
+      ? new Promise(resolve => window.setTimeout(resolve, 280))
+      : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
       fetch(dataIso ? `/api/opera?data=${encodeURIComponent(dataIso)}` : '/api/opera').then(res => {
@@ -1190,7 +1194,20 @@ export default function Home() {
       minimumTurnDelay,
     ])
       .then(([dati, operaData]) => {
-        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setIsTurningPage(false); setActiveSection('autore'); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' });
+        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection('autore'); setContentKey(k => k + 1);
+        window.scrollTo({ top: 0, behavior: usePageTurn ? 'auto' : 'smooth' });
+        if (usePageTurn) {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => setPageTurnPhase('revealing'));
+          });
+          window.setTimeout(() => {
+            setIsTurningPage(false);
+            setPageTurnPhase('idle');
+          }, 460);
+        } else {
+          setIsTurningPage(false);
+          setPageTurnPhase('idle');
+        }
         const singleSaintName = dati.santi.length === 1 ? dati.santi[0]?.nome?.trim() : '';
         if (singleSaintName) {
           fetch(`/api/santo-immagine?nome=${encodeURIComponent(singleSaintName)}`)
@@ -1215,7 +1232,9 @@ export default function Home() {
           })
           .catch(() => setVinylCover(null));
       })
-      .catch(err => { setError(err.message); setLoading(false); setIsTurningPage(false); });
+      .catch(err => {
+        setError(err.message); setLoading(false); setIsTurningPage(false); setPageTurnPhase('idle');
+      });
   };
 
   const toggleLingua = useCallback(async () => {
@@ -1578,10 +1597,10 @@ export default function Home() {
             <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
           </button>
         </div>
-        {isTurningPage && (
+        {pageTurnPhase !== 'idle' && (
           <>
-            <div className={`page-turn-atmosphere ${isDark ? 'is-dark' : ''}`} aria-hidden="true" />
-            <div className={`page-turn-veil ${isDark ? 'is-dark' : ''}`} role="status" aria-live="polite">
+            <div className={`page-turn-atmosphere is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`} aria-hidden="true" />
+            <div className={`page-turn-veil is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`} role="status" aria-live="polite">
               <span className="page-turn-mark" aria-hidden="true" />
               <span>{lingua === 'IT' ? 'Cambio pagina' : 'Turning the page'}</span>
             </div>
@@ -1589,7 +1608,7 @@ export default function Home() {
         )}
         <main
           key={contentKey}
-          className={`journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10 ${isTurningPage ? 'journal-page-turning' : ''}`}
+          className={`journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10 ${pageTurnPhase === 'covering' ? 'journal-page-turning' : ''}`}
           aria-busy={isTurningPage}
         >
           <header className="journal-hero text-center relative animate-fadeInUp stagger-1 px-4">

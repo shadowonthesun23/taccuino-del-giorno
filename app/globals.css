@@ -865,14 +865,14 @@ body {
 }
 
 .journal-page-turning {
-  filter: blur(1px);
-  opacity: 0.7;
+  filter: blur(0.5px);
+  opacity: 0.56;
   pointer-events: none;
-  transform: translateY(4px) scale(0.998);
+  transform: translateY(2px) scale(0.996);
   transition:
-    filter 220ms ease,
-    opacity 220ms ease,
-    transform 220ms ease;
+    filter 160ms ease,
+    opacity 160ms ease,
+    transform 180ms ease;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -889,56 +889,44 @@ body {
   from {
     opacity: 0;
   }
-  42% {
-    opacity: 1;
-  }
   to {
-    opacity: 0.88;
+    opacity: 1;
   }
 }
 
 @keyframes pageTurnSheet {
   from {
-    opacity: 0;
-    transform: translateX(-58vw) skewX(-7deg) scaleX(0.82);
+    opacity: 0.2;
+    transform: translateX(46vw) skewX(-5deg) scaleX(0.72);
   }
-  18% {
-    opacity: 0.92;
-  }
-  62% {
-    opacity: 0.82;
+  55% {
+    opacity: 0.94;
   }
   to {
-    opacity: 0;
-    transform: translateX(62vw) skewX(-7deg) scaleX(1.04);
+    opacity: 1;
+    transform: translateX(0) skewX(-2deg) scaleX(3.4);
   }
 }
 
 @keyframes pageTurnEdgeShadow {
   from {
     opacity: 0;
-    transform: translateX(-30vw) skewX(-10deg);
-  }
-  36% {
-    opacity: 0.46;
+    transform: translateX(48vw) skewX(-8deg);
   }
   to {
-    opacity: 0;
-    transform: translateX(32vw) skewX(-10deg);
+    opacity: 0.34;
+    transform: translateX(-4vw) skewX(-5deg);
   }
 }
 
 @keyframes pageTurnCrease {
   from {
     opacity: 0;
-    transform: translateX(-18vw) skewX(-10deg);
-  }
-  38% {
-    opacity: 0.62;
+    transform: translateX(48vw) skewX(-8deg);
   }
   to {
-    opacity: 0;
-    transform: translateX(18vw) skewX(-10deg);
+    opacity: 0.46;
+    transform: translateX(-2vw) skewX(-5deg);
   }
 }
 
@@ -950,6 +938,15 @@ body {
   to {
     opacity: 1;
     transform: translate(-50%, 0);
+  }
+}
+
+@keyframes pageTurnReveal {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -968,10 +965,10 @@ body {
 }
 
 .page-turn-atmosphere {
-  animation: pageTurnAtmosphere 700ms ease both;
+  animation: pageTurnAtmosphere 260ms ease-out both;
   background:
-    linear-gradient(90deg, transparent, rgba(255,252,242,0.2) 44%, rgba(181,149,106,0.1) 52%, transparent 62%),
-    radial-gradient(ellipse 66% 40% at 50% 18%, rgba(253,252,248,0.38), transparent 70%);
+    linear-gradient(90deg, rgba(248,246,240,0.28), rgba(253,252,248,0.72)),
+    radial-gradient(ellipse 76% 52% at 52% 18%, rgba(253,252,248,0.52), transparent 72%);
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -980,7 +977,7 @@ body {
 }
 
 .page-turn-atmosphere::before {
-  animation: pageTurnSheet 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pageTurnSheet 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
   background:
     linear-gradient(90deg, rgba(255,255,255,0.05), rgba(253,252,248,0.74) 18%, rgba(244,240,230,0.86) 54%, rgba(181,149,106,0.18) 86%, transparent),
     radial-gradient(ellipse 40% 72% at 52% 46%, rgba(255,255,255,0.38), transparent 66%);
@@ -988,22 +985,31 @@ body {
     -28px 0 40px -38px rgba(42,37,34,0.38),
     22px 0 34px -32px rgba(42,37,34,0.32);
   content: "";
-  inset: -10vh auto -10vh 50%;
+  inset: -12vh auto -12vh 50%;
   position: absolute;
   transform-origin: center;
-  width: min(42vw, 520px);
+  width: min(46vw, 580px);
 }
 
 .page-turn-atmosphere::after {
   animation:
-    pageTurnCrease 780ms cubic-bezier(0.22, 1, 0.36, 1) both,
-    pageTurnEdgeShadow 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    pageTurnCrease 340ms cubic-bezier(0.32, 0.72, 0, 1) both,
+    pageTurnEdgeShadow 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
   background:
     linear-gradient(90deg, transparent, rgba(42,37,34,0.14), rgba(255,255,255,0.32), rgba(181,149,106,0.18), transparent);
   content: "";
   inset: 0 auto 0 50%;
   position: absolute;
   width: min(30vw, 360px);
+}
+
+.page-turn-atmosphere.is-revealing {
+  animation: pageTurnReveal 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.page-turn-atmosphere.is-revealing::before,
+.page-turn-atmosphere.is-revealing::after {
+  animation-play-state: paused;
 }
 
 .page-turn-atmosphere.is-dark {
@@ -1051,6 +1057,11 @@ body {
   transform: translateX(-50%);
   white-space: nowrap;
   z-index: 45;
+}
+
+.page-turn-veil.is-revealing {
+  animation: pageTurnReveal 240ms ease both;
+  pointer-events: none;
 }
 
 .page-turn-veil.is-dark {
