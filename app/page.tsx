@@ -545,7 +545,6 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
     <aside
       className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${isDark ? 'is-dark' : ''}`}
       aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${sunLabel}. ${seasonCountdown}`}
-      title={lingua === 'IT' ? 'Effemeridi indicative, calcolate localmente' : 'Indicative ephemerides, calculated locally'}
       tabIndex={0}
     >
       <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
