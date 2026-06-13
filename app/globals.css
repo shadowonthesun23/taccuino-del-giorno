@@ -492,18 +492,24 @@ body {
 
 .saint-card-artwork {
   bottom: -42px;
-  height: calc(100% + 34px);
+  height: 92%;
   margin: 0;
-  max-height: 390px;
-  opacity: 0.22;
+  max-height: 340px;
+  opacity: 0.2;
   pointer-events: none;
   position: absolute;
-  right: -58px;
+  right: -52px;
   transform: rotate(1.25deg);
-  width: min(56%, 330px);
+  width: min(58%, 340px);
   z-index: 0;
-  -webkit-mask-image: radial-gradient(ellipse 86% 96% at 72% 68%, #000 0 48%, rgba(0,0,0,0.82) 62%, rgba(0,0,0,0.28) 78%, transparent 94%);
-  mask-image: radial-gradient(ellipse 86% 96% at 72% 68%, #000 0 48%, rgba(0,0,0,0.82) 62%, rgba(0,0,0,0.28) 78%, transparent 94%);
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.18) 13%, #000 32%, #000 100%),
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 16%, #000 42%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.18) 13%, #000 32%, #000 100%),
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 16%, #000 42%, #000 100%);
+  mask-composite: intersect;
 }
 
 .saint-card-artwork::after {
@@ -4575,9 +4581,9 @@ body {
 
   .saint-card-artwork {
     bottom: -38px;
-    height: 72%;
+    height: 74%;
     max-height: 255px;
-    opacity: 0.16;
+    opacity: 0.15;
     right: -46px;
     width: 62%;
   }
