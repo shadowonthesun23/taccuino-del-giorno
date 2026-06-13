@@ -2306,11 +2306,11 @@ body {
   color: var(--bookmark-ink);
   display: none;
   gap: 12px;
-  height: 198px;
+  height: 218px;
   justify-content: flex-start;
   padding: 11px 16px 11px 14px;
   position: fixed;
-  right: -376px;
+  right: -400px;
   top: 24%;
   transition:
     color 220ms ease,
@@ -2319,7 +2319,7 @@ body {
     right 320ms cubic-bezier(0.22,1,0.36,1);
   transform: rotate(-0.6deg);
   transform-origin: right center;
-  width: 430px;
+  width: 456px;
   z-index: 36;
 }
 
@@ -2407,7 +2407,7 @@ body {
 
 .seasonal-bookmark-copy {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
   opacity: 1;
   text-shadow: 0 1px rgba(255,255,255,0.22);
@@ -2427,7 +2427,7 @@ body {
 
 .seasonal-bookmark-label {
   border-bottom: 1px solid color-mix(in srgb, var(--bookmark-ink) 28%, transparent);
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.16em;
   line-height: 1;
@@ -2443,7 +2443,7 @@ body {
 }
 
 .seasonal-bookmark-date {
-  font-size: 1.06rem;
+  font-size: 1.16rem;
   font-style: italic;
   font-weight: 700;
   letter-spacing: 0.012em;
@@ -2452,7 +2452,7 @@ body {
 }
 
 .seasonal-bookmark-season {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.13em;
   line-height: 1;
@@ -2462,8 +2462,8 @@ body {
 
 .seasonal-bookmark-astronomy {
   display: grid;
-  font-size: 0.78rem;
-  gap: 3px;
+  font-size: 0.88rem;
+  gap: 4px;
   letter-spacing: 0.006em;
   line-height: 1.16;
   opacity: 0.88;
@@ -2473,11 +2473,11 @@ body {
   align-items: baseline;
   display: grid;
   gap: 8px;
-  grid-template-columns: 126px minmax(0, 1fr);
+  grid-template-columns: 132px minmax(0, 1fr);
 }
 
 .seasonal-bookmark-astronomy em {
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-style: normal;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -2509,7 +2509,7 @@ body {
 }
 
 .seasonal-bookmark-planets-heading > strong {
-  font-size: 0.63rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -2528,10 +2528,10 @@ body {
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-size: 0.58rem;
+  font-size: 0.68rem;
   font-weight: 700;
   opacity: 0.55;
-  padding: 1px 0 2px;
+  padding: 2px 1px 3px;
   position: relative;
 }
 
@@ -2563,14 +2563,14 @@ body {
 
 .seasonal-bookmark-planet-list {
   display: flex;
-  gap: 11px;
-  min-height: 16px;
+  gap: 12px;
+  min-height: 18px;
 }
 
 .seasonal-bookmark-planet-list > span {
   align-items: baseline;
   display: flex;
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   gap: 4px;
   white-space: nowrap;
 }
@@ -2587,13 +2587,13 @@ body {
 
 .seasonal-bookmark-planet-list > span > span,
 .seasonal-bookmark-planet-list > em {
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   font-style: italic;
   opacity: 0.78;
 }
 
 .seasonal-bookmark-planets small {
-  font-size: 0.56rem;
+  font-size: 0.66rem;
   font-style: italic;
   letter-spacing: 0.025em;
   opacity: 0.58;
@@ -4727,21 +4727,21 @@ body {
     isolation: isolate;
     overflow: hidden;
     contain: paint;
-    clip-path: inset(0 round 999px);
+    clip-path: inset(0 round 11px);
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 252, 247, 0.22)),
-      rgba(253, 252, 248, 0.52) !important;
+      linear-gradient(176deg, rgba(255, 255, 255, 0.58), rgba(255, 252, 247, 0.16)),
+      rgba(250, 246, 237, 0.62) !important;
     background-clip: padding-box !important;
-    border-color: rgba(255, 255, 255, 0.74) !important;
+    border-color: rgba(142, 111, 76, 0.28) !important;
     box-shadow:
-      0 12px 30px -22px rgba(42, 37, 34, 0.58),
-      inset 0 1px 0 rgba(255, 255, 255, 0.88),
-      inset 0 -1px 0 rgba(181, 149, 106, 0.16) !important;
-    -webkit-backdrop-filter: blur(10px) saturate(1.12);
-    backdrop-filter: blur(10px) saturate(1.12);
+      2px 3px 0 rgba(117, 88, 57, 0.1),
+      0 12px 28px -23px rgba(42, 37, 34, 0.54),
+      inset 0 1px 0 rgba(255, 255, 255, 0.72),
+      inset 0 -1px 0 rgba(181, 149, 106, 0.12) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(1.06);
+    backdrop-filter: blur(8px) saturate(1.06);
     text-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.82),
-      0 0 10px rgba(255, 255, 255, 0.34);
+      0 1px 0 rgba(255, 255, 255, 0.72);
   }
 
   .seasonal-reveal-content :is(
@@ -4751,7 +4751,40 @@ body {
     .daily-passport-open-button,
     .journal-footer-link
   ) {
-    color: #a8443a;
+    border-radius: 10px 13px 9px 12px;
+    color: #9d463d;
+  }
+
+  .seasonal-reveal-content :is(
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  )::after {
+    background: currentColor;
+    bottom: 5px;
+    clip-path: polygon(0 35%, 18% 16%, 43% 42%, 70% 20%, 100% 38%, 96% 68%, 72% 54%, 45% 76%, 20% 56%, 3% 72%);
+    content: "";
+    height: 2px;
+    left: 13px;
+    opacity: 0.28;
+    position: absolute;
+    right: 13px;
+    transform: scaleX(0.22) rotate(-0.6deg);
+    transform-origin: left center;
+    transition: opacity 180ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .seasonal-reveal-content :is(
+    .author-share-trigger,
+    .author-export-action,
+    .editorial-link-button,
+    .daily-passport-open-button,
+    .journal-footer-link
+  ):is(:hover, :focus-visible)::after {
+    opacity: 0.62;
+    transform: scaleX(1) rotate(-0.6deg);
   }
 
   .seasonal-reveal-content :is(
@@ -4763,14 +4796,14 @@ body {
     .journal-footer-link
   ):is(:hover, :focus-visible) {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 244, 238, 0.3)),
-      rgba(250, 238, 232, 0.6) !important;
-    border-color: rgba(222, 107, 88, 0.58) !important;
+      linear-gradient(176deg, rgba(255, 255, 255, 0.68), rgba(255, 244, 238, 0.2)),
+      rgba(248, 235, 226, 0.7) !important;
+    border-color: rgba(190, 79, 67, 0.48) !important;
     color: #a94238;
     box-shadow:
-      0 14px 32px -21px rgba(98, 55, 46, 0.58),
-      inset 0 1px 0 rgba(255, 255, 255, 0.92),
-      inset 0 -1px 0 rgba(222, 107, 88, 0.18) !important;
+      3px 4px 0 rgba(164, 70, 58, 0.1),
+      0 14px 30px -22px rgba(98, 55, 46, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
   }
 
   .dark .seasonal-reveal-content :is(
@@ -4790,15 +4823,15 @@ body {
     .journal-footer-link
   ) {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.025)),
-      rgba(28, 27, 26, 0.66) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+      linear-gradient(176deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.018)),
+      rgba(34, 32, 30, 0.76) !important;
+    border-color: rgba(198, 174, 148, 0.2) !important;
     box-shadow:
-      0 12px 30px -20px rgba(0, 0, 0, 0.78),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
-    -webkit-backdrop-filter: blur(11px) saturate(1.08);
-    backdrop-filter: blur(11px) saturate(1.08);
+      2px 3px 0 rgba(0, 0, 0, 0.24),
+      0 12px 30px -20px rgba(0, 0, 0, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    -webkit-backdrop-filter: blur(9px) saturate(1.04);
+    backdrop-filter: blur(9px) saturate(1.04);
     color: #e5a297;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.82);
   }
@@ -4820,15 +4853,67 @@ body {
     .journal-footer-link
   ):is(:hover, :focus-visible) {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(222, 107, 88, 0.045)),
-      rgba(52, 39, 37, 0.7) !important;
+      linear-gradient(176deg, rgba(255, 255, 255, 0.13), rgba(222, 107, 88, 0.035)),
+      rgba(54, 40, 37, 0.8) !important;
     border-color: rgba(222, 107, 88, 0.54) !important;
     color: #f0b0a5;
     box-shadow:
-      0 14px 32px -20px rgba(0, 0, 0, 0.82),
-      inset 0 1px 0 rgba(255, 255, 255, 0.17),
-      inset 0 -1px 0 rgba(222, 107, 88, 0.12) !important;
+      3px 4px 0 rgba(0, 0, 0, 0.28),
+      0 14px 32px -20px rgba(0, 0, 0, 0.78),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
   }
+}
+
+.top-control-button {
+  border-radius: 10px 12px 9px 11px !important;
+}
+
+.author-share-trigger,
+.author-export-action,
+.editorial-link-button,
+.daily-passport-open-button,
+.journal-footer-link {
+  border-radius: 10px 13px 9px 12px;
+  box-shadow:
+    2px 3px 0 rgba(117, 88, 57, 0.09),
+    0 12px 28px -23px rgba(42, 37, 34, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.54);
+}
+
+.dark :is(
+  .author-share-trigger,
+  .author-export-action,
+  .editorial-link-button,
+  .daily-passport-open-button,
+  .journal-footer-link
+),
+[data-theme="dark"] :is(
+  .author-share-trigger,
+  .author-export-action,
+  .editorial-link-button,
+  .daily-passport-open-button,
+  .journal-footer-link
+) {
+  box-shadow:
+    2px 3px 0 rgba(0, 0, 0, 0.22),
+    0 12px 28px -21px rgba(0, 0, 0, 0.66),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.top-control-panel .top-control-button:nth-child(2) {
+  transform: rotate(0.7deg);
+}
+
+.top-control-panel .top-control-button:nth-child(3) {
+  transform: rotate(-0.65deg);
+}
+
+.mobile-tools-trigger {
+  border-radius: 11px 13px 10px 12px;
+}
+
+.mobile-tools-menu {
+  border-radius: 10px 14px 11px 13px;
 }
 
 @media (prefers-reduced-motion: reduce) {
