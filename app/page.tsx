@@ -1183,7 +1183,7 @@ export default function Home() {
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
-      ? new Promise(resolve => window.setTimeout(resolve, 280))
+      ? new Promise(resolve => window.setTimeout(resolve, 260))
       : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -1203,7 +1203,7 @@ export default function Home() {
           window.setTimeout(() => {
             setIsTurningPage(false);
             setPageTurnPhase('idle');
-          }, 460);
+          }, 440);
         } else {
           setIsTurningPage(false);
           setPageTurnPhase('idle');
@@ -1598,17 +1598,13 @@ export default function Home() {
           </button>
         </div>
         {pageTurnPhase !== 'idle' && (
-          <>
-            <div className={`page-turn-atmosphere is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`} aria-hidden="true" />
-            <div className={`page-turn-veil is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`} role="status" aria-live="polite">
-              <span className="page-turn-mark" aria-hidden="true" />
-              <span>{lingua === 'IT' ? 'Cambio pagina' : 'Turning the page'}</span>
-            </div>
-          </>
+          <div className={`page-change-blur is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`} aria-hidden="true" />
         )}
+        <span className="sr-only" role="status" aria-live="polite">
+          {isTurningPage ? (lingua === 'IT' ? 'Cambio giorno in corso' : 'Changing day') : ''}
+        </span>
         <main
-          key={contentKey}
-          className={`journal-page-enter w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10 ${pageTurnPhase === 'covering' ? 'journal-page-turning' : ''}`}
+          className={`journal-page-enter journal-page-transition is-${pageTurnPhase} w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10`}
           aria-busy={isTurningPage}
         >
           <header className="journal-hero text-center relative animate-fadeInUp stagger-1 px-4">
