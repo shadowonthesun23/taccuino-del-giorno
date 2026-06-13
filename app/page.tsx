@@ -10,6 +10,7 @@ import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import type { Artwork } from '@/lib/artwork';
+import type { SaintArtwork } from '@/lib/saint-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 
 const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: string; cityEN: string }[] = [
@@ -136,6 +137,7 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
 };
 
 type OperaGiorno = Artwork;
+type SaintArtworkResult = SaintArtwork & { saintName: string };
 
 interface DatiTaccuino {
   data_odierna: string;
@@ -984,6 +986,7 @@ export default function Home() {
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
+  const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
   const [vinylCover, setVinylCover] = useState<string | null>(null);
   const [vinylPreview, setVinylPreview] = useState(false);
   const [vinylPinned, setVinylPinned] = useState(false);
@@ -1174,7 +1177,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false);
+    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false); setSaintArtwork(null);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 680)) : Promise.resolve();
@@ -1188,6 +1191,18 @@ export default function Home() {
     ])
       .then(([dati, operaData]) => {
         setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setIsTurningPage(false); setActiveSection('autore'); setContentKey(k => k + 1); window.scrollTo({ top: 0, behavior: 'smooth' });
+        const singleSaintName = dati.santi.length === 1 ? dati.santi[0]?.nome?.trim() : '';
+        if (singleSaintName) {
+          fetch(`/api/santo-immagine?nome=${encodeURIComponent(singleSaintName)}`)
+            .then((response) => {
+              if (response.status === 204) return null;
+              return response.ok ? response.json() as Promise<SaintArtwork> : null;
+            })
+            .then((artwork) => {
+              if (artwork) setSaintArtwork({ ...artwork, saintName: singleSaintName });
+            })
+            .catch(() => setSaintArtwork(null));
+        }
         fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
           .then(r => r.json())
           .then(j => {
@@ -1294,6 +1309,11 @@ export default function Home() {
     ? opera?.dipartimento_it || opera?.dipartimento
     : opera?.dipartimento;
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
+  const visibleSaintArtwork = (
+    saintArtwork
+    && data?.santi.length === 1
+    && saintArtwork.saintName === dataOriginale?.santi[0]?.nome
+  ) ? saintArtwork : null;
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
   const archivioPopover = isMounted && popoverOpen ? createPortal(
@@ -1772,7 +1792,17 @@ export default function Home() {
 
             <Card id="santi" title={lingua === 'IT' ? 'I santi di oggi' : "Today's saints"} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename="santi">
-              <ul className="space-y-6">
+              <div className="saints-card-layout">
+                {visibleSaintArtwork ? (
+                  <figure className="saint-card-artwork">
+                    <img
+                      src={`/api/image-proxy?url=${encodeURIComponent(visibleSaintArtwork.imageUrl)}`}
+                      alt=""
+                      crossOrigin="anonymous"
+                    />
+                  </figure>
+                ) : null}
+                <ul className="saints-card-copy space-y-6">
                 {data.santi.map((santo, idx) => (
                   <li key={idx} className={`border-b ${themeClasses.border} last:border-0 pb-4 last:pb-0`}>
                     <h4 className="card-primary-title text-2xl font-bold mb-1">{santo.nome}</h4>
@@ -1780,7 +1810,24 @@ export default function Home() {
                     <p className="card-body-copy text-lg font-medium leading-relaxed">{santo.biografia}</p>
                   </li>
                 ))}
-              </ul>
+                </ul>
+                {visibleSaintArtwork ? (
+                  <a
+                    href={visibleSaintArtwork.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="saint-card-credit"
+                    aria-label={[
+                      lingua === 'IT' ? 'Fonte iconografica' : 'Artwork source',
+                      visibleSaintArtwork.title,
+                      visibleSaintArtwork.author,
+                      visibleSaintArtwork.license,
+                    ].filter(Boolean).join(': ')}
+                  >
+                    {lingua === 'IT' ? 'Iconografia' : 'Artwork'}: {visibleSaintArtwork.source === 'met' ? 'The Met' : 'Wikimedia Commons'} · {visibleSaintArtwork.license}
+                  </a>
+                ) : null}
+              </div>
             </Card>
 
             {opera && (
