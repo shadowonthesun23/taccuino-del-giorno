@@ -481,8 +481,18 @@ body {
 }
 
 .saints-card-layout {
+  height: 100%;
   min-height: 180px;
   position: relative;
+}
+
+.card-section-santi {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-section-santi > .card-content {
+  flex: 1;
 }
 
 .saints-card-copy {
