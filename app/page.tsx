@@ -853,13 +853,6 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
             aria-hidden="true"
           />
           <div className="loading-notebook-content">
-            <div className={`masking-tape ${caveat.className} text-xl font-bold tracking-wider`}>
-              oggi
-            </div>
-            <div className="loading-notebook-head">
-              <span />
-              <BookOpen className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
-            </div>
             <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
             <div className="loading-writing-stack" aria-hidden="true">
               <span className="loading-pen-line line-one" />
@@ -1341,33 +1334,31 @@ export default function Home() {
       role="dialog"
       aria-modal="false"
       aria-label="Archivio dei giorni"
-      className={`archive-popover is-open ${isDark ? 'is-dark' : ''} fixed z-[9999] border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.22)] flex flex-col overflow-hidden ${garamond.className} ${themeClasses.popoverBgClass} ${themeClasses.popoverBorder}`}
+      className={`archive-popover is-open ${isDark ? 'is-dark' : ''} fixed z-[9999] flex flex-col overflow-hidden ${garamond.className}`}
       style={{
         top: `${popoverPos.top}px`,
         right: `${popoverPos.right}px`,
-        width: '320px',
+        width: '360px',
         maxWidth: 'calc(100vw - 32px)',
         transformOrigin: 'top right',
-        maxHeight: '380px',
+        maxHeight: '480px',
         height: 'auto',
       }}
     >
-      <svg width="20" height="10" viewBox="0 0 20 10" className="absolute -top-[9px] right-[11px]" style={{ filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.07))' }}>
-        <path d="M0 10 L10 0 L20 10" fill={themeClasses.popoverArrowFill} stroke={themeClasses.popoverArrowStroke} strokeWidth="1" />
-      </svg>
-      <div className={`archive-header flex items-center justify-between px-4 py-3 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-        <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-[#DE6B58]" />
-          <span className="font-bold tracking-widest uppercase text-sm text-[#DE6B58]">Archivio</span>
+      <div className="archive-header">
+        <div className="archive-heading">
+          <CalendarDays className="archive-heading-icon" strokeWidth={1.45} aria-hidden="true" />
+          <span className={`${jocky.className} archive-heading-title`}>Archivio</span>
+          <span className="archive-heading-count">{archivio.length}</span>
         </div>
-        <button onClick={() => setPopoverOpen(false)} className={`p-1 rounded-full ${themeClasses.textMuted} hover:text-[#DE6B58] transition-colors`} aria-label="Chiudi archivio"><X className="w-4 h-4" /></button>
+        <button onClick={() => setPopoverOpen(false)} className="archive-close" aria-label="Chiudi archivio"><X aria-hidden="true" /></button>
       </div>
       {dataSelezionata && dataSelezionata !== oggi && (
-        <div className={`px-4 py-2 border-b ${themeClasses.popoverBorder} flex-shrink-0`}>
-          <button onClick={() => caricaGiorno(null, Boolean(data))} className="inline-flex items-center gap-1 text-xs text-[#DE6B58] hover:underline font-medium"><ChevronLeft className="w-3.5 h-3.5" />Torna a oggi</button>
+        <div className="archive-today-row">
+          <button onClick={() => caricaGiorno(null, Boolean(data))} className="archive-today-link"><ChevronLeft aria-hidden="true" />Torna a oggi</button>
         </div>
       )}
-      <div className={`archive-search-wrap px-3 py-3 border-b ${themeClasses.popoverBorder}`}>
+      <div className="archive-search-wrap">
         <label className="archive-search-field">
           <Search className="archive-search-icon" aria-hidden="true" strokeWidth={1.7} />
           <input
@@ -1380,7 +1371,7 @@ export default function Home() {
         </label>
       </div>
       <div className="relative flex-1 min-h-0">
-        <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="archive-scroll overflow-y-auto h-full px-3 py-3" style={{ maxHeight: '300px' }}>
+        <div ref={archivioScrollRef} onScroll={checkArchivioScroll} className="archive-scroll overflow-y-auto h-full" style={{ maxHeight: '350px' }}>
           {archivio.length === 0 ? (
             <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
           ) : archivioFiltrato.length === 0 ? (
@@ -1393,7 +1384,7 @@ export default function Home() {
 
               return (
               <div key={mese} className={`archive-month archive-month-${monthNumber}`}>
-                <p className={`archive-month-tab ${themeClasses.textMuted}`}>
+                <p className="archive-month-tab">
                   <span className="archive-month-name">{mese}</span>
                   <span className="archive-month-note">{monthMood}</span>
                 </p>
@@ -1408,11 +1399,11 @@ export default function Home() {
                             isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
                           } ${isOggi ? 'is-today' : ''}`}
                           style={{ '--archive-entry-delay': `${80 + Math.min(index, 7) * 34}ms` } as CSSProperties}>
-                          <span className={`archive-entry-dot ${isOggi ? 'bg-[#DE6B58]' : isDark ? 'bg-[#555]' : 'bg-[#C8B89A]'}`} />
                           <span className="archive-entry-copy">
                             <span className="archive-entry-title">{item.autore_giorno}</span>
-                            <span className={`archive-entry-date ${isSelezionato ? 'text-[#DE6B58]/70' : themeClasses.textMuted}`}>{formatDataItaliana(item.data)}{isOggi ? ' · oggi' : ''}</span>
+                            {isOggi && <span className="archive-entry-today">oggi</span>}
                           </span>
+                          <span className="archive-entry-date">{formatDataItaliana(item.data)}</span>
                         </button>
                       </li>
                     );

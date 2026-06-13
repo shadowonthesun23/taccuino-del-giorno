@@ -1812,7 +1812,7 @@ body {
   flex-direction: column;
   grid-area: 1 / 1;
   justify-self: center;
-  padding: 74px 84px 64px;
+  padding: 70px 84px 76px;
   position: relative;
   width: 82%;
   z-index: 1;
@@ -1830,33 +1830,17 @@ body {
   color: #2a2522;
 }
 
-.loading-notebook-head {
-  align-items: center;
-  color: #de6b58;
-  display: flex;
-  gap: 12px;
-  margin: 28px 0 18px;
-}
-
-.loading-notebook-head span {
-  background: #de6b58;
-  border-radius: 999px;
-  height: 1px;
-  opacity: 0.42;
-  width: 92px;
-}
-
 .loading-notebook-paper h1 {
   font-size: 44px;
   font-weight: 500;
   line-height: 0.9;
-  margin: 0 0 28px;
+  margin: 0 0 34px;
 }
 
 @media (min-width: 640px) {
   .loading-notebook-content {
-    padding-bottom: 82px;
-    transform: translateY(-18px);
+    padding-bottom: 88px;
+    transform: translateY(-6px);
   }
 
   .loading-notebook-paper h1 {
@@ -1904,14 +1888,6 @@ body {
     box-shadow:
       0 24px 54px -34px rgba(0,0,0,0.82),
       inset 0 1px 0 rgba(255,255,255,0.05);
-  }
-
-  .loading-notebook-head {
-    margin: 22px 0 15px;
-  }
-
-  .loading-notebook-head span {
-    width: 66px;
   }
 
   .loading-notebook-paper h1 {
@@ -3133,6 +3109,278 @@ body {
 .archive-empty {
   margin: 24px 0;
   text-align: center;
+}
+
+/* Archivio come indice editoriale */
+.archive-popover {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.54), transparent 34%),
+    rgba(249, 246, 238, 0.97);
+  border: 1px solid rgba(117, 91, 57, 0.2);
+  border-radius: 22px 13px 20px 15px;
+  box-shadow:
+    0 28px 70px -32px rgba(42, 37, 34, 0.52),
+    0 8px 24px -18px rgba(42, 37, 34, 0.34),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  color: #2a2522;
+}
+
+.archive-popover::before {
+  background:
+    linear-gradient(90deg, rgba(181,149,106,0.08) 1px, transparent 1px),
+    linear-gradient(rgba(181,149,106,0.05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  content: "";
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  position: absolute;
+}
+
+.archive-popover.is-dark {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.045), transparent 34%),
+    rgba(31, 30, 29, 0.98);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow:
+    0 30px 76px -30px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.055);
+  color: #e5ded7;
+}
+
+.archive-header {
+  align-items: center;
+  background: transparent;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  padding: 21px 20px 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.archive-heading {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.archive-heading-icon {
+  color: #de6b58;
+  height: 19px;
+  width: 19px;
+}
+
+.archive-heading-title {
+  color: #2a2522;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 0.9;
+}
+
+.archive-popover.is-dark .archive-heading-title {
+  color: #eee7e0;
+}
+
+.archive-heading-count {
+  color: #b34f3f;
+  display: inline-block;
+  font-size: 11px;
+  font-style: italic;
+  margin: -10px 0 0 -3px;
+  opacity: 0.72;
+}
+
+.archive-close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #8a817c;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  transition: color 180ms ease, transform 180ms ease;
+  width: 32px;
+}
+
+.archive-close svg {
+  height: 18px;
+  width: 18px;
+}
+
+.archive-close:hover,
+.archive-close:focus-visible {
+  color: #de6b58;
+  outline: none;
+  transform: rotate(5deg);
+}
+
+.archive-today-row {
+  padding: 0 20px 7px;
+  position: relative;
+  z-index: 1;
+}
+
+.archive-today-link {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #b34f3f;
+  display: inline-flex;
+  font-size: 13px;
+  font-style: italic;
+  gap: 4px;
+  padding: 0;
+}
+
+.archive-today-link svg {
+  height: 14px;
+  width: 14px;
+}
+
+.archive-search-wrap {
+  background: transparent;
+  flex-shrink: 0;
+  padding: 8px 20px 13px;
+  position: relative;
+  z-index: 1;
+}
+
+.archive-search-field {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(117,91,57,0.26);
+  border-radius: 0;
+  min-height: 38px;
+  padding: 0 3px;
+}
+
+.archive-popover.is-dark .archive-search-field {
+  background: transparent;
+  border-color: rgba(255,255,255,0.13);
+}
+
+.archive-search-field:focus-within {
+  border-color: rgba(222,107,88,0.62);
+  box-shadow: 0 4px 7px -7px rgba(222,107,88,0.7);
+}
+
+.archive-scroll {
+  padding: 2px 12px 16px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.archive-month {
+  margin-bottom: 17px;
+}
+
+.archive-month-tab {
+  align-items: baseline;
+  background: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: space-between;
+  margin: 0;
+  padding: 8px 8px 7px 1px;
+  position: relative;
+  transform: none;
+}
+
+.archive-month-tab::after {
+  background: linear-gradient(90deg, var(--archive-month-edge), transparent);
+  bottom: 0;
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
+.archive-month-name {
+  font-size: 12px;
+  letter-spacing: 0.11em;
+}
+
+.archive-month-note {
+  font-size: 0.78rem;
+}
+
+.archive-list {
+  border-left: 0;
+  gap: 0;
+  padding: 4px 0 0;
+}
+
+.archive-entry {
+  align-items: baseline;
+  border-bottom: 1px solid rgba(117,91,57,0.075);
+  border-radius: 0;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 8px 9px 4px;
+}
+
+.archive-entry:hover,
+.archive-entry:focus-visible {
+  background: linear-gradient(90deg, rgba(222,107,88,0.07), transparent 88%);
+  padding-left: 9px;
+  transform: none;
+}
+
+.archive-popover.is-dark .archive-entry:hover,
+.archive-popover.is-dark .archive-entry:focus-visible {
+  background: linear-gradient(90deg, rgba(222,107,88,0.1), transparent 88%);
+}
+
+.archive-entry.is-selected {
+  background: linear-gradient(90deg, rgba(222,107,88,0.13), transparent 92%);
+}
+
+.archive-entry.is-selected::before {
+  border-radius: 999px;
+  inset: 8px auto 8px -5px;
+}
+
+.archive-entry-copy {
+  align-items: baseline;
+  display: flex;
+  gap: 7px;
+}
+
+.archive-entry-title {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.archive-entry-today {
+  color: #de6b58;
+  font-size: 11px;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.archive-entry-date {
+  color: #8a817c;
+  font-size: 12px;
+  line-height: 1;
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.archive-popover.is-dark .archive-entry {
+  border-bottom-color: rgba(255,255,255,0.055);
+}
+
+.archive-popover.is-dark .archive-entry-date {
+  color: #99918b;
+}
+
+.archive-popover.is-open .archive-month-tab {
+  animation: archiveEntrySettle 320ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
 @media (min-width: 1180px) {
