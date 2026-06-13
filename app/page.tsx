@@ -1006,6 +1006,7 @@ export default function Home() {
   const [readingComplete, setReadingComplete] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileReadingVisible, setMobileReadingVisible] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [footerInView, setFooterInView] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -1117,9 +1118,14 @@ export default function Home() {
         : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
       const nextComplete = nextProgress >= 96;
       const scrollDelta = window.scrollY - lastScrollY;
+      const mobileReadingThreshold = Math.max(220, window.innerHeight * 0.3);
 
       document.documentElement.style.setProperty('--reading-progress-scale', `${nextProgress / 100}`);
       setReadingComplete((current) => current === nextComplete ? current : nextComplete);
+      setMobileReadingVisible((current) => {
+        const nextVisible = window.scrollY > mobileReadingThreshold;
+        return current === nextVisible ? current : nextVisible;
+      });
       if (window.scrollY < 120 || scrollDelta < -8) {
         setControlsHidden(false);
       } else if (scrollDelta > 8) {
@@ -1349,7 +1355,6 @@ export default function Home() {
         <div className="archive-heading">
           <CalendarDays className="archive-heading-icon" strokeWidth={1.45} aria-hidden="true" />
           <span className={`${jocky.className} archive-heading-title`}>Archivio</span>
-          <span className="archive-heading-count">{archivio.length}</span>
         </div>
         <button onClick={() => setPopoverOpen(false)} className="archive-close" aria-label="Chiudi archivio"><X aria-hidden="true" /></button>
       </div>
@@ -1466,7 +1471,7 @@ export default function Home() {
           hasOpera={Boolean(opera)}
           activeSection={activeSection}
           open={mobileNavOpen}
-          hidden={footerInView}
+          hidden={footerInView || !mobileReadingVisible}
           onToggle={() => {
             setControlsHidden(false);
             setMobileToolsOpen(false);

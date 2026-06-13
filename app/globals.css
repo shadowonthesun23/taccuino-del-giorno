@@ -3182,15 +3182,6 @@ body {
   color: #eee7e0;
 }
 
-.archive-heading-count {
-  color: #b34f3f;
-  display: inline-block;
-  font-size: 11px;
-  font-style: italic;
-  margin: -10px 0 0 -3px;
-  opacity: 0.72;
-}
-
 .archive-close {
   align-items: center;
   background: transparent;
