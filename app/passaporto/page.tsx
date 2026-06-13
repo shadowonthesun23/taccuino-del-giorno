@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { EB_Garamond } from 'next/font/google';
 import localFont from 'next/font/local';
 import ExportJpegButton from './ExportJpegButton';
+import PrintableZineButton from './PrintableZineButton';
 import styles from './passaporto.module.css';
 import {
   findArtworkAcrossMuseums,
@@ -400,9 +401,7 @@ export default async function PassportPage({
           <ExportJpegButton targetId={digitalZineId} filename={`passaporto-zine-digitale-${dataIso}.jpg`}>
             Scarica versione digitale
           </ExportJpegButton>
-          <ExportJpegButton targetId={printableZineId} filename={`passaporto-zine-stampabile-${dataIso}.jpg`}>
-            Scarica zine stampabile
-          </ExportJpegButton>
+          <PrintableZineButton targetId={printableZineId} filename={`passaporto-zine-stampabile-${dataIso}.pdf`} />
         </div>
       </header>
 
@@ -418,18 +417,6 @@ export default async function PassportPage({
           {digitalPage(8, 'Consiglio Musicale', musicContent, styles.musicPage)}
         </article>
       </div>
-
-      <section className={styles.tutorial} aria-label="Guida rapida alla piegatura della zine">
-        <div>
-          <h2>Guida rapida</h2>
-          <p>Stampa, piega lungo i tratteggi, taglia solo la linea centrale e richiudi a libretto.</p>
-        </div>
-        <ol className={styles.tutorialSteps}>
-          <li><span className={styles.tutorialIconFold} />Piega in otto</li>
-          <li><span className={styles.tutorialIconCut} />Taglia al centro</li>
-          <li><span className={styles.tutorialIconBook} />Richiudi</li>
-        </ol>
-      </section>
 
       <div className={styles.exportOnly} aria-hidden="true">
         <article id={printableZineId} className={`${styles.zineSheet} ${styles.exportSheet}`} aria-label={`Passaporto del Giorno in formato zine stampabile: ${data.data_odierna}`}>

@@ -13,6 +13,23 @@ interface ExportJpegButtonProps {
 
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
+export async function renderTargetToJpegDataUrl(targetId: string) {
+  const node = document.getElementById(targetId);
+  if (!node) throw new Error('Foglio da esportare non trovato.');
+
+  await document.fonts?.ready;
+  await waitForImages(node);
+
+  return toJpeg(node, {
+    backgroundColor: '#fbf7ee',
+    cacheBust: true,
+    imagePlaceholder: transparentPixel,
+    includeQueryParams: true,
+    pixelRatio: 3,
+    quality: 0.96,
+  });
+}
+
 async function waitForImages(node: HTMLElement) {
   const images = Array.from(node.querySelectorAll('img'));
   await Promise.all(
@@ -31,22 +48,9 @@ export default function ExportJpegButton({ targetId, filename, children }: Expor
   const [isExporting, setIsExporting] = useState(false);
 
   async function handleDownload() {
-    const node = document.getElementById(targetId);
-    if (!node) return;
-
     setIsExporting(true);
     try {
-      await document.fonts?.ready;
-      await waitForImages(node);
-
-      const dataUrl = await toJpeg(node, {
-        backgroundColor: '#fbf7ee',
-        cacheBust: true,
-        imagePlaceholder: transparentPixel,
-        includeQueryParams: true,
-        pixelRatio: 3,
-        quality: 0.96,
-      });
+      const dataUrl = await renderTargetToJpegDataUrl(targetId);
 
       const link = document.createElement('a');
       link.download = filename;
