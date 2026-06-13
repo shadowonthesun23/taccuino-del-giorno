@@ -1573,7 +1573,7 @@ export default function Home() {
           aria-busy={isTurningPage}
         >
           <header className="journal-hero text-center relative animate-fadeInUp stagger-1 px-4">
-            <div className="relative z-10">
+            <div className="reveal-readability-halo is-hero relative z-10" data-reveal-readability>
               <div className="flex justify-center mb-2">
                 <div className={`masking-tape journal-date-tape ${caveat.className} text-lg font-bold tracking-wider`}>
                   {data.data_odierna}
@@ -1652,7 +1652,10 @@ export default function Home() {
         </div>
       )}
 
-      <div className="relative z-10 w-full min-w-0 flex-1 text-center md:text-left">
+      <div
+        className="reveal-readability-halo is-author relative z-10 w-full min-w-0 flex-1 text-center md:text-left"
+        data-reveal-readability
+      >
         <div className="relative z-10">
           <span className={`${stampwriter.className} section-typewriter-badge badge-tilt-left text-sm mb-3`}>
             {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
@@ -2009,7 +2012,7 @@ export default function Home() {
 
           {/* ── FOOTER ── */}
           <footer ref={footerRef} className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
-            <div className="journal-footer-inner">
+            <div className="journal-footer-inner reveal-readability-halo is-footer" data-reveal-readability>
               <div className="daily-ex-libris" aria-label={`${lingua === 'IT' ? 'Ex libris del giorno' : 'Daily ex libris'}: ${data.autore_giorno}`}>
                 <span className="daily-ex-libris-ring" aria-hidden="true" />
                 <span className="daily-ex-libris-kicker">Ex Libris</span>

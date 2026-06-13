@@ -82,10 +82,30 @@ export default function ParallaxBackground({
     let previousTargetX = 0;
     let previousTargetY = 0;
     let velocity = 0;
+    const readabilityZones = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-reveal-readability]'),
+    );
 
     const setPaintVariable = (name: string, value: string) => {
       reveal.style.setProperty(name, value);
       lineArt.style.setProperty(name, value);
+    };
+
+    const updateReadabilityZones = (x: number, y: number) => {
+      readabilityZones.forEach((zone) => {
+        const rect = zone.getBoundingClientRect();
+        const distanceX = Math.max(rect.left - x, 0, x - rect.right);
+        const distanceY = Math.max(rect.top - y, 0, y - rect.bottom);
+        const distance = Math.hypot(distanceX, distanceY);
+        const strength = Math.max(0, Math.min(1, 1 - distance / 150));
+        zone.style.setProperty('--reveal-readability', strength.toFixed(3));
+      });
+    };
+
+    const clearReadabilityZones = () => {
+      readabilityZones.forEach((zone) => {
+        zone.style.setProperty('--reveal-readability', '0');
+      });
     };
 
     const paintFrame = (time: number) => {
@@ -148,6 +168,7 @@ export default function ParallaxBackground({
       velocity = Math.min(52, velocity * 0.45 + pointerDistance * 0.55);
       previousTargetX = targetX;
       previousTargetY = targetY;
+      updateReadabilityZones(targetX, targetY);
 
       if (hideTimer !== null) {
         window.clearTimeout(hideTimer);
@@ -160,6 +181,7 @@ export default function ParallaxBackground({
 
     const hideReveal = () => {
       reveal.style.opacity = '0';
+      clearReadabilityZones();
       if (hideTimer !== null) window.clearTimeout(hideTimer);
       hideTimer = window.setTimeout(() => {
         lineArt.classList.remove('is-disturbed');
@@ -177,6 +199,7 @@ export default function ParallaxBackground({
       document.documentElement.removeEventListener('pointerleave', hideReveal);
       if (frame !== null) window.cancelAnimationFrame(frame);
       if (hideTimer !== null) window.clearTimeout(hideTimer);
+      clearReadabilityZones();
     };
   }, [dark, season]);
 
