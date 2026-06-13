@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Download, FileText, Printer, Scissors, X } from 'lucide-react';
 import { renderTargetToJpegDataUrl } from './ExportJpegButton';
+import { createA4PdfBytes } from './pdf';
 import styles from './passaporto.module.css';
 
 interface PrintableZineButtonProps {
@@ -11,24 +12,6 @@ interface PrintableZineButtonProps {
 }
 
 const guidePreferenceKey = 'taccuino-zine-guide-seen';
-const a4LandscapeWidth = 841.89;
-const a4LandscapeHeight = 595.28;
-
-function ascii(value: string) {
-  return new TextEncoder().encode(value);
-}
-
-function joinBytes(parts: Uint8Array[]) {
-  const length = parts.reduce((total, part) => total + part.length, 0);
-  const joined = new Uint8Array(length);
-  let offset = 0;
-  parts.forEach((part) => {
-    joined.set(part, offset);
-    offset += part.length;
-  });
-  return joined;
-}
-
 function dataUrlToBytes(dataUrl: string) {
   const base64 = dataUrl.split(',')[1];
   const binary = window.atob(base64);
@@ -44,56 +27,6 @@ async function jpegDimensions(dataUrl: string) {
   image.src = dataUrl;
   await image.decode();
   return { width: image.naturalWidth, height: image.naturalHeight };
-}
-
-function createA4Pdf(jpeg: Uint8Array, imageWidth: number, imageHeight: number) {
-  const content = ascii(
-    `q\n${a4LandscapeWidth} 0 0 ${a4LandscapeHeight} 0 0 cm\n/Im0 Do\nQ\n`
-  );
-  const objects = [
-    ascii('<< /Type /Catalog /Pages 2 0 R >>'),
-    ascii('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'),
-    ascii(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${a4LandscapeWidth} ${a4LandscapeHeight}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`),
-    joinBytes([
-      ascii(`<< /Type /XObject /Subtype /Image /Width ${imageWidth} /Height ${imageHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`),
-      jpeg,
-      ascii('\nendstream'),
-    ]),
-    joinBytes([
-      ascii(`<< /Length ${content.length} >>\nstream\n`),
-      content,
-      ascii('endstream'),
-    ]),
-  ];
-
-  const parts = [ascii('%PDF-1.4\n%\xFF\xFF\xFF\xFF\n')];
-  const offsets = [0];
-  let byteOffset = parts[0].length;
-
-  objects.forEach((object, index) => {
-    offsets.push(byteOffset);
-    const wrapped = joinBytes([
-      ascii(`${index + 1} 0 obj\n`),
-      object,
-      ascii('\nendobj\n'),
-    ]);
-    parts.push(wrapped);
-    byteOffset += wrapped.length;
-  });
-
-  const xrefOffset = byteOffset;
-  const xref = [
-    'xref',
-    `0 ${objects.length + 1}`,
-    '0000000000 65535 f ',
-    ...offsets.slice(1).map((offset) => `${String(offset).padStart(10, '0')} 00000 n `),
-    `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>`,
-    `startxref\n${xrefOffset}`,
-    '%%EOF',
-  ].join('\n');
-
-  parts.push(ascii(`${xref}\n`));
-  return new Blob(parts as BlobPart[], { type: 'application/pdf' });
 }
 
 export default function PrintableZineButton({ targetId, filename }: PrintableZineButtonProps) {
@@ -121,7 +54,8 @@ export default function PrintableZineButton({ targetId, filename }: PrintableZin
       const dataUrl = await renderTargetToJpegDataUrl(targetId);
       const jpeg = dataUrlToBytes(dataUrl);
       const dimensions = await jpegDimensions(dataUrl);
-      const pdf = createA4Pdf(jpeg, dimensions.width, dimensions.height);
+      const pdfBytes = createA4PdfBytes(jpeg, dimensions.width, dimensions.height);
+      const pdf = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(pdf);
       const link = document.createElement('a');
       link.download = filename;
