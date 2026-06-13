@@ -736,7 +736,11 @@ function DailyPassport({
                 ) : null}
                 <h4>{opera.titolo}</h4>
                 <p className="daily-passport-source">{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
-                <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
+                <p>{[
+                  lingua === 'IT' ? opera.medium_it || opera.medium : opera.medium,
+                  lingua === 'IT' ? opera.dipartimento_it || opera.dipartimento : opera.dipartimento,
+                  opera.museo,
+                ].filter(Boolean).join(' · ')}</p>
               </section>
             )}
 
@@ -1224,6 +1228,10 @@ export default function Home() {
   const vinylOpen = vinylPinned || vinylPreview;
   const dataExLibris = dataSelezionata ?? oggi;
   const operaSourceUrl = opera?.source_url || opera?.met_url || '';
+  const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
+  const operaDepartment = lingua === 'IT'
+    ? opera?.dipartimento_it || opera?.dipartimento
+    : opera?.dipartimento;
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
@@ -1725,7 +1733,7 @@ export default function Home() {
                       <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
                       <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
-                    {(opera.medium || opera.dipartimento) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
+                    {(operaMedium || operaDepartment) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[operaMedium, operaDepartment].filter(Boolean).join(' · ')}</p>}
                     {operaSourceUrl && (
                       <div className="flex flex-wrap items-center gap-4 pt-1">
                         <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>

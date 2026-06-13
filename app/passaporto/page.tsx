@@ -4,7 +4,11 @@ import { EB_Garamond } from 'next/font/google';
 import localFont from 'next/font/local';
 import ExportJpegButton from './ExportJpegButton';
 import styles from './passaporto.module.css';
-import { findArtworkAcrossMuseums, type Artwork } from '@/lib/artwork';
+import {
+  findArtworkAcrossMuseums,
+  localizeArtworkToItalian,
+  type Artwork,
+} from '@/lib/artwork';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -207,7 +211,7 @@ async function getPassportData(dataIso: string): Promise<{
     throw new Error('Nessun contenuto disponibile per questa data.');
   }
 
-  const [fotoUrl, opera, albumCover] = await Promise.all([
+  const [fotoUrl, rawArtwork, albumCover] = await Promise.all([
     getFotoAutore(data.autore_giorno),
     data.opera_giorno
       ? Promise.resolve(data.opera_giorno)
@@ -219,6 +223,7 @@ async function getPassportData(dataIso: string): Promise<{
         : Promise.resolve(null),
     findAlbumCover(data.musica),
   ]);
+  const opera = rawArtwork ? await localizeArtworkToItalian(rawArtwork) : null;
 
   return {
     data: { ...data, foto_autore_url: fotoUrl },
@@ -374,7 +379,11 @@ export default async function PassportPage({
           )}
           <h2>{opera.titolo}</h2>
           <p className={styles.source}>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</p>
-          <p>{[opera.medium, opera.dipartimento, opera.museo].filter(Boolean).join(' · ')}</p>
+          <p>{[
+            opera.medium_it || opera.medium,
+            opera.dipartimento_it || opera.dipartimento,
+            opera.museo,
+          ].filter(Boolean).join(' · ')}</p>
         </>
       )}
     </>

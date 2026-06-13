@@ -8,7 +8,9 @@ export interface Artwork {
   immagine_url_hd: string;
   museo: string;
   medium: string;
+  medium_it?: string;
   dipartimento: string;
+  dipartimento_it?: string;
   nota: string;
   keyword_ricerca: string;
   source?: ArtworkSource;
@@ -106,6 +108,92 @@ export function artworkKey(artwork: Partial<Artwork>): string {
 
 export function artworkTitleKey(artwork: Partial<Artwork>): string {
   return normalizeTitle(asString(artwork.titolo));
+}
+
+async function translateArtworkFieldsWithGemini(
+  artwork: Artwork,
+  fields: Array<{ key: 'medium_it' | 'dipartimento_it'; value: string }>
+): Promise<Artwork> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return artwork;
+
+  try {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: { responseMimeType: 'application/json' },
+    });
+    const source = Object.fromEntries(fields.map((field) => [field.key, field.value]));
+    const result = await model.generateContent(
+      `Traduci in italiano questi metadati museali inglesi. Mantieni termini tecnici, nomi propri e date. `
+      + `Restituisci esclusivamente un oggetto JSON con le stesse chiavi: ${JSON.stringify(source)}`
+    );
+    const text = result.response.text().replace(/```json|```/gi, '').trim();
+    const translations = asRecord(JSON.parse(text));
+    if (!translations) return artwork;
+
+    const localized: Artwork = { ...artwork };
+    fields.forEach((field) => {
+      const translated = asString(translations[field.key]);
+      if (translated) localized[field.key] = translated;
+    });
+    return localized;
+  } catch (error) {
+    console.warn('Fallback Gemini per i metadati dell’opera non disponibile:', error);
+    return artwork;
+  }
+}
+
+export async function localizeArtworkToItalian(artwork: Artwork): Promise<Artwork> {
+  if (
+    (!artwork.medium || artwork.medium_it)
+    && (!artwork.dipartimento || artwork.dipartimento_it)
+  ) {
+    return artwork;
+  }
+
+  const fields = [
+    { key: 'medium_it' as const, value: artwork.medium },
+    { key: 'dipartimento_it' as const, value: artwork.dipartimento },
+  ].filter((field) => field.value && !artwork[field.key]);
+  if (fields.length === 0) return artwork;
+
+  const apiKey = process.env.DEEPL_API_KEY;
+  if (!apiKey) return translateArtworkFieldsWithGemini(artwork, fields);
+
+  const body = new URLSearchParams();
+  fields.forEach((field) => body.append('text', field.value));
+  body.append('source_lang', 'EN');
+  body.append('target_lang', 'IT');
+
+  const baseUrl = apiKey.endsWith(':fx')
+    ? 'https://api-free.deepl.com'
+    : 'https://api.deepl.com';
+
+  try {
+    const response = await fetch(`${baseUrl}/v2/translate`, {
+      method: 'POST',
+      headers: {
+        Authorization: `DeepL-Auth-Key ${apiKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+      cache: 'no-store',
+    });
+    if (!response.ok) return translateArtworkFieldsWithGemini(artwork, fields);
+
+    const payload = asRecord(await response.json());
+    const translations = Array.isArray(payload?.translations) ? payload.translations : [];
+    const localized: Artwork = { ...artwork };
+    fields.forEach((field, index) => {
+      const translated = asString(asRecord(translations[index])?.text);
+      if (translated) localized[field.key] = translated;
+    });
+    return localized;
+  } catch (error) {
+    console.warn('Impossibile tradurre i metadati dell’opera:', error);
+    return translateArtworkFieldsWithGemini(artwork, fields);
+  }
 }
 
 async function fetchJson(url: string): Promise<unknown> {

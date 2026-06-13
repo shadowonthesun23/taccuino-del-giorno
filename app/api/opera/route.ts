@@ -3,6 +3,7 @@ import {
   artworkKey,
   artworkTitleKey,
   findArtworkAcrossMuseums,
+  localizeArtworkToItalian,
   type Artwork,
 } from '@/lib/artwork';
 
@@ -49,7 +50,21 @@ export async function GET(request: Request) {
 
     const existingArtwork = cachedArtwork(record.opera_giorno);
     if (existingArtwork) {
-      return Response.json(existingArtwork);
+      const localizedArtwork = await localizeArtworkToItalian(existingArtwork as Artwork);
+      if (
+        supabaseServiceKey
+        && (
+          localizedArtwork.medium_it !== existingArtwork.medium_it
+          || localizedArtwork.dipartimento_it !== existingArtwork.dipartimento_it
+        )
+      ) {
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+        await supabaseAdmin
+          .from('contenuti_giornalieri')
+          .update({ opera_giorno: localizedArtwork })
+          .eq('data', dataIso);
+      }
+      return Response.json(localizedArtwork);
     }
 
     const keyword = typeof record.keyword_arte_en === 'string'
@@ -77,16 +92,17 @@ export async function GET(request: Request) {
     const recentKeys = new Set(recentArtworks.map(artworkKey).filter(Boolean));
     const recentTitles = new Set(recentArtworks.map(artworkTitleKey).filter(Boolean));
 
-    const artwork = await findArtworkAcrossMuseums({
+    const selectedArtwork = await findArtworkAcrossMuseums({
       keyword,
       dataIso,
       recentKeys,
       recentTitles,
     });
 
-    if (!artwork) {
+    if (!selectedArtwork) {
       return Response.json({ error: 'Nessuna opera adatta trovata' }, { status: 404 });
     }
+    const artwork = await localizeArtworkToItalian(selectedArtwork);
 
     if (supabaseServiceKey) {
       const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
