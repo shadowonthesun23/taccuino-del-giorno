@@ -9,6 +9,7 @@ import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, 
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
+import type { Artwork } from '@/lib/artwork';
 
 const garamond = EB_Garamond({ 
   subsets: ['latin'],
@@ -126,20 +127,7 @@ const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
   );
 };
 
-interface OperaGiorno {
-  titolo: string;
-  artista: string;
-  anno: string;
-  met_object_id: number;
-  immagine_url: string;
-  immagine_url_hd: string;
-  museo: string;
-  met_url: string;
-  medium: string;
-  dipartimento: string;
-  nota: string;
-  keyword_ricerca: string;
-}
+type OperaGiorno = Artwork;
 
 interface DatiTaccuino {
   data_odierna: string;
@@ -1127,7 +1115,7 @@ export default function Home() {
     const minimumTurnDelay = usePageTurn ? new Promise(resolve => window.setTimeout(resolve, 680)) : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
-      fetch('/api/opera').then(res => {
+      fetch(dataIso ? `/api/opera?data=${encodeURIComponent(dataIso)}` : '/api/opera').then(res => {
         if (res.status === 204) return null;
         return res.ok ? res.json() : null;
       }).catch(() => null),
@@ -1235,6 +1223,7 @@ export default function Home() {
   const groupedArchivio = groupByMonth(archivioFiltrato);
   const vinylOpen = vinylPinned || vinylPreview;
   const dataExLibris = dataSelezionata ?? oggi;
+  const operaSourceUrl = opera?.source_url || opera?.met_url || '';
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
@@ -1737,15 +1726,17 @@ export default function Home() {
                       <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
                     {(opera.medium || opera.dipartimento) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[opera.medium, opera.dipartimento].filter(Boolean).join(' · ')}</p>}
-                    <div className="flex flex-wrap items-center gap-4 pt-1">
-                      <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
-                        <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
-                        <span>{lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}</span>
-                      </a>
-                    </div>
+                    {operaSourceUrl && (
+                      <div className="flex flex-wrap items-center gap-4 pt-1">
+                        <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
+                          <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                          <span>{lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                   <div className="order-1 md:order-2">
-                    <a href={opera.met_url} target="_blank" rel="noopener noreferrer" className="block group">
+                    <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="block group">
                       <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
                     </a>
                     <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>

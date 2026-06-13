@@ -4,6 +4,7 @@ import { EB_Garamond } from 'next/font/google';
 import localFont from 'next/font/local';
 import ExportJpegButton from './ExportJpegButton';
 import styles from './passaporto.module.css';
+import { findArtworkAcrossMuseums, type Artwork } from '@/lib/artwork';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,16 +23,7 @@ const jocky = localFont({
   fallback: ['serif'],
 });
 
-interface OperaGiorno {
-  titolo: string;
-  artista: string;
-  anno: string;
-  immagine_url: string;
-  immagine_url_hd: string;
-  museo: string;
-  medium: string;
-  dipartimento: string;
-}
+type OperaGiorno = Artwork;
 
 interface DatiTaccuino {
   data_odierna: string;
@@ -174,44 +166,6 @@ async function getFotoAutore(nomeAutore: string): Promise<string | null> {
   }
 }
 
-async function findArtwork(keyword: string | null | undefined): Promise<OperaGiorno | null> {
-  if (!keyword) return null;
-
-  try {
-    const searchRes = await fetch(
-      `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${encodeURIComponent(keyword)}&hasImages=true&isPublicDomain=true`,
-      { next: { revalidate: 86400 } }
-    );
-    const searchData = await searchRes.json();
-    const objectIDs = Array.isArray(searchData.objectIDs) ? searchData.objectIDs.slice(0, 25) : [];
-    if (objectIDs.length === 0) return null;
-
-    for (const objectID of objectIDs.slice(0, 6)) {
-      const objRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${objectID}`, {
-        next: { revalidate: 86400 },
-      });
-      if (!objRes.ok) continue;
-      const obj = await objRes.json();
-      if (obj.primaryImageSmall && obj.title) {
-        return {
-          titolo: obj.title,
-          artista: obj.artistDisplayName || 'Artista sconosciuto',
-          anno: obj.objectDate || '',
-          immagine_url: obj.primaryImageSmall,
-          immagine_url_hd: obj.primaryImage || obj.primaryImageSmall,
-          museo: 'Metropolitan Museum of Art',
-          medium: obj.medium || '',
-          dipartimento: obj.department || '',
-        };
-      }
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
 async function findAlbumCover(musica: DatiTaccuino['musica']): Promise<string | null> {
   const searchTerm = musica.chiave_ricerca?.trim() || `${musica.brano} ${musica.autore}`.trim();
   if (!searchTerm) return null;
@@ -255,7 +209,14 @@ async function getPassportData(dataIso: string): Promise<{
 
   const [fotoUrl, opera, albumCover] = await Promise.all([
     getFotoAutore(data.autore_giorno),
-    data.opera_giorno ? Promise.resolve(data.opera_giorno) : findArtwork(data.keyword_arte_en),
+    data.opera_giorno
+      ? Promise.resolve(data.opera_giorno)
+      : data.keyword_arte_en
+        ? findArtworkAcrossMuseums({
+            keyword: data.keyword_arte_en,
+            dataIso,
+          })
+        : Promise.resolve(null),
     findAlbumCover(data.musica),
   ]);
 
