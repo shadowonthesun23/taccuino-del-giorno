@@ -1788,8 +1788,17 @@ body {
 }
 
 @media (min-width: 640px) {
+  .loading-notebook-content {
+    padding-bottom: 82px;
+    transform: translateY(-18px);
+  }
+
   .loading-notebook-paper h1 {
     font-size: 68px;
+  }
+
+  .loading-notebook-paper .loading-notebook-content p {
+    margin-top: 18px;
   }
 }
 
