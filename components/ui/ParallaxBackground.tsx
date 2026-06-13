@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
+const revealSeasons: SeasonId[] = ['spring', 'summer'];
 
 export default function ParallaxBackground({
   children,
@@ -15,6 +16,7 @@ export default function ParallaxBackground({
   const lineArtRef = useRef<HTMLDivElement>(null);
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(false);
+  const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -63,7 +65,7 @@ export default function ParallaxBackground({
   useEffect(() => {
     const reveal = seasonalRevealRef.current;
     const lineArt = lineArtRef.current;
-    if (!reveal || !lineArt || season !== 'spring') return;
+    if (!reveal || !lineArt || !hasSeasonalReveal) return;
 
     const pointerQuery = window.matchMedia(
       '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
@@ -197,7 +199,7 @@ export default function ParallaxBackground({
       if (frame !== null) window.cancelAnimationFrame(frame);
       if (hideTimer !== null) window.clearTimeout(hideTimer);
     };
-  }, [dark, season]);
+  }, [dark, hasSeasonalReveal, season]);
 
   const bgColor = dark ? '#252422' : '#F8F6F0';
   const imageOpacity = dark ? 0.29 : 0.13;
@@ -213,13 +215,16 @@ export default function ParallaxBackground({
         style={{ backgroundColor: bgColor, transition: 'background-color 300ms' }}
       />
 
-      {season === 'spring' && (
+      {hasSeasonalReveal && (
         <div
           ref={seasonalRevealRef}
           aria-hidden="true"
-          className={`seasonal-paint-reveal safe-viewport-backdrop fixed z-0 pointer-events-none ${
-            dark ? 'is-dark' : ''
-          }`}
+          className={[
+            'seasonal-paint-reveal',
+            `season-${season}`,
+            'safe-viewport-backdrop fixed z-0 pointer-events-none',
+            dark ? 'is-dark' : '',
+          ].join(' ')}
         />
       )}
 
@@ -227,7 +232,7 @@ export default function ParallaxBackground({
       <div
         ref={lineArtRef}
         className={`safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden ${
-          season === 'spring' ? 'seasonal-line-art' : ''
+          hasSeasonalReveal ? 'seasonal-line-art' : ''
         }`}
       >
         <div
@@ -247,7 +252,7 @@ export default function ParallaxBackground({
       </div>
 
       {/* Contenuto */}
-      <div className={`relative z-10 ${season === 'spring' ? 'seasonal-reveal-content' : ''}`}>
+      <div className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''}`}>
         {children}
       </div>
     </>

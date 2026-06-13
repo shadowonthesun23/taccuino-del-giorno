@@ -59,7 +59,6 @@ html, body {
   --paint-tail-r: 72px;
   background-color: rgba(255, 248, 232, 0.05);
   background-blend-mode: screen;
-  background-image: url('/images/seasonal/botticelli-primavera.webp');
   background-position: center;
   background-size: cover;
   opacity: 0;
@@ -73,6 +72,15 @@ html, body {
     radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
     radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
     radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+}
+
+.seasonal-paint-reveal.season-spring {
+  background-image: url('/images/seasonal/botticelli-primavera.webp');
+}
+
+.seasonal-paint-reveal.season-summer {
+  background-image: url('/images/seasonal/van-gogh-summer-evening.webp');
+  background-position: center center;
 }
 
 .seasonal-paint-reveal.is-dark {
