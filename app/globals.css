@@ -2342,7 +2342,7 @@ body {
 .seasonal-bookmark:focus-within,
 .seasonal-bookmark:focus-visible {
   outline: none;
-  right: -3px;
+  right: 1px;
   box-shadow:
     -9px 10px 22px -18px rgba(42,37,34,0.68),
     inset 1px 0 rgba(255,255,255,0.26);
@@ -2481,7 +2481,7 @@ body {
   font-style: normal;
   font-weight: 800;
   letter-spacing: 0.1em;
-  opacity: 0.64;
+  opacity: 0.74;
   text-transform: uppercase;
 }
 
@@ -2589,14 +2589,14 @@ body {
 .seasonal-bookmark-planet-list > em {
   font-size: 0.76rem;
   font-style: italic;
-  opacity: 0.78;
+  opacity: 0.86;
 }
 
 .seasonal-bookmark-planets small {
   font-size: 0.66rem;
   font-style: italic;
   letter-spacing: 0.025em;
-  opacity: 0.58;
+  opacity: 0.7;
 }
 
 .seasonal-bookmark.season-spring {
