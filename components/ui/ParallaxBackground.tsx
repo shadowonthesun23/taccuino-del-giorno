@@ -91,21 +91,15 @@ export default function ParallaxBackground({
       lineArt.style.setProperty(name, value);
     };
 
-    const updateReadabilityZones = (x: number, y: number) => {
-      readabilityZones.forEach((zone) => {
+    const getReadabilityProtection = (x: number, y: number) => {
+      return readabilityZones.reduce((strongest, zone) => {
         const rect = zone.getBoundingClientRect();
         const distanceX = Math.max(rect.left - x, 0, x - rect.right);
         const distanceY = Math.max(rect.top - y, 0, y - rect.bottom);
         const distance = Math.hypot(distanceX, distanceY);
         const strength = Math.max(0, Math.min(1, 1 - distance / 150));
-        zone.style.setProperty('--reveal-readability', strength.toFixed(3));
-      });
-    };
-
-    const clearReadabilityZones = () => {
-      readabilityZones.forEach((zone) => {
-        zone.style.setProperty('--reveal-readability', '0');
-      });
+        return Math.max(strongest, strength);
+      }, 0);
     };
 
     const paintFrame = (time: number) => {
@@ -168,20 +162,23 @@ export default function ParallaxBackground({
       velocity = Math.min(52, velocity * 0.45 + pointerDistance * 0.55);
       previousTargetX = targetX;
       previousTargetY = targetY;
-      updateReadabilityZones(targetX, targetY);
+      const readabilityProtection = getReadabilityProtection(targetX, targetY);
+      const regularOpacity = dark ? 0.54 : 0.82;
+      const protectedOpacity = dark ? 0.2 : 0.36;
+      const revealOpacity =
+        regularOpacity - (regularOpacity - protectedOpacity) * readabilityProtection;
 
       if (hideTimer !== null) {
         window.clearTimeout(hideTimer);
         hideTimer = null;
       }
-      reveal.style.opacity = dark ? '0.54' : '0.82';
+      reveal.style.opacity = revealOpacity.toFixed(3);
       lineArt.classList.add('is-disturbed');
       if (frame === null) frame = window.requestAnimationFrame(paintFrame);
     };
 
     const hideReveal = () => {
       reveal.style.opacity = '0';
-      clearReadabilityZones();
       if (hideTimer !== null) window.clearTimeout(hideTimer);
       hideTimer = window.setTimeout(() => {
         lineArt.classList.remove('is-disturbed');
@@ -199,7 +196,6 @@ export default function ParallaxBackground({
       document.documentElement.removeEventListener('pointerleave', hideReveal);
       if (frame !== null) window.cancelAnimationFrame(frame);
       if (hideTimer !== null) window.clearTimeout(hideTimer);
-      clearReadabilityZones();
     };
   }, [dark, season]);
 
