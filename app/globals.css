@@ -4893,6 +4893,7 @@ body {
 
   .saints-card-layout {
     min-height: 210px;
+    padding-bottom: 20px;
   }
 
   .saint-card-artwork {
@@ -4910,7 +4911,7 @@ body {
   }
 
   .saint-card-credit {
-    bottom: -10px;
+    bottom: 0;
     font-size: 0.62rem;
   }
 
@@ -4935,11 +4936,17 @@ body {
   .vinyl-record,
   .vinyl-sleeve {
     height: 216px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 216px;
   }
 
   .vinyl-record.is-open {
-    transform: translateX(60px) rotate(4deg);
+    transform: translateX(calc(-50% + 60px)) rotate(4deg);
+  }
+
+  .vinyl-sleeve[aria-pressed="true"] {
+    transform: translateX(calc(-50% - 4px));
   }
 
   .music-link-actions {
