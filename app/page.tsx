@@ -1706,6 +1706,9 @@ export default function Home() {
                 filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
               }}
             />
+            <span className={`${caveat.className} author-photo-caption`}>
+              {inizialiExLibris} · {formatExLibrisDate(dataExLibris)}
+            </span>
           </div>
         </div>
       )}
