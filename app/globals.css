@@ -537,37 +537,8 @@ body {
 .card-section-poesia { --card-tilt: 0.05deg; }
 .card-section-bibbia { --card-tilt: -0.06deg; }
 
-.card-section-poesia .card-content::before,
-.card-section-bibbia .card-content::before,
-.card-section-musica .card-content::before {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.36), transparent),
-    rgba(211, 185, 132, 0.42);
-  border: 1px solid rgba(117, 88, 57, 0.13);
-  border-bottom: 0;
-  border-radius: 4px 4px 0 0;
-  content: "";
-  height: 28px;
-  pointer-events: none;
-  position: absolute;
-  right: clamp(20px, 3vw, 34px);
-  top: -1px;
-  transform: rotate(1.4deg);
-  width: 34px;
-  z-index: 0;
-}
-
 .card-content {
   position: relative;
-}
-
-[data-theme="dark"] .card-section-poesia .card-content::before,
-[data-theme="dark"] .card-section-bibbia .card-content::before,
-[data-theme="dark"] .card-section-musica .card-content::before {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.08), transparent),
-    rgba(146, 116, 72, 0.34);
-  border-color: rgba(229, 205, 172, 0.12);
 }
 
 .opera-postcard-media {
