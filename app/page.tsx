@@ -257,13 +257,26 @@ function formatExLibrisDate(dataIso: string): string {
   return `${parseInt(giorno)} · ${mesiRomani[parseInt(mese) - 1]} · ${anno}`;
 }
 
-function formatExLibrisLedger(dataIso: string, lingua: 'IT' | 'EN'): string {
+function getDayOfYearInfo(dataIso: string) {
   const date = new Date(`${dataIso}T12:00:00Z`);
   const year = date.getUTCFullYear();
   const start = new Date(`${year}-01-01T12:00:00Z`);
   const day = Math.floor((date.getTime() - start.getTime()) / 86_400_000) + 1;
   const total = new Date(Date.UTC(year, 1, 29)).getUTCMonth() === 1 ? 366 : 365;
+  return { day, total };
+}
+
+function formatExLibrisLedger(dataIso: string, lingua: 'IT' | 'EN'): string {
+  const { day, total } = getDayOfYearInfo(dataIso);
   return lingua === 'IT' ? `foglio ${day}/${total}` : `page ${day}/${total}`;
+}
+
+function getArchiveEntryMark(item: ArchivioItem) {
+  const { day } = getDayOfYearInfo(item.data);
+  return {
+    day: String(day).padStart(3, '0'),
+    initials: getInitials(item.autore_giorno).slice(0, 2),
+  };
 }
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -1406,6 +1419,7 @@ export default function Home() {
                   {items.map((item, index) => {
                     const isOggi = item.data === oggi;
                     const isSelezionato = item.data === dataSelezionata;
+                    const archiveMark = getArchiveEntryMark(item);
                     return (
                       <li key={item.data}>
                         <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data, Boolean(data)); else setPopoverOpen(false); }}
@@ -1413,6 +1427,10 @@ export default function Home() {
                             isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
                           } ${isOggi ? 'is-today' : ''}`}
                           style={{ '--archive-entry-delay': `${80 + Math.min(index, 7) * 34}ms` } as CSSProperties}>
+                          <span className="archive-entry-mark" aria-hidden="true">
+                            <span>{archiveMark.initials}</span>
+                            <small>{archiveMark.day}</small>
+                          </span>
                           <span className="archive-entry-copy">
                             <span className="archive-entry-title">{item.autore_giorno}</span>
                             {isOggi && <span className="archive-entry-today">oggi</span>}

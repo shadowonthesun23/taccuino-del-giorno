@@ -3359,8 +3359,36 @@ body {
   border-bottom: 1px solid rgba(117,91,57,0.075);
   border-radius: 0;
   gap: 12px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 10px 8px 9px 4px;
+}
+
+.archive-entry-mark {
+  align-self: center;
+  border: 1px solid var(--archive-month-edge);
+  border-radius: 4px;
+  color: var(--archive-month-ink);
+  display: grid;
+  height: 34px;
+  justify-items: center;
+  line-height: 1;
+  opacity: 0.82;
+  padding: 4px 5px 3px;
+  transform: rotate(-1.6deg);
+  width: 34px;
+}
+
+.archive-entry-mark span {
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.archive-entry-mark small {
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+  opacity: 0.64;
 }
 
 .archive-entry:hover,
@@ -3417,6 +3445,11 @@ body {
 
 .archive-popover.is-dark .archive-entry-date {
   color: #99918b;
+}
+
+.archive-popover.is-dark .archive-entry-mark {
+  border-color: rgba(216, 199, 180, 0.18);
+  color: #d8c7b4;
 }
 
 .archive-popover.is-open .archive-month-tab {
