@@ -53,7 +53,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
 
       exportFrame = document.createElement('div');
       exportFrame.style.position = 'fixed';
-      exportFrame.style.left = '-10000px';
+      exportFrame.style.left = '0';
       exportFrame.style.top = '0';
       exportFrame.style.width = `${SOCIAL_EXPORT_WIDTH}px`;
       exportFrame.style.height = `${SOCIAL_EXPORT_HEIGHT}px`;
@@ -64,6 +64,8 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame.style.justifyContent = 'center';
       exportFrame.style.padding = '138px 90px 128px';
       exportFrame.style.overflow = 'hidden';
+      exportFrame.style.pointerEvents = 'none';
+      exportFrame.style.zIndex = '-1';
       exportFrame.style.backgroundColor = isDark ? '#25211d' : '#f6efe2';
       exportFrame.style.backgroundImage = [
         'url("/images/sfondo-taccuino.webp")',
@@ -85,7 +87,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       header.style.fontStyle = 'italic';
       header.style.letterSpacing = '0.03em';
       header.style.textAlign = 'center';
-      header.style.color = isDark ? 'rgba(240, 219, 190, 0.72)' : 'rgba(83, 65, 47, 0.72)';
+      header.style.color = 'rgba(83, 65, 47, 0.66)';
 
       const footer = document.createElement('div');
       footer.textContent = 'taccuino del giorno';
@@ -98,7 +100,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       footer.style.letterSpacing = '0.18em';
       footer.style.textAlign = 'center';
       footer.style.textTransform = 'uppercase';
-      footer.style.color = isDark ? 'rgba(240, 219, 190, 0.42)' : 'rgba(83, 65, 47, 0.42)';
+      footer.style.color = 'rgba(83, 65, 47, 0.38)';
 
       const contentWrap = document.createElement('div');
       contentWrap.style.width = '900px';
