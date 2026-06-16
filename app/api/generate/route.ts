@@ -66,6 +66,32 @@ function parseGeneratedJson(responseText: string) {
   }
 }
 
+type RecentMusicRecord = {
+  musica: {
+    brano?: unknown;
+    autore?: unknown;
+    genere?: unknown;
+  } | null;
+};
+
+function formatRecentMusicExclusions(records: RecentMusicRecord[] | null): string {
+  const unique = new Set<string>();
+
+  for (const record of records ?? []) {
+    const title = typeof record.musica?.brano === 'string' ? record.musica.brano.trim() : '';
+    const artist = typeof record.musica?.autore === 'string' ? record.musica.autore.trim() : '';
+    const genre = typeof record.musica?.genere === 'string' ? record.musica.genere.trim() : '';
+
+    if (!title && !artist) {
+      continue;
+    }
+
+    unique.add([title, artist, genre].filter(Boolean).join(' - '));
+  }
+
+  return [...unique].slice(0, 35).map((item) => `- ${item}`).join('\n');
+}
+
 export async function GET(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
@@ -88,6 +114,22 @@ export async function GET(request: Request) {
     const dataIso = oggi.toISOString().split('T')[0];
     const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
 
+    const { data: recentMusicRows, error: recentMusicError } = await supabase
+      .from('contenuti_giornalieri')
+      .select('musica')
+      .lt('data', dataIso)
+      .not('musica', 'is', null)
+      .order('data', { ascending: false })
+      .limit(90);
+
+    if (recentMusicError) {
+      console.warn('Impossibile leggere lo storico musicale recente:', recentMusicError.message);
+    }
+
+    const recentMusicExclusions = formatRecentMusicExclusions(
+      recentMusicRows as RecentMusicRecord[] | null
+    );
+
     const model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash",
       generationConfig: {
@@ -103,8 +145,11 @@ REGOLE DI CURATELA:
 3. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
 4. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 5. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
-6. MUSICA: Qualsiasi genere (moderna, classica, jazz, alternativa) purché NON commerciale/trap. Deve legarsi al tema del giorno.
+6. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente.
 7. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
+
+CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
+${recentMusicExclusions || '- Nessuno storico disponibile: varia comunque genere, epoca e area geografica.'}
 
 Restituisci esclusivamente un unico oggetto JSON valido. Non aggiungere testo prima o dopo il JSON.
 

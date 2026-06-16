@@ -257,6 +257,15 @@ function formatExLibrisDate(dataIso: string): string {
   return `${parseInt(giorno)} · ${mesiRomani[parseInt(mese) - 1]} · ${anno}`;
 }
 
+function formatExLibrisLedger(dataIso: string, lingua: 'IT' | 'EN'): string {
+  const date = new Date(`${dataIso}T12:00:00Z`);
+  const year = date.getUTCFullYear();
+  const start = new Date(`${year}-01-01T12:00:00Z`);
+  const day = Math.floor((date.getTime() - start.getTime()) / 86_400_000) + 1;
+  const total = new Date(Date.UTC(year, 1, 29)).getUTCMonth() === 1 ? 366 : 365;
+  return lingua === 'IT' ? `foglio ${day}/${total}` : `page ${day}/${total}`;
+}
+
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 type MoonPhaseId = 'new' | 'waxing-crescent' | 'first-quarter' | 'waxing-gibbous' | 'full' | 'waning-gibbous' | 'last-quarter' | 'waning-crescent';
 
@@ -2076,6 +2085,7 @@ export default function Home() {
                 <span className="daily-ex-libris-kicker">Ex Libris</span>
                 <strong>{inizialiExLibris}</strong>
                 <span className="daily-ex-libris-date">{formatExLibrisDate(dataExLibris)}</span>
+                <span className="daily-ex-libris-ledger">{formatExLibrisLedger(dataExLibris, lingua)}</span>
               </div>
               <p className={`journal-footer-title ${jocky.className} notebook-wordmark`}>
                 {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
