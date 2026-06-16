@@ -280,6 +280,7 @@ function getArchiveEntryMark(item: ArchivioItem) {
 }
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
+type DayLightId = 'dawn' | 'noon' | 'evening' | 'night';
 type MoonPhaseId = 'new' | 'waxing-crescent' | 'first-quarter' | 'waxing-gibbous' | 'full' | 'waning-gibbous' | 'last-quarter' | 'waning-crescent';
 
 const synodicMonth = 29.53058867;
@@ -296,6 +297,14 @@ function getSeason(dataIso: string): SeasonId {
   if (valore >= 621 && valore < 923) return 'summer';
   if (valore >= 923 && valore < 1221) return 'autumn';
   return 'winter';
+}
+
+function getDayLight(dataIso: string): DayLightId {
+  const season = getSeason(dataIso);
+  if (season === 'spring') return 'dawn';
+  if (season === 'summer') return 'noon';
+  if (season === 'autumn') return 'evening';
+  return 'night';
 }
 
 function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
@@ -1482,9 +1491,12 @@ export default function Home() {
 
   if (!data) return null;
 
+  const season = getSeason(dataExLibris);
+  const dayLight = getDayLight(dataExLibris);
+
   return (
-    <ParallaxBackground season={getSeason(dataExLibris)}>
-      <div className={`min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+    <ParallaxBackground season={season}>
+      <div className={`journal-material journal-material-${season} journal-light-${dayLight} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
         <NotebookQuickNav
           isDark={isDark}
           lingua={lingua}
@@ -1879,8 +1891,8 @@ export default function Home() {
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-5"
               >
-                <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
-                  <div className="space-y-5 order-2 md:order-1">
+                <div className="opera-postcard grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                  <div className="opera-postcard-copy space-y-5 order-2 md:order-1">
                     <div>
                       <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
                       <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
@@ -1895,9 +1907,9 @@ export default function Home() {
                       </div>
                     )}
                   </div>
-                  <div className="order-1 md:order-2">
-                    <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="block group">
-                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`w-full h-auto object-cover rounded-2xl border ${themeClasses.border} shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] transition-transform duration-500 group-hover:scale-[1.015]`} />
+                  <div className="opera-postcard-media order-1 md:order-2">
+                    <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
+                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`} />
                     </a>
                     <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>

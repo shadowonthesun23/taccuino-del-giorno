@@ -239,6 +239,52 @@ body {
   min-height: 100dvh; /* dvh invece di vh copre correttamente su mobile */
 }
 
+.journal-material::before {
+  background:
+    radial-gradient(ellipse 42% 24% at var(--journal-light-x, 50%) 8%, var(--journal-light-color, rgba(255, 242, 198, 0.16)), transparent 72%),
+    linear-gradient(180deg, var(--journal-material-wash, rgba(255,255,255,0.02)), transparent 46%);
+  content: "";
+  inset: 0;
+  mix-blend-mode: var(--journal-material-blend, multiply);
+  opacity: var(--journal-material-opacity, 0.72);
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.journal-material-spring {
+  --journal-material-wash: rgba(203, 216, 180, 0.11);
+  --journal-light-color: rgba(255, 239, 190, 0.16);
+  --journal-light-x: 42%;
+}
+
+.journal-material-summer {
+  --journal-material-wash: rgba(222, 205, 148, 0.13);
+  --journal-light-color: rgba(255, 231, 156, 0.2);
+  --journal-light-x: 56%;
+}
+
+.journal-material-autumn {
+  --journal-material-wash: rgba(196, 140, 104, 0.12);
+  --journal-light-color: rgba(225, 166, 113, 0.17);
+  --journal-light-x: 58%;
+}
+
+.journal-material-winter {
+  --journal-material-wash: rgba(173, 190, 196, 0.1);
+  --journal-light-color: rgba(218, 232, 235, 0.12);
+  --journal-light-x: 45%;
+}
+
+.journal-light-dawn { --journal-light-x: 36%; }
+.journal-light-noon { --journal-light-x: 50%; }
+.journal-light-evening { --journal-light-x: 66%; }
+.journal-light-night {
+  --journal-light-color: rgba(193, 205, 218, 0.1);
+  --journal-material-blend: screen;
+  --journal-material-opacity: 0.46;
+}
+
 /* Dark mode: forza bg scuro su tutto il viewport */
 @media (prefers-color-scheme: dark) {
   body {
@@ -490,6 +536,106 @@ body {
 .card-section-avvenimenti { --card-tilt: -0.04deg; }
 .card-section-poesia { --card-tilt: 0.05deg; }
 .card-section-bibbia { --card-tilt: -0.06deg; }
+
+.card-section-poesia .card-content::before,
+.card-section-bibbia .card-content::before,
+.card-section-musica .card-content::before {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.36), transparent),
+    rgba(211, 185, 132, 0.42);
+  border: 1px solid rgba(117, 88, 57, 0.13);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  content: "";
+  height: 28px;
+  pointer-events: none;
+  position: absolute;
+  right: clamp(20px, 3vw, 34px);
+  top: -1px;
+  transform: rotate(1.4deg);
+  width: 34px;
+  z-index: 0;
+}
+
+.card-content {
+  position: relative;
+}
+
+[data-theme="dark"] .card-section-poesia .card-content::before,
+[data-theme="dark"] .card-section-bibbia .card-content::before,
+[data-theme="dark"] .card-section-musica .card-content::before {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), transparent),
+    rgba(146, 116, 72, 0.34);
+  border-color: rgba(229, 205, 172, 0.12);
+}
+
+.opera-postcard-media {
+  perspective: 900px;
+}
+
+.opera-postcard-link {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.44), transparent),
+    #f3ead8;
+  border: 1px solid rgba(117, 88, 57, 0.14);
+  border-radius: 7px 5px 9px 6px;
+  box-shadow:
+    3px 4px 0 rgba(117, 88, 57, 0.06),
+    0 20px 44px -34px rgba(42,37,34,0.48),
+    inset 0 1px 0 rgba(255,255,255,0.54);
+  padding: 12px 12px 34px;
+  position: relative;
+  transform: rotate(0.8deg);
+  transition:
+    box-shadow 300ms ease,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.opera-postcard-link::after {
+  bottom: 9px;
+  color: rgba(95, 73, 52, 0.54);
+  content: "scheda museo";
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  left: 14px;
+  letter-spacing: 0.12em;
+  position: absolute;
+  text-transform: uppercase;
+}
+
+.opera-postcard-link:hover,
+.opera-postcard-link:focus-visible {
+  box-shadow:
+    4px 5px 0 rgba(117, 88, 57, 0.08),
+    0 22px 48px -32px rgba(42,37,34,0.55),
+    0 0 0 1px rgba(222,107,88,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  outline: none;
+  transform: rotate(0.25deg) translateY(-1px);
+}
+
+.opera-postcard-image {
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(117, 88, 57, 0.08);
+  filter: saturate(0.94) contrast(0.98);
+}
+
+[data-theme="dark"] .opera-postcard-link {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07), transparent),
+    #332a22;
+  border-color: rgba(231, 203, 172, 0.13);
+  box-shadow:
+    3px 4px 0 rgba(0,0,0,0.16),
+    0 20px 44px -32px rgba(0,0,0,0.72),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .opera-postcard-link::after {
+  color: rgba(229, 205, 172, 0.42);
+}
 
 .card-section-heading {
   margin-bottom: 22px;

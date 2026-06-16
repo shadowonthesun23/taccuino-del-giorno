@@ -21,6 +21,9 @@ const badgeVariants: Record<string, string> = {
   bibbia: 'badge-tilt-right',
 };
 
+const SOCIAL_EXPORT_WIDTH = 1080;
+const SOCIAL_EXPORT_HEIGHT = 1920;
+
 interface CardProps {
   id?: string;
   title?: React.ReactNode;
@@ -38,13 +41,95 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
   const handleExport = useCallback(async () => {
     if (!sectionRef.current || exporting) return;
     setExporting(true);
+    let exportFrame: HTMLDivElement | null = null;
+
     try {
       await document.fonts.ready;
       const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(sectionRef.current, {
-        pixelRatio: 2,
-        filter: (node) =>
-          !(node instanceof HTMLElement && node.dataset.exportIgnore),
+
+      const source = sectionRef.current;
+      const clone = source.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
+
+      exportFrame = document.createElement('div');
+      exportFrame.style.position = 'fixed';
+      exportFrame.style.left = '-10000px';
+      exportFrame.style.top = '0';
+      exportFrame.style.width = `${SOCIAL_EXPORT_WIDTH}px`;
+      exportFrame.style.height = `${SOCIAL_EXPORT_HEIGHT}px`;
+      exportFrame.style.boxSizing = 'border-box';
+      exportFrame.style.display = 'flex';
+      exportFrame.style.flexDirection = 'column';
+      exportFrame.style.alignItems = 'center';
+      exportFrame.style.justifyContent = 'center';
+      exportFrame.style.padding = '138px 90px 128px';
+      exportFrame.style.overflow = 'hidden';
+      exportFrame.style.backgroundColor = isDark ? '#25211d' : '#f6efe2';
+      exportFrame.style.backgroundImage = [
+        'url("/images/sfondo-taccuino.webp")',
+        isDark
+          ? 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 226, 184, 0.12), transparent 70%)'
+          : 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 255, 255, 0.5), transparent 70%)',
+      ].join(', ');
+      exportFrame.style.backgroundSize = 'cover, cover';
+      exportFrame.style.backgroundPosition = 'center, center';
+      exportFrame.style.fontFamily = 'inherit';
+
+      const header = document.createElement('div');
+      header.textContent = 'Il giorno da custodire';
+      header.style.position = 'absolute';
+      header.style.top = '62px';
+      header.style.left = '90px';
+      header.style.right = '90px';
+      header.style.fontSize = '28px';
+      header.style.fontStyle = 'italic';
+      header.style.letterSpacing = '0.03em';
+      header.style.textAlign = 'center';
+      header.style.color = isDark ? 'rgba(240, 219, 190, 0.72)' : 'rgba(83, 65, 47, 0.72)';
+
+      const footer = document.createElement('div');
+      footer.textContent = 'taccuino del giorno';
+      footer.style.position = 'absolute';
+      footer.style.bottom = '54px';
+      footer.style.left = '90px';
+      footer.style.right = '90px';
+      footer.style.fontSize = '18px';
+      footer.style.fontWeight = '700';
+      footer.style.letterSpacing = '0.18em';
+      footer.style.textAlign = 'center';
+      footer.style.textTransform = 'uppercase';
+      footer.style.color = isDark ? 'rgba(240, 219, 190, 0.42)' : 'rgba(83, 65, 47, 0.42)';
+
+      const contentWrap = document.createElement('div');
+      contentWrap.style.width = '900px';
+      contentWrap.style.maxHeight = '1580px';
+      contentWrap.style.display = 'flex';
+      contentWrap.style.alignItems = 'center';
+      contentWrap.style.justifyContent = 'center';
+
+      clone.style.width = '900px';
+      clone.style.maxWidth = '900px';
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.boxSizing = 'border-box';
+      clone.style.transformOrigin = 'center center';
+      clone.style.margin = '0';
+
+      contentWrap.appendChild(clone);
+      exportFrame.append(header, contentWrap, footer);
+      document.body.appendChild(exportFrame);
+
+      const scale = Math.min(
+        1,
+        900 / Math.max(clone.scrollWidth, 1),
+        1580 / Math.max(clone.scrollHeight, 1)
+      );
+      clone.style.transform = `scale(${scale})`;
+
+      const dataUrl = await toPng(exportFrame, {
+        width: SOCIAL_EXPORT_WIDTH,
+        height: SOCIAL_EXPORT_HEIGHT,
+        pixelRatio: 1,
       });
       const link = document.createElement('a');
       link.download = `taccuino-${filename ?? 'card'}.png`;
@@ -53,9 +138,10 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
     } catch (err) {
       console.error('Errore export card:', err);
     } finally {
+      exportFrame?.remove();
       setExporting(false);
     }
-  }, [exporting, filename]);
+  }, [exporting, filename, isDark]);
 
   return (
     <div id={id} className={className}>
