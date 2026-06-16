@@ -203,18 +203,39 @@ export default function AuthorExportCard({
               viewBox={`0 0 ${layout.tapeWidth} ${layout.tapeHeight}`}
               style={{ transform: 'rotate(-2deg)' }}
             >
+              <defs>
+                <linearGradient id="author-card-washi" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stopColor="#fffbe6" stopOpacity="0.52" />
+                  <stop offset="0.48" stopColor={palette.tapeBg} stopOpacity="0.88" />
+                  <stop offset="1" stopColor="#c9ad75" stopOpacity="0.78" />
+                </linearGradient>
+              </defs>
               <polygon
                 points={[
-                  [0.01, 0.02], [0.99, 0], [0.98, 0.12], [1, 0.24],
-                  [0.98, 0.36], [1, 0.48], [0.98, 0.62], [1, 0.74],
-                  [0.98, 0.88], [0.99, 1], [0.02, 0.98], [0, 0.85],
-                  [0.02, 0.7], [0, 0.58], [0.02, 0.44], [0, 0.3],
-                  [0.02, 0.16], [0, 0.05],
+                  [0.01, 0.06], [0.09, 0.02], [0.24, 0.04], [0.41, 0.01],
+                  [0.62, 0.03], [0.8, 0.01], [0.99, 0.05], [0.98, 0.15],
+                  [1, 0.28], [0.98, 0.41], [1, 0.54], [0.98, 0.68],
+                  [1, 0.84], [0.98, 0.96], [0.82, 0.98], [0.63, 0.96],
+                  [0.48, 0.99], [0.27, 0.96], [0.08, 0.98], [0.01, 0.94],
+                  [0.02, 0.82], [0, 0.68], [0.02, 0.55], [0, 0.4],
+                  [0.02, 0.27], [0, 0.14],
                 ].map(([x, y]) => `${Math.round(layout.tapeWidth * x)},${Math.round(layout.tapeHeight * y)}`).join(' ')}
-                fill={palette.tapeBg}
+                fill="url(#author-card-washi)"
               />
-              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.2} C ${layout.tapeWidth * 0.34} ${layout.tapeHeight * 0.1}, ${layout.tapeWidth * 0.58} ${layout.tapeHeight * 0.26}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.14}`} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="3" />
-              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.86} C ${layout.tapeWidth * 0.38} ${layout.tapeHeight * 0.96}, ${layout.tapeWidth * 0.6} ${layout.tapeHeight * 0.78}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.9}`} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="2" />
+              <polygon
+                points={[
+                  [0.01, 0.06], [0.09, 0.02], [0.24, 0.04], [0.41, 0.01],
+                  [0.62, 0.03], [0.8, 0.01], [0.99, 0.05], [0.98, 0.15],
+                  [1, 0.28], [0.98, 0.41], [1, 0.54], [0.98, 0.68],
+                  [1, 0.84], [0.98, 0.96], [0.82, 0.98], [0.63, 0.96],
+                  [0.48, 0.99], [0.27, 0.96], [0.08, 0.98], [0.01, 0.94],
+                  [0.02, 0.82], [0, 0.68], [0.02, 0.55], [0, 0.4],
+                  [0.02, 0.27], [0, 0.14],
+                ].map(([x, y]) => `${Math.round(layout.tapeWidth * x)},${Math.round(layout.tapeHeight * y)}`).join(' ')}
+                fill="rgba(255,255,255,0.12)"
+              />
+              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.24} C ${layout.tapeWidth * 0.34} ${layout.tapeHeight * 0.12}, ${layout.tapeWidth * 0.58} ${layout.tapeHeight * 0.28}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.16}`} fill="none" stroke="rgba(255,255,246,0.34)" strokeWidth="3" />
+              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.86} C ${layout.tapeWidth * 0.38} ${layout.tapeHeight * 0.96}, ${layout.tapeWidth * 0.6} ${layout.tapeHeight * 0.78}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.9}`} fill="none" stroke="rgba(80,58,33,0.16)" strokeWidth="2" />
             </svg>
             {/* Testo data centrato sul tape */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

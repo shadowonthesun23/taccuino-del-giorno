@@ -11,25 +11,33 @@ export const runtime = 'nodejs';
 const W = 1080;
 const H = 1920;
 
-// Tape: rettangolo pieno + triangoli BG ai bordi che "mordono" verso l'interno
 function makeWashiTapeSvg(bgColor: string, tapeColor: string, width: number, height: number): string {
   const TW = width;
   const TH = height;
   const p = (x: number, y: number) => `${Math.round(TW * x)},${Math.round(TH * y)}`;
   const points = [
-    p(0.01, 0.02), p(0.99, 0), p(0.98, 0.12), p(1, 0.24),
-    p(0.98, 0.36), p(1, 0.48), p(0.98, 0.62), p(1, 0.74),
-    p(0.98, 0.88), p(0.99, 1), p(0.02, 0.98), p(0, 0.85),
-    p(0.02, 0.7), p(0, 0.58), p(0.02, 0.44), p(0, 0.3),
-    p(0.02, 0.16), p(0, 0.05),
+    p(0.01, 0.06), p(0.09, 0.02), p(0.24, 0.04), p(0.41, 0.01),
+    p(0.62, 0.03), p(0.8, 0.01), p(0.99, 0.05), p(0.98, 0.15),
+    p(1, 0.28), p(0.98, 0.41), p(1, 0.54), p(0.98, 0.68),
+    p(1, 0.84), p(0.98, 0.96), p(0.82, 0.98), p(0.63, 0.96),
+    p(0.48, 0.99), p(0.27, 0.96), p(0.08, 0.98), p(0.01, 0.94),
+    p(0.02, 0.82), p(0, 0.68), p(0.02, 0.55), p(0, 0.4),
+    p(0.02, 0.27), p(0, 0.14),
   ].join(' ');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${TW}" height="${TH}" viewBox="0 0 ${TW} ${TH}">
+  <defs>
+    <linearGradient id="wash" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffbe6" stop-opacity="0.52"/>
+      <stop offset="0.48" stop-color="${tapeColor}" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#c9ad75" stop-opacity="0.78"/>
+    </linearGradient>
+  </defs>
   <rect width="${TW}" height="${TH}" fill="${bgColor}" opacity="0"/>
-  <polygon points="${points}" fill="${tapeColor}"/>
-  <polygon points="${points}" fill="rgba(255,255,255,0.14)"/>
-  <path d="M ${TW * 0.08} ${TH * 0.2} C ${TW * 0.34} ${TH * 0.1}, ${TW * 0.58} ${TH * 0.26}, ${TW * 0.92} ${TH * 0.14}" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
-  <path d="M ${TW * 0.08} ${TH * 0.86} C ${TW * 0.38} ${TH * 0.96}, ${TW * 0.6} ${TH * 0.78}, ${TW * 0.92} ${TH * 0.9}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
+  <polygon points="${points}" fill="url(#wash)"/>
+  <polygon points="${points}" fill="rgba(255,255,255,0.12)"/>
+  <path d="M ${TW * 0.08} ${TH * 0.24} C ${TW * 0.34} ${TH * 0.12}, ${TW * 0.58} ${TH * 0.28}, ${TW * 0.92} ${TH * 0.16}" fill="none" stroke="rgba(255,255,246,0.34)" stroke-width="3"/>
+  <path d="M ${TW * 0.08} ${TH * 0.86} C ${TW * 0.38} ${TH * 0.96}, ${TW * 0.6} ${TH * 0.78}, ${TW * 0.92} ${TH * 0.9}" fill="none" stroke="rgba(80,58,33,0.16)" stroke-width="2"/>
 </svg>`;
 }
 
@@ -58,8 +66,8 @@ export async function POST(req: NextRequest) {
     const backgroundPng = await sharp(backgroundBuffer)
       .resize(W, H, { fit: 'cover' })
       .modulate({
-        brightness: palette.tone === 'dark' ? 0.7 : 1.08,
-        saturation: palette.tone === 'dark' ? 0.35 : 0.9,
+        brightness: palette.tone === 'dark' ? 0.76 : 1.16,
+        saturation: palette.tone === 'dark' ? 0.22 : 0.58,
       })
       .png()
       .toBuffer();

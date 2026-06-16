@@ -48,6 +48,8 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       const { toPng } = await import('html-to-image');
 
       const source = sectionRef.current;
+      const sourceStyle = window.getComputedStyle(source);
+      const sourceFontFamily = sourceStyle.fontFamily;
       const clone = source.cloneNode(true) as HTMLElement;
       clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
 
@@ -66,16 +68,19 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame.style.overflow = 'hidden';
       exportFrame.style.pointerEvents = 'none';
       exportFrame.style.zIndex = '-1';
-      exportFrame.style.backgroundColor = isDark ? '#25211d' : '#f6efe2';
+      exportFrame.style.backgroundColor = '#eee5d3';
       exportFrame.style.backgroundImage = [
+        isDark
+          ? 'linear-gradient(rgba(238, 229, 211, 0.58), rgba(238, 229, 211, 0.58))'
+          : 'linear-gradient(rgba(246, 239, 226, 0.64), rgba(246, 239, 226, 0.64))',
         'url("/images/sfondo-taccuino.webp")',
         isDark
-          ? 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 226, 184, 0.12), transparent 70%)'
-          : 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 255, 255, 0.5), transparent 70%)',
+          ? 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 226, 184, 0.18), transparent 70%)'
+          : 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 255, 255, 0.62), transparent 70%)',
       ].join(', ');
-      exportFrame.style.backgroundSize = 'cover, cover';
-      exportFrame.style.backgroundPosition = 'center, center';
-      exportFrame.style.fontFamily = 'inherit';
+      exportFrame.style.backgroundSize = 'cover, cover, cover';
+      exportFrame.style.backgroundPosition = 'center, center, center';
+      exportFrame.style.fontFamily = sourceFontFamily;
 
       const header = document.createElement('div');
       header.textContent = 'Il giorno da custodire';
@@ -114,6 +119,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       clone.style.height = 'auto';
       clone.style.maxHeight = 'none';
       clone.style.boxSizing = 'border-box';
+      clone.style.fontFamily = sourceFontFamily;
       clone.style.transformOrigin = 'center center';
       clone.style.margin = '0';
 
