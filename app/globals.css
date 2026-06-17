@@ -256,7 +256,8 @@ body {
 .journal-material::after {
   background:
     radial-gradient(ellipse 120% 52% at 50% 0%, transparent 0 44%, rgba(31, 25, 18, 0.18) 100%),
-    repeating-linear-gradient(91deg, transparent 0 46px, rgba(117, 88, 57, 0.025) 47px, transparent 49px);
+    radial-gradient(circle at 18% 22%, rgba(117, 88, 57, 0.035), transparent 12%),
+    radial-gradient(circle at 84% 76%, rgba(117, 88, 57, 0.026), transparent 14%);
   content: "";
   inset: 0;
   mix-blend-mode: multiply;
@@ -449,8 +450,8 @@ body {
   background-image:
     radial-gradient(circle at 14% 11%, rgba(122, 94, 62, 0.055), transparent 24%),
     radial-gradient(circle at 84% 78%, rgba(122, 94, 62, 0.04), transparent 20%),
-    linear-gradient(176deg, rgba(255,255,255,0.56), transparent 38%),
-    repeating-linear-gradient(91deg, transparent 0 19px, rgba(117, 88, 57, 0.026) 20px, transparent 22px);
+    radial-gradient(ellipse at 48% 34%, rgba(181, 149, 106, 0.035), transparent 54%),
+    linear-gradient(176deg, rgba(255,255,255,0.56), transparent 38%);
   border-color: rgba(181, 149, 106, 0.2) !important;
   border-radius: 13px 10px 17px 11px !important;
   isolation: isolate;
@@ -480,8 +481,8 @@ body {
   background-image:
     radial-gradient(circle at 14% 12%, rgba(255, 214, 166, 0.07), transparent 24%),
     radial-gradient(circle at 82% 76%, rgba(255, 214, 166, 0.04), transparent 20%),
-    linear-gradient(176deg, rgba(255,255,255,0.06), transparent 42%),
-    repeating-linear-gradient(91deg, transparent 0 19px, rgba(255, 223, 185, 0.014) 20px, transparent 22px);
+    radial-gradient(ellipse at 50% 38%, rgba(231, 203, 172, 0.03), transparent 56%),
+    linear-gradient(176deg, rgba(255,255,255,0.06), transparent 42%);
   border-color: rgba(231, 203, 172, 0.18) !important;
   box-shadow:
     1px 1px 0 rgba(255,255,255,0.04),
@@ -541,8 +542,8 @@ body {
 .card-paper-shadow::after {
   background:
     linear-gradient(112deg, transparent 0%, transparent 34%, var(--card-hover-wash) 47%, transparent 64%, transparent 100%),
-    radial-gradient(circle at 22% 18%, rgba(117, 88, 57, 0.05), transparent 14%),
-    repeating-linear-gradient(2deg, transparent 0 13px, rgba(117, 88, 57, 0.03) 14px, transparent 16px);
+    radial-gradient(circle at 22% 18%, rgba(117, 88, 57, 0.045), transparent 14%),
+    radial-gradient(circle at 72% 72%, rgba(181, 149, 106, 0.035), transparent 18%);
   inset: 0;
   opacity: 0.46;
   transform: translateX(-30%) skewX(-10deg);
@@ -1466,7 +1467,8 @@ body {
 .author-photo-paper::before {
   background:
     linear-gradient(90deg, rgba(255,255,255,0.42), transparent 34%),
-    repeating-linear-gradient(6deg, transparent 0 13px, rgba(117, 88, 57, 0.035) 14px, transparent 16px);
+    radial-gradient(circle at 24% 18%, rgba(117, 88, 57, 0.04), transparent 14%),
+    radial-gradient(circle at 76% 84%, rgba(117, 88, 57, 0.026), transparent 18%);
   inset: 0;
   mix-blend-mode: multiply;
   opacity: 0.44;
@@ -3731,7 +3733,8 @@ body {
 .music-cover-frame::after {
   background:
     linear-gradient(110deg, rgba(255,255,255,0.18), transparent 36%),
-    repeating-linear-gradient(0deg, transparent 0 14px, rgba(117,88,57,0.028) 15px, transparent 17px);
+    radial-gradient(circle at 18% 22%, rgba(117,88,57,0.035), transparent 13%),
+    radial-gradient(circle at 82% 78%, rgba(117,88,57,0.024), transparent 16%);
   content: "";
   inset: 0;
   mix-blend-mode: multiply;
