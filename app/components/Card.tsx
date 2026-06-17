@@ -86,7 +86,11 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
 
       const contentMaxWidth = SOCIAL_EXPORT_WIDTH - SOCIAL_EXPORT_SIDE_PADDING * 2;
       const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_VERTICAL_PADDING * 2;
-      const targetCardWidth = Math.min(contentMaxWidth, Math.max(sourceRect.width, 920));
+      const scale = Math.min(
+        2.05,
+        contentMaxWidth / Math.max(sourceRect.width, 1),
+        contentMaxHeight / Math.max(sourceRect.height, 1)
+      );
 
       const contentWrap = document.createElement('div');
       contentWrap.style.width = `${contentMaxWidth}px`;
@@ -96,16 +100,24 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       contentWrap.style.justifyContent = 'center';
       contentWrap.style.overflow = 'visible';
 
-      clone.style.width = `${targetCardWidth}px`;
+      const scaledCardMount = document.createElement('div');
+      scaledCardMount.style.width = `${sourceRect.width * scale}px`;
+      scaledCardMount.style.height = `${sourceRect.height * scale}px`;
+      scaledCardMount.style.position = 'relative';
+      scaledCardMount.style.flex = '0 0 auto';
+
+      clone.style.width = `${sourceRect.width}px`;
       clone.style.maxWidth = 'none';
       clone.style.height = 'auto';
       clone.style.maxHeight = 'none';
       clone.style.boxSizing = 'border-box';
       clone.style.fontFamily = sourceFontFamily;
-      clone.style.transform = 'none';
+      clone.style.transform = `scale(${scale})`;
+      clone.style.transformOrigin = 'top left';
       clone.style.margin = '0';
 
-      contentWrap.appendChild(clone);
+      scaledCardMount.appendChild(clone);
+      contentWrap.appendChild(scaledCardMount);
       exportFrame.append(contentWrap);
       document.body.appendChild(exportFrame);
 
