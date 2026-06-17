@@ -1033,6 +1033,7 @@ export default function Home() {
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
+  const [musicCover, setMusicCover] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
@@ -1228,7 +1229,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null);
+    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1271,6 +1272,15 @@ export default function Home() {
               .catch(() => setSaintArtwork(null));
           });
         }
+        runWhenIdle(() => {
+          fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
+            .then(r => r.json())
+            .then(j => {
+              const result = j.results?.[0];
+              setMusicCover(result?.artworkUrl100 ? result.artworkUrl100.replace('100x100bb', '600x600bb') : null);
+            })
+            .catch(() => setMusicCover(null));
+        });
       })
       .catch(err => {
         setError(err.message); setLoading(false); setIsTurningPage(false); setPageTurnPhase('idle');
@@ -1986,23 +1996,19 @@ export default function Home() {
               <div className="music-card-layout">
 
                 <div className="music-media-cell select-none">
-                  <aside className={`music-listening-slip ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? "Scheda d'ascolto" : 'Listening note'}>
-                    <Music className="music-listening-icon" strokeWidth={1.55} aria-hidden="true" />
-                    <span className={`${stampwriter.className} music-listening-label`}>
-                      {lingua === 'IT' ? 'Ascolto' : 'Listen'}
-                    </span>
-                    <div className="music-listening-lines" aria-hidden="true">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <p>
-                      <strong>{data.musica.brano}</strong>
-                      <span>{data.musica.autore}</span>
-                    </p>
-                    <small>{data.musica.genere}</small>
-                  </aside>
+                  <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
+                    {musicCover ? (
+                      <img
+                        src={musicCover}
+                        alt={`${data.musica.brano} cover`}
+                        {...lazyImageProps}
+                      />
+                    ) : (
+                      <div className="music-cover-placeholder" aria-hidden="true">
+                        <Music className="h-10 w-10" strokeWidth={1.4} />
+                      </div>
+                    )}
+                  </figure>
                 </div>
 
                 <div className="music-copy-cell">
