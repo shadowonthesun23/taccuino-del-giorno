@@ -4,7 +4,7 @@ import sharp from 'sharp';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
-import { clampText, getAuthorCardLayout, getAuthorCardPalette } from '@/app/lib/authorCardDesign';
+import { clampText, getAuthorCardLayout, getAuthorCardPalette, getAuthorInitials } from '@/app/lib/authorCardDesign';
 
 export const runtime = 'nodejs';
 
@@ -50,13 +50,15 @@ export async function POST(req: NextRequest) {
     const layout = getAuthorCardLayout(citazione.testo, breveDescrizione);
     const citTesto = clampText(citazione.testo, layout.maxCitationChars);
     const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
+    const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
 
     const fontsDir = path.join(process.cwd(), 'public', 'fonts');
-    const [garamondRegular, garamondBold, garamondItalic, caveatBold] = await Promise.all([
+    const [garamondRegular, garamondBold, garamondItalic, caveatBold, stampwriterRegular] = await Promise.all([
       readFile(path.join(fontsDir, 'EBGaramond-Regular.ttf')),
       readFile(path.join(fontsDir, 'EBGaramond-Bold.ttf')),
       readFile(path.join(fontsDir, 'EBGaramond-Italic.ttf')),
       readFile(path.join(fontsDir, 'Caveat-Bold.ttf')),
+      readFile(path.join(fontsDir, 'STAMPWRITER-KIT.ttf')),
     ]);
 
     const paperPath = path.join(process.cwd(), 'public', 'beige-paper.png');
@@ -78,8 +80,13 @@ export async function POST(req: NextRequest) {
       try {
         const res = await fetch(fotoAutoreUrl);
         const buf = await res.arrayBuffer();
-        const mime = res.headers.get('content-type') || 'image/jpeg';
-        fotoB64 = `data:${mime};base64,${Buffer.from(buf).toString('base64')}`;
+        const photoPng = await sharp(Buffer.from(buf))
+          .resize(layout.photoWidth * 2, layout.photoHeight * 2, { fit: 'cover' })
+          .grayscale()
+          .modulate({ brightness: 1.04 })
+          .png()
+          .toBuffer();
+        fotoB64 = `data:image/png;base64,${photoPng.toString('base64')}`;
       } catch {
         fotoB64 = null;
       }
@@ -138,6 +145,57 @@ export async function POST(req: NextRequest) {
               : '0 0 120px 96px rgba(255,252,242,0.36)',
           },
         }),
+        React.createElement('div', {
+          style: {
+            position: 'absolute',
+            left: 64,
+            right: 64,
+            top: 312,
+            bottom: 84,
+            borderRadius: 42,
+            background: palette.sheetBg,
+            border: `2px solid ${palette.sheetBorder}`,
+            boxShadow: palette.sheetShadow,
+          },
+        }),
+        React.createElement(
+          'div',
+          {
+            style: {
+              position: 'absolute',
+              bottom: 128,
+              left: 392,
+              width: 296,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              transform: 'rotate(-0.8deg)',
+              color: palette.textMuted,
+              opacity: palette.tone === 'dark' ? 0.38 : 0.46,
+            },
+          },
+          React.createElement(
+            'div',
+            {
+              style: {
+                fontSize: 26,
+                fontFamily: 'Stampwriter',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+              },
+            },
+            'Il giorno da custodire'
+          ),
+          React.createElement('div', {
+            style: {
+              height: 1,
+              marginTop: 12,
+              width: 260,
+              background: palette.wcColor,
+              opacity: 0.42,
+            },
+          })
+        ),
         // Washi tape
         React.createElement(
           'div',
@@ -184,21 +242,46 @@ export async function POST(req: NextRequest) {
             )
           )
         ),
-        // Etichetta
+        // Nastro sezione
         React.createElement(
           'div',
           {
             style: {
-              fontSize: layout.labelFontSize,
-              fontWeight: 700,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: palette.accent,
+              display: 'flex',
+              justifyContent: 'center',
+              width: '100%',
+              height: 76,
               marginBottom: layout.labelMarginBottom,
-              fontFamily: 'EB Garamond',
+              position: 'relative',
+              zIndex: 2,
             },
           },
-          'Autore del Giorno'
+          React.createElement(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 438,
+                padding: '0 34px',
+                background: palette.labelTapeBg,
+                border: '2px solid rgba(109,42,36,0.18)',
+                borderRadius: 7,
+                boxShadow: palette.tone === 'dark'
+                  ? '0 14px 28px -24px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.18)'
+                  : '0 12px 28px -24px rgba(117,55,46,0.52), inset 0 1px 0 rgba(255,255,255,0.28)',
+                color: palette.labelTapeText,
+                fontSize: layout.labelFontSize + 2,
+                fontFamily: 'Stampwriter',
+                fontWeight: 400,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                transform: 'rotate(-1.2deg)',
+              },
+            },
+            'Autore del Giorno'
+          )
         ),
         // Watermark verticale — figlio diretto del root (position:relative),
         // right:0 = vero bordo destro della card
@@ -242,29 +325,78 @@ export async function POST(req: NextRequest) {
               justifyContent: 'center',
               width: '100%',
               marginBottom: layout.photoMarginBottom,
+              position: 'relative',
+              zIndex: 1,
             },
           },
-          fotoB64
-            ? React.createElement(
-                'div',
-                {
-                  style: {
-                    transform: 'rotate(-2deg)',
-                    background: palette.tone === 'dark' ? '#F4F0E6' : '#FDFCF8',
-                    border: `3px solid ${palette.tone === 'dark' ? '#D8CDBC' : palette.borderColor}`,
-                    padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
-                    display: 'flex',
-                    boxShadow: palette.photoShadow,
-                  },
-                },
-                React.createElement('img', {
+          React.createElement(
+            'div',
+            {
+              style: {
+                transform: fotoB64 ? 'rotate(-2deg)' : 'rotate(1.2deg)',
+                background: palette.tone === 'dark' ? '#F4F0E6' : '#FDFCF8',
+                border: `3px solid ${palette.tone === 'dark' ? '#D8CDBC' : palette.borderColor}`,
+                padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
+                display: 'flex',
+                boxShadow: palette.photoShadow,
+              },
+            },
+            fotoB64
+              ? React.createElement('img', {
                   src: fotoB64,
                   width: layout.photoWidth,
                   height: layout.photoHeight,
                   style: { objectFit: 'cover', filter: 'grayscale(100%) contrast(92%) brightness(1.04)' },
                 })
-              )
-            : null
+              : React.createElement(
+                  'div',
+                  {
+                    style: {
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: layout.photoWidth,
+                      height: layout.photoHeight,
+                      background: palette.tone === 'dark' ? '#EDE5D8' : '#F6F0E5',
+                      color: '#8B6D4E',
+                    },
+                  },
+                  React.createElement(
+                    'div',
+                    {
+                      style: {
+                        color: '#B85045',
+                        fontSize: 28,
+                        fontFamily: 'Stampwriter',
+                        letterSpacing: '0.18em',
+                        marginBottom: 22,
+                        textTransform: 'uppercase',
+                      },
+                    },
+                    'Ex Libris'
+                  ),
+                  React.createElement(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '3px solid rgba(139,109,78,0.42)',
+                        borderRadius: 999,
+                        color: '#654B35',
+                        fontSize: 74,
+                        fontFamily: 'EB Garamond',
+                        fontWeight: 700,
+                        height: 150,
+                        width: 150,
+                      },
+                    },
+                    initials
+                  )
+                )
+          )
         ),
         // Nome autore
         React.createElement(
@@ -373,6 +505,7 @@ export async function POST(req: NextRequest) {
           { name: 'EB Garamond', data: garamondBold, weight: 700, style: 'normal' },
           { name: 'EB Garamond', data: garamondItalic, weight: 400, style: 'italic' },
           { name: 'Caveat', data: caveatBold, weight: 700, style: 'normal' },
+          { name: 'Stampwriter', data: stampwriterRegular, weight: 400, style: 'normal' },
         ],
       }
     );

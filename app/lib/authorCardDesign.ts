@@ -7,7 +7,12 @@ export interface AuthorCardPalette {
   textBody: string;
   textMuted: string;
   accent: string;
+  labelTapeBg: string;
+  labelTapeText: string;
   cardBg: string;
+  sheetBg: string;
+  sheetBorder: string;
+  sheetShadow: string;
   borderColor: string;
   tapeBg: string;
   tapeText: string;
@@ -70,7 +75,12 @@ export function getAuthorCardPalette(isDark: boolean): AuthorCardPalette {
         textBody: '#D7CDBF',
         textMuted: '#A79D92',
         accent: '#E27664',
+        labelTapeBg: '#C95347',
+        labelTapeText: '#FFF4E8',
         cardBg: 'rgba(43,38,32,0.76)',
+        sheetBg: 'rgba(38,34,30,0.78)',
+        sheetBorder: 'rgba(231,203,172,0.12)',
+        sheetShadow: '0 34px 90px -58px rgba(0,0,0,0.86), inset 0 1px 0 rgba(255,255,255,0.05)',
         borderColor: 'rgba(231,203,172,0.14)',
         tapeBg: '#D7BD83',
         tapeText: '#241A10',
@@ -93,7 +103,12 @@ export function getAuthorCardPalette(isDark: boolean): AuthorCardPalette {
         textBody: '#4A433F',
         textMuted: '#8A817C',
         accent: '#DE6B58',
+        labelTapeBg: '#D55B4F',
+        labelTapeText: '#FFF7EB',
         cardBg: 'rgba(255,253,246,0.9)',
+        sheetBg: 'rgba(255,253,246,0.82)',
+        sheetBorder: 'rgba(181,149,106,0.2)',
+        sheetShadow: '0 30px 72px -54px rgba(42,37,34,0.45), 4px 6px 0 rgba(117,88,57,0.045), inset 0 1px 0 rgba(255,255,255,0.56)',
         borderColor: 'rgba(181,149,106,0.24)',
         tapeBg: '#D8BD82',
         tapeText: '#241A10',
@@ -238,4 +253,15 @@ export function clampText(text: string, maxChars: number): string {
   const lastSpace = trimmed.lastIndexOf(' ');
   const cut = lastSpace > maxChars * 0.72 ? trimmed.slice(0, lastSpace) : trimmed.slice(0, maxChars);
   return `${cut.trimEnd()}\u2026`;
+}
+
+export function getAuthorInitials(value: string): string {
+  return value
+    .replace(/\([^)]*\)/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 }

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { EB_Garamond, Caveat } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Download, EyeOff, Loader2 } from 'lucide-react';
-import { clampText, getAuthorCardLayout, getAuthorCardPalette } from '@/app/lib/authorCardDesign';
+import { clampText, getAuthorCardLayout, getAuthorCardPalette, getAuthorInitials } from '@/app/lib/authorCardDesign';
 
 const garamond = EB_Garamond({
   subsets: ['latin'],
@@ -15,6 +16,12 @@ const caveat = Caveat({
   subsets: ['latin'],
   weight: ['400', '700'],
   display: 'swap',
+});
+const stampwriter = localFont({
+  src: '../../public/fonts/STAMPWRITER-KIT.ttf',
+  display: 'swap',
+  preload: false,
+  fallback: ['Courier New', 'monospace'],
 });
 
 interface AuthorExportCardProps {
@@ -89,6 +96,7 @@ export default function AuthorExportCard({
   const layout = getAuthorCardLayout(citazione.testo, breveDescrizione);
   const citTesto = clampText(citazione.testo, layout.maxCitationChars);
   const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
+  const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
 
   // Scala 1:3 rispetto al PNG satori (1080×1920 → 360×640)
   const S = 1 / 3;
@@ -192,7 +200,38 @@ export default function AuthorExportCard({
               mixBlendMode: isDark ? 'screen' : 'soft-light',
             }}
           />
-
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: '64px',
+              right: '64px',
+              top: '312px',
+              bottom: '84px',
+              borderRadius: '42px',
+              background: palette.sheetBg,
+              border: `2px solid ${palette.sheetBorder}`,
+              boxShadow: palette.sheetShadow,
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              bottom: '128px',
+              left: '50%',
+              transform: 'translateX(-50%) rotate(-0.8deg)',
+              zIndex: 1,
+              color: palette.textMuted,
+              opacity: isDark ? 0.38 : 0.46,
+              textAlign: 'center',
+            }}
+          >
+            <div className={stampwriter.className} style={{ fontSize: '26px', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              Il giorno da custodire
+            </div>
+            <div style={{ height: '1px', margin: '12px auto 0', width: '260px', background: palette.wcColor, opacity: 0.42 }} />
+          </div>
           {/* ── Washi tape data ── */}
           <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${layout.tapeMarginBottom}px`, position: 'relative', height: `${layout.tapeHeight}px`, flexShrink: 0, zIndex: 1 }}>
             {/* Tape body con tacche triangolari ai bordi — replica makeWashiTapeSvg */}
@@ -245,22 +284,33 @@ export default function AuthorExportCard({
             </div>
           </div>
 
-          {/* ── Etichetta ── */}
-          <span
-            style={{
-              fontSize: `${layout.labelFontSize}px`,
-              fontWeight: 700,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: palette.accent,
-              marginBottom: `${layout.labelMarginBottom}px`,
-              flexShrink: 0,
-              position: 'relative',
-              zIndex: 1,
-            }}
-          >
-            Autore del Giorno
-          </span>
+          {/* ── Nastro sezione ── */}
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '76px', marginBottom: `${layout.labelMarginBottom}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
+            <div
+              style={{
+                alignItems: 'center',
+                background: `linear-gradient(180deg, rgba(255,255,255,0.16), transparent 52%), ${palette.labelTapeBg}`,
+                border: '2px solid rgba(109,42,36,0.18)',
+                borderRadius: '7px',
+                boxShadow: isDark
+                  ? '0 14px 28px -24px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.18)'
+                  : '0 12px 28px -24px rgba(117,55,46,0.52), inset 0 1px 0 rgba(255,255,255,0.28)',
+                color: palette.labelTapeText,
+                display: 'flex',
+                fontSize: `${layout.labelFontSize + 2}px`,
+                fontWeight: 700,
+                justifyContent: 'center',
+                letterSpacing: '0.16em',
+                minWidth: '438px',
+                padding: '0 34px',
+                position: 'relative',
+                textTransform: 'uppercase',
+                transform: 'rotate(-1.2deg)',
+              }}
+            >
+              <span className={stampwriter.className}>Autore del Giorno</span>
+            </div>
+          </div>
 
           {/* ── Watermark — figlio diretto del root 1080px, right:0 = vero bordo card ── */}
           <div
@@ -293,17 +343,16 @@ export default function AuthorExportCard({
 
           {/* ── Foto ── */}
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: `${layout.photoMarginBottom}px`, flexShrink: 0, position: 'relative', zIndex: 1 }}>
-            {fotoAutoreUrl && (
-              <div
-                style={{
-                  transform: 'rotate(-2deg)',
-                  background: isDark ? '#F4F0E6' : '#FDFCF8',
-                  border: `3px solid ${isDark ? '#D8CDBC' : palette.borderColor}`,
-                  padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
-                  boxShadow: palette.photoShadow,
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div
+              style={{
+                transform: fotoAutoreUrl ? 'rotate(-2deg)' : 'rotate(1.2deg)',
+                background: isDark ? '#F4F0E6' : '#FDFCF8',
+                border: `3px solid ${isDark ? '#D8CDBC' : palette.borderColor}`,
+                padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
+                boxShadow: palette.photoShadow,
+              }}
+            >
+              {fotoAutoreUrl ? (
                 <img
                   src={fotoAutoreUrl}
                   alt={autoreGiorno}
@@ -316,8 +365,29 @@ export default function AuthorExportCard({
                     filter: 'grayscale(100%) contrast(92%) brightness(1.04)',
                   }}
                 />
-              </div>
-            )}
+              ) : (
+                <div
+                  style={{
+                    alignItems: 'center',
+                    background:
+                      `linear-gradient(135deg, ${isDark ? 'rgba(43,38,32,0.07)' : 'rgba(222,107,88,0.08)'}, transparent 52%), ${isDark ? '#EDE5D8' : '#F6F0E5'}`,
+                    color: '#8B6D4E',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: `${layout.photoHeight}px`,
+                    justifyContent: 'center',
+                    width: `${layout.photoWidth}px`,
+                  }}
+                >
+                  <span className={stampwriter.className} style={{ color: '#B85045', fontSize: '28px', letterSpacing: '0.18em', marginBottom: '22px', textTransform: 'uppercase' }}>
+                    Ex Libris
+                  </span>
+                  <span style={{ border: '3px solid rgba(139,109,78,0.42)', borderRadius: '999px', color: '#654B35', fontSize: '74px', fontWeight: 700, height: '150px', lineHeight: '146px', textAlign: 'center', width: '150px' }}>
+                    {initials}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ── Nome autore ── */}
