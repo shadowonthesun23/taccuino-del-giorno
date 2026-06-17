@@ -80,6 +80,27 @@ function applyBrowserTheme(nextDark: boolean) {
   appThemeMeta.content = color;
 }
 
+function runWhenIdle(callback: () => void) {
+  if (typeof window === 'undefined') return;
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(callback, { timeout: 1400 });
+    return;
+  }
+
+  globalThis.setTimeout(callback, 350);
+}
+
+function getImageLoadingProps(priority = false) {
+  return priority
+    ? { decoding: 'async' as const, fetchPriority: 'high' as const }
+    : { loading: 'lazy' as const, decoding: 'async' as const };
+}
+
+const eagerImageProps = getImageLoadingProps(true);
+const lazyImageProps = getImageLoadingProps();
+const lowPriorityImageProps = { decoding: 'async' as const, fetchPriority: 'low' as const };
+
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
@@ -751,7 +772,7 @@ function DailyPassport({
             </div>
             {data.foto_autore_url && (
               <figure className="daily-passport-author-photo">
-                <img src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} />
+                <img src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} {...lazyImageProps} />
               </figure>
             )}
             <p className="daily-passport-fold-hint">{label.foldHint}</p>
@@ -825,7 +846,7 @@ function DailyPassport({
                 <span>{label.artwork}</span>
                 {opera.immagine_url_hd || opera.immagine_url ? (
                   <figure className="daily-passport-artwork">
-                    <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${label.artworkImage}: ${opera.titolo}`} />
+                    <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
                   </figure>
                 ) : null}
                 <h4>{opera.titolo}</h4>
@@ -882,6 +903,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
             src="/images/loading-paper-torn.png"
             alt=""
             aria-hidden="true"
+            {...eagerImageProps}
           />
           <div className="loading-notebook-content">
             <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
@@ -1213,7 +1235,7 @@ export default function Home() {
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
-      ? new Promise(resolve => window.setTimeout(resolve, 260))
+      ? new Promise(resolve => window.setTimeout(resolve, 140))
       : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -1233,34 +1255,38 @@ export default function Home() {
           window.setTimeout(() => {
             setIsTurningPage(false);
             setPageTurnPhase('idle');
-          }, 440);
+          }, 300);
         } else {
           setIsTurningPage(false);
           setPageTurnPhase('idle');
         }
         const singleSaintName = dati.santi.length === 1 ? dati.santi[0]?.nome?.trim() : '';
         if (singleSaintName) {
-          fetch(`/api/santo-immagine?nome=${encodeURIComponent(singleSaintName)}`)
-            .then((response) => {
-              if (response.status === 204) return null;
-              return response.ok ? response.json() as Promise<SaintArtwork> : null;
-            })
-            .then((artwork) => {
-              if (artwork) setSaintArtwork({ ...artwork, saintName: singleSaintName });
-            })
-            .catch(() => setSaintArtwork(null));
+          runWhenIdle(() => {
+            fetch(`/api/santo-immagine?nome=${encodeURIComponent(singleSaintName)}`)
+              .then((response) => {
+                if (response.status === 204) return null;
+                return response.ok ? response.json() as Promise<SaintArtwork> : null;
+              })
+              .then((artwork) => {
+                if (artwork) setSaintArtwork({ ...artwork, saintName: singleSaintName });
+              })
+              .catch(() => setSaintArtwork(null));
+          });
         }
-        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
-          .then(r => r.json())
-          .then(j => {
-            const result = j.results?.[0];
-            if (result?.artworkUrl100) {
-              setVinylCover(result.artworkUrl100.replace('100x100bb', '600x600bb'));
-            } else {
-              setVinylCover(null);
-            }
-          })
-          .catch(() => setVinylCover(null));
+        runWhenIdle(() => {
+          fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
+            .then(r => r.json())
+            .then(j => {
+              const result = j.results?.[0];
+              if (result?.artworkUrl100) {
+                setVinylCover(result.artworkUrl100.replace('100x100bb', '600x600bb'));
+              } else {
+                setVinylCover(null);
+              }
+            })
+            .catch(() => setVinylCover(null));
+        });
       })
       .catch(err => {
         setError(err.message); setLoading(false); setIsTurningPage(false); setPageTurnPhase('idle');
@@ -1632,9 +1658,6 @@ export default function Home() {
             <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
           </button>
         </div>
-        {pageTurnPhase !== 'idle' && (
-          <div className={`page-change-blur is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`} aria-hidden="true" />
-        )}
         <span className="sr-only" role="status" aria-live="polite">
           {isTurningPage ? (lingua === 'IT' ? 'Cambio giorno in corso' : 'Changing day') : ''}
         </span>
@@ -1710,6 +1733,7 @@ export default function Home() {
             <img
               src={data.foto_autore_url}
               alt={data.autore_giorno}
+              {...eagerImageProps}
               style={{
                 display: 'block',
                 width: '140px',
@@ -1852,6 +1876,7 @@ export default function Home() {
                       src={`/api/image-proxy?url=${encodeURIComponent(visibleSaintArtwork.imageUrl)}`}
                       alt=""
                       crossOrigin="anonymous"
+                      {...lazyImageProps}
                     />
                   </figure>
                 ) : null}
@@ -1909,7 +1934,7 @@ export default function Home() {
                   </div>
                   <div className="opera-postcard-media order-1 md:order-2">
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`} />
+                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`} {...lowPriorityImageProps} />
                     </a>
                     <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>
@@ -2042,6 +2067,7 @@ export default function Home() {
                           src={vinylCover}
                           alt={`${data.musica.brano} cover`}
                           className="w-full h-full object-cover"
+                          {...lazyImageProps}
                         />
                       ) : (
                         <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#DDD5C4]'}`}>

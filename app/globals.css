@@ -1069,25 +1069,25 @@ body {
 
 .journal-page-transition {
   opacity: 1;
-  transform: scale(1);
+  transform: translateY(0);
   transition:
-    opacity 220ms ease,
-    transform 220ms ease;
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .journal-page-transition.is-covering {
-  opacity: 0.72;
+  opacity: 0.42;
   pointer-events: none;
-  transform: scale(0.997);
+  transform: translateY(4px);
 }
 
 .journal-page-transition.is-revealing {
   opacity: 1;
   pointer-events: none;
-  transform: scale(1);
+  transform: translateY(0);
   transition:
-    opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1305,49 +1305,6 @@ body {
   top: 0;
   transform-origin: left center;
   width: 100%;
-}
-
-@keyframes pageChangeBlurIn {
-  from {
-    opacity: 0;
-    -webkit-backdrop-filter: blur(0);
-    backdrop-filter: blur(0);
-  }
-  to {
-    opacity: 1;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-  }
-}
-
-@keyframes pageChangeBlurOut {
-  from {
-    opacity: 1;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-  }
-  to {
-    opacity: 0;
-    -webkit-backdrop-filter: blur(0);
-    backdrop-filter: blur(0);
-  }
-}
-
-.page-change-blur {
-  animation: pageChangeBlurIn 240ms ease-out both;
-  background: rgba(253, 252, 248, 0.42);
-  inset: 0;
-  pointer-events: none;
-  position: fixed;
-  z-index: 42;
-}
-
-.page-change-blur.is-revealing {
-  animation: pageChangeBlurOut 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.page-change-blur.is-dark {
-  background: rgba(18, 18, 18, 0.34);
 }
 
 .stagger-1 { animation-delay: 0ms; }
