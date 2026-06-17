@@ -1033,9 +1033,6 @@ export default function Home() {
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
-  const [vinylCover, setVinylCover] = useState<string | null>(null);
-  const [vinylPreview, setVinylPreview] = useState(false);
-  const [vinylPinned, setVinylPinned] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
@@ -1231,7 +1228,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setVinylCover(null); setVinylPreview(false); setVinylPinned(false); setSaintArtwork(null);
+    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1274,19 +1271,6 @@ export default function Home() {
               .catch(() => setSaintArtwork(null));
           });
         }
-        runWhenIdle(() => {
-          fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
-            .then(r => r.json())
-            .then(j => {
-              const result = j.results?.[0];
-              if (result?.artworkUrl100) {
-                setVinylCover(result.artworkUrl100.replace('100x100bb', '600x600bb'));
-              } else {
-                setVinylCover(null);
-              }
-            })
-            .catch(() => setVinylCover(null));
-        });
       })
       .catch(err => {
         setError(err.message); setLoading(false); setIsTurningPage(false); setPageTurnPhase('idle');
@@ -1376,7 +1360,6 @@ export default function Home() {
     })
     : archivio;
   const groupedArchivio = groupByMonth(archivioFiltrato);
-  const vinylOpen = vinylPinned || vinylPreview;
   const dataExLibris = dataSelezionata ?? oggi;
   const operaSourceUrl = opera?.source_url || opera?.met_url || '';
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
@@ -2003,97 +1986,23 @@ export default function Home() {
               <div className="music-card-layout">
 
                 <div className="music-media-cell select-none">
-                  <div
-                    className="vinyl-stage relative"
-                  >
-                    <div
-                      className={`vinyl-record absolute left-0 top-0 ${vinylOpen ? 'is-open' : ''}`}
-                      style={{
-                        zIndex: 0,
-                      }}
-                    >
-                      <svg
-                        viewBox="0 0 240 240"
-                        className={`w-full h-full ${vinylOpen ? 'vinyl-spin' : ''}`}
-                        aria-hidden="true"
-                      >
-                        <defs>
-                          <radialGradient id="vinyl-dark" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stopColor="#262626" />
-                            <stop offset="40%" stopColor="#111111" />
-                            <stop offset="100%" stopColor="#1c1c1c" />
-                          </radialGradient>
-                          <radialGradient id="vinyl-label" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stopColor={isDark ? '#4a3828' : '#d4b896'} />
-                            <stop offset="100%" stopColor={isDark ? '#2e2018' : '#b09070'} />
-                          </radialGradient>
-                        </defs>
-                        <circle cx="120" cy="120" r="118" fill="url(#vinyl-dark)" />
-                        {[46, 56, 67, 76, 84, 92, 99, 105, 109, 113].map((r, i) => (
-                          <circle key={i} cx="120" cy="120" r={r}
-                            fill="none" stroke="#2e2e2e" strokeWidth="0.6" opacity="0.7" />
-                        ))}
-                        <ellipse cx="90" cy="72" rx="35" ry="13" fill="white" opacity="0.035"
-                          transform="rotate(-35 90 72)" />
-                        <circle cx="120" cy="120" r="34" fill="url(#vinyl-label)" />
-                        <circle cx="120" cy="120" r="4.5" fill="#0a0a0a" />
-                        <text x="120" y="114" textAnchor="middle" fontSize="6.5"
-                          fill={isDark ? '#e8d4b4' : '#5a3a1a'} fontFamily="Georgia, serif" fontStyle="italic">
-                          {data.musica.autore.slice(0, 16)}
-                        </text>
-                        <text x="120" y="126" textAnchor="middle" fontSize="5.5"
-                          fill={isDark ? '#c4a878' : '#7a5a3a'} fontFamily="Georgia, serif">
-                          {data.musica.brano.slice(0, 18)}
-                        </text>
-                      </svg>
+                  <aside className={`music-listening-slip ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? "Scheda d'ascolto" : 'Listening note'}>
+                    <Music className="music-listening-icon" strokeWidth={1.55} aria-hidden="true" />
+                    <span className={`${stampwriter.className} music-listening-label`}>
+                      {lingua === 'IT' ? 'Ascolto' : 'Listen'}
+                    </span>
+                    <div className="music-listening-lines" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                      <span />
                     </div>
-
-                    <button
-                      type="button"
-                      className="vinyl-sleeve absolute left-0 top-0 rounded-sm overflow-hidden cursor-pointer"
-                      style={{
-                        zIndex: 10,
-                      }}
-                      onMouseEnter={() => setVinylPreview(true)}
-                      onMouseLeave={() => setVinylPreview(false)}
-                      onFocus={() => setVinylPreview(true)}
-                      onBlur={() => setVinylPreview(false)}
-                      onClick={() => setVinylPinned(open => !open)}
-                      aria-label={lingua === 'IT' ? 'Apri la copertina del disco' : 'Open the record sleeve'}
-                      aria-pressed={vinylPinned}
-                    >
-                      {vinylCover ? (
-                        <img
-                          src={vinylCover}
-                          alt={`${data.musica.brano} cover`}
-                          className="w-full h-full object-cover"
-                          {...lazyImageProps}
-                        />
-                      ) : (
-                        <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-[#2A2A2A]' : 'bg-[#DDD5C4]'}`}>
-                          <Music className={`w-16 h-16 ${isDark ? 'text-[#555]' : 'text-[#A09080]'}`} />
-                        </div>
-                      )}
-                      <svg
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
-                      >
-                        <filter id="grain-vintage">
-                          <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" stitchTiles="stitch" result="noise" />
-                          <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
-                          <feBlend in="SourceGraphic" in2="gray" mode="soft-light" result="blended" />
-                          <feComponentTransfer in="blended"><feFuncA type="linear" slope="1" /></feComponentTransfer>
-                        </filter>
-                        <rect width="100%" height="100%" filter="url(#grain-vintage)" opacity="0.28" />
-                      </svg>
-                      <div
-                        className="absolute inset-0 pointer-events-none rounded-sm"
-                        style={{ background: isDark ? 'radial-gradient(ellipse at center, transparent 54%, rgba(0,0,0,0.22) 100%)' : 'radial-gradient(ellipse at center, transparent 56%, rgba(42,37,34,0.16) 100%)' }}
-                      />
-                    </button>
-
-                  </div>
+                    <p>
+                      <strong>{data.musica.brano}</strong>
+                      <span>{data.musica.autore}</span>
+                    </p>
+                    <small>{data.musica.genere}</small>
+                  </aside>
                 </div>
 
                 <div className="music-copy-cell">
