@@ -3281,18 +3281,12 @@ body {
 }
 
 .archive-entry.is-selected {
-  background: rgba(222,107,88,0.12);
+  background: rgba(222,107,88,0.08);
 }
 
 .archive-entry.is-selected::before {
-  animation: archiveSelectedPulse 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  background: #de6b58;
-  border-radius: 0 3px 3px 0;
   content: "";
-  inset: 7px auto 7px -8px;
-  position: absolute;
-  transform-origin: center;
-  width: 3px;
+  display: none;
 }
 
 .archive-entry-dot {
@@ -3588,17 +3582,19 @@ body {
 
 .archive-entry.is-selected {
   background:
-    linear-gradient(90deg, rgba(222,107,88,0.13), rgba(255,255,255,0.12) 48%, transparent 92%);
-  box-shadow: inset 2px 0 0 rgba(222,107,88,0.32);
+    linear-gradient(90deg, rgba(222,107,88,0.09), rgba(255,255,255,0.1) 52%, transparent 92%);
+  box-shadow: none;
 }
 
 .archive-entry.is-selected::before {
-  background: rgba(157,70,61,0.22);
-  border: 1px solid rgba(157,70,61,0.28);
-  border-radius: 999px;
-  height: 9px;
-  inset: 9px auto auto -6px;
-  width: 9px;
+  display: none;
+}
+
+.archive-entry.is-selected .archive-entry-mark {
+  background: rgba(253, 252, 248, 0.42);
+  border-color: rgba(157, 70, 61, 0.28);
+  color: #9d463d;
+  opacity: 0.94;
 }
 
 .archive-entry-copy {
@@ -3643,8 +3639,14 @@ body {
 
 .archive-popover.is-dark .archive-entry.is-selected {
   background:
-    linear-gradient(90deg, rgba(222,107,88,0.18), rgba(255,255,255,0.035) 48%, transparent 92%);
-  box-shadow: inset 2px 0 0 rgba(222,107,88,0.34);
+    linear-gradient(90deg, rgba(222,107,88,0.13), rgba(255,255,255,0.03) 48%, transparent 92%);
+  box-shadow: none;
+}
+
+.archive-popover.is-dark .archive-entry.is-selected .archive-entry-mark {
+  background: rgba(222,107,88,0.07);
+  border-color: rgba(222,107,88,0.28);
+  color: #e99586;
 }
 
 .archive-popover.is-open .archive-month-tab {
