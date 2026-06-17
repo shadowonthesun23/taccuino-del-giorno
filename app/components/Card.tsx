@@ -50,6 +50,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       const source = sectionRef.current;
       const sourceStyle = window.getComputedStyle(source);
       const sourceFontFamily = sourceStyle.fontFamily;
+      const sourceRect = source.getBoundingClientRect();
       const clone = source.cloneNode(true) as HTMLElement;
       clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
 
@@ -61,10 +62,9 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame.style.height = `${SOCIAL_EXPORT_HEIGHT}px`;
       exportFrame.style.boxSizing = 'border-box';
       exportFrame.style.display = 'flex';
-      exportFrame.style.flexDirection = 'column';
       exportFrame.style.alignItems = 'center';
       exportFrame.style.justifyContent = 'center';
-      exportFrame.style.padding = '138px 90px 128px';
+      exportFrame.style.padding = '90px 72px';
       exportFrame.style.overflow = 'hidden';
       exportFrame.style.pointerEvents = 'none';
       exportFrame.style.zIndex = '-1';
@@ -82,40 +82,16 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame.style.backgroundPosition = 'center, center, center';
       exportFrame.style.fontFamily = sourceFontFamily;
 
-      const header = document.createElement('div');
-      header.textContent = 'Il giorno da custodire';
-      header.style.position = 'absolute';
-      header.style.top = '62px';
-      header.style.left = '90px';
-      header.style.right = '90px';
-      header.style.fontSize = '28px';
-      header.style.fontStyle = 'italic';
-      header.style.letterSpacing = '0.03em';
-      header.style.textAlign = 'center';
-      header.style.color = 'rgba(83, 65, 47, 0.66)';
-
-      const footer = document.createElement('div');
-      footer.textContent = 'taccuino del giorno';
-      footer.style.position = 'absolute';
-      footer.style.bottom = '54px';
-      footer.style.left = '90px';
-      footer.style.right = '90px';
-      footer.style.fontSize = '18px';
-      footer.style.fontWeight = '700';
-      footer.style.letterSpacing = '0.18em';
-      footer.style.textAlign = 'center';
-      footer.style.textTransform = 'uppercase';
-      footer.style.color = 'rgba(83, 65, 47, 0.38)';
-
       const contentWrap = document.createElement('div');
-      contentWrap.style.width = '900px';
-      contentWrap.style.maxHeight = '1580px';
+      contentWrap.style.width = `${SOCIAL_EXPORT_WIDTH - 144}px`;
+      contentWrap.style.maxHeight = `${SOCIAL_EXPORT_HEIGHT - 180}px`;
       contentWrap.style.display = 'flex';
       contentWrap.style.alignItems = 'center';
       contentWrap.style.justifyContent = 'center';
+      contentWrap.style.overflow = 'visible';
 
-      clone.style.width = '900px';
-      clone.style.maxWidth = '900px';
+      clone.style.width = `${sourceRect.width}px`;
+      clone.style.maxWidth = 'none';
       clone.style.height = 'auto';
       clone.style.maxHeight = 'none';
       clone.style.boxSizing = 'border-box';
@@ -124,13 +100,13 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       clone.style.margin = '0';
 
       contentWrap.appendChild(clone);
-      exportFrame.append(header, contentWrap, footer);
+      exportFrame.append(contentWrap);
       document.body.appendChild(exportFrame);
 
       const scale = Math.min(
-        1,
-        900 / Math.max(clone.scrollWidth, 1),
-        1580 / Math.max(clone.scrollHeight, 1)
+        1.78,
+        (SOCIAL_EXPORT_WIDTH - 144) / Math.max(sourceRect.width, 1),
+        (SOCIAL_EXPORT_HEIGHT - 180) / Math.max(clone.scrollHeight, 1)
       );
       clone.style.transform = `scale(${scale})`;
 
