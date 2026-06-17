@@ -23,6 +23,8 @@ const badgeVariants: Record<string, string> = {
 
 const SOCIAL_EXPORT_WIDTH = 1080;
 const SOCIAL_EXPORT_HEIGHT = 1920;
+const SOCIAL_EXPORT_SIDE_PADDING = 48;
+const SOCIAL_EXPORT_VERTICAL_PADDING = 80;
 
 interface CardProps {
   id?: string;
@@ -64,7 +66,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame.style.display = 'flex';
       exportFrame.style.alignItems = 'center';
       exportFrame.style.justifyContent = 'center';
-      exportFrame.style.padding = '90px 72px';
+      exportFrame.style.padding = `${SOCIAL_EXPORT_VERTICAL_PADDING}px ${SOCIAL_EXPORT_SIDE_PADDING}px`;
       exportFrame.style.overflow = 'hidden';
       exportFrame.style.pointerEvents = 'none';
       exportFrame.style.zIndex = '-1';
@@ -82,33 +84,30 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame.style.backgroundPosition = 'center, center, center';
       exportFrame.style.fontFamily = sourceFontFamily;
 
+      const contentMaxWidth = SOCIAL_EXPORT_WIDTH - SOCIAL_EXPORT_SIDE_PADDING * 2;
+      const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_VERTICAL_PADDING * 2;
+      const targetCardWidth = Math.min(contentMaxWidth, Math.max(sourceRect.width, 920));
+
       const contentWrap = document.createElement('div');
-      contentWrap.style.width = `${SOCIAL_EXPORT_WIDTH - 144}px`;
-      contentWrap.style.maxHeight = `${SOCIAL_EXPORT_HEIGHT - 180}px`;
+      contentWrap.style.width = `${contentMaxWidth}px`;
+      contentWrap.style.maxHeight = `${contentMaxHeight}px`;
       contentWrap.style.display = 'flex';
       contentWrap.style.alignItems = 'center';
       contentWrap.style.justifyContent = 'center';
       contentWrap.style.overflow = 'visible';
 
-      clone.style.width = `${sourceRect.width}px`;
+      clone.style.width = `${targetCardWidth}px`;
       clone.style.maxWidth = 'none';
       clone.style.height = 'auto';
       clone.style.maxHeight = 'none';
       clone.style.boxSizing = 'border-box';
       clone.style.fontFamily = sourceFontFamily;
-      clone.style.transformOrigin = 'center center';
+      clone.style.transform = 'none';
       clone.style.margin = '0';
 
       contentWrap.appendChild(clone);
       exportFrame.append(contentWrap);
       document.body.appendChild(exportFrame);
-
-      const scale = Math.min(
-        1.78,
-        (SOCIAL_EXPORT_WIDTH - 144) / Math.max(sourceRect.width, 1),
-        (SOCIAL_EXPORT_HEIGHT - 180) / Math.max(clone.scrollHeight, 1)
-      );
-      clone.style.transform = `scale(${scale})`;
 
       const dataUrl = await toPng(exportFrame, {
         width: SOCIAL_EXPORT_WIDTH,
