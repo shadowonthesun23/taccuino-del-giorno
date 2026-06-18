@@ -52,7 +52,6 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       const source = sectionRef.current;
       const sourceStyle = window.getComputedStyle(source);
       const sourceFontFamily = sourceStyle.fontFamily;
-      const sourceRect = source.getBoundingClientRect();
       const clone = source.cloneNode(true) as HTMLElement;
       clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
 
@@ -115,7 +114,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
 
       const contentMaxWidth = SOCIAL_EXPORT_WIDTH - SOCIAL_EXPORT_SIDE_PADDING * 2;
       const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_VERTICAL_PADDING * 2;
-      const exportLayoutWidth = Math.min(contentMaxWidth, Math.max(sourceRect.width, 760));
+      const exportLayoutWidth = contentMaxWidth;
 
       const measureWrap = document.createElement('div');
       measureWrap.style.position = 'fixed';
@@ -133,12 +132,22 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       clone.style.boxSizing = 'border-box';
       clone.style.fontFamily = sourceFontFamily;
       clone.style.margin = '0';
+      clone.classList.add('social-export-card');
+      if (id) clone.dataset.socialExportSection = id;
       measureWrap.appendChild(clone);
       document.body.appendChild(measureWrap);
 
-      const exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
+      let exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
+      if (exportLayoutHeight > contentMaxHeight) {
+        clone.classList.add('social-export-card-dense');
+        exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
+      }
+      if (exportLayoutHeight > contentMaxHeight) {
+        clone.classList.add('social-export-card-compact');
+        exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
+      }
       const scale = Math.min(
-        2.35,
+        1.08,
         contentMaxWidth / exportLayoutWidth,
         contentMaxHeight / exportLayoutHeight
       );

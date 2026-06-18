@@ -665,6 +665,168 @@ body {
   text-wrap: pretty;
 }
 
+.social-export-card,
+.social-export-card * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.social-export-card {
+  border-radius: 30px !important;
+  padding: 54px 62px 58px !important;
+}
+
+.social-export-card .card-section-heading {
+  margin-bottom: 34px;
+}
+
+.social-export-card .section-typewriter-badge {
+  border-radius: 5px 4px 6px 4px;
+  font-size: 24px !important;
+  gap: 10px;
+  letter-spacing: 0.07em;
+  padding: 12px 18px 10px;
+}
+
+.social-export-card .section-typewriter-badge svg {
+  height: 24px;
+  width: 24px;
+}
+
+.social-export-card .card-content {
+  font-size: 22px;
+  line-height: 1.54;
+}
+
+.social-export-card .card-primary-title {
+  line-height: 1.08;
+  margin-bottom: 14px !important;
+}
+
+.social-export-card .card-secondary-meta {
+  font-size: 20px;
+  line-height: 1.38;
+}
+
+.social-export-card .card-body-copy,
+.social-export-card .text-xl {
+  font-size: 24px !important;
+  line-height: 1.52 !important;
+}
+
+.social-export-card .text-lg {
+  font-size: 21px !important;
+  line-height: 1.48 !important;
+}
+
+.social-export-card .quote-editorial {
+  padding-left: 38px !important;
+  padding-right: 38px !important;
+}
+
+.social-export-card .quote-editorial-text {
+  font-size: 34px !important;
+  line-height: 1.38 !important;
+}
+
+.social-export-card .decorative-initial {
+  margin-right: 14px;
+}
+
+.social-export-card .margin-note {
+  margin-top: 26px;
+}
+
+.social-export-card .margin-note span {
+  font-size: 25px;
+  line-height: 1.18;
+}
+
+.social-export-card[data-social-export-section="poesia"] .decorative-initial-text,
+.social-export-card[data-social-export-section="bibbia"] .decorative-initial-text {
+  font-size: 26px !important;
+  line-height: 1.5 !important;
+  margin-bottom: 28px !important;
+}
+
+.social-export-card[data-social-export-section="poesia"] [class*="border-l-2"],
+.social-export-card[data-social-export-section="bibbia"] [class*="border-l-2"] {
+  border-radius: 16px !important;
+  margin-top: 24px !important;
+  padding: 24px 28px !important;
+}
+
+.social-export-card-dense {
+  padding-bottom: 48px !important;
+  padding-top: 48px !important;
+}
+
+.social-export-card-dense .card-section-heading {
+  margin-bottom: 26px;
+}
+
+.social-export-card-dense .card-content {
+  line-height: 1.46;
+}
+
+.social-export-card-dense .card-body-copy,
+.social-export-card-dense .text-xl {
+  font-size: 22px !important;
+  line-height: 1.44 !important;
+}
+
+.social-export-card-dense .text-lg {
+  font-size: 20px !important;
+  line-height: 1.42 !important;
+}
+
+.social-export-card-dense[data-social-export-section="poesia"] .decorative-initial-text,
+.social-export-card-dense[data-social-export-section="bibbia"] .decorative-initial-text {
+  font-size: 24px !important;
+  line-height: 1.42 !important;
+}
+
+.social-export-card-dense[data-social-export-section="poesia"] [class*="border-l-2"],
+.social-export-card-dense[data-social-export-section="bibbia"] [class*="border-l-2"] {
+  padding: 20px 24px !important;
+}
+
+.social-export-card-compact {
+  padding-bottom: 40px !important;
+  padding-top: 40px !important;
+}
+
+.social-export-card-compact .card-section-heading {
+  margin-bottom: 20px;
+}
+
+.social-export-card-compact .section-typewriter-badge {
+  font-size: 21px !important;
+  padding: 10px 16px 9px;
+}
+
+.social-export-card-compact .card-primary-title {
+  margin-bottom: 8px !important;
+}
+
+.social-export-card-compact .card-body-copy,
+.social-export-card-compact .text-xl {
+  font-size: 20px !important;
+  line-height: 1.36 !important;
+}
+
+.social-export-card-compact .text-lg {
+  font-size: 18px !important;
+  line-height: 1.34 !important;
+}
+
+.social-export-card-compact[data-social-export-section="poesia"] .decorative-initial-text,
+.social-export-card-compact[data-social-export-section="bibbia"] .decorative-initial-text {
+  font-size: 22px !important;
+  line-height: 1.34 !important;
+  margin-bottom: 18px !important;
+}
+
 .saints-card-layout {
   height: 100%;
   min-height: 180px;
