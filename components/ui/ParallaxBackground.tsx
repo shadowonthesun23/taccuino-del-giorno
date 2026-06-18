@@ -14,7 +14,7 @@ export default function ParallaxBackground({
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
   const lineArtRef = useRef<HTMLDivElement>(null);
-  const seasonalRevealRef = useRef<HTMLDivElement>(null);
+  const seasonalRevealRef = useRef<HTMLCanvasElement>(null);
   const [dark, setDark] = useState(false);
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
 
@@ -63,35 +63,43 @@ export default function ParallaxBackground({
   }, []);
 
   useEffect(() => {
-    const reveal = seasonalRevealRef.current;
-    const lineArt = lineArtRef.current;
-    if (!reveal || !lineArt || !hasSeasonalReveal) return;
+    const canvas = seasonalRevealRef.current;
+    if (!canvas || !hasSeasonalReveal || !season) return;
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
 
     const pointerQuery = window.matchMedia(
       '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
     );
     let frame: number | null = null;
     let hideTimer: number | null = null;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
     let initialized = false;
-    let targetX = 0;
-    let targetY = 0;
-    let headX = 0;
-    let headY = 0;
-    let wakeX = 0;
-    let wakeY = 0;
-    let tailX = 0;
-    let tailY = 0;
+    let imageReady = false;
+    let targetX = window.innerWidth * 0.5;
+    let targetOpacity = 0;
+    let targetY = window.innerHeight * 0.5;
+    let currentX = targetX;
+    let currentY = targetY;
+    let currentOpacity = 0;
     let previousTargetX = 0;
     let previousTargetY = 0;
     let velocity = 0;
+    const cellSize = 32;
+    const maxRadius = 13;
+    const revealRange = 260;
+    const dots: Array<{ x: number; y: number; jitter: number }> = [];
+    const seasonalImage = new Image();
+    seasonalImage.src =
+      season === 'summer'
+        ? '/images/seasonal/van-gogh-summer-evening.webp'
+        : '/images/seasonal/botticelli-primavera.webp';
     const readabilityZones = Array.from(
       document.querySelectorAll<HTMLElement>('[data-reveal-readability]'),
     );
-
-    const setPaintVariable = (name: string, value: string) => {
-      reveal.style.setProperty(name, value);
-      lineArt.style.setProperty(name, value);
-    };
 
     const getReadabilityProtection = (x: number, y: number) => {
       return readabilityZones.reduce((strongest, zone) => {
@@ -104,40 +112,92 @@ export default function ParallaxBackground({
       }, 0);
     };
 
-    const paintFrame = (time: number) => {
-      headX += (targetX - headX) * 0.24;
-      headY += (targetY - headY) * 0.24;
-      tailX += (headX - tailX) * 0.26;
-      tailY += (headY - tailY) * 0.26;
-      wakeX = headX * 0.76 + tailX * 0.24;
-      wakeY = headY * 0.76 + tailY * 0.24;
+    const resizeCanvas = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      dots.length = 0;
+      const columns = Math.ceil(width / cellSize) + 1;
+      const rows = Math.ceil(height / cellSize) + 1;
+      for (let row = 0; row < rows; row += 1) {
+        for (let column = 0; column < columns; column += 1) {
+          const seed = Math.sin((row + 1) * 12.9898 + (column + 1) * 78.233) * 43758.5453;
+          dots.push({
+            x: column * cellSize + cellSize * 0.5,
+            y: row * cellSize + cellSize * 0.5,
+            jitter: seed - Math.floor(seed),
+          });
+        }
+      }
+    };
+
+    const drawCoverImage = () => {
+      const imageRatio = seasonalImage.width / seasonalImage.height;
+      const canvasRatio = width / height;
+      let sourceX = 0;
+      let sourceY = 0;
+      let sourceWidth = seasonalImage.width;
+      let sourceHeight = seasonalImage.height;
+
+      if (imageRatio > canvasRatio) {
+        sourceWidth = seasonalImage.height * canvasRatio;
+        sourceX = (seasonalImage.width - sourceWidth) / 2;
+      } else {
+        sourceHeight = seasonalImage.width / canvasRatio;
+        sourceY = (seasonalImage.height - sourceHeight) / 2;
+      }
+
+      ctx.drawImage(seasonalImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
+    };
+
+    const drawHalftoneMask = () => {
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+
+      for (const dot of dots) {
+        const distance = Math.hypot(currentX - dot.x, currentY - dot.y);
+        const strength = Math.max(0, 1 - distance / revealRange);
+        const radius = Math.max(0, (strength * strength * maxRadius + dot.jitter * 1.8) * currentOpacity);
+        if (radius > 0.35) {
+          ctx.moveTo(dot.x + radius, dot.y);
+          ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+        }
+      }
+
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+    };
+
+    const drawFrame = () => {
+      ctx.clearRect(0, 0, width, height);
+      if (!imageReady || currentOpacity < 0.01) return;
+
+      ctx.globalAlpha = dark ? 0.72 : 0.86;
+      drawCoverImage();
+      ctx.globalAlpha = 1;
+      drawHalftoneMask();
+    };
+
+    const paintFrame = () => {
+      currentX += (targetX - currentX) * 0.22;
+      currentY += (targetY - currentY) * 0.22;
+      currentOpacity += (targetOpacity - currentOpacity) * 0.2;
       velocity *= 0.86;
-
-      const pulse = Math.sin(time * 0.0032) * 3;
-      const trailDistance = Math.hypot(headX - tailX, headY - tailY);
-      const headRadiusX = Math.min(264, 194 + velocity * 1.05 + pulse);
-      const headRadiusY = Math.min(118, 86 + velocity * 0.18 - pulse * 0.2);
-      const wakeRadius = Math.min(118, Math.max(68, trailDistance * 0.13 + 70));
-      const tailRadius = Math.min(62, 42 + trailDistance * 0.025);
-
-      setPaintVariable('--paint-head-x', `${headX}px`);
-      setPaintVariable('--paint-head-y', `${headY}px`);
-      setPaintVariable('--paint-wake-x', `${wakeX}px`);
-      setPaintVariable('--paint-wake-y', `${wakeY}px`);
-      setPaintVariable('--paint-tail-x', `${tailX}px`);
-      setPaintVariable('--paint-tail-y', `${tailY}px`);
-      setPaintVariable('--paint-head-rx', `${headRadiusX}px`);
-      setPaintVariable('--paint-head-ry', `${headRadiusY}px`);
-      setPaintVariable('--paint-wake-r', `${wakeRadius}px`);
-      setPaintVariable('--paint-tail-r', `${tailRadius}px`);
+      drawFrame();
 
       const distance =
-        Math.abs(targetX - headX) +
-        Math.abs(targetY - headY) +
-        Math.abs(headX - wakeX) +
-        Math.abs(headY - wakeY);
+        Math.abs(targetX - currentX) +
+        Math.abs(targetY - currentY) +
+        Math.abs(targetOpacity - currentOpacity) * 100;
 
-      if (distance > 0.8 || velocity > 0.3) {
+      if (distance > 0.5 || velocity > 0.3) {
         frame = window.requestAnimationFrame(paintFrame);
       } else {
         frame = null;
@@ -149,9 +209,10 @@ export default function ParallaxBackground({
 
       targetX = event.clientX;
       targetY = event.clientY;
+
       if (!initialized) {
-        headX = wakeX = tailX = targetX;
-        headY = wakeY = tailY = targetY;
+        currentX = targetX;
+        currentY = targetY;
         previousTargetX = targetX;
         previousTargetY = targetY;
         initialized = true;
@@ -165,35 +226,49 @@ export default function ParallaxBackground({
       previousTargetX = targetX;
       previousTargetY = targetY;
       const readabilityProtection = getReadabilityProtection(targetX, targetY);
-      const regularOpacity = dark ? 0.54 : 0.82;
-      const protectedOpacity = dark ? 0.2 : 0.36;
-      const revealOpacity =
+      const regularOpacity = dark ? 0.54 : 0.68;
+      const protectedOpacity = dark ? 0.16 : 0.28;
+      targetOpacity =
         regularOpacity - (regularOpacity - protectedOpacity) * readabilityProtection;
 
       if (hideTimer !== null) {
         window.clearTimeout(hideTimer);
         hideTimer = null;
       }
-      reveal.style.opacity = revealOpacity.toFixed(3);
-      lineArt.classList.add('is-disturbed');
       if (frame === null) frame = window.requestAnimationFrame(paintFrame);
     };
 
     const hideReveal = () => {
-      reveal.style.opacity = '0';
+      targetOpacity = 0;
       if (hideTimer !== null) window.clearTimeout(hideTimer);
       hideTimer = window.setTimeout(() => {
-        lineArt.classList.remove('is-disturbed');
         hideTimer = null;
       }, 360);
+      if (frame === null) frame = window.requestAnimationFrame(paintFrame);
     };
 
+    const handleResize = () => {
+      resizeCanvas();
+      drawFrame();
+    };
+
+    const handleImageLoad = () => {
+      imageReady = true;
+      drawFrame();
+    };
+
+    seasonalImage.addEventListener('load', handleImageLoad);
+    resizeCanvas();
+    if (seasonalImage.complete) handleImageLoad();
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('resize', handleResize);
     window.addEventListener('blur', hideReveal);
     document.documentElement.addEventListener('pointerleave', hideReveal);
 
     return () => {
+      seasonalImage.removeEventListener('load', handleImageLoad);
       window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('blur', hideReveal);
       document.documentElement.removeEventListener('pointerleave', hideReveal);
       if (frame !== null) window.cancelAnimationFrame(frame);
@@ -216,12 +291,11 @@ export default function ParallaxBackground({
       />
 
       {hasSeasonalReveal && (
-        <div
+        <canvas
           ref={seasonalRevealRef}
           aria-hidden="true"
           className={[
             'seasonal-paint-reveal',
-            `season-${season}`,
             'safe-viewport-backdrop fixed z-0 pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
