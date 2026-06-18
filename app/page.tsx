@@ -1678,7 +1678,7 @@ export default function Home() {
                 </span>
               </h1>
               <p
-                className={`journal-hero-subtitle italic text-base sm:text-[1.05rem] leading-relaxed ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} max-w-2xl mx-auto`}
+                className={`journal-hero-subtitle italic text-base sm:text-[1.05rem] leading-relaxed ${isDark ? 'text-[#D4D4D4]' : 'text-[#4A433F]'} mx-auto`}
                 style={{
                   textShadow: isDark
                     ? '0 1px 3px rgba(0,0,0,0.5)'
