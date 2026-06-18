@@ -3333,7 +3333,7 @@ body {
   background: transparent;
   border: 0;
   color: inherit;
-  font-family: "IM FELL Double Pica", Georgia, serif;
+  font-family: "IM Fell Double Pica", Georgia, serif;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.018em;
@@ -3365,7 +3365,7 @@ body {
   border-radius: 8px 8px 0 0;
   display: inline-flex;
   flex-direction: column;
-  font-family: "IM FELL Double Pica", Georgia, serif;
+  font-family: "IM Fell Double Pica", Georgia, serif;
   gap: 3px;
   line-height: 1;
   margin: 0 0 0 8px;
@@ -4382,7 +4382,7 @@ body {
   backdrop-filter: blur(12px);
   color: #2a2522;
   display: grid;
-  font-family: "IM FELL Double Pica", Georgia, serif;
+  font-family: "IM Fell Double Pica", Georgia, serif;
   grid-template-rows: auto minmax(0, 1fr) auto;
   inset: 0;
   justify-items: center;
@@ -4555,7 +4555,7 @@ body {
     inset 0 0 0 1px rgba(255,255,255,0.42);
   color: #2a2522;
   display: grid;
-  font-family: "IM FELL Double Pica", Georgia, serif;
+  font-family: "IM Fell Double Pica", Georgia, serif;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   isolation: isolate;
   max-width: min(100%, 1320px);

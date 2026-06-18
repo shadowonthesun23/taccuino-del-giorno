@@ -53,10 +53,9 @@ export async function POST(req: NextRequest) {
     const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
 
     const fontsDir = path.join(process.cwd(), 'public', 'fonts');
-    const [garamondRegular, garamondBold, garamondItalic, caveatBold, stampwriterRegular] = await Promise.all([
-      readFile(path.join(fontsDir, 'EBGaramond-Regular.ttf')),
-      readFile(path.join(fontsDir, 'EBGaramond-Bold.ttf')),
-      readFile(path.join(fontsDir, 'EBGaramond-Italic.ttf')),
+    const [imFellRegular, imFellItalic, caveatBold, stampwriterRegular] = await Promise.all([
+      readFile(path.join(fontsDir, 'IMFellDoublePica-Regular.ttf')),
+      readFile(path.join(fontsDir, 'IMFellDoublePica-Italic.ttf')),
       readFile(path.join(fontsDir, 'Caveat-Bold.ttf')),
       readFile(path.join(fontsDir, 'STAMPWRITER-KIT.ttf')),
     ]);
@@ -112,7 +111,7 @@ export async function POST(req: NextRequest) {
             alignItems: 'center',
             padding: `${layout.topPadding}px ${layout.sidePadding}px ${layout.bottomPadding}px`,
             boxSizing: 'border-box',
-            fontFamily: 'EB Garamond',
+            fontFamily: 'IM Fell Double Pica',
             position: 'relative',
             overflow: 'hidden',
           },
@@ -290,7 +289,7 @@ export async function POST(req: NextRequest) {
             {
               style: {
                 fontSize: 22,
-                fontFamily: 'EB Garamond',
+                fontFamily: 'IM Fell Double Pica',
                 fontWeight: 400,
                 color: palette.textMuted,
                 opacity: 0.45,
@@ -373,7 +372,7 @@ export async function POST(req: NextRequest) {
                         borderRadius: 999,
                         color: '#654B35',
                         fontSize: 74,
-                        fontFamily: 'EB Garamond',
+                        fontFamily: 'IM Fell Double Pica',
                         fontWeight: 700,
                         height: 150,
                         width: 150,
@@ -395,7 +394,7 @@ export async function POST(req: NextRequest) {
               textAlign: 'center',
               marginBottom: layout.authorMarginBottom,
               lineHeight: 1.1,
-              fontFamily: 'EB Garamond',
+              fontFamily: 'IM Fell Double Pica',
             },
           },
           autoreGiorno
@@ -412,7 +411,7 @@ export async function POST(req: NextRequest) {
               marginBottom: layout.descMarginBottom,
               lineHeight: layout.descLineHeight,
               maxWidth: layout.descMaxWidth,
-              fontFamily: 'EB Garamond',
+              fontFamily: 'IM Fell Double Pica',
             },
           },
           descTesto
@@ -447,7 +446,7 @@ export async function POST(req: NextRequest) {
                 lineHeight: 0.7,
                 color: palette.accent,
                 opacity: 0.35,
-                fontFamily: 'EB Garamond',
+                fontFamily: 'IM Fell Double Pica',
                 marginBottom: layout.quoteMarkMarginBottom,
               },
             },
@@ -463,7 +462,7 @@ export async function POST(req: NextRequest) {
                 color: palette.textPrimary,
                 lineHeight: layout.quoteLineHeight,
                 marginBottom: layout.quoteMarginBottom,
-                fontFamily: 'EB Garamond',
+                fontFamily: 'IM Fell Double Pica',
               },
             },
             citTesto
@@ -476,7 +475,7 @@ export async function POST(req: NextRequest) {
                 fontWeight: 700,
                 color: palette.textMuted,
                 textAlign: 'right',
-                fontFamily: 'EB Garamond',
+                fontFamily: 'IM Fell Double Pica',
               },
             },
             `\u2014 ${citazione.autore}${citazione.fonte ? `, ${citazione.fonte}` : ''}`
@@ -487,9 +486,9 @@ export async function POST(req: NextRequest) {
         width: W,
         height: H,
         fonts: [
-          { name: 'EB Garamond', data: garamondRegular, weight: 400, style: 'normal' },
-          { name: 'EB Garamond', data: garamondBold, weight: 700, style: 'normal' },
-          { name: 'EB Garamond', data: garamondItalic, weight: 400, style: 'italic' },
+          { name: 'IM Fell Double Pica', data: imFellRegular, weight: 400, style: 'normal' },
+          { name: 'IM Fell Double Pica', data: imFellRegular, weight: 700, style: 'normal' },
+          { name: 'IM Fell Double Pica', data: imFellItalic, weight: 400, style: 'italic' },
           { name: 'Caveat', data: caveatBold, weight: 700, style: 'normal' },
           { name: 'Stampwriter', data: stampwriterRegular, weight: 400, style: 'normal' },
         ],

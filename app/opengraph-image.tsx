@@ -12,10 +12,10 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function OpenGraphImage() {
-  const [wordmark, garamond, garamondItalic] = await Promise.all([
+  const [wordmark, imFellRegular, imFellItalic] = await Promise.all([
     readFile(join(process.cwd(), 'public/fonts/JockyStarline.ttf')),
-    readFile(join(process.cwd(), 'public/fonts/EBGaramond-Regular.ttf')),
-    readFile(join(process.cwd(), 'public/fonts/EBGaramond-Italic.ttf')),
+    readFile(join(process.cwd(), 'public/fonts/IMFellDoublePica-Regular.ttf')),
+    readFile(join(process.cwd(), 'public/fonts/IMFellDoublePica-Italic.ttf')),
   ]);
 
   return new ImageResponse(
@@ -67,7 +67,7 @@ export default async function OpenGraphImage() {
             style={{
               color: '#9d5147',
               display: 'flex',
-              fontFamily: 'EB Garamond',
+              fontFamily: 'IM Fell Double Pica',
               fontSize: 24,
               letterSpacing: '0.16em',
               marginBottom: 26,
@@ -104,7 +104,7 @@ export default async function OpenGraphImage() {
               color: '#554c47',
               display: 'flex',
               flexDirection: 'column',
-              fontFamily: 'EB Garamond',
+              fontFamily: 'IM Fell Double Pica',
               fontSize: 33,
               fontStyle: 'italic',
               lineHeight: 1.25,
@@ -131,14 +131,14 @@ export default async function OpenGraphImage() {
           weight: 400,
         },
         {
-          name: 'EB Garamond',
-          data: garamond,
+          name: 'IM Fell Double Pica',
+          data: imFellRegular,
           style: 'normal',
           weight: 400,
         },
         {
-          name: 'EB Garamond',
-          data: garamondItalic,
+          name: 'IM Fell Double Pica',
+          data: imFellItalic,
           style: 'italic',
           weight: 400,
         },
