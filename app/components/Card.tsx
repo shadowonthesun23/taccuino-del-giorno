@@ -23,8 +23,8 @@ const badgeVariants: Record<string, string> = {
 
 const SOCIAL_EXPORT_WIDTH = 1080;
 const SOCIAL_EXPORT_HEIGHT = 1920;
-const SOCIAL_EXPORT_SIDE_PADDING = 72;
-const SOCIAL_EXPORT_VERTICAL_PADDING = 132;
+const SOCIAL_EXPORT_SIDE_PADDING = 30;
+const SOCIAL_EXPORT_VERTICAL_PADDING = 88;
 
 interface CardProps {
   id?: string;
@@ -86,7 +86,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
 
       const exportVignette = document.createElement('div');
       exportVignette.style.position = 'absolute';
-      exportVignette.style.inset = '42px';
+      exportVignette.style.inset = '28px';
       exportVignette.style.border = isDark
         ? '1px solid rgba(255, 255, 255, 0.08)'
         : '1px solid rgba(117, 88, 57, 0.13)';
@@ -103,9 +103,9 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportSignature.style.position = 'absolute';
       exportSignature.style.left = '0';
       exportSignature.style.right = '0';
-      exportSignature.style.bottom = '54px';
+      exportSignature.style.bottom = '42px';
       exportSignature.style.color = isDark ? 'rgba(238,229,211,0.34)' : 'rgba(117,88,57,0.3)';
-      exportSignature.style.fontSize = '23px';
+      exportSignature.style.fontSize = '21px';
       exportSignature.style.letterSpacing = '0.18em';
       exportSignature.style.lineHeight = '1';
       exportSignature.style.textAlign = 'center';
@@ -115,11 +115,34 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
 
       const contentMaxWidth = SOCIAL_EXPORT_WIDTH - SOCIAL_EXPORT_SIDE_PADDING * 2;
       const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_VERTICAL_PADDING * 2;
+      const exportLayoutWidth = Math.min(contentMaxWidth, Math.max(sourceRect.width, 760));
+
+      const measureWrap = document.createElement('div');
+      measureWrap.style.position = 'fixed';
+      measureWrap.style.left = '-10000px';
+      measureWrap.style.top = '0';
+      measureWrap.style.width = `${exportLayoutWidth}px`;
+      measureWrap.style.visibility = 'hidden';
+      measureWrap.style.pointerEvents = 'none';
+      measureWrap.style.zIndex = '-1';
+
+      clone.style.width = `${exportLayoutWidth}px`;
+      clone.style.maxWidth = 'none';
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.boxSizing = 'border-box';
+      clone.style.fontFamily = sourceFontFamily;
+      clone.style.margin = '0';
+      measureWrap.appendChild(clone);
+      document.body.appendChild(measureWrap);
+
+      const exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
       const scale = Math.min(
-        2.12,
-        contentMaxWidth / Math.max(sourceRect.width, 1),
-        contentMaxHeight / Math.max(sourceRect.height, 1)
+        2.35,
+        contentMaxWidth / exportLayoutWidth,
+        contentMaxHeight / exportLayoutHeight
       );
+      measureWrap.remove();
 
       const contentWrap = document.createElement('div');
       contentWrap.style.width = `${contentMaxWidth}px`;
@@ -132,20 +155,13 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       contentWrap.style.zIndex = '2';
 
       const scaledCardMount = document.createElement('div');
-      scaledCardMount.style.width = `${sourceRect.width * scale}px`;
-      scaledCardMount.style.height = `${sourceRect.height * scale}px`;
+      scaledCardMount.style.width = `${exportLayoutWidth * scale}px`;
+      scaledCardMount.style.height = `${exportLayoutHeight * scale}px`;
       scaledCardMount.style.position = 'relative';
       scaledCardMount.style.flex = '0 0 auto';
 
-      clone.style.width = `${sourceRect.width}px`;
-      clone.style.maxWidth = 'none';
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.boxSizing = 'border-box';
-      clone.style.fontFamily = sourceFontFamily;
       clone.style.transform = `scale(${scale})`;
       clone.style.transformOrigin = 'top left';
-      clone.style.margin = '0';
 
       scaledCardMount.appendChild(clone);
       contentWrap.appendChild(scaledCardMount);

@@ -204,20 +204,6 @@ export default function AuthorExportCard({
             aria-hidden="true"
             style={{
               position: 'absolute',
-              left: '64px',
-              right: '64px',
-              top: '312px',
-              bottom: '84px',
-              borderRadius: '42px',
-              background: palette.sheetBg,
-              border: `2px solid ${palette.sheetBorder}`,
-              boxShadow: palette.sheetShadow,
-            }}
-          />
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
               bottom: '128px',
               left: '50%',
               transform: 'translateX(-50%) rotate(-0.8deg)',
@@ -438,9 +424,9 @@ export default function AuthorExportCard({
           <div
             style={{
               width: '100%',
-              padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px`,
+              padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px ${layout.quotePaddingX + 18}px`,
               background: palette.cardBg,
-              border: `3px solid ${palette.borderColor}`,
+              border: '0',
               borderRadius: `${layout.quoteRadius}px`,
               boxSizing: 'border-box',
               flexShrink: 0,

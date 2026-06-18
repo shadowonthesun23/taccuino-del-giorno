@@ -145,19 +145,6 @@ export async function POST(req: NextRequest) {
               : '0 0 120px 96px rgba(255,252,242,0.36)',
           },
         }),
-        React.createElement('div', {
-          style: {
-            position: 'absolute',
-            left: 64,
-            right: 64,
-            top: 312,
-            bottom: 84,
-            borderRadius: 42,
-            background: palette.sheetBg,
-            border: `2px solid ${palette.sheetBorder}`,
-            boxShadow: palette.sheetShadow,
-          },
-        }),
         React.createElement(
           'div',
           {
@@ -444,9 +431,9 @@ export async function POST(req: NextRequest) {
           {
             style: {
               width: '100%',
-              padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px`,
+              padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px ${layout.quotePaddingX + 18}px`,
               background: palette.cardBg,
-              border: `3px solid ${palette.borderColor}`,
+              border: '0',
               borderRadius: layout.quoteRadius,
               display: 'flex',
               flexDirection: 'column',

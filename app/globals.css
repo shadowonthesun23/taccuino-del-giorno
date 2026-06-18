@@ -1930,17 +1930,12 @@ body {
   border-radius: 18px;
   isolation: isolate;
   margin: 0 auto;
-  padding: 14px 12px 18px;
+  padding: 8px 0 0;
   position: relative;
   width: fit-content;
 }
 
 .author-export-shell::before {
-  background:
-    radial-gradient(ellipse 62% 42% at 50% 18%, rgba(255,252,242,0.42), transparent 70%),
-    linear-gradient(180deg, rgba(181,149,106,0.07), transparent);
-  border: 1px solid rgba(181,149,106,0.12);
-  border-radius: inherit;
   content: "";
   inset: 0;
   pointer-events: none;
@@ -1949,10 +1944,7 @@ body {
 }
 
 .author-export-shell.is-dark::before {
-  background:
-    radial-gradient(ellipse 62% 42% at 50% 18%, rgba(255,255,255,0.045), transparent 70%),
-    linear-gradient(180deg, rgba(255,255,255,0.035), transparent);
-  border-color: rgba(255,255,255,0.06);
+  content: "";
 }
 
 .author-export-actions {
