@@ -1850,7 +1850,7 @@ export default function Home() {
               </div>
               <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
               {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
-                <p className={`text-lg font-medium italic ${themeClasses.highlightBg} p-4 rounded-xl border ${themeClasses.border}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
+                <p className={`text-lg font-medium italic quote-example-note ${isDark ? 'is-dark' : ''}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
               )}
               {data.parola_giorno.nota && (
                 <aside className={`margin-note ${isDark ? 'is-dark' : ''}`}>
@@ -1962,7 +1962,7 @@ export default function Home() {
                 <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
               </div>
               {data.poesia.nota && (
-                <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
+                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
                   <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
                   {data.poesia.nota}
                 </div>
@@ -1979,7 +1979,7 @@ export default function Home() {
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
               </div>
               {data.bibbia.nota && (
-                <div className={`mt-4 p-4 ${themeClasses.highlightBg} border-l-2 border-[#DE6B58] text-lg font-medium ${isDark ? 'text-[#C0C0C0]' : 'text-[#4A433F]'} rounded-xl`}>
+                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
                   <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
                   {data.bibbia.nota}
                 </div>

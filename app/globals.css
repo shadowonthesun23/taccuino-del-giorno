@@ -750,7 +750,9 @@ body {
 }
 
 .social-export-card[data-social-export-section="poesia"] [class*="border-l-2"],
-.social-export-card[data-social-export-section="bibbia"] [class*="border-l-2"] {
+.social-export-card[data-social-export-section="bibbia"] [class*="border-l-2"],
+.social-export-card .reading-note,
+.social-export-card .quote-example-note {
   border-radius: 16px !important;
   margin-top: 24px !important;
   padding: 24px 28px !important;
@@ -787,7 +789,9 @@ body {
 }
 
 .social-export-card-dense[data-social-export-section="poesia"] [class*="border-l-2"],
-.social-export-card-dense[data-social-export-section="bibbia"] [class*="border-l-2"] {
+.social-export-card-dense[data-social-export-section="bibbia"] [class*="border-l-2"],
+.social-export-card-dense .reading-note,
+.social-export-card-dense .quote-example-note {
   padding: 20px 24px !important;
 }
 
@@ -1006,6 +1010,44 @@ body {
 
 .card-body-copy {
   line-height: 1.66;
+}
+
+.quote-example-note,
+.reading-note {
+  background:
+    linear-gradient(90deg, rgba(222,107,88,0.08), transparent 58%),
+    rgba(244,240,230,0.48);
+  border-left: 2px solid rgba(222,107,88,0.72);
+  border-radius: 2px 12px 12px 2px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.34);
+  color: #4a433f;
+  font-size: 1.08rem;
+  font-weight: 500;
+  line-height: 1.58;
+  margin-top: 18px;
+  padding: 16px 18px 16px 20px;
+}
+
+.quote-example-note {
+  margin-bottom: 0;
+}
+
+.reading-note {
+  margin-top: 20px;
+}
+
+.quote-example-note.is-dark,
+.reading-note.is-dark {
+  background:
+    linear-gradient(90deg, rgba(222,107,88,0.12), transparent 60%),
+    rgba(42,42,42,0.44);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.055);
+  color: #c7c0b9;
+}
+
+.reading-note > span {
+  letter-spacing: 0.14em;
+  margin-bottom: 6px;
 }
 
 .card-export-button {
@@ -3866,8 +3908,8 @@ body {
 .music-card-layout {
   align-items: stretch;
   display: grid;
-  gap: 32px;
-  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 38px;
+  grid-template-columns: minmax(230px, 270px) minmax(0, 1fr);
 }
 
 .music-media-cell {
@@ -3879,24 +3921,24 @@ body {
 
 .music-cover-frame {
   background:
-    linear-gradient(135deg, rgba(255,255,255,0.38), transparent 44%),
+    linear-gradient(135deg, rgba(255,255,255,0.44), transparent 44%),
     #efe7d7;
   border: 1px solid rgba(181,149,106,0.24);
-  border-radius: 8px 6px 10px 7px;
+  border-radius: 6px 5px 8px 6px;
   box-shadow:
-    3px 4px 0 rgba(117, 88, 57, 0.08),
-    0 18px 36px -29px rgba(42,37,34,0.58),
-    0 2px 10px -8px rgba(42,37,34,0.38),
+    4px 6px 0 rgba(117, 88, 57, 0.065),
+    0 24px 48px -34px rgba(42,37,34,0.62),
+    0 4px 14px -11px rgba(42,37,34,0.38),
     inset 0 1px 0 rgba(255,255,255,0.62);
   display: block;
   margin: 0;
-  padding: 10px 10px 30px;
+  padding: 11px 11px 34px;
   position: relative;
-  transform: rotate(-1.15deg);
+  transform: rotate(-1.35deg);
   transition:
     box-shadow 220ms ease,
     transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
-  width: min(100%, 236px);
+  width: min(100%, 244px);
 }
 
 .music-cover-frame::after {
@@ -3912,14 +3954,26 @@ body {
   position: absolute;
 }
 
+.music-cover-frame::before {
+  background:
+    linear-gradient(90deg, transparent, rgba(117,88,57,0.2), transparent);
+  bottom: 14px;
+  content: "";
+  height: 1px;
+  left: 22px;
+  opacity: 0.38;
+  position: absolute;
+  right: 22px;
+}
+
 .music-cover-frame:hover,
 .music-cover-frame:focus-within {
   box-shadow:
-    4px 5px 0 rgba(117, 88, 57, 0.1),
-    0 22px 42px -29px rgba(42,37,34,0.66),
+    5px 7px 0 rgba(117, 88, 57, 0.085),
+    0 26px 52px -32px rgba(42,37,34,0.68),
     0 0 0 1px rgba(222,107,88,0.14),
     inset 0 1px 0 rgba(255,255,255,0.66);
-  transform: rotate(-0.45deg) translateY(-2px);
+  transform: rotate(-0.5deg) translateY(-2px);
 }
 
 .music-cover-frame img,
