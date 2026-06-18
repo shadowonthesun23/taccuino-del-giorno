@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
-const revealSeasons: SeasonId[] = [];
+const revealSeasons: SeasonId[] = ['spring', 'summer'];
 
 export default function ParallaxBackground({
   children,
