@@ -262,12 +262,11 @@ export async function POST(req: NextRequest) {
                 fontSize: layout.labelFontSize + 2,
                 fontFamily: 'Stampwriter',
                 fontWeight: 400,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
+                letterSpacing: '0.035em',
                 transform: 'rotate(-1.2deg)',
               },
             },
-            'Autore del Giorno'
+            'Autore del giorno'
           )
         ),
         // Watermark verticale — figlio diretto del root (position:relative),

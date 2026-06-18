@@ -286,15 +286,14 @@ export default function AuthorExportCard({
                 fontSize: `${layout.labelFontSize + 2}px`,
                 fontWeight: 700,
                 justifyContent: 'center',
-                letterSpacing: '0.16em',
+                letterSpacing: '0.035em',
                 minWidth: '438px',
                 padding: '0 34px',
                 position: 'relative',
-                textTransform: 'uppercase',
                 transform: 'rotate(-1.2deg)',
               }}
             >
-              <span className={stampwriter.className}>Autore del Giorno</span>
+              <span className={stampwriter.className}>Autore del giorno</span>
             </div>
           </div>
 
