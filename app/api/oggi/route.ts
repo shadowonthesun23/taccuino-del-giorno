@@ -1,6 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+function getRomeDateIso(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Rome',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 async function getFotoAutore(nomeAutore: string): Promise<string | null> {
   try {
     const encoded = encodeURIComponent(nomeAutore);
@@ -20,6 +32,9 @@ export async function GET(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Configurazione Supabase incompleta: verifica NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+    }
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     const { searchParams } = new URL(request.url);
@@ -29,8 +44,7 @@ export async function GET(request: Request) {
     if (dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)) {
       dataIso = dataParam;
     } else {
-      const oggi = new Date();
-      dataIso = oggi.toISOString().split('T')[0];
+      dataIso = getRomeDateIso();
     }
 
     const { data, error } = await supabase

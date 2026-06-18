@@ -3,6 +3,49 @@ import { GoogleGenerativeAI, type GenerateContentResult } from "@google/generati
 
 export const maxDuration = 60;
 
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
+
+function getRomeDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Rome',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const dataIso = `${values.year}-${values.month}-${values.day}`;
+  const dataDiOggiStr = new Intl.DateTimeFormat('it-IT', {
+    timeZone: 'Europe/Rome',
+    day: 'numeric',
+    month: 'long',
+  }).format(date);
+
+  return { dataIso, dataDiOggiStr };
+}
+
+function uniqueModelCandidates(primaryModel?: string) {
+  return [primaryModel?.trim(), DEFAULT_GEMINI_MODEL, 'gemini-flash-latest']
+    .filter((model): model is string => Boolean(model))
+    .filter((model, index, models) => models.indexOf(model) === index);
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error(`${label} oltre ${timeoutMs / 1000}s`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 function stripJsonCodeFences(text: string) {
   return text.replace(/```json/gi, '').replace(/```/g, '').trim();
 }
@@ -96,9 +139,15 @@ export async function GET(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Configurazione Supabase incompleta: verifica NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.');
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const apiKey = process.env.GEMINI_API_KEY as string;
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY mancante.');
+    }
     const genAI = new GoogleGenerativeAI(apiKey);
 
     const cronHeader = request.headers.get('x-vercel-cron');
@@ -110,9 +159,7 @@ export async function GET(request: Request) {
       return new Response('Non autorizzato', { status: 401 });
     }
 
-    const oggi = new Date();
-    const dataIso = oggi.toISOString().split('T')[0];
-    const dataDiOggiStr = oggi.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+    const { dataIso, dataDiOggiStr } = getRomeDateParts();
 
     const { data: recentMusicRows, error: recentMusicError } = await supabase
       .from('contenuti_giornalieri')
@@ -129,13 +176,6 @@ export async function GET(request: Request) {
     const recentMusicExclusions = formatRecentMusicExclusions(
       recentMusicRows as RecentMusicRecord[] | null
     );
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
-    });
 
     const prompt = `Sei un erudito critico letterario e teologo. Cura "Il giorno da custodire" per il ${dataDiOggiStr}.
 
@@ -169,19 +209,45 @@ Restituisci questo JSON:
 }`;
 
     let result: GenerateContentResult | null = null;
-    const maxRetries = 5;
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        result = await model.generateContent(prompt);
+    let lastGenerationError: unknown = null;
+    const modelCandidates = uniqueModelCandidates(process.env.GEMINI_MODEL);
+
+    for (const modelName of modelCandidates) {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      const maxRetries = 2;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          result = await withTimeout(
+            model.generateContent(prompt),
+            GEMINI_ATTEMPT_TIMEOUT_MS,
+            `Generazione Gemini (${modelName})`
+          );
+          console.info(`Contenuto generato con ${modelName} al tentativo ${i + 1}.`);
+          break;
+        } catch (err) {
+          lastGenerationError = err;
+          console.warn(`Tentativo Gemini fallito (${modelName}, ${i + 1}/${maxRetries}):`, err);
+          if (i < maxRetries - 1) {
+            await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
+          }
+        }
+      }
+
+      if (result) {
         break;
-      } catch (err) {
-        if (i === maxRetries - 1) throw err;
-        await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
       }
     }
 
     if (!result) {
-      throw new Error('Nessuna risposta ricevuta dal modello.');
+      throw lastGenerationError instanceof Error
+        ? lastGenerationError
+        : new Error('Nessuna risposta ricevuta dal modello.');
     }
 
     const responseText = result.response.text();
