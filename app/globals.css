@@ -47,17 +47,67 @@ html, body {
 }
 
 .seasonal-paint-reveal {
-  opacity: 1;
-  mix-blend-mode: multiply;
-  will-change: contents;
+  --paint-head-x: 50vw;
+  --paint-head-y: 50vh;
+  --paint-wake-x: 50vw;
+  --paint-wake-y: 50vh;
+  --paint-tail-x: 50vw;
+  --paint-tail-y: 50vh;
+  --paint-head-rx: 128px;
+  --paint-head-ry: 108px;
+  --paint-wake-r: 92px;
+  --paint-tail-r: 72px;
+  background-color: rgba(255, 248, 232, 0.05);
+  background-blend-mode: screen;
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 360ms ease-out;
+  will-change: opacity, mask-image;
+  -webkit-mask-image:
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
+    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
+    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+  mask-image:
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
+    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
+    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+}
+
+.seasonal-paint-reveal.season-spring {
+  background-image: url('/images/seasonal/botticelli-primavera.webp');
+}
+
+.seasonal-paint-reveal.season-summer {
+  background-image: url('/images/seasonal/van-gogh-summer-evening.webp');
+  background-position: center center;
 }
 
 .seasonal-paint-reveal.is-dark {
-  mix-blend-mode: screen;
+  background-color: rgba(20, 19, 18, 0.34);
+  background-blend-mode: multiply;
 }
 
 .seasonal-line-art {
-  isolation: isolate;
+  --paint-head-x: 50vw;
+  --paint-head-y: 50vh;
+  --paint-head-rx: 128px;
+  --paint-head-ry: 108px;
+}
+
+.seasonal-line-art.is-disturbed {
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
+    rgba(0, 0, 0, 0.06) 0 38%,
+    rgba(0, 0, 0, 0.34) 61%,
+    #000 91%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
+    rgba(0, 0, 0, 0.06) 0 38%,
+    rgba(0, 0, 0, 0.34) 61%,
+    #000 91%
+  );
 }
 
 @media (hover: none), (pointer: coarse) {
