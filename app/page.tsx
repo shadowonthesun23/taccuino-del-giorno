@@ -1673,7 +1673,7 @@ export default function Home() {
                     : '0 1px 1px rgba(255,252,242,0.75)',
                 }}
               >
-                <span className={`${jocky.className} notebook-wordmark hero-ink-title animate-handwrite`}>
+                <span className={`${jocky.className} notebook-wordmark hero-ink-title journal-wordmark-reserve animate-handwrite`}>
                   {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
                 </span>
               </h1>
