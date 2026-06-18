@@ -457,6 +457,8 @@ body {
   isolation: isolate;
   overflow: hidden;
   position: relative;
+  outline: 1px solid rgba(255,255,255,0.38);
+  outline-offset: -7px;
   box-shadow:
     1px 1px 0 rgba(255,255,255,0.5),
     4px 6px 0 rgba(117, 88, 57, 0.055),
@@ -484,6 +486,7 @@ body {
     radial-gradient(ellipse at 50% 38%, rgba(231, 203, 172, 0.03), transparent 56%),
     linear-gradient(176deg, rgba(255,255,255,0.06), transparent 42%);
   border-color: rgba(231, 203, 172, 0.18) !important;
+  outline-color: rgba(255,255,255,0.045);
   box-shadow:
     1px 1px 0 rgba(255,255,255,0.04),
     4px 6px 0 rgba(0,0,0,0.14),
@@ -3360,12 +3363,24 @@ body {
 
 .archive-popover::before {
   background:
-    linear-gradient(90deg, rgba(181,149,106,0.08) 1px, transparent 1px),
-    linear-gradient(rgba(181,149,106,0.05) 1px, transparent 1px);
-  background-size: 26px 26px;
+    radial-gradient(circle at 18% 14%, rgba(181,149,106,0.1), transparent 18%),
+    radial-gradient(circle at 86% 84%, rgba(181,149,106,0.07), transparent 22%),
+    linear-gradient(118deg, transparent 0 34%, rgba(255,255,255,0.18) 46%, transparent 64%);
   content: "";
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.42;
+  pointer-events: none;
+  position: absolute;
+}
+
+.archive-popover::after {
+  background:
+    linear-gradient(180deg, rgba(181,149,106,0.18), transparent 18%, transparent 82%, rgba(117,91,57,0.08)),
+    radial-gradient(ellipse at 50% 100%, rgba(42,37,34,0.08), transparent 56%);
+  border-radius: inherit;
+  content: "";
+  inset: 1px;
+  opacity: 0.42;
   pointer-events: none;
   position: absolute;
 }
