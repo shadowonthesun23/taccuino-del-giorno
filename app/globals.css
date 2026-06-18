@@ -65,13 +65,13 @@ html, body {
   transition: opacity 360ms ease-out;
   will-change: opacity, mask-image;
   -webkit-mask-image:
-    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
-    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 34%, rgba(0, 0, 0, 0.82) 52%, rgba(0, 0, 0, 0.2) 78%, transparent 93%),
+    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.44) 0 34%, rgba(0, 0, 0, 0.16) 68%, transparent 92%),
+    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.18) 0 28%, rgba(0, 0, 0, 0.06) 66%, transparent 92%);
   mask-image:
-    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 31%, rgba(0, 0, 0, 0.88) 48%, rgba(0, 0, 0, 0.22) 75%, transparent 91%),
-    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.86) 0 42%, rgba(0, 0, 0, 0.34) 72%, transparent 94%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 34%, rgba(0, 0, 0, 0.82) 52%, rgba(0, 0, 0, 0.2) 78%, transparent 93%),
+    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.44) 0 34%, rgba(0, 0, 0, 0.16) 68%, transparent 92%),
+    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.18) 0 28%, rgba(0, 0, 0, 0.06) 66%, transparent 92%);
 }
 
 .seasonal-paint-reveal.season-spring {
@@ -98,15 +98,15 @@ html, body {
 .seasonal-line-art.is-disturbed {
   -webkit-mask-image: radial-gradient(
     ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
-    rgba(0, 0, 0, 0.06) 0 38%,
-    rgba(0, 0, 0, 0.34) 61%,
-    #000 91%
+    rgba(0, 0, 0, 0.18) 0 36%,
+    rgba(0, 0, 0, 0.52) 64%,
+    #000 94%
   );
   mask-image: radial-gradient(
     ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
-    rgba(0, 0, 0, 0.06) 0 38%,
-    rgba(0, 0, 0, 0.34) 61%,
-    #000 91%
+    rgba(0, 0, 0, 0.18) 0 36%,
+    rgba(0, 0, 0, 0.52) 64%,
+    #000 94%
   );
 }
 

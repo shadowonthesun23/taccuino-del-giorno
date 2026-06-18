@@ -105,20 +105,20 @@ export default function ParallaxBackground({
     };
 
     const paintFrame = (time: number) => {
-      headX += (targetX - headX) * 0.3;
-      headY += (targetY - headY) * 0.3;
-      tailX += (headX - tailX) * 0.085;
-      tailY += (headY - tailY) * 0.085;
-      wakeX = (headX + tailX) / 2;
-      wakeY = (headY + tailY) / 2;
-      velocity *= 0.91;
+      headX += (targetX - headX) * 0.22;
+      headY += (targetY - headY) * 0.22;
+      tailX += (headX - tailX) * 0.2;
+      tailY += (headY - tailY) * 0.2;
+      wakeX = headX * 0.68 + tailX * 0.32;
+      wakeY = headY * 0.68 + tailY * 0.32;
+      velocity *= 0.86;
 
-      const pulse = Math.sin(time * 0.006) * 9;
+      const pulse = Math.sin(time * 0.0038) * 4;
       const trailDistance = Math.hypot(headX - tailX, headY - tailY);
-      const headRadiusX = Math.min(215, 128 + velocity * 1.7 + pulse);
-      const headRadiusY = Math.min(170, 108 + velocity * 0.72 - pulse * 0.35);
-      const wakeRadius = Math.min(228, Math.max(94, trailDistance * 0.54 + 48));
-      const tailRadius = Math.min(108, 72 + trailDistance * 0.09);
+      const headRadiusX = Math.min(188, 132 + velocity * 0.9 + pulse);
+      const headRadiusY = Math.min(152, 112 + velocity * 0.42 - pulse * 0.25);
+      const wakeRadius = Math.min(154, Math.max(88, trailDistance * 0.24 + 70));
+      const tailRadius = Math.min(84, 58 + trailDistance * 0.045);
 
       setPaintVariable('--paint-head-x', `${headX}px`);
       setPaintVariable('--paint-head-y', `${headY}px`);
@@ -161,7 +161,7 @@ export default function ParallaxBackground({
         targetX - previousTargetX,
         targetY - previousTargetY,
       );
-      velocity = Math.min(52, velocity * 0.45 + pointerDistance * 0.55);
+      velocity = Math.min(34, velocity * 0.35 + pointerDistance * 0.34);
       previousTargetX = targetX;
       previousTargetY = targetY;
       const readabilityProtection = getReadabilityProtection(targetX, targetY);
