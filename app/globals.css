@@ -53,10 +53,10 @@ html, body {
   --paint-wake-y: 50vh;
   --paint-tail-x: 50vw;
   --paint-tail-y: 50vh;
-  --paint-head-rx: 128px;
-  --paint-head-ry: 108px;
-  --paint-wake-r: 92px;
-  --paint-tail-r: 72px;
+  --paint-head-rx: 204px;
+  --paint-head-ry: 92px;
+  --paint-wake-r: 76px;
+  --paint-tail-r: 48px;
   background-color: rgba(255, 248, 232, 0.05);
   background-blend-mode: screen;
   background-position: center;
@@ -65,13 +65,13 @@ html, body {
   transition: opacity 360ms ease-out;
   will-change: opacity, mask-image;
   -webkit-mask-image:
-    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 34%, rgba(0, 0, 0, 0.82) 52%, rgba(0, 0, 0, 0.2) 78%, transparent 93%),
-    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.44) 0 34%, rgba(0, 0, 0, 0.16) 68%, transparent 92%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.18) 0 28%, rgba(0, 0, 0, 0.06) 66%, transparent 92%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 30%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.18) 80%, transparent 94%),
+    radial-gradient(ellipse calc(var(--paint-wake-r) * 1.9) calc(var(--paint-wake-r) * 0.62) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.36) 0 30%, rgba(0, 0, 0, 0.12) 66%, transparent 92%),
+    radial-gradient(ellipse calc(var(--paint-tail-r) * 2.2) calc(var(--paint-tail-r) * 0.5) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.12) 0 24%, rgba(0, 0, 0, 0.04) 64%, transparent 92%);
   mask-image:
-    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 34%, rgba(0, 0, 0, 0.82) 52%, rgba(0, 0, 0, 0.2) 78%, transparent 93%),
-    radial-gradient(circle var(--paint-wake-r) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.44) 0 34%, rgba(0, 0, 0, 0.16) 68%, transparent 92%),
-    radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.18) 0 28%, rgba(0, 0, 0, 0.06) 66%, transparent 92%);
+    radial-gradient(ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y), #000 0 30%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.18) 80%, transparent 94%),
+    radial-gradient(ellipse calc(var(--paint-wake-r) * 1.9) calc(var(--paint-wake-r) * 0.62) at var(--paint-wake-x) var(--paint-wake-y), rgba(0, 0, 0, 0.36) 0 30%, rgba(0, 0, 0, 0.12) 66%, transparent 92%),
+    radial-gradient(ellipse calc(var(--paint-tail-r) * 2.2) calc(var(--paint-tail-r) * 0.5) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.12) 0 24%, rgba(0, 0, 0, 0.04) 64%, transparent 92%);
 }
 
 .seasonal-paint-reveal.season-spring {
@@ -91,22 +91,22 @@ html, body {
 .seasonal-line-art {
   --paint-head-x: 50vw;
   --paint-head-y: 50vh;
-  --paint-head-rx: 128px;
-  --paint-head-ry: 108px;
+  --paint-head-rx: 204px;
+  --paint-head-ry: 92px;
 }
 
 .seasonal-line-art.is-disturbed {
   -webkit-mask-image: radial-gradient(
-    ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
-    rgba(0, 0, 0, 0.18) 0 36%,
-    rgba(0, 0, 0, 0.52) 64%,
-    #000 94%
+    ellipse calc(var(--paint-head-rx) * 1.02) calc(var(--paint-head-ry) * 1.05) at var(--paint-head-x) var(--paint-head-y),
+    rgba(0, 0, 0, 0.28) 0 34%,
+    rgba(0, 0, 0, 0.6) 68%,
+    #000 96%
   );
   mask-image: radial-gradient(
-    ellipse var(--paint-head-rx) var(--paint-head-ry) at var(--paint-head-x) var(--paint-head-y),
-    rgba(0, 0, 0, 0.18) 0 36%,
-    rgba(0, 0, 0, 0.52) 64%,
-    #000 94%
+    ellipse calc(var(--paint-head-rx) * 1.02) calc(var(--paint-head-ry) * 1.05) at var(--paint-head-x) var(--paint-head-y),
+    rgba(0, 0, 0, 0.28) 0 34%,
+    rgba(0, 0, 0, 0.6) 68%,
+    #000 96%
   );
 }
 

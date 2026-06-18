@@ -105,20 +105,20 @@ export default function ParallaxBackground({
     };
 
     const paintFrame = (time: number) => {
-      headX += (targetX - headX) * 0.22;
-      headY += (targetY - headY) * 0.22;
-      tailX += (headX - tailX) * 0.2;
-      tailY += (headY - tailY) * 0.2;
-      wakeX = headX * 0.68 + tailX * 0.32;
-      wakeY = headY * 0.68 + tailY * 0.32;
+      headX += (targetX - headX) * 0.24;
+      headY += (targetY - headY) * 0.24;
+      tailX += (headX - tailX) * 0.26;
+      tailY += (headY - tailY) * 0.26;
+      wakeX = headX * 0.76 + tailX * 0.24;
+      wakeY = headY * 0.76 + tailY * 0.24;
       velocity *= 0.86;
 
-      const pulse = Math.sin(time * 0.0038) * 4;
+      const pulse = Math.sin(time * 0.0032) * 3;
       const trailDistance = Math.hypot(headX - tailX, headY - tailY);
-      const headRadiusX = Math.min(188, 132 + velocity * 0.9 + pulse);
-      const headRadiusY = Math.min(152, 112 + velocity * 0.42 - pulse * 0.25);
-      const wakeRadius = Math.min(154, Math.max(88, trailDistance * 0.24 + 70));
-      const tailRadius = Math.min(84, 58 + trailDistance * 0.045);
+      const headRadiusX = Math.min(264, 194 + velocity * 1.05 + pulse);
+      const headRadiusY = Math.min(118, 86 + velocity * 0.18 - pulse * 0.2);
+      const wakeRadius = Math.min(118, Math.max(68, trailDistance * 0.13 + 70));
+      const tailRadius = Math.min(62, 42 + trailDistance * 0.025);
 
       setPaintVariable('--paint-head-x', `${headX}px`);
       setPaintVariable('--paint-head-y', `${headY}px`);
@@ -161,7 +161,7 @@ export default function ParallaxBackground({
         targetX - previousTargetX,
         targetY - previousTargetY,
       );
-      velocity = Math.min(34, velocity * 0.35 + pointerDistance * 0.34);
+      velocity = Math.min(30, velocity * 0.32 + pointerDistance * 0.28);
       previousTargetX = targetX;
       previousTargetY = targetY;
       const readabilityProtection = getReadabilityProtection(targetX, targetY);
@@ -202,9 +202,9 @@ export default function ParallaxBackground({
   }, [dark, hasSeasonalReveal, season]);
 
   const bgColor = dark ? '#252422' : '#F8F6F0';
-  const imageOpacity = dark ? 0.29 : 0.13;
+  const imageOpacity = dark ? 0.21 : 0.13;
   const imageFilter = dark
-    ? 'grayscale(1) brightness(0.68) contrast(1.02)'
+    ? 'grayscale(1) brightness(0.54) contrast(0.96)'
     : 'saturate(0.72) brightness(1.04) contrast(0.94)';
 
   return (
