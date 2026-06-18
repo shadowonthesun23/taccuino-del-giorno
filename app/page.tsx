@@ -1954,7 +1954,7 @@ export default function Home() {
               filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}>
               <DecorativeInitialText
                 text={data.poesia.testo}
-                className="whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6"
+                className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
                 initialTone="blue"
               />
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
@@ -1973,7 +1973,7 @@ export default function Home() {
               filename="bibbia">
               <DecorativeInitialText
                 text={data.bibbia.testo}
-                className="whitespace-pre-wrap text-xl font-medium leading-relaxed italic mb-6"
+                className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
               />
               <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
