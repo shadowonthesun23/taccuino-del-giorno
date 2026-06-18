@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { EB_Garamond, Caveat } from 'next/font/google';
+import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
@@ -20,9 +20,9 @@ const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: strin
 ];
 const SKY_REGION_STORAGE_KEY = 'taccuino-sky-region-v1';
 
-const garamond = EB_Garamond({ 
+const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400'],
   style: ['normal', 'italic'],
   display: 'swap',
 });

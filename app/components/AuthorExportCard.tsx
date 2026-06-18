@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { EB_Garamond, Caveat } from 'next/font/google';
+import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Download, EyeOff, Loader2 } from 'lucide-react';
 import { clampText, getAuthorCardLayout, getAuthorCardPalette, getAuthorInitials } from '@/app/lib/authorCardDesign';
 
-const garamond = EB_Garamond({
+const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400'],
   style: ['normal', 'italic'],
   display: 'swap',
 });

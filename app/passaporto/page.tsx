@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { EB_Garamond } from 'next/font/google';
+import { IM_Fell_Double_Pica } from 'next/font/google';
 import localFont from 'next/font/local';
 import ExportJpegButton from './ExportJpegButton';
 import PrintableZineButton from './PrintableZineButton';
@@ -14,9 +14,9 @@ import {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const garamond = EB_Garamond({
+const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400'],
   style: ['normal', 'italic'],
   display: 'swap',
 });
