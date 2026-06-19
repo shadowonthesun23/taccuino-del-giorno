@@ -12,19 +12,20 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function OpenGraphImage() {
-  const [wordmark, imFellRegular, imFellItalic] = await Promise.all([
+  const [wordmark, imFellRegular, imFellItalic, notebookBackground] = await Promise.all([
     readFile(join(process.cwd(), 'public/fonts/JockyStarline.ttf')),
     readFile(join(process.cwd(), 'public/fonts/IMFellDoublePica-Regular.ttf')),
     readFile(join(process.cwd(), 'public/fonts/IMFellDoublePica-Italic.ttf')),
+    readFile(join(process.cwd(), 'public/images/sfondo-taccuino-og.jpg')),
   ]);
+  const notebookBackgroundSource = Uint8Array.from(notebookBackground).buffer;
 
   return new ImageResponse(
     (
       <div
         style={{
           alignItems: 'center',
-          background:
-            'radial-gradient(circle at 16% 18%, rgba(157, 81, 71, 0.1), transparent 24%), radial-gradient(circle at 83% 76%, rgba(82, 102, 108, 0.09), transparent 27%), repeating-linear-gradient(0deg, rgba(117, 91, 57, 0.04) 0 1px, transparent 1px 34px), repeating-linear-gradient(90deg, rgba(117, 91, 57, 0.03) 0 1px, transparent 1px 48px), #f6f1e7',
+          background: '#f4efe5',
           color: '#2a2522',
           display: 'flex',
           height: '100%',
@@ -35,10 +36,25 @@ export default async function OpenGraphImage() {
           width: '100%',
         }}
       >
+        <img
+          alt=""
+          height="630"
+          // @ts-expect-error Satori accepts ArrayBuffer image sources at runtime.
+          src={notebookBackgroundSource}
+          width="1200"
+          style={{
+            height: '100%',
+            inset: 0,
+            objectFit: 'cover',
+            opacity: 0.28,
+            position: 'absolute',
+            width: '100%',
+          }}
+        />
         <div
           style={{
-            background: 'rgba(251, 247, 238, 0.58)',
-            border: '1px solid rgba(157, 81, 71, 0.26)',
+            background:
+              'radial-gradient(ellipse 62% 68% at 50% 49%, rgba(250, 247, 239, 0.97) 0%, rgba(250, 247, 239, 0.89) 48%, rgba(246, 240, 227, 0.62) 74%, rgba(246, 240, 227, 0.38) 100%)',
             display: 'flex',
             height: '100%',
             position: 'absolute',
