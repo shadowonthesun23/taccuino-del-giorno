@@ -1377,11 +1377,7 @@ body {
 }
 
 .ink-day-transition-sprite {
-  background:
-    radial-gradient(ellipse 34% 58% at 17% 42%, rgba(255, 252, 239, 0.56), transparent 58%),
-    radial-gradient(ellipse 28% 64% at 43% 54%, rgba(181, 149, 106, 0.26), transparent 62%),
-    linear-gradient(90deg, #eee2c9 0%, #f8f1df 28%, #dcc7a0 56%, #f4ead4 82%, #e5d4b2 100%);
-  background-size: 100% 100%;
+  background: #f0e4ca;
   height: 100%;
   left: 50%;
   -webkit-mask: url('/images/ink-transition.png') no-repeat 0 0;
@@ -1407,10 +1403,7 @@ body {
 }
 
 .ink-day-transition.is-dark .ink-day-transition-sprite {
-  background:
-    radial-gradient(ellipse 34% 58% at 17% 42%, rgba(214, 199, 171, 0.34), transparent 58%),
-    radial-gradient(ellipse 28% 64% at 43% 54%, rgba(80, 66, 49, 0.38), transparent 62%),
-    linear-gradient(90deg, #7a6a55 0%, #9a876d 30%, #5f5141 58%, #8a765d 84%, #685845 100%);
+  background: #756550;
 }
 
 @media (prefers-reduced-motion: reduce) {
