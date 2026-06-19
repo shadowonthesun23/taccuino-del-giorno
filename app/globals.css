@@ -1361,7 +1361,13 @@ body {
 
 .ink-day-transition-canvas {
   --ink-frame-width: max(100vw, 214vh);
-  filter: drop-shadow(0 16px 36px rgba(42, 37, 34, 0.16));
+  filter:
+    sepia(0.72)
+    saturate(1.7)
+    hue-rotate(326deg)
+    brightness(0.96)
+    contrast(1.08)
+    drop-shadow(0 16px 36px rgba(120, 58, 47, 0.18));
   height: calc(var(--ink-frame-width) / 1.7778);
   left: 50%;
   overflow: hidden;
@@ -1392,12 +1398,12 @@ body {
 
 .ink-day-transition.is-dark .ink-day-transition-canvas {
   filter:
-    invert(1)
-    sepia(0.16)
-    saturate(0.65)
-    hue-rotate(320deg)
-    brightness(0.52)
-    drop-shadow(0 18px 40px rgba(0, 0, 0, 0.36));
+    sepia(0.78)
+    saturate(1.45)
+    hue-rotate(322deg)
+    brightness(0.64)
+    contrast(1.18)
+    drop-shadow(0 18px 40px rgba(0, 0, 0, 0.42));
 }
 
 @media (prefers-reduced-motion: reduce) {
