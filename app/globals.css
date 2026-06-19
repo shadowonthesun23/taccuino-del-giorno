@@ -1361,13 +1361,7 @@ body {
 
 .ink-day-transition-canvas {
   --ink-frame-width: max(100vw, 214vh);
-  filter:
-    sepia(0.72)
-    saturate(1.7)
-    hue-rotate(326deg)
-    brightness(0.96)
-    contrast(1.08)
-    drop-shadow(0 16px 36px rgba(120, 58, 47, 0.18));
+  filter: drop-shadow(0 16px 36px rgba(120, 58, 47, 0.18));
   height: calc(var(--ink-frame-width) / 1.7778);
   left: 50%;
   overflow: hidden;
@@ -1378,10 +1372,17 @@ body {
 }
 
 .ink-day-transition-sprite {
-  background: url('/images/ink-transition.png') no-repeat 0 0;
+  background:
+    radial-gradient(ellipse 34% 58% at 17% 42%, rgba(244, 151, 125, 0.62), transparent 58%),
+    radial-gradient(ellipse 28% 64% at 43% 54%, rgba(148, 61, 49, 0.36), transparent 62%),
+    linear-gradient(90deg, #c85f50 0%, #d8735e 28%, #a94c43 56%, #d46655 82%, #b45248 100%);
   background-size: 100% 100%;
   height: 100%;
   left: 50%;
+  -webkit-mask: url('/images/ink-transition.png') no-repeat 0 0;
+  -webkit-mask-size: 100% 100%;
+  mask: url('/images/ink-transition.png') no-repeat 0 0;
+  mask-size: 100% 100%;
   position: absolute;
   top: 50%;
   transform: translateY(-50%) translateX(-2%);
@@ -1397,13 +1398,14 @@ body {
 }
 
 .ink-day-transition.is-dark .ink-day-transition-canvas {
-  filter:
-    sepia(0.78)
-    saturate(1.45)
-    hue-rotate(322deg)
-    brightness(0.64)
-    contrast(1.18)
-    drop-shadow(0 18px 40px rgba(0, 0, 0, 0.42));
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.42));
+}
+
+.ink-day-transition.is-dark .ink-day-transition-sprite {
+  background:
+    radial-gradient(ellipse 34% 58% at 17% 42%, rgba(211, 111, 92, 0.5), transparent 58%),
+    radial-gradient(ellipse 28% 64% at 43% 54%, rgba(87, 35, 34, 0.44), transparent 62%),
+    linear-gradient(90deg, #8f403a 0%, #b95749 30%, #743331 58%, #a94d43 84%, #7f3a36 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
