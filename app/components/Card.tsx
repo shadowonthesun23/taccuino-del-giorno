@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 import localFont from 'next/font/local';
-import { Download } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
 
 const stampwriter = localFont({
   src: '../../public/fonts/STAMPWRITER-KIT.ttf',
@@ -34,9 +34,23 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   filename?: string;
+  isSaved?: boolean;
+  onToggleSaved?: () => void;
+  saveLabel?: string;
 }
 
-export default function Card({ id, title, icon: Icon, isDark, children, className = '', filename }: CardProps) {
+export default function Card({
+  id,
+  title,
+  icon: Icon,
+  isDark,
+  children,
+  className = '',
+  filename,
+  isSaved = false,
+  onToggleSaved,
+  saveLabel = 'Custodisci questa scheda',
+}: CardProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -192,7 +206,7 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
       exportFrame?.remove();
       setExporting(false);
     }
-  }, [exporting, filename, isDark]);
+  }, [exporting, filename, id, isDark]);
 
   return (
     <div id={id} className={className}>
@@ -217,6 +231,23 @@ export default function Card({ id, title, icon: Icon, isDark, children, classNam
               </svg>
             ) : (
               <Download className="w-3.5 h-3.5" />
+            )}
+          </button>
+        )}
+
+        {onToggleSaved && (
+          <button
+            type="button"
+            data-export-ignore
+            onClick={onToggleSaved}
+            aria-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
+            title={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
+            className={`card-save-button ${filename ? 'has-export' : ''} ${isDark ? 'is-dark' : ''} ${isSaved ? 'is-saved' : ''}`}
+          >
+            {isSaved ? (
+              <BookmarkCheck className="w-3.5 h-3.5" aria-hidden="true" />
+            ) : (
+              <Bookmark className="w-3.5 h-3.5" aria-hidden="true" />
             )}
           </button>
         )}

@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -125,8 +125,8 @@ const CoffeeIcon = ({ className, strokeWidth = 1.5 }: { className?: string, stro
   </svg>
 );
 
-const WatercolorDivider = ({ isDark }: { isDark: boolean }) => {
-  const color = isDark ? '#7a5c38' : '#b5956a';
+const WatercolorDivider = ({ isDark, accentColor }: { isDark: boolean; accentColor?: string }) => {
+  const color = accentColor ?? (isDark ? '#7a5c38' : '#b5956a');
   return (
     <div aria-hidden="true" className="watercolor-divider w-full flex justify-center pointer-events-none select-none">
       <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-2xl" style={{ height: '26px', display: 'block' }}>
@@ -177,6 +177,18 @@ interface DatiTaccuino {
 interface ArchivioItem {
   data: string;
   autore_giorno: string;
+}
+
+type SavedSectionId = 'citazione' | 'parola' | 'santi' | 'opera' | 'avvenimenti' | 'poesia' | 'bibbia' | 'musica';
+
+interface SavedCardItem {
+  id: string;
+  date: string;
+  section: SavedSectionId;
+  title: string;
+  excerpt: string;
+  source?: string;
+  savedAt: number;
 }
 
 function estraiTesti(d: DatiTaccuino): string[] {
@@ -304,6 +316,8 @@ type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 type MoonPhaseId = 'new' | 'waxing-crescent' | 'first-quarter' | 'waxing-gibbous' | 'full' | 'waning-gibbous' | 'last-quarter' | 'waning-crescent';
 
 const VISITED_ARCHIVE_STORAGE_KEY = 'taccuino-visited-days-v1';
+const SAVED_CARDS_STORAGE_KEY = 'taccuino-saved-cards-v1';
+const DEFAULT_DAILY_ACCENT = '#b5956a';
 
 function getSavedVisitedDates() {
   if (typeof window === 'undefined') return new Set<string>();
@@ -314,6 +328,79 @@ function getSavedVisitedDates() {
   } catch {
     window.localStorage.removeItem(VISITED_ARCHIVE_STORAGE_KEY);
     return new Set<string>();
+  }
+}
+
+function getSavedCards(): SavedCardItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(SAVED_CARDS_STORAGE_KEY) ?? '[]');
+    if (!Array.isArray(stored)) return [];
+    return stored.filter((item): item is SavedCardItem => (
+      typeof item?.id === 'string'
+      && /^\d{4}-\d{2}-\d{2}$/.test(item.date)
+      && typeof item.section === 'string'
+      && typeof item.title === 'string'
+      && typeof item.excerpt === 'string'
+      && typeof item.savedAt === 'number'
+    )).slice(0, 80);
+  } catch {
+    window.localStorage.removeItem(SAVED_CARDS_STORAGE_KEY);
+    return [];
+  }
+}
+
+function persistSavedCards(items: SavedCardItem[]) {
+  try {
+    window.localStorage.setItem(SAVED_CARDS_STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // The drawer remains usable for the current session when storage is unavailable.
+  }
+}
+
+function sampleArtworkAccent(image: HTMLImageElement): { color: string; rgb: string } | null {
+  try {
+    const canvas = document.createElement('canvas');
+    const size = 24;
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return null;
+    context.drawImage(image, 0, 0, size, size);
+    const pixels = context.getImageData(0, 0, size, size).data;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let totalWeight = 0;
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      const r = pixels[index];
+      const g = pixels[index + 1];
+      const b = pixels[index + 2];
+      const alpha = pixels[index + 3] / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const lightness = (max + min) / 510;
+      if (alpha < 0.8 || lightness < 0.08 || lightness > 0.92) continue;
+      const saturation = max === min ? 0 : (max - min) / (255 - Math.abs(max + min - 255));
+      const weight = alpha * (0.45 + saturation * 1.6) * (1 - Math.abs(lightness - 0.5));
+      red += r * weight;
+      green += g * weight;
+      blue += b * weight;
+      totalWeight += weight;
+    }
+
+    if (totalWeight === 0) return null;
+    const raw = [red, green, blue].map((channel) => channel / totalWeight);
+    const paper = [181, 149, 106];
+    const muted = raw.map((channel, index) => Math.round(channel * 0.68 + paper[index] * 0.32));
+    const [r, g, b] = muted;
+    return {
+      color: `#${muted.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`,
+      rgb: `${r}, ${g}, ${b}`,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -1073,6 +1160,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
+  const [savedCards, setSavedCards] = useState<SavedCardItem[]>(getSavedCards);
+  const [themeThreadActive, setThemeThreadActive] = useState(false);
+  const [dailyAccent, setDailyAccent] = useState({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
   const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
   const [visitedArchiveDates, setVisitedArchiveDates] = useState<Set<string>>(getSavedVisitedDates);
@@ -1098,6 +1189,7 @@ export default function Home() {
   const [footerInView, setFooterInView] = useState(false);
   const [ambientLightStyle, setAmbientLightStyle] = useState<CSSProperties>(() => getAmbientLightStyle(new Date(), false));
   const popoverRef = useRef<HTMLDivElement>(null);
+  const savedDrawerRef = useRef<HTMLDivElement>(null);
   const desktopArchiveTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileArchiveTriggerRef = useRef<HTMLButtonElement>(null);
   const lastArchiveTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -1118,6 +1210,31 @@ export default function Home() {
       window.localStorage.setItem(VISITED_ARCHIVE_STORAGE_KEY, JSON.stringify(Array.from(next).slice(-120)));
       return next;
     });
+  }, []);
+
+  const toggleSavedCard = useCallback((item: Omit<SavedCardItem, 'id' | 'savedAt'>) => {
+    const id = `${item.date}:${item.section}`;
+    setSavedCards((current) => {
+      const exists = current.some((saved) => saved.id === id);
+      const next = exists
+        ? current.filter((saved) => saved.id !== id)
+        : [{ ...item, id, savedAt: Date.now() }, ...current].slice(0, 80);
+      persistSavedCards(next);
+      return next;
+    });
+  }, []);
+
+  const removeSavedCard = useCallback((id: string) => {
+    setSavedCards((current) => {
+      const next = current.filter((saved) => saved.id !== id);
+      persistSavedCards(next);
+      return next;
+    });
+  }, []);
+
+  const updateArtworkAccent = useCallback((image: HTMLImageElement) => {
+    const sampled = sampleArtworkAccent(image);
+    if (sampled) setDailyAccent(sampled);
   }, []);
 
   const checkArchivioScroll = useCallback(() => {
@@ -1151,18 +1268,22 @@ export default function Home() {
       if (popoverRef.current && !popoverRef.current.contains(target) && !clickedArchiveTrigger) {
         setPopoverOpen(false);
       }
+      if (savedDrawerRef.current && !savedDrawerRef.current.contains(target)) {
+        setSavedDrawerOpen(false);
+      }
       if (mobileToolsRef.current && !mobileToolsRef.current.contains(target)) {
         setMobileToolsOpen(false);
       }
     }
-    if (popoverOpen || mobileToolsOpen) document.addEventListener('mousedown', handleClickOutside);
+    if (popoverOpen || savedDrawerOpen || mobileToolsOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [popoverOpen, mobileToolsOpen]);
+  }, [popoverOpen, savedDrawerOpen, mobileToolsOpen]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setPopoverOpen(false);
+        setSavedDrawerOpen(false);
         setMobileToolsOpen(false);
         setShowDailyPassport(false);
       }
@@ -1284,14 +1405,14 @@ export default function Home() {
     };
   }, [isDark]);
   
-  const caricaGiorno = (dataIso: string | null, usePageTurn = false) => {
+  const caricaGiorno = (dataIso: string | null, usePageTurn = false, targetSection = 'autore') => {
     if (usePageTurn) {
       setIsTurningPage(true);
       setPageTurnPhase('covering');
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setThemeThreadActive(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1306,9 +1427,15 @@ export default function Home() {
       minimumTurnDelay,
     ])
       .then(([dati, operaData]) => {
-        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection('autore'); setContentKey(k => k + 1);
+        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
         rememberVisitedDate(dataIso ?? oggi);
-        window.scrollTo({ top: 0, behavior: usePageTurn ? 'auto' : 'smooth' });
+        if (targetSection === 'autore') {
+          window.scrollTo({ top: 0, behavior: usePageTurn ? 'auto' : 'smooth' });
+        } else {
+          window.setTimeout(() => {
+            document.getElementById(targetSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, usePageTurn ? 880 : 120);
+        }
         if (usePageTurn) {
           window.requestAnimationFrame(() => {
             window.requestAnimationFrame(() => setPageTurnPhase('revealing'));
@@ -1445,6 +1572,19 @@ export default function Home() {
     && data?.santi.length === 1
     && saintArtwork.saintName === dataOriginale?.santi[0]?.nome
   ) ? saintArtwork : null;
+  const isCardSaved = (section: SavedSectionId) => savedCards.some((item) => item.id === `${dataExLibris}:${section}`);
+  const saveCard = (section: SavedSectionId, title: string, excerpt: string, source?: string) => {
+    toggleSavedCard({ date: dataExLibris, section, title, excerpt, source });
+  };
+  const openSavedCard = (item: SavedCardItem) => {
+    setSavedDrawerOpen(false);
+    if (item.date === dataExLibris) {
+      setActiveSection(item.section);
+      document.getElementById(item.section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    caricaGiorno(item.date, Boolean(data), item.section);
+  };
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
   const archivioPopover = isMounted && popoverOpen ? createPortal(
@@ -1547,10 +1687,61 @@ export default function Home() {
     document.body
   ) : null;
 
+  const savedCardsDrawer = isMounted && savedDrawerOpen ? createPortal(
+    <aside
+      ref={savedDrawerRef}
+      role="dialog"
+      aria-modal="false"
+      aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
+      className={`saved-cards-drawer ${isDark ? 'is-dark' : ''} ${garamond.className}`}
+    >
+      <header className="saved-cards-header">
+        <div>
+          <span className="saved-cards-kicker">{lingua === 'IT' ? 'Il tuo cassetto' : 'Your drawer'}</span>
+          <h2 className={jocky.className}>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</h2>
+        </div>
+        <button type="button" onClick={() => setSavedDrawerOpen(false)} aria-label={lingua === 'IT' ? 'Chiudi' : 'Close'}>
+          <X aria-hidden="true" />
+        </button>
+      </header>
+      {savedCards.length === 0 ? (
+        <div className="saved-cards-empty">
+          <Bookmark className="h-5 w-5" strokeWidth={1.45} aria-hidden="true" />
+          <p>{lingua === 'IT' ? 'Qui ritroverai le schede che vorrai tenere con te.' : 'The pages you choose to keep will appear here.'}</p>
+        </div>
+      ) : (
+        <ol className="saved-cards-list">
+          {savedCards.map((item) => (
+            <li key={item.id}>
+              <button type="button" className="saved-card-open" onClick={() => openSavedCard(item)}>
+                <span className="saved-card-date">{formatDataItaliana(item.date)}</span>
+                <strong>{item.title}</strong>
+                <span className="saved-card-excerpt">{item.excerpt}</span>
+                {item.source ? <em>{item.source}</em> : null}
+              </button>
+              <button
+                type="button"
+                className="saved-card-remove"
+                onClick={() => removeSavedCard(item.id)}
+                aria-label={`${lingua === 'IT' ? 'Rimuovi' : 'Remove'} ${item.title}`}
+                title={lingua === 'IT' ? 'Rimuovi' : 'Remove'}
+              >
+                <X aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+      <footer>{lingua === 'IT' ? `${savedCards.length} ${savedCards.length === 1 ? 'scheda custodita' : 'schede custodite'}` : `${savedCards.length} saved`}</footer>
+    </aside>,
+    document.body
+  ) : null;
+
   if (loading) return (
     <>
       <LoadingNotebook isDark={isDark} />
       {archivioPopover}
+      {savedCardsDrawer}
     </>
   );
 
@@ -1570,6 +1761,7 @@ export default function Home() {
         )}
       </div>
       {archivioPopover}
+      {savedCardsDrawer}
     </div>
   );
 
@@ -1580,8 +1772,12 @@ export default function Home() {
   return (
     <ParallaxBackground season={season}>
       <div
-        className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
-        style={ambientLightStyle}
+        className={`journal-material journal-material-${season} ${themeThreadActive ? 'thread-is-active' : ''} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
+        style={{
+          ...ambientLightStyle,
+          '--daily-accent': dailyAccent.color,
+          '--daily-accent-rgb': dailyAccent.rgb,
+        } as CSSProperties}
       >
         <NotebookQuickNav
           isDark={isDark}
@@ -1605,7 +1801,7 @@ export default function Home() {
           onNavigate={() => setMobileNavOpen(false)}
         />
         <SeasonalBookmark dataIso={dataExLibris} lingua={lingua} isDark={isDark} />
-        <div className={`top-control-panel ${controlsHidden && !popoverOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
+        <div className={`top-control-panel ${controlsHidden && !popoverOpen && !savedDrawerOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
           <button
             onClick={toggleLingua}
             disabled={traducendo}
@@ -1643,6 +1839,27 @@ export default function Home() {
           )}
 
           <button
+            type="button"
+            onClick={() => {
+              setPopoverOpen(false);
+              setSavedDrawerOpen((current) => !current);
+            }}
+            className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
+              savedDrawerOpen
+                ? 'border-[#DE6B58] text-[#DE6B58]'
+                : isDark
+                  ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
+                  : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+            }`}
+            aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
+            aria-expanded={savedDrawerOpen}
+            aria-haspopup="dialog"
+            title={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
+          >
+            {savedCards.length > 0 ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
+          </button>
+
+          <button
             onClick={toggleTheme}
             className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
               isDark
@@ -1656,7 +1873,7 @@ export default function Home() {
         </div>
         <div
           ref={mobileToolsRef}
-          className={`mobile-tools ${isDark ? 'is-dark' : ''} ${mobileToolsOpen ? 'is-open' : ''} ${controlsHidden && !mobileToolsOpen && !popoverOpen ? 'is-hidden' : ''}`}
+          className={`mobile-tools ${isDark ? 'is-dark' : ''} ${mobileToolsOpen ? 'is-open' : ''} ${controlsHidden && !mobileToolsOpen && !popoverOpen && !savedDrawerOpen ? 'is-hidden' : ''}`}
         >
           <div
             id="mobile-tools-menu"
@@ -1691,6 +1908,19 @@ export default function Home() {
                 <span>{lingua === 'IT' ? 'Archivio' : 'Archive'}</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileToolsOpen(false);
+                setPopoverOpen(false);
+                setSavedDrawerOpen(true);
+              }}
+              aria-expanded={savedDrawerOpen}
+              aria-haspopup="dialog"
+            >
+              {savedCards.length > 0 ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+              <span>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</span>
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -1767,7 +1997,7 @@ export default function Home() {
                   : 'Every day carries something worth keeping: a line, a poem, an image, a word, a memory, a passage of faith. A quiet space to gather them, read slowly, and keep them on paper or in the heart.'}
               </p>
               {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
-              <WatercolorDivider isDark={isDark} />
+              <WatercolorDivider isDark={isDark} accentColor={dailyAccent.color} />
             </div>
           </header>
 
@@ -1848,12 +2078,18 @@ export default function Home() {
           >
             {data.breve_descrizione}
           </p>
-          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
+          <div className={`daily-thread ${isDark ? 'is-dark' : ''} ${themeThreadActive ? 'is-active' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
             <span className="daily-thread-line" aria-hidden="true" />
             <span className="daily-thread-label">{lingua === 'IT' ? 'Il filo di oggi:' : "Today's thread:"}</span>
-            <strong className={`${caveat.className} daily-thread-theme`}>
+            <button
+              type="button"
+              className={`${caveat.className} daily-thread-theme`}
+              onClick={() => setThemeThreadActive((current) => !current)}
+              aria-pressed={themeThreadActive}
+              title={lingua === 'IT' ? 'Mostra i richiami del tema nella pagina' : 'Show this theme across the page'}
+            >
               <span>{data.parola_giorno.parola}</span>
-            </strong>
+            </button>
             <span className="daily-thread-line is-ending" aria-hidden="true" />
           </div>
           {!showExportCard && (
@@ -1910,6 +2146,8 @@ export default function Home() {
               isDark={isDark}
               className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-3"
               filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
+              isSaved={isCardSaved('citazione')}
+              onToggleSaved={() => saveCard('citazione', `${lingua === 'IT' ? 'Citazione di' : 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
             >
               <blockquote className="quote-editorial md:px-8">
                 <EditorialQuoteText text={data.citazione.testo} />
@@ -1921,17 +2159,19 @@ export default function Home() {
             </Card>
 
             <Card id="parola" title={lingua === 'IT' ? 'Parola del giorno' : 'Word of the day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
-              filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}>
+              filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
+              isSaved={isCardSaved('parola')}
+              onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
               <div className="text-center mb-6">
                 <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
                 <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
-              <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
+              <p data-thread-related className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
               {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
                 <p className={`text-lg font-medium italic quote-example-note ${isDark ? 'is-dark' : ''}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
               )}
               {data.parola_giorno.nota && (
-                <aside className={`margin-note ${isDark ? 'is-dark' : ''}`}>
+                <aside data-thread-related className={`margin-note ${isDark ? 'is-dark' : ''}`}>
                   <DoodleArrow isDark={isDark} />
                   <span className={caveat.className}>{getMarginalia(data.parola_giorno.nota)}</span>
                 </aside>
@@ -1939,7 +2179,9 @@ export default function Home() {
             </Card>
 
             <Card id="santi" title={lingua === 'IT' ? 'I santi di oggi' : "Today's saints"} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
-              filename="santi">
+              filename="santi"
+              isSaved={isCardSaved('santi')}
+              onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
               <div className="saints-card-layout">
                 {visibleSaintArtwork ? (
                   <figure className="saint-card-artwork">
@@ -1987,6 +2229,8 @@ export default function Home() {
                 icon={Palette}
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-5"
+                isSaved={isCardSaved('opera')}
+                onToggleSaved={() => saveCard('opera', opera.titolo, [operaMedium, operaDepartment].filter(Boolean).join(' · '), opera.artista)}
               >
                 <div className="opera-postcard grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                   <div className="opera-postcard-copy space-y-5 order-2 md:order-1">
@@ -2006,7 +2250,15 @@ export default function Home() {
                   </div>
                   <div className="opera-postcard-media order-1 md:order-2">
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      <img draggable={false} src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`} {...lowPriorityImageProps} />
+                      <img
+                        draggable={false}
+                        src={opera.immagine_url_hd || opera.immagine_url}
+                        alt={`${opera.titolo} by ${opera.artista}`}
+                        crossOrigin="anonymous"
+                        className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
+                        onLoad={(event) => updateArtworkAccent(event.currentTarget)}
+                        {...lowPriorityImageProps}
+                      />
                     </a>
                     <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>
@@ -2015,7 +2267,9 @@ export default function Home() {
             )}
 
             <Card id="avvenimenti" title={lingua === 'IT' ? 'Accadde oggi' : 'This day in history'} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
-              filename="avvenimenti">
+              filename="avvenimenti"
+              isSaved={isCardSaved('avvenimenti')}
+              onToggleSaved={() => saveCard('avvenimenti', lingua === 'IT' ? 'Accadde oggi' : 'This day in history', data.avvenimenti[0] ?? '')}>
               <ul className="space-y-4">
                 {data.avvenimenti.map((evento, idx) => {
                   const parts = evento.split(':');
@@ -2030,7 +2284,9 @@ export default function Home() {
             </Card>
 
             <Card id="poesia" title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
-              filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}>
+              filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}
+              isSaved={isCardSaved('poesia')}
+              onToggleSaved={() => saveCard('poesia', data.poesia.fonte || (lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the day'), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
               <DecorativeInitialText
                 text={data.poesia.testo}
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
@@ -2041,7 +2297,7 @@ export default function Home() {
                 <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
               </div>
               {data.poesia.nota && (
-                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                <div data-thread-related className={`reading-note ${isDark ? 'is-dark' : ''}`}>
                   <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
                   {data.poesia.nota}
                 </div>
@@ -2049,7 +2305,9 @@ export default function Home() {
             </Card>
 
             <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
-              filename="bibbia">
+              filename="bibbia"
+              isSaved={isCardSaved('bibbia')}
+              onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
               <DecorativeInitialText
                 text={data.bibbia.testo}
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
@@ -2058,7 +2316,7 @@ export default function Home() {
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
               </div>
               {data.bibbia.nota && (
-                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                <div data-thread-related className={`reading-note ${isDark ? 'is-dark' : ''}`}>
                   <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
                   {data.bibbia.nota}
                 </div>
@@ -2071,6 +2329,8 @@ export default function Home() {
               isDark={isDark}
               className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
               filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
+              isSaved={isCardSaved('musica')}
+              onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
             >
               <div className="music-card-layout">
 
@@ -2105,7 +2365,7 @@ export default function Home() {
                     <span className="font-bold">{data.musica.autore}</span>
                   </p>
                   <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
-                  <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
+                  <p data-thread-related className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
                   <div className="music-link-actions">
                     <a
                       href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
@@ -2187,6 +2447,7 @@ export default function Home() {
         </main>
 
         {archivioPopover}
+        {savedCardsDrawer}
         {isMounted && showDailyPassport && createPortal(
           <DailyPassport
             data={data}
