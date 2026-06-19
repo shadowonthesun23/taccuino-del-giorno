@@ -119,6 +119,7 @@ export default function PrintableZineButton({ targetId, filename }: PrintableZin
 
             <figure className={styles.guideFigure}>
               <img
+                draggable={false}
                 src="/images/zine-folding-guide.png"
                 alt="Sequenza illustrata per piegare un foglio A4 in una zine di otto facciate"
               />

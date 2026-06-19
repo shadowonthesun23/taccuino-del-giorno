@@ -164,6 +164,7 @@ export default function AuthorExportCard({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            draggable={false}
             src="/images/sfondo-taccuino.webp"
             alt=""
             aria-hidden="true"
@@ -339,6 +340,7 @@ export default function AuthorExportCard({
             >
               {fotoAutoreUrl ? (
                 <img
+                  draggable={false}
                   src={fotoAutoreUrl}
                   alt={autoreGiorno}
                   crossOrigin="anonymous"

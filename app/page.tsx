@@ -772,7 +772,7 @@ function DailyPassport({
             </div>
             {data.foto_autore_url && (
               <figure className="daily-passport-author-photo">
-                <img src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} {...lazyImageProps} />
+                <img draggable={false} src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} {...lazyImageProps} />
               </figure>
             )}
             <p className="daily-passport-fold-hint">{label.foldHint}</p>
@@ -846,7 +846,7 @@ function DailyPassport({
                 <span>{label.artwork}</span>
                 {opera.immagine_url_hd || opera.immagine_url ? (
                   <figure className="daily-passport-artwork">
-                    <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
+                    <img draggable={false} src={opera.immagine_url_hd || opera.immagine_url} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
                   </figure>
                 ) : null}
                 <h4>{opera.titolo}</h4>
@@ -899,6 +899,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
           className={`loading-notebook-paper ${isDark ? 'is-dark' : ''}`}
         >
           <img
+            draggable={false}
             className="loading-notebook-sheet"
             src="/images/loading-paper-torn.png"
             alt=""
@@ -1734,6 +1735,7 @@ export default function Home() {
             }}
           >
             <img
+              draggable={false}
               src={data.foto_autore_url}
               alt={data.autore_giorno}
               {...eagerImageProps}
@@ -1876,6 +1878,7 @@ export default function Home() {
                 {visibleSaintArtwork ? (
                   <figure className="saint-card-artwork">
                     <img
+                      draggable={false}
                       src={`/api/image-proxy?url=${encodeURIComponent(visibleSaintArtwork.imageUrl)}`}
                       alt=""
                       crossOrigin="anonymous"
@@ -1937,7 +1940,7 @@ export default function Home() {
                   </div>
                   <div className="opera-postcard-media order-1 md:order-2">
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      <img src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`} {...lowPriorityImageProps} />
+                      <img draggable={false} src={opera.immagine_url_hd || opera.immagine_url} alt={`${opera.titolo} by ${opera.artista}`} className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`} {...lowPriorityImageProps} />
                     </a>
                     <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>
@@ -2009,6 +2012,7 @@ export default function Home() {
                   <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
                     {musicCover ? (
                       <img
+                        draggable={false}
                         src={musicCover}
                         alt={`${data.musica.brano} cover`}
                         {...lazyImageProps}

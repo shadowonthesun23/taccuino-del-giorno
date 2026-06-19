@@ -39,6 +39,11 @@ html, body {
   scroll-behavior: smooth;
 }
 
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 .safe-viewport-backdrop {
   top: calc(env(safe-area-inset-top, 0px) * -1);
   right: calc(env(safe-area-inset-right, 0px) * -1);

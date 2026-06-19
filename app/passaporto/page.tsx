@@ -282,7 +282,7 @@ export default async function PassportPage({
       <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
         {data.foto_autore_url && (
           <figure className={styles.authorPhoto}>
-            <img crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
+            <img draggable={false} crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
           </figure>
         )}
         <div className={styles.authorBio}>
@@ -346,6 +346,7 @@ export default async function PassportPage({
       {albumCoverUrl && (
         <figure className={styles.albumCover}>
           <img
+            draggable={false}
             decoding="sync"
             loading="eager"
             src={albumCoverUrl}
@@ -369,6 +370,7 @@ export default async function PassportPage({
           {artworkImageUrl && (
             <figure className={styles.artwork}>
               <img
+                draggable={false}
                 decoding="sync"
                 fetchPriority="high"
                 loading="eager"
