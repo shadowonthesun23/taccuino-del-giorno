@@ -105,6 +105,13 @@ function textDensityClass(text: string) {
   return styles.shortText;
 }
 
+function estimatedZineLines(text: string) {
+  return text
+    .trim()
+    .split(/\r?\n/)
+    .reduce((total, line) => total + Math.max(1, Math.ceil(line.trim().length / 38)), 0);
+}
+
 function sentenceCase(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -264,6 +271,8 @@ export default async function PassportPage({
   const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
   const artworkImageUrlHd = proxiedImageUrl(opera?.immagine_url_hd);
   const albumCoverUrl = proxiedImageUrl(albumCover);
+  const poemNeedsExcerpt = estimatedZineLines(data.poesia.testo) > 18;
+  const bibleNeedsExcerpt = estimatedZineLines(data.bibbia.testo) > 18;
   const coverContent = (
     <div className={styles.cover}>
       <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
@@ -331,14 +340,23 @@ export default async function PassportPage({
   const poetryContent = (
     <>
       <h2>{data.poesia.autore}</h2>
-      <p className={styles.source}>{data.poesia.fonte}</p>
-      <p className={`${styles.poem} ${textDensityClass(data.poesia.testo)}`}>{data.poesia.testo}</p>
+      <p className={styles.source}>
+        {[data.poesia.fonte, poemNeedsExcerpt ? 'Estratto' : ''].filter(Boolean).join(' · ')}
+      </p>
+      <p className={`${styles.poem} ${textDensityClass(data.poesia.testo)} ${poemNeedsExcerpt ? styles.zineExcerpt : ''}`}>
+        {data.poesia.testo}
+      </p>
     </>
   );
   const bibleContent = (
     <>
-      <h2>{data.bibbia.fonte}</h2>
-      <p className={`${styles.bibleText} ${textDensityClass(data.bibbia.testo)}`}>{data.bibbia.testo}</p>
+      <h2>
+        {data.bibbia.fonte}
+        {bibleNeedsExcerpt && <span className={styles.excerptMark}>Estratto</span>}
+      </h2>
+      <p className={`${styles.bibleText} ${textDensityClass(data.bibbia.testo)} ${bibleNeedsExcerpt ? styles.zineExcerpt : ''}`}>
+        {data.bibbia.testo}
+      </p>
     </>
   );
   const musicContent = (
