@@ -1233,7 +1233,7 @@ export default function Home() {
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
-      ? new Promise(resolve => window.setTimeout(resolve, 140))
+      ? new Promise(resolve => window.setTimeout(resolve, 760))
       : Promise.resolve();
     Promise.all([
       fetch(url).then(res => { if (!res.ok) throw new Error('Nessun contenuto per questa data.'); return res.json(); }),
@@ -1253,7 +1253,7 @@ export default function Home() {
           window.setTimeout(() => {
             setIsTurningPage(false);
             setPageTurnPhase('idle');
-          }, 300);
+          }, 820);
         } else {
           setIsTurningPage(false);
           setPageTurnPhase('idle');
@@ -1654,6 +1654,16 @@ export default function Home() {
         <span className="sr-only" role="status" aria-live="polite">
           {isTurningPage ? (lingua === 'IT' ? 'Cambio giorno in corso' : 'Changing day') : ''}
         </span>
+        {isTurningPage && (
+          <div
+            className={`ink-day-transition is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`}
+            aria-hidden="true"
+          >
+            <div className="ink-day-transition-canvas">
+              <div className="ink-day-transition-sprite" />
+            </div>
+          </div>
+        )}
         <main
           className={`journal-page-enter journal-page-transition is-${pageTurnPhase} w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10`}
           aria-busy={isTurningPage}
