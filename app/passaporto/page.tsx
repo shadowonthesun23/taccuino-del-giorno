@@ -273,6 +273,12 @@ export default async function PassportPage({
   const albumCoverUrl = proxiedImageUrl(albumCover);
   const poemNeedsExcerpt = estimatedZineLines(data.poesia.testo) > 18;
   const bibleNeedsExcerpt = estimatedZineLines(data.bibbia.testo) > 18;
+  const wordSaintsNeedsCondensing = estimatedZineLines([
+    data.parola_giorno.etimologia,
+    data.parola_giorno.definizione,
+    data.parola_giorno.esempio,
+    ...data.santi.slice(0, 2).flatMap((santo) => [santo.nome, santo.ruolo, santo.biografia]),
+  ].filter(Boolean).join('\n')) > 24;
   const coverContent = (
     <div className={styles.cover}>
       <p className={styles.number}>N. {passportCode(dataIso, initials)}</p>
@@ -310,10 +316,10 @@ export default async function PassportPage({
       {entry('Parola del Giorno', (
         <>
           <h2>{data.parola_giorno.parola}</h2>
-          <p className={styles.source}>{data.parola_giorno.etimologia}</p>
-          <p>{data.parola_giorno.definizione}</p>
+          <p className={`${styles.source} ${styles.wordEtymology}`}>{data.parola_giorno.etimologia}</p>
+          <p className={styles.wordDefinition}>{data.parola_giorno.definizione}</p>
           {data.parola_giorno.esempio && data.parola_giorno.esempio !== 'null' && (
-            <blockquote>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
+            <blockquote className={styles.wordExample}>&ldquo;{data.parola_giorno.esempio}&rdquo;</blockquote>
           )}
         </>
       ))}
@@ -323,7 +329,7 @@ export default async function PassportPage({
             <div key={index} className={styles.miniEntry}>
               <h3>{santo.nome}</h3>
               <p><strong>{santo.ruolo}</strong>{santo.anni ? ` · ${santo.anni}` : ''}</p>
-              <p>{santo.biografia}</p>
+              <p className={styles.saintBiography}>{santo.biografia}</p>
             </div>
           ))}
         </>
@@ -429,7 +435,7 @@ export default async function PassportPage({
         <article id={digitalZineId} className={`${styles.zineSheet} ${styles.digitalSheet}`} aria-label={`Passaporto del Giorno in versione digitale: ${data.data_odierna}`}>
           {digitalPage(1, '', coverContent)}
           {digitalPage(2, 'Autore del giorno', authorContent, styles.authorPage)}
-          {digitalPage(3, '', wordSaintsContent, styles.wordSaintsPage)}
+          {digitalPage(3, '', wordSaintsContent, `${styles.wordSaintsPage} ${wordSaintsNeedsCondensing ? styles.wordSaintsDense : ''}`)}
           {digitalPage(4, 'Accadde Oggi', eventsContent)}
           {digitalPage(5, 'Poesia del Giorno', poetryContent)}
           {digitalPage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
@@ -447,7 +453,7 @@ export default async function PassportPage({
 
           {printablePage(5, 'Poesia del Giorno', poetryContent, styles.isInverted)}
           {printablePage(4, 'Accadde Oggi', eventsContent, styles.isInverted)}
-          {printablePage(3, '', wordSaintsContent, `${styles.isInverted} ${styles.wordSaintsPage}`)}
+          {printablePage(3, '', wordSaintsContent, `${styles.isInverted} ${styles.wordSaintsPage} ${wordSaintsNeedsCondensing ? styles.wordSaintsDense : ''}`)}
           {printablePage(2, 'Autore del giorno', authorContent, `${styles.isInverted} ${styles.authorPage}`)}
           {printablePage(6, 'Passaggio biblico del giorno', bibleContent, styles.biblePage)}
           {printablePage(7, 'Opera del giorno', artworkContent, styles.artworkPage)}

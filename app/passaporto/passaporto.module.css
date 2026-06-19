@@ -567,6 +567,57 @@
   line-height: 1.04;
 }
 
+.wordSaintsDense .entry {
+  gap: 3px;
+}
+
+.wordSaintsDense .entry + .entry {
+  border-top: 1px solid rgba(181, 149, 106, 0.28);
+  margin-top: 5px;
+  padding-top: 8px;
+}
+
+.wordSaintsDense .entry h2 {
+  font-size: 16px;
+}
+
+.wordSaintsDense .entry p,
+.wordSaintsDense .entry blockquote,
+.wordSaintsDense .miniEntry p {
+  font-size: 11.2px;
+  line-height: 1.2;
+}
+
+.wordSaintsDense .miniEntry h3 {
+  font-size: 14.2px;
+  line-height: 1.02;
+}
+
+.wordSaintsDense .wordEtymology,
+.wordSaintsDense .wordDefinition,
+.wordSaintsDense .wordExample,
+.wordSaintsDense .saintBiography {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.wordSaintsDense .wordEtymology,
+.wordSaintsDense .wordExample {
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+.wordSaintsDense .wordDefinition {
+  line-clamp: 5;
+  -webkit-line-clamp: 5;
+}
+
+.wordSaintsDense .saintBiography {
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
+}
+
 .artworkPage .source,
 .wordSaintsPage .source {
   font-size: 11.4px;
