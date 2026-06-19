@@ -301,8 +301,21 @@ function getArchiveEntryMark(item: ArchivioItem) {
 }
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
-type DayLightId = 'dawn' | 'noon' | 'evening' | 'night';
 type MoonPhaseId = 'new' | 'waxing-crescent' | 'first-quarter' | 'waxing-gibbous' | 'full' | 'waning-gibbous' | 'last-quarter' | 'waning-crescent';
+
+const VISITED_ARCHIVE_STORAGE_KEY = 'taccuino-visited-days-v1';
+
+function getSavedVisitedDates() {
+  if (typeof window === 'undefined') return new Set<string>();
+  try {
+    const savedVisitedDates = JSON.parse(window.localStorage.getItem(VISITED_ARCHIVE_STORAGE_KEY) ?? '[]');
+    if (!Array.isArray(savedVisitedDates)) return new Set<string>();
+    return new Set(savedVisitedDates.filter((date): date is string => /^\d{4}-\d{2}-\d{2}$/.test(date)));
+  } catch {
+    window.localStorage.removeItem(VISITED_ARCHIVE_STORAGE_KEY);
+    return new Set<string>();
+  }
+}
 
 const synodicMonth = 29.53058867;
 const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
@@ -320,12 +333,33 @@ function getSeason(dataIso: string): SeasonId {
   return 'winter';
 }
 
-function getDayLight(dataIso: string): DayLightId {
-  const season = getSeason(dataIso);
-  if (season === 'spring') return 'dawn';
-  if (season === 'summer') return 'noon';
-  if (season === 'autumn') return 'evening';
-  return 'night';
+function getAmbientLightStyle(now: Date, isDark: boolean): CSSProperties {
+  const minute = now.getHours() * 60 + now.getMinutes();
+  const stops = [
+    { minute: 0, x: 47, y: 6, color: [193, 205, 218], alpha: 0.1 },
+    { minute: 360, x: 24, y: 10, color: [255, 219, 168], alpha: 0.22 },
+    { minute: 600, x: 39, y: 7, color: [255, 237, 199], alpha: 0.27 },
+    { minute: 780, x: 52, y: 5, color: [255, 243, 211], alpha: 0.24 },
+    { minute: 1020, x: 68, y: 9, color: [255, 220, 159], alpha: 0.24 },
+    { minute: 1230, x: 78, y: 12, color: [235, 174, 125], alpha: 0.18 },
+    { minute: 1320, x: 63, y: 8, color: [193, 205, 218], alpha: 0.11 },
+    { minute: 1440, x: 47, y: 6, color: [193, 205, 218], alpha: 0.1 },
+  ];
+  const upperIndex = stops.findIndex((stop) => stop.minute >= minute);
+  const upper = stops[Math.max(1, upperIndex)];
+  const lower = stops[Math.max(0, upperIndex - 1)];
+  const progress = Math.max(0, Math.min(1, (minute - lower.minute) / (upper.minute - lower.minute)));
+  const interpolate = (from: number, to: number) => from + (to - from) * progress;
+  const color = lower.color.map((channel, index) => Math.round(interpolate(channel, upper.color[index])));
+  const alpha = interpolate(lower.alpha, upper.alpha) * (isDark ? 0.48 : 1);
+
+  return {
+    '--journal-light-x': `${interpolate(lower.x, upper.x).toFixed(2)}%`,
+    '--journal-light-y': `${interpolate(lower.y, upper.y).toFixed(2)}%`,
+    '--journal-light-color': `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha.toFixed(3)})`,
+    '--journal-material-blend': isDark ? 'screen' : 'multiply',
+    '--journal-material-opacity': isDark ? 0.56 : 0.9,
+  } as CSSProperties;
 }
 
 function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
@@ -1041,6 +1075,7 @@ export default function Home() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
+  const [visitedArchiveDates, setVisitedArchiveDates] = useState<Set<string>>(getSavedVisitedDates);
   const [archivioQuery, setArchivioQuery] = useState('');
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
   const [lingua, setLingua] = useState<'IT' | 'EN'>('IT');
@@ -1061,6 +1096,7 @@ export default function Home() {
   const [mobileReadingVisible, setMobileReadingVisible] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [footerInView, setFooterInView] = useState(false);
+  const [ambientLightStyle, setAmbientLightStyle] = useState<CSSProperties>(() => getAmbientLightStyle(new Date(), false));
   const popoverRef = useRef<HTMLDivElement>(null);
   const desktopArchiveTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileArchiveTriggerRef = useRef<HTMLButtonElement>(null);
@@ -1073,6 +1109,16 @@ export default function Home() {
   const footerRef = useRef<HTMLElement>(null);
 
   const oggi = new Date().toISOString().split('T')[0];
+
+  const rememberVisitedDate = useCallback((dataIso: string) => {
+    setVisitedArchiveDates((current) => {
+      if (current.has(dataIso)) return current;
+      const next = new Set(current);
+      next.add(dataIso);
+      window.localStorage.setItem(VISITED_ARCHIVE_STORAGE_KEY, JSON.stringify(Array.from(next).slice(-120)));
+      return next;
+    });
+  }, []);
 
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
@@ -1222,6 +1268,21 @@ export default function Home() {
   useEffect(() => {
     applyBrowserTheme(isDark);
   }, [isDark]);
+
+  useEffect(() => {
+    const updateAmbientLight = () => setAmbientLightStyle(getAmbientLightStyle(new Date(), isDark));
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') updateAmbientLight();
+    };
+
+    updateAmbientLight();
+    const interval = window.setInterval(updateAmbientLight, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isDark]);
   
   const caricaGiorno = (dataIso: string | null, usePageTurn = false) => {
     if (usePageTurn) {
@@ -1246,6 +1307,7 @@ export default function Home() {
     ])
       .then(([dati, operaData]) => {
         setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection('autore'); setContentKey(k => k + 1);
+        rememberVisitedDate(dataIso ?? oggi);
         window.scrollTo({ top: 0, behavior: usePageTurn ? 'auto' : 'smooth' });
         if (usePageTurn) {
           window.requestAnimationFrame(() => {
@@ -1448,13 +1510,15 @@ export default function Home() {
                   {items.map((item, index) => {
                     const isOggi = item.data === oggi;
                     const isSelezionato = item.data === dataSelezionata;
+                    const isVisited = visitedArchiveDates.has(item.data);
                     const archiveMark = getArchiveEntryMark(item);
                     return (
                       <li key={item.data}>
                         <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data, Boolean(data)); else setPopoverOpen(false); }}
+                          aria-label={`${item.autore_giorno}, ${formatDataItaliana(item.data)}${isVisited ? ', già consultato' : ''}`}
                           className={`archive-entry ${
                             isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
-                          } ${isOggi ? 'is-today' : ''}`}
+                          } ${isOggi ? 'is-today' : ''} ${isVisited ? 'is-visited' : ''}`}
                           style={{ '--archive-entry-delay': `${80 + Math.min(index, 7) * 34}ms` } as CSSProperties}>
                           <span className="archive-entry-mark" aria-hidden="true">
                             <span>{archiveMark.initials}</span>
@@ -1512,11 +1576,13 @@ export default function Home() {
   if (!data) return null;
 
   const season = getSeason(dataExLibris);
-  const dayLight = getDayLight(dataExLibris);
 
   return (
     <ParallaxBackground season={season}>
-      <div className={`journal-material journal-material-${season} journal-light-${dayLight} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}>
+      <div
+        className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
+        style={ambientLightStyle}
+      >
         <NotebookQuickNav
           isDark={isDark}
           lingua={lingua}
