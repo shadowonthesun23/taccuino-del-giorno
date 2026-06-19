@@ -29,35 +29,59 @@ export default function ParallaxBackground({
 
   useEffect(() => {
     let frame: number | null = null;
+    let maxScroll = 1;
+    let travel = window.innerHeight * 0.5;
+    let targetY = 0;
+    let currentY = 0;
+    let initialized = false;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    const updateParallax = () => {
+    const paintParallax = () => {
       const image = imageRef.current;
       if (!image) {
         frame = null;
         return;
       }
 
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight;
-      const winHeight = window.innerHeight;
-      const maxScroll = docHeight - winHeight;
-      const scrollProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      if (reducedMotion.matches) {
+        currentY = targetY;
+      } else {
+        currentY += (targetY - currentY) * 0.24;
+      }
+      if (Math.abs(targetY - currentY) < 0.12) currentY = targetY;
 
-      image.style.transform = `translate3d(0, -${scrollProgress * 33.33}%, 0)`;
-      frame = null;
+      image.style.transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
+      frame = currentY === targetY ? null : window.requestAnimationFrame(paintParallax);
     };
 
-    const handleScroll = () => {
-      if (frame === null) frame = window.requestAnimationFrame(updateParallax);
+    const updateTarget = (immediate = false) => {
+      const scrollProgress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+      targetY = -(scrollProgress * travel);
+      if (!initialized || immediate) {
+        currentY = targetY;
+        initialized = true;
+      }
+      if (frame === null) frame = window.requestAnimationFrame(paintParallax);
     };
+
+    const updateMetrics = () => {
+      maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      travel = window.innerHeight * 0.5;
+      updateTarget(!initialized);
+    };
+
+    const handleScroll = () => updateTarget();
+    const resizeObserver = new ResizeObserver(updateMetrics);
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    updateParallax();
+    window.addEventListener('resize', updateMetrics);
+    resizeObserver.observe(document.documentElement);
+    updateMetrics();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', updateMetrics);
+      resizeObserver.disconnect();
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -234,6 +258,7 @@ export default function ParallaxBackground({
         className={`safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden ${
           hasSeasonalReveal ? 'seasonal-line-art' : ''
         }`}
+        style={{ filter: imageFilter, opacity: imageOpacity }}
       >
         <div
           ref={imageRef}
@@ -245,8 +270,6 @@ export default function ParallaxBackground({
             backfaceVisibility: 'hidden',
             contain: 'layout paint style',
             transform: 'translate3d(0, 0, 0)',
-            filter: imageFilter,
-            opacity: imageOpacity,
           }}
         />
       </div>

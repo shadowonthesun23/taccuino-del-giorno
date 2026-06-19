@@ -1162,7 +1162,6 @@ export default function Home() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
   const [savedCards, setSavedCards] = useState<SavedCardItem[]>(getSavedCards);
-  const [themeThreadActive, setThemeThreadActive] = useState(false);
   const [dailyAccent, setDailyAccent] = useState({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
   const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
@@ -1412,7 +1411,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setThemeThreadActive(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1772,7 +1771,7 @@ export default function Home() {
   return (
     <ParallaxBackground season={season}>
       <div
-        className={`journal-material journal-material-${season} ${themeThreadActive ? 'thread-is-active' : ''} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
+        className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
         style={{
           ...ambientLightStyle,
           '--daily-accent': dailyAccent.color,
@@ -2078,18 +2077,12 @@ export default function Home() {
           >
             {data.breve_descrizione}
           </p>
-          <div className={`daily-thread ${isDark ? 'is-dark' : ''} ${themeThreadActive ? 'is-active' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
+          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
             <span className="daily-thread-line" aria-hidden="true" />
             <span className="daily-thread-label">{lingua === 'IT' ? 'Il filo di oggi:' : "Today's thread:"}</span>
-            <button
-              type="button"
-              className={`${caveat.className} daily-thread-theme`}
-              onClick={() => setThemeThreadActive((current) => !current)}
-              aria-pressed={themeThreadActive}
-              title={lingua === 'IT' ? 'Mostra i richiami del tema nella pagina' : 'Show this theme across the page'}
-            >
+            <strong className={`${caveat.className} daily-thread-theme`}>
               <span>{data.parola_giorno.parola}</span>
-            </button>
+            </strong>
             <span className="daily-thread-line is-ending" aria-hidden="true" />
           </div>
           {!showExportCard && (
@@ -2166,12 +2159,12 @@ export default function Home() {
                 <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
                 <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
-              <p data-thread-related className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
+              <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
               {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
                 <p className={`text-lg font-medium italic quote-example-note ${isDark ? 'is-dark' : ''}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
               )}
               {data.parola_giorno.nota && (
-                <aside data-thread-related className={`margin-note ${isDark ? 'is-dark' : ''}`}>
+                <aside className={`margin-note ${isDark ? 'is-dark' : ''}`}>
                   <DoodleArrow isDark={isDark} />
                   <span className={caveat.className}>{getMarginalia(data.parola_giorno.nota)}</span>
                 </aside>
@@ -2297,7 +2290,7 @@ export default function Home() {
                 <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
               </div>
               {data.poesia.nota && (
-                <div data-thread-related className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
                   <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
                   {data.poesia.nota}
                 </div>
@@ -2316,7 +2309,7 @@ export default function Home() {
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
               </div>
               {data.bibbia.nota && (
-                <div data-thread-related className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
                   <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
                   {data.bibbia.nota}
                 </div>
@@ -2365,7 +2358,7 @@ export default function Home() {
                     <span className="font-bold">{data.musica.autore}</span>
                   </p>
                   <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
-                  <p data-thread-related className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
+                  <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
                   <div className="music-link-actions">
                     <a
                       href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
