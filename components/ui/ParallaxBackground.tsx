@@ -290,6 +290,7 @@ export default function ParallaxBackground({
           ref={seasonalCaptionRef}
           className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''}`}
           aria-label="Opera stagionale in trasparenza"
+          data-reveal-readability
         >
           <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
           <span>{seasonalArtwork.artist} · {seasonalArtwork.collection}</span>
