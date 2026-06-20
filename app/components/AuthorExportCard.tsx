@@ -102,6 +102,7 @@ export default function AuthorExportCard({
   const dateTapeHeight = 76;
   const dateFontSize = Math.max(46, layout.dateFontSize);
   const authorFontSize = getAuthorNameFontSize(autoreGiorno, layout.authorFontSize);
+  const authorNameWraps = autoreGiorno.replace(/\s+/g, ' ').trim().length > 34;
   const photoCaption = `${initials} · ${formatAuthorCardDate(dataIso, dataOdierna)}`;
 
   // Scala 1:3 rispetto al PNG satori (1080×1920 → 360×640)
@@ -379,6 +380,10 @@ export default function AuthorExportCard({
               textAlign: 'center',
               margin: `0 0 ${layout.authorMarginBottom}px`,
               lineHeight: 1.1,
+              width: '100%',
+              maxWidth: '920px',
+              whiteSpace: authorNameWraps ? 'normal' : 'nowrap',
+              wordBreak: 'normal',
               flexShrink: 0,
               position: 'relative',
               zIndex: 1,

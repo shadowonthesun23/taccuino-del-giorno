@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     const dateTapeHeight = 76;
     const dateFontSize = Math.max(46, layout.dateFontSize);
     const authorFontSize = getAuthorNameFontSize(autoreGiorno, layout.authorFontSize);
+    const authorNameWraps = autoreGiorno.replace(/\s+/g, ' ').trim().length > 34;
     const photoCaption = `${initials} · ${formatAuthorCardDate(dataIso, dataOdierna)}`;
 
     const fontsDir = path.join(process.cwd(), 'public', 'fonts');
@@ -422,6 +423,10 @@ export async function POST(req: NextRequest) {
               marginBottom: layout.authorMarginBottom,
               lineHeight: 1.1,
               fontFamily: 'IM Fell Double Pica',
+              width: '100%',
+              maxWidth: 920,
+              whiteSpace: authorNameWraps ? 'normal' : 'nowrap',
+              wordBreak: 'normal',
             },
           },
           autoreGiorno
