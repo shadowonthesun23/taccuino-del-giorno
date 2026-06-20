@@ -5,6 +5,8 @@ import EspressoCorner from '@/components/ui/EspressoCorner';
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
+// Keep the line-only variant available for a one-line dark-mode swap.
+const darkNotebookBackground = '/images/sfondo-taccuino-dark-paper.webp';
 const seasonalArtworkCaptions: Partial<Record<SeasonId, {
   title: string;
   year: string;
@@ -220,8 +222,8 @@ export default function ParallaxBackground({
       previousTargetX = targetX;
       previousTargetY = targetY;
       const readabilityProtection = getReadabilityProtection(targetX, targetY);
-      const regularOpacity = dark ? 0.54 : 0.82;
-      const protectedOpacity = dark ? 0.2 : 0.36;
+      const regularOpacity = dark ? 0.64 : 0.82;
+      const protectedOpacity = dark ? 0.24 : 0.36;
       const revealOpacity =
         regularOpacity - (regularOpacity - protectedOpacity) * readabilityProtection;
 
@@ -259,9 +261,9 @@ export default function ParallaxBackground({
   }, [dark, hasSeasonalReveal, season]);
 
   const bgColor = dark ? '#252422' : '#F8F6F0';
-  const imageOpacity = dark ? 0.29 : 0.13;
+  const imageOpacity = dark ? 0.2 : 0.13;
   const imageFilter = dark
-    ? 'grayscale(1) brightness(0.68) contrast(1.02)'
+    ? 'none'
     : 'saturate(0.72) brightness(1.04) contrast(0.94)';
 
   return (
@@ -309,7 +311,7 @@ export default function ParallaxBackground({
           ref={imageRef}
           className="absolute top-0 left-0 w-full h-[150vh] will-change-transform"
           style={{
-            backgroundImage: `url('/images/sfondo-taccuino.webp')`,
+            backgroundImage: `url('${dark ? darkNotebookBackground : '/images/sfondo-taccuino.webp'}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center top',
             backfaceVisibility: 'hidden',
