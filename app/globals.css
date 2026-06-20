@@ -2923,58 +2923,63 @@ body {
   color: #efb8ad;
 }
 
-/* Linguetta temporale */
+/* Biglietto delle effemeridi */
 .seasonal-bookmark {
   --bookmark-paper: #ddd1ad;
   --bookmark-ink: #645538;
   --bookmark-edge: rgba(104,84,49,0.22);
-  align-items: center;
-  background:
-    radial-gradient(ellipse at 18% 34%, rgba(255,255,255,0.24) 0 1px, transparent 2px),
-    radial-gradient(ellipse at 72% 68%, rgba(86,67,39,0.08) 0 1px, transparent 2px),
-    radial-gradient(ellipse at 45% 18%, rgba(255,255,255,0.16) 0 9px, transparent 24px),
-    linear-gradient(90deg, rgba(255,255,255,0.26), transparent 32%),
-    linear-gradient(180deg, var(--bookmark-paper), color-mix(in srgb, var(--bookmark-paper) 82%, #8c7652));
-  background-size: 29px 21px, 43px 31px, 100% 100%, 100% 100%, 100% 100%;
-  backdrop-filter: blur(3px);
-  border: 1px solid var(--bookmark-edge);
-  border-radius: 5px 0 0 5px;
-  border-right: 0;
-  box-shadow:
-    -6px 8px 18px -16px rgba(42,37,34,0.62),
-    inset 1px 0 rgba(255,255,255,0.24);
+  --ticket-stock: color-mix(in srgb, var(--bookmark-paper) 42%, #f5eddb);
+  --ticket-stub: color-mix(in srgb, var(--bookmark-paper) 68%, #eadcbf);
+  --ticket-fibre: rgba(91, 67, 39, 0.055);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   color: var(--bookmark-ink);
   display: none;
-  gap: 12px;
-  height: 218px;
-  justify-content: flex-start;
-  padding: 11px 16px 11px 14px;
+  filter: drop-shadow(-3px 5px 4px rgba(42,37,34,0.18));
+  height: 226px;
+  overflow: visible;
+  padding: 0;
   position: fixed;
-  right: -400px;
+  right: -404px;
   top: 24%;
   transition:
     color 220ms ease,
-    background-color 220ms ease,
-    box-shadow 220ms ease,
+    filter 220ms ease,
     right 320ms cubic-bezier(0.22,1,0.36,1);
-  transform: rotate(-0.6deg);
+  transform: rotate(-0.38deg);
   transform-origin: right center;
-  width: 456px;
+  width: 472px;
   z-index: 36;
 }
 
-.seasonal-bookmark::after {
+.seasonal-bookmark-ticket {
   background:
-    linear-gradient(180deg, var(--bookmark-paper), color-mix(in srgb, var(--bookmark-paper) 82%, #8c7652));
-  bottom: -1px;
-  clip-path: polygon(44% 0, 100% 0, 100% 100%, 30% 100%, 45% 84%, 22% 65%, 44% 45%, 20% 22%);
-  content: "";
-  left: -9px;
-  opacity: 0.94;
+    radial-gradient(ellipse at 17% 23%, var(--ticket-fibre) 0 0.55px, transparent 0.9px) 0 0 / 23px 29px,
+    radial-gradient(ellipse at 74% 68%, rgba(255,255,255,0.13) 0 0.5px, transparent 0.85px) 0 0 / 31px 37px,
+    radial-gradient(ellipse at 42% 81%, rgba(91,67,39,0.035) 0 0.45px, transparent 0.8px) 0 0 / 43px 19px,
+    linear-gradient(178deg, color-mix(in srgb, var(--ticket-stock) 97%, white), var(--ticket-stock));
+  border: 1px solid var(--bookmark-edge);
+  border-radius: 8px 0 0 8px;
+  border-right: 0;
+  box-shadow:
+    -1px 1px 1px rgba(91,67,39,0.06),
+    inset 1px 0 rgba(255,255,255,0.34),
+    inset 0 1px rgba(255,255,255,0.32),
+    inset 0 -1px rgba(103,76,42,0.1);
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  inset: 0;
+  -webkit-mask-image:
+    radial-gradient(circle 8px at 68px 0, transparent 0 7px, #000 7.6px),
+    radial-gradient(circle 8px at 68px 100%, transparent 0 7px, #000 7.6px);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(circle 8px at 68px 0, transparent 0 7px, #000 7.6px),
+    radial-gradient(circle 8px at 68px 100%, transparent 0 7px, #000 7.6px);
+  mask-composite: intersect;
+  overflow: hidden;
   position: absolute;
-  top: -1px;
-  width: 11px;
-  z-index: -1;
 }
 
 .seasonal-bookmark:hover,
@@ -2983,23 +2988,42 @@ body {
 .seasonal-bookmark:focus-visible {
   outline: none;
   right: 1px;
+  filter: drop-shadow(-4px 6px 5px rgba(42,37,34,0.22));
+}
+
+.seasonal-bookmark-stub {
+  align-items: center;
+  align-self: stretch;
+  background:
+    radial-gradient(ellipse at 21% 31%, var(--ticket-fibre) 0 0.55px, transparent 0.9px) 0 0 / 19px 27px,
+    radial-gradient(ellipse at 73% 72%, rgba(255,255,255,0.11) 0 0.45px, transparent 0.8px) 0 0 / 29px 35px,
+    linear-gradient(90deg, rgba(96,70,39,0.05), transparent 44%, rgba(255,255,255,0.055)),
+    var(--ticket-stub);
+  border-radius: 7px 0 0 7px;
   box-shadow:
-    -9px 10px 22px -18px rgba(42,37,34,0.68),
+    inset -1px 0 color-mix(in srgb, var(--bookmark-ink) 15%, transparent),
     inset 1px 0 rgba(255,255,255,0.26);
+  display: grid;
+  grid-template-rows: 44px minmax(0, 1fr) 24px;
+  justify-items: center;
+  min-width: 0;
+  padding: 9px 7px 8px;
+  position: relative;
 }
 
 .seasonal-bookmark-stitch {
-  background: rgba(100,82,48,0.18);
-  bottom: 4px;
-  left: 5px;
+  border-left: 1px dashed color-mix(in srgb, var(--bookmark-ink) 38%, transparent);
+  bottom: 12px;
+  left: 67px;
   overflow: hidden;
   position: absolute;
-  top: 4px;
-  width: 1px;
+  top: 12px;
+  width: 2px;
+  z-index: 3;
 }
 
 .seasonal-bookmark-stitch::before {
-  border-left: 1px dashed rgba(255,255,255,0.44);
+  border-left: 1px dashed rgba(255,255,255,0.34);
   content: "";
   inset: 0;
   position: absolute;
@@ -3009,7 +3033,7 @@ body {
   background: var(--bookmark-ink);
   display: block;
   height: 100%;
-  opacity: 0.48;
+  opacity: 0.44;
   transform: scaleY(var(--reading-progress-scale, 0));
   transform-origin: top center;
   width: 1px;
@@ -3019,21 +3043,22 @@ body {
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  height: 64px;
+  grid-row: 1;
+  height: 38px;
   justify-content: center;
-  width: 48px;
+  width: 38px;
 }
 
 .seasonal-bookmark-motif svg {
   fill: none;
-  height: 39px;
+  height: 30px;
   overflow: visible;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.35;
   transform: rotate(-4deg);
-  width: 39px;
+  width: 30px;
 }
 
 .seasonal-bookmark-motif svg.is-waning {
@@ -3046,10 +3071,12 @@ body {
 }
 
 .seasonal-bookmark-copy {
+  align-content: center;
   display: grid;
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
   opacity: 1;
+  padding: 14px 18px 12px 17px;
   text-shadow: 0 1px rgba(255,255,255,0.22);
   transform: translateX(0);
   transition:
@@ -3066,20 +3093,34 @@ body {
 }
 
 .seasonal-bookmark-label {
-  border-bottom: 1px solid color-mix(in srgb, var(--bookmark-ink) 28%, transparent);
-  font-size: 0.78rem;
+  align-self: center;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  grid-row: 2;
+  letter-spacing: 0.18em;
   line-height: 1;
-  padding-bottom: 4px;
   text-transform: uppercase;
-  width: fit-content;
+  transform: rotate(180deg);
+  writing-mode: vertical-rl;
+}
+
+.seasonal-bookmark-serial {
+  align-self: end;
+  font-size: 0.52rem;
+  font-weight: 700;
+  grid-row: 3;
+  letter-spacing: 0.08em;
+  opacity: 0.58;
+  white-space: nowrap;
 }
 
 .seasonal-bookmark-heading {
   align-items: baseline;
+  border-bottom: 1px solid color-mix(in srgb, var(--bookmark-ink) 24%, transparent);
   display: flex;
   gap: 10px;
+  justify-content: space-between;
+  padding-bottom: 7px;
 }
 
 .seasonal-bookmark-date {
@@ -3336,10 +3377,34 @@ body {
 }
 
 .seasonal-bookmark.is-dark {
-  filter: saturate(0.72) brightness(0.74);
+  --bookmark-paper: #2a2927;
+  --bookmark-ink: #cdbb9c;
+  --bookmark-edge: rgba(205,187,156,0.16);
+  --ticket-stock: #2a2927;
+  --ticket-stub: #302e2a;
+  --ticket-fibre: rgba(235,229,216,0.028);
+  filter: drop-shadow(-3px 5px 4px rgba(0,0,0,0.4));
+  text-shadow: 0 1px rgba(0,0,0,0.46);
+}
+
+.seasonal-bookmark.is-dark:hover,
+.seasonal-bookmark.is-dark:focus,
+.seasonal-bookmark.is-dark:focus-within,
+.seasonal-bookmark.is-dark:focus-visible {
+  filter: drop-shadow(-4px 6px 5px rgba(0,0,0,0.46));
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-ticket {
   box-shadow:
-    -8px 12px 26px -17px rgba(0,0,0,0.78),
-    inset 1px 0 rgba(255,255,255,0.1);
+    inset 1px 0 rgba(255,255,255,0.035),
+    inset 0 1px rgba(255,255,255,0.03),
+    inset 0 -1px rgba(0,0,0,0.24);
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-stub {
+  box-shadow:
+    inset -1px 0 rgba(216,195,160,0.14),
+    inset 1px 0 rgba(255,255,255,0.045);
 }
 
 /* Archivio come schedario */
@@ -4259,7 +4324,7 @@ body {
   }
 
   .seasonal-bookmark {
-    display: flex;
+    display: block;
   }
 }
 

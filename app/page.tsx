@@ -693,6 +693,7 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
   };
   const label = seasonLabels[season][lingua];
   const dateLabel = formatBookmarkDate(dataIso, lingua);
+  const ticketSerial = dataIso.slice(2).replaceAll('-', '');
   const bookmarkMonth = getBookmarkMonth(dataIso);
   const moon = getMoonPhase(dataIso);
   const moonLabels: Record<MoonPhaseId, { IT: string; EN: string }> = {
@@ -759,58 +760,63 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
       aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
       tabIndex={0}
     >
-      <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
-      <span className="seasonal-bookmark-motif"><MoonDoodle phase={moon.phase} /></span>
-      <span className="seasonal-bookmark-copy">
-        <span className="seasonal-bookmark-label">{almanacLabel}</span>
-        <span className="seasonal-bookmark-heading">
-          <strong className="seasonal-bookmark-date">{dateLabel}</strong>
-          <span className="seasonal-bookmark-season">{label}</span>
+      <span className="seasonal-bookmark-ticket">
+        <span className="seasonal-bookmark-stub" aria-hidden="true">
+          <span className="seasonal-bookmark-label">{almanacLabel}</span>
+          <span className="seasonal-bookmark-motif"><MoonDoodle phase={moon.phase} /></span>
+          <span className="seasonal-bookmark-serial">No. {ticketSerial}</span>
         </span>
-        <span className="seasonal-bookmark-astronomy">
-          <span><em>{moonRowLabel}</em><strong>{moonLabel} · {moon.illumination}%</strong></span>
-          <span><em>{fullMoonRowLabel}</em><strong>{nextFullMoonLabel}</strong></span>
-          <span><em>{seasonEvent.event}</em><strong>{seasonEvent.countdown}</strong></span>
-        </span>
-        <span className="seasonal-bookmark-planets">
-          <span className="seasonal-bookmark-planets-heading">
-            <strong>{planetsLabel}</strong>
-            <span
-              className="seasonal-bookmark-regions"
-              role="group"
-              aria-label={lingua === 'IT' ? 'Zona italiana di riferimento' : 'Reference area in Italy'}
-            >
-              {SKY_REGION_OPTIONS.map((region) => (
-                <button
-                  key={region.id}
-                  type="button"
-                  className={skyRegion === region.id ? 'is-active' : ''}
-                  aria-pressed={skyRegion === region.id}
-                  aria-label={`${region[lingua]}, ${lingua === 'IT' ? region.cityIT : region.cityEN}`}
-                  onClick={() => selectSkyRegion(region.id)}
-                >
-                  {region[lingua]}
-                </button>
-              ))}
-            </span>
+        <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
+        <span className="seasonal-bookmark-copy">
+          <span className="seasonal-bookmark-heading">
+            <strong className="seasonal-bookmark-date">{dateLabel}</strong>
+            <span className="seasonal-bookmark-season">{label}</span>
           </span>
-          <span className="seasonal-bookmark-planet-list" aria-live="polite">
-            {visiblePlanets === null ? (
-              <em>{lingua === 'IT' ? 'Calcolo del cielo…' : 'Reading the sky…'}</em>
-            ) : visiblePlanets.length > 0 ? visiblePlanets.map((planet) => (
-              <span key={planet.body}>
-                <strong>{planet.name}</strong>
-                <span>{planet.direction} · {planet.bestTime}</span>
+          <span className="seasonal-bookmark-astronomy">
+            <span><em>{moonRowLabel}</em><strong>{moonLabel} · {moon.illumination}%</strong></span>
+            <span><em>{fullMoonRowLabel}</em><strong>{nextFullMoonLabel}</strong></span>
+            <span><em>{seasonEvent.event}</em><strong>{seasonEvent.countdown}</strong></span>
+          </span>
+          <span className="seasonal-bookmark-planets">
+            <span className="seasonal-bookmark-planets-heading">
+              <strong>{planetsLabel}</strong>
+              <span
+                className="seasonal-bookmark-regions"
+                role="group"
+                aria-label={lingua === 'IT' ? 'Zona italiana di riferimento' : 'Reference area in Italy'}
+              >
+                {SKY_REGION_OPTIONS.map((region) => (
+                  <button
+                    key={region.id}
+                    type="button"
+                    className={skyRegion === region.id ? 'is-active' : ''}
+                    aria-pressed={skyRegion === region.id}
+                    aria-label={`${region[lingua]}, ${lingua === 'IT' ? region.cityIT : region.cityEN}`}
+                    onClick={() => selectSkyRegion(region.id)}
+                  >
+                    {region[lingua]}
+                  </button>
+                ))}
               </span>
-            )) : (
-              <em>{lingua === 'IT' ? 'Nessuno ben osservabile stanotte' : 'None clearly observable tonight'}</em>
-            )}
+            </span>
+            <span className="seasonal-bookmark-planet-list" aria-live="polite">
+              {visiblePlanets === null ? (
+                <em>{lingua === 'IT' ? 'Calcolo del cielo…' : 'Reading the sky…'}</em>
+              ) : visiblePlanets.length > 0 ? visiblePlanets.map((planet) => (
+                <span key={planet.body}>
+                  <strong>{planet.name}</strong>
+                  <span>{planet.direction} · {planet.bestTime}</span>
+                </span>
+              )) : (
+                <em>{lingua === 'IT' ? 'Nessuno ben osservabile stanotte' : 'None clearly observable tonight'}</em>
+              )}
+            </span>
+            <small>
+              {lingua === 'IT' ? 'Riferimento' : 'Reference'}: {lingua === 'IT' ? selectedRegion.cityIT : selectedRegion.cityEN}
+              {' · '}
+              {lingua === 'IT' ? 'cielo sereno' : 'clear sky'}
+            </small>
           </span>
-          <small>
-            {lingua === 'IT' ? 'Riferimento' : 'Reference'}: {lingua === 'IT' ? selectedRegion.cityIT : selectedRegion.cityEN}
-            {' · '}
-            {lingua === 'IT' ? 'cielo sereno' : 'clear sky'}
-          </small>
         </span>
       </span>
     </aside>
