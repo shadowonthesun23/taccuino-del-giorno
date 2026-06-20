@@ -52,6 +52,8 @@ img {
 }
 
 .seasonal-paint-reveal {
+  --summer-painting-active: url('/images/seasonal/van-gogh-wheat-field-cypresses.webp');
+  --summer-painting-previous: url('/images/seasonal/van-gogh-summer-evening.webp');
   --paint-head-x: 50vw;
   --paint-head-y: 50vh;
   --paint-wake-x: 50vw;
@@ -84,7 +86,7 @@ img {
 }
 
 .seasonal-paint-reveal.season-summer {
-  background-image: url('/images/seasonal/van-gogh-summer-evening.webp');
+  background-image: var(--summer-painting-active);
   background-position: center center;
 }
 

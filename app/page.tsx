@@ -420,6 +420,21 @@ function getSeason(dataIso: string): SeasonId {
   return 'winter';
 }
 
+function getRomeDateIso(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Rome',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function isSeasonId(value: string | null): value is SeasonId {
+  return value === 'spring' || value === 'summer' || value === 'autumn' || value === 'winter';
+}
+
 function getAmbientLightStyle(now: Date, isDark: boolean): CSSProperties {
   const minute = now.getHours() * 60 + now.getMinutes();
   const stops = [
@@ -1199,7 +1214,7 @@ export default function Home() {
   const wasPopoverOpenRef = useRef(false);
   const footerRef = useRef<HTMLElement>(null);
 
-  const oggi = new Date().toISOString().split('T')[0];
+  const oggi = getRomeDateIso();
 
   const rememberVisitedDate = useCallback((dataIso: string) => {
     setVisitedArchiveDates((current) => {
@@ -1780,7 +1795,10 @@ export default function Home() {
 
   if (!data) return null;
 
-  const season = getSeason(dataExLibris);
+  const localSeasonPreview = process.env.NODE_ENV === 'development' && isMounted
+    ? new URLSearchParams(window.location.search).get('season')
+    : null;
+  const season = isSeasonId(localSeasonPreview) ? localSeasonPreview : getSeason(dataExLibris);
 
   return (
     <ParallaxBackground season={season} showEspresso>
