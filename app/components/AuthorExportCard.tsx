@@ -1,10 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Download, EyeOff, Loader2 } from 'lucide-react';
-import { clampText, getAuthorCardLayout, getAuthorCardPalette, getAuthorInitials } from '@/app/lib/authorCardDesign';
+import {
+  clampText,
+  formatAuthorCardDate,
+  getAuthorCardLayout,
+  getAuthorCardPalette,
+  getAuthorInitials,
+  getAuthorNameFontSize,
+} from '@/app/lib/authorCardDesign';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -30,6 +37,7 @@ interface AuthorExportCardProps {
   fotoAutoreUrl?: string | null;
   citazione: { testo: string; autore: string; fonte: string };
   dataOdierna: string;
+  dataIso?: string;
   isDark: boolean;
   onHidePreview?: () => void;
   hidePreviewLabel?: string;
@@ -45,36 +53,31 @@ export default function AuthorExportCard({
   fotoAutoreUrl,
   citazione,
   dataOdierna,
+  dataIso,
   isDark,
   onHidePreview,
   hidePreviewLabel = 'Nascondi',
   saveImageLabel = 'Salva',
 }: AuthorExportCardProps) {
+  const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
-    if (exporting) return;
+    if (exporting || !exportRef.current) return;
     setExporting(true);
     try {
-      const res = await fetch('/api/genera-card', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna, isDark }),
+      await document.fonts.ready;
+      const { toPng } = await import('html-to-image');
+      const url = await toPng(exportRef.current, {
+        width: 1080,
+        height: 1920,
+        pixelRatio: 1,
+        cacheBust: true,
+        style: {
+          transform: 'none',
+          transformOrigin: 'top left',
+        },
       });
-
-      if (!res.ok) {
-        let errMsg = `HTTP ${res.status}`;
-        try {
-          const errJson = await res.json();
-          errMsg = errJson.error || JSON.stringify(errJson);
-        } catch {
-          errMsg = await res.text();
-        }
-        throw new Error(errMsg);
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       const nomeFile = autoreGiorno
         .toLowerCase()
@@ -83,7 +86,6 @@ export default function AuthorExportCard({
       link.download = `taccuino-${nomeFile}.png`;
       link.href = url;
       link.click();
-      URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Errore durante l'export:", e);
       alert(`Errore: ${e instanceof Error ? e.message : String(e)}`);
@@ -93,10 +95,14 @@ export default function AuthorExportCard({
   };
 
   const palette = getAuthorCardPalette(isDark);
-  const layout = getAuthorCardLayout(citazione.testo, breveDescrizione);
+  const layout = getAuthorCardLayout(citazione.testo, breveDescrizione, autoreGiorno);
   const citTesto = clampText(citazione.testo, layout.maxCitationChars);
   const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
   const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
+  const dateTapeHeight = 76;
+  const dateFontSize = Math.max(46, layout.dateFontSize);
+  const authorFontSize = getAuthorNameFontSize(autoreGiorno, layout.authorFontSize);
+  const photoCaption = `${initials} · ${formatAuthorCardDate(dataIso, dataOdierna)}`;
 
   // Scala 1:3 rispetto al PNG satori (1080×1920 → 360×640)
   const S = 1 / 3;
@@ -146,6 +152,7 @@ export default function AuthorExportCard({
           Così font-size, padding e proporzioni sono identici al PNG.
         */}
         <div
+          ref={exportRef}
           className={garamond.className}
           style={{
             width: '1080px',
@@ -220,82 +227,33 @@ export default function AuthorExportCard({
             <div style={{ height: '1px', margin: '12px auto 0', width: '260px', background: palette.wcColor, opacity: 0.42 }} />
           </div>
           {/* ── Washi tape data ── */}
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${layout.tapeMarginBottom}px`, position: 'relative', height: `${layout.tapeHeight}px`, flexShrink: 0, zIndex: 1 }}>
-            {/* Tape body con tacche triangolari ai bordi — replica makeWashiTapeSvg */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={layout.tapeWidth}
-              height={layout.tapeHeight}
-              viewBox={`0 0 ${layout.tapeWidth} ${layout.tapeHeight}`}
-              style={{ transform: 'rotate(-2deg)' }}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${Math.max(22, layout.tapeMarginBottom - 4)}px`, position: 'relative', height: `${dateTapeHeight}px`, flexShrink: 0, zIndex: 1 }}>
+            <span
+              className={`${caveat.className} masking-tape journal-date-tape`}
+              style={{
+                alignSelf: 'center',
+                fontSize: `${dateFontSize}px`,
+                lineHeight: 1,
+                padding: '6px 24px 8px',
+                whiteSpace: 'nowrap',
+              }}
             >
-              <defs>
-                <linearGradient id="author-card-washi" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0" stopColor="#fffbe6" stopOpacity="0.52" />
-                  <stop offset="0.48" stopColor={palette.tapeBg} stopOpacity="0.88" />
-                  <stop offset="1" stopColor="#c9ad75" stopOpacity="0.78" />
-                </linearGradient>
-              </defs>
-              <polygon
-                points={[
-                  [0.01, 0.06], [0.09, 0.02], [0.24, 0.04], [0.41, 0.01],
-                  [0.62, 0.03], [0.8, 0.01], [0.99, 0.05], [0.98, 0.15],
-                  [1, 0.28], [0.98, 0.41], [1, 0.54], [0.98, 0.68],
-                  [1, 0.84], [0.98, 0.96], [0.82, 0.98], [0.63, 0.96],
-                  [0.48, 0.99], [0.27, 0.96], [0.08, 0.98], [0.01, 0.94],
-                  [0.02, 0.82], [0, 0.68], [0.02, 0.55], [0, 0.4],
-                  [0.02, 0.27], [0, 0.14],
-                ].map(([x, y]) => `${Math.round(layout.tapeWidth * x)},${Math.round(layout.tapeHeight * y)}`).join(' ')}
-                fill="url(#author-card-washi)"
-              />
-              <polygon
-                points={[
-                  [0.01, 0.06], [0.09, 0.02], [0.24, 0.04], [0.41, 0.01],
-                  [0.62, 0.03], [0.8, 0.01], [0.99, 0.05], [0.98, 0.15],
-                  [1, 0.28], [0.98, 0.41], [1, 0.54], [0.98, 0.68],
-                  [1, 0.84], [0.98, 0.96], [0.82, 0.98], [0.63, 0.96],
-                  [0.48, 0.99], [0.27, 0.96], [0.08, 0.98], [0.01, 0.94],
-                  [0.02, 0.82], [0, 0.68], [0.02, 0.55], [0, 0.4],
-                  [0.02, 0.27], [0, 0.14],
-                ].map(([x, y]) => `${Math.round(layout.tapeWidth * x)},${Math.round(layout.tapeHeight * y)}`).join(' ')}
-                fill="rgba(255,255,255,0.12)"
-              />
-              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.24} C ${layout.tapeWidth * 0.34} ${layout.tapeHeight * 0.12}, ${layout.tapeWidth * 0.58} ${layout.tapeHeight * 0.28}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.16}`} fill="none" stroke="rgba(255,255,246,0.34)" strokeWidth="3" />
-              <path d={`M ${layout.tapeWidth * 0.08} ${layout.tapeHeight * 0.86} C ${layout.tapeWidth * 0.38} ${layout.tapeHeight * 0.96}, ${layout.tapeWidth * 0.6} ${layout.tapeHeight * 0.78}, ${layout.tapeWidth * 0.92} ${layout.tapeHeight * 0.9}`} fill="none" stroke="rgba(80,58,33,0.16)" strokeWidth="2" />
-            </svg>
-            {/* Testo data centrato sul tape */}
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span className={caveat.className} style={{ fontSize: `${layout.dateFontSize}px`, fontWeight: 700, color: palette.tapeText, transform: 'rotate(-2deg)' }}>
-                {dataOdierna}
-              </span>
-            </div>
+              {dataOdierna}
+            </span>
           </div>
 
           {/* ── Nastro sezione ── */}
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '76px', marginBottom: `${layout.labelMarginBottom}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
-            <div
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '68px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
+            <span
+              className={`${stampwriter.className} section-typewriter-badge badge-tilt-left`}
               style={{
-                alignItems: 'center',
-                background: `linear-gradient(180deg, rgba(255,255,255,0.16), transparent 52%), ${palette.labelTapeBg}`,
-                border: '2px solid rgba(109,42,36,0.18)',
-                borderRadius: '7px',
-                boxShadow: isDark
-                  ? '0 14px 28px -24px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.18)'
-                  : '0 12px 28px -24px rgba(117,55,46,0.52), inset 0 1px 0 rgba(255,255,255,0.28)',
-                color: palette.labelTapeText,
-                display: 'flex',
-                fontSize: `${layout.labelFontSize + 2}px`,
-                fontWeight: 700,
-                justifyContent: 'center',
-                letterSpacing: '0.035em',
-                minWidth: '438px',
-                padding: '0 34px',
-                position: 'relative',
-                transform: 'rotate(-1.2deg)',
+                fontSize: `${layout.labelFontSize}px`,
+                padding: '16px 26px 14px',
+                whiteSpace: 'nowrap',
               }}
             >
-              <span className={stampwriter.className}>Autore del giorno</span>
-            </div>
+              Autore del giorno
+            </span>
           </div>
 
           {/* ── Watermark — figlio diretto del root 1080px, right:0 = vero bordo card ── */}
@@ -334,10 +292,30 @@ export default function AuthorExportCard({
                 transform: fotoAutoreUrl ? 'rotate(-2deg)' : 'rotate(1.2deg)',
                 background: isDark ? '#F4F0E6' : '#FDFCF8',
                 border: `3px solid ${isDark ? '#D8CDBC' : palette.borderColor}`,
+                borderRadius: '5px 4px 8px 5px',
                 padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
                 boxShadow: palette.photoShadow,
+                boxSizing: 'border-box',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
               }}
             >
+              <div
+                className="masking-tape author-photo-tape"
+                aria-hidden="true"
+                style={{
+                  animation: 'none',
+                  position: 'absolute',
+                  top: '-19px',
+                  left: '-35px',
+                  width: '102px',
+                  height: '32px',
+                  zIndex: 3,
+                  opacity: 0.82,
+                  transform: 'rotate(-32deg)',
+                }}
+              />
               {fotoAutoreUrl ? (
                 <img
                   draggable={false}
@@ -374,13 +352,28 @@ export default function AuthorExportCard({
                   </span>
                 </div>
               )}
+              <span
+                className={caveat.className}
+                style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: `${layout.photoPaddingX + 4}px`,
+                  color: 'rgba(95,73,52,0.78)',
+                  fontSize: '28px',
+                  lineHeight: 1,
+                  transform: 'rotate(-1.5deg)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {photoCaption}
+              </span>
             </div>
           </div>
 
           {/* ── Nome autore ── */}
           <h2
             style={{
-              fontSize: `${layout.authorFontSize}px`,
+              fontSize: `${authorFontSize}px`,
               fontWeight: 700,
               color: palette.textPrimary,
               textAlign: 'center',

@@ -66,6 +66,72 @@ export interface AuthorCardLayout {
   maxCitationChars: number;
 }
 
+const ROMAN_MONTHS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+export function formatAuthorCardDate(dataIso?: string, fallback = ''): string {
+  if (!dataIso || !/^\d{4}-\d{2}-\d{2}$/.test(dataIso)) return fallback;
+  const [year, month, day] = dataIso.split('-').map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return fallback;
+  return `${day} · ${ROMAN_MONTHS[month - 1]} · ${year}`;
+}
+
+export function getAuthorDateTapeWidth(label: string): number {
+  const compactLength = label.replace(/\s+/g, ' ').trim().length;
+  return Math.max(244, Math.min(360, 112 + compactLength * 18));
+}
+
+export function getAuthorNameFontSize(name: string, baseSize: number): number {
+  const compactLength = name.replace(/\s+/g, ' ').trim().length;
+  if (compactLength > 38) return baseSize - 13;
+  if (compactLength > 30) return baseSize - 9;
+  if (compactLength > 23) return baseSize - 5;
+  return baseSize;
+}
+
+export function makeAuthorWashiTapeSvg(
+  tapeColor: string,
+  width: number,
+  height: number,
+  isDark = false
+): string {
+  const p = (x: number, y: number) => `${Math.round(width * x)},${Math.round(height * y)}`;
+  const points = [
+    p(0.01, 0.06), p(0.09, 0.02), p(0.24, 0.04), p(0.41, 0.01),
+    p(0.62, 0.03), p(0.8, 0.01), p(0.99, 0.05), p(0.98, 0.15),
+    p(1, 0.28), p(0.98, 0.41), p(1, 0.54), p(0.98, 0.68),
+    p(1, 0.84), p(0.98, 0.96), p(0.82, 0.98), p(0.63, 0.96),
+    p(0.48, 0.99), p(0.27, 0.96), p(0.08, 0.98), p(0.01, 0.94),
+    p(0.02, 0.82), p(0, 0.68), p(0.02, 0.55), p(0, 0.4),
+    p(0.02, 0.27), p(0, 0.14),
+  ].join(' ');
+  const top = isDark ? '#ead9a7' : '#fff7dd';
+  const bottom = isDark ? '#a9844f' : '#d7bc81';
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs>
+    <linearGradient id="base" x1="0" x2="0.96" y1="0" y2="1">
+      <stop offset="0" stop-color="${top}" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="${tapeColor}" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="${bottom}" stop-opacity="0.82"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" x2="1" y1="0.2" y2="0.8">
+      <stop offset="0" stop-color="#fffbe6" stop-opacity="0.24"/>
+      <stop offset="0.42" stop-color="#9a713f" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#fffdf0" stop-opacity="0.16"/>
+    </linearGradient>
+    <pattern id="fibers" width="31" height="17" patternUnits="userSpaceOnUse">
+      <path d="M1 4 C9 2 18 6 30 3 M-3 13 C7 9 18 15 34 11" fill="none" stroke="#604522" stroke-opacity="0.045" stroke-width="1"/>
+      <circle cx="8" cy="8" r="0.7" fill="#fff" fill-opacity="0.18"/>
+    </pattern>
+  </defs>
+  <polygon points="${points}" fill="url(#base)"/>
+  <polygon points="${points}" fill="url(#sheen)"/>
+  <polygon points="${points}" fill="url(#fibers)"/>
+  <path d="M ${width * 0.07} ${height * 0.2} C ${width * 0.34} ${height * 0.08}, ${width * 0.61} ${height * 0.25}, ${width * 0.93} ${height * 0.14}" fill="none" stroke="#fffef2" stroke-opacity="0.34" stroke-width="2"/>
+  <path d="M ${width * 0.08} ${height * 0.88} C ${width * 0.34} ${height * 0.98}, ${width * 0.65} ${height * 0.78}, ${width * 0.92} ${height * 0.9}" fill="none" stroke="#62451f" stroke-opacity="0.12" stroke-width="2"/>
+</svg>`;
+}
+
 export function getAuthorCardPalette(isDark: boolean): AuthorCardPalette {
   return isDark
     ? {
@@ -126,8 +192,9 @@ export function getAuthorCardPalette(isDark: boolean): AuthorCardPalette {
       };
 }
 
-export function getAuthorCardLayout(citation: string, description: string): AuthorCardLayout {
-  const load = citation.length + Math.max(0, description.length - 360) * 0.55;
+export function getAuthorCardLayout(citation: string, description: string, author = ''): AuthorCardLayout {
+  const authorLoad = Math.max(0, author.replace(/\s+/g, ' ').trim().length - 24) * 4;
+  const load = citation.length + Math.max(0, description.length - 360) * 0.55 + authorLoad;
 
   if (load > 460) {
     return {

@@ -4,53 +4,37 @@ import sharp from 'sharp';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
-import { clampText, getAuthorCardLayout, getAuthorCardPalette, getAuthorInitials } from '@/app/lib/authorCardDesign';
+import {
+  clampText,
+  formatAuthorCardDate,
+  getAuthorCardLayout,
+  getAuthorCardPalette,
+  getAuthorDateTapeWidth,
+  getAuthorInitials,
+  getAuthorNameFontSize,
+  makeAuthorWashiTapeSvg,
+} from '@/app/lib/authorCardDesign';
 
 export const runtime = 'nodejs';
 
 const W = 1080;
 const H = 1920;
 
-function makeWashiTapeSvg(bgColor: string, tapeColor: string, width: number, height: number): string {
-  const TW = width;
-  const TH = height;
-  const p = (x: number, y: number) => `${Math.round(TW * x)},${Math.round(TH * y)}`;
-  const points = [
-    p(0.01, 0.06), p(0.09, 0.02), p(0.24, 0.04), p(0.41, 0.01),
-    p(0.62, 0.03), p(0.8, 0.01), p(0.99, 0.05), p(0.98, 0.15),
-    p(1, 0.28), p(0.98, 0.41), p(1, 0.54), p(0.98, 0.68),
-    p(1, 0.84), p(0.98, 0.96), p(0.82, 0.98), p(0.63, 0.96),
-    p(0.48, 0.99), p(0.27, 0.96), p(0.08, 0.98), p(0.01, 0.94),
-    p(0.02, 0.82), p(0, 0.68), p(0.02, 0.55), p(0, 0.4),
-    p(0.02, 0.27), p(0, 0.14),
-  ].join(' ');
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${TW}" height="${TH}" viewBox="0 0 ${TW} ${TH}">
-  <defs>
-    <linearGradient id="wash" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0" stop-color="#fffbe6" stop-opacity="0.52"/>
-      <stop offset="0.48" stop-color="${tapeColor}" stop-opacity="0.88"/>
-      <stop offset="1" stop-color="#c9ad75" stop-opacity="0.78"/>
-    </linearGradient>
-  </defs>
-  <rect width="${TW}" height="${TH}" fill="${bgColor}" opacity="0"/>
-  <polygon points="${points}" fill="url(#wash)"/>
-  <polygon points="${points}" fill="rgba(255,255,255,0.12)"/>
-  <path d="M ${TW * 0.08} ${TH * 0.24} C ${TW * 0.34} ${TH * 0.12}, ${TW * 0.58} ${TH * 0.28}, ${TW * 0.92} ${TH * 0.16}" fill="none" stroke="rgba(255,255,246,0.34)" stroke-width="3"/>
-  <path d="M ${TW * 0.08} ${TH * 0.86} C ${TW * 0.38} ${TH * 0.96}, ${TW * 0.6} ${TH * 0.78}, ${TW * 0.92} ${TH * 0.9}" fill="none" stroke="rgba(80,58,33,0.16)" stroke-width="2"/>
-</svg>`;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna, isDark = false } = body;
+    const { autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna, dataIso, isDark = false } = body;
 
     const palette = getAuthorCardPalette(Boolean(isDark));
-    const layout = getAuthorCardLayout(citazione.testo, breveDescrizione);
+    const layout = getAuthorCardLayout(citazione.testo, breveDescrizione, autoreGiorno);
     const citTesto = clampText(citazione.testo, layout.maxCitationChars);
     const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
     const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
+    const dateTapeWidth = getAuthorDateTapeWidth(dataOdierna);
+    const dateTapeHeight = 76;
+    const dateFontSize = Math.max(46, layout.dateFontSize);
+    const authorFontSize = getAuthorNameFontSize(autoreGiorno, layout.authorFontSize);
+    const photoCaption = `${initials} · ${formatAuthorCardDate(dataIso, dataOdierna)}`;
 
     const fontsDir = path.join(process.cwd(), 'public', 'fonts');
     const [imFellRegular, imFellItalic, caveatBold, stampwriterRegular] = await Promise.all([
@@ -94,9 +78,10 @@ export async function POST(req: NextRequest) {
     const dividerSvg = `<svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" width="864" height="26"><path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke="${palette.wcColor}" stroke-width="7" stroke-linecap="round" opacity="0.55"/><path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke="${palette.wcColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/><path d="M 100 22 Q 250 28 400 21 Q 550 14 700 23" fill="none" stroke="${palette.wcColor}" stroke-width="3" stroke-linecap="round" opacity="0.18"/></svg>`;
     const dividerB64 = `data:image/svg+xml;base64,${Buffer.from(dividerSvg).toString('base64')}`;
 
-    // Tape con tacche verso l'interno, passando il colore bg per le tacche
-    const washiSvg = makeWashiTapeSvg(palette.bg, palette.tapeBg, layout.tapeWidth, layout.tapeHeight);
-    const washiB64 = `data:image/svg+xml;base64,${Buffer.from(washiSvg).toString('base64')}`;
+    const dateWashiSvg = makeAuthorWashiTapeSvg(palette.tapeBg, dateTapeWidth, dateTapeHeight, Boolean(isDark));
+    const dateWashiB64 = `data:image/svg+xml;base64,${Buffer.from(dateWashiSvg).toString('base64')}`;
+    const photoWashiSvg = makeAuthorWashiTapeSvg(palette.tapeBg, 150, 44, Boolean(isDark));
+    const photoWashiB64 = `data:image/svg+xml;base64,${Buffer.from(photoWashiSvg).toString('base64')}`;
 
     const svg = await satori(
       React.createElement(
@@ -190,16 +175,16 @@ export async function POST(req: NextRequest) {
               display: 'flex',
               justifyContent: 'center',
               width: '100%',
-              marginBottom: layout.tapeMarginBottom,
+              marginBottom: Math.max(22, layout.tapeMarginBottom - 4),
               position: 'relative',
-              height: layout.tapeHeight,
+              height: dateTapeHeight,
             },
           },
           React.createElement('img', {
-            src: washiB64,
-            width: layout.tapeWidth,
-            height: layout.tapeHeight,
-            style: { transform: 'rotate(-2deg)' },
+            src: dateWashiB64,
+            width: dateTapeWidth,
+            height: dateTapeHeight,
+            style: { transform: 'rotate(-1.6deg)' },
           }),
           // Testo data sopra il tape — Satori con Caveat
           React.createElement(
@@ -217,11 +202,15 @@ export async function POST(req: NextRequest) {
               'div',
               {
                 style: {
-                  fontSize: layout.dateFontSize,
+                  fontSize: dateFontSize,
                   fontFamily: 'Caveat',
                   fontWeight: 700,
+                  letterSpacing: '0.035em',
+                  lineHeight: 1,
                   color: palette.tapeText,
-                  transform: 'rotate(-2deg)',
+                  textShadow: '0 1px 0 rgba(255,250,230,0.62)',
+                  transform: 'rotate(-1.6deg)',
+                  whiteSpace: 'nowrap',
                 },
               },
               dataOdierna
@@ -236,8 +225,8 @@ export async function POST(req: NextRequest) {
               display: 'flex',
               justifyContent: 'center',
               width: '100%',
-              height: 76,
-              marginBottom: layout.labelMarginBottom,
+              height: 68,
+              marginBottom: layout.labelMarginBottom + 20,
               position: 'relative',
               zIndex: 2,
             },
@@ -249,20 +238,23 @@ export async function POST(req: NextRequest) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minWidth: 438,
-                padding: '0 34px',
+                width: 500,
+                height: 68,
+                boxSizing: 'border-box',
                 background: palette.labelTapeBg,
-                border: '2px solid rgba(109,42,36,0.18)',
-                borderRadius: 7,
+                border: '1px solid rgba(158,42,43,0.18)',
+                borderRadius: '3px 2px 4px 2px',
                 boxShadow: palette.tone === 'dark'
-                  ? '0 14px 28px -24px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.18)'
-                  : '0 12px 28px -24px rgba(117,55,46,0.52), inset 0 1px 0 rgba(255,255,255,0.28)',
+                  ? '0 6px 14px -11px rgba(0,0,0,0.82), inset 0 1px 0 rgba(255,244,225,0.14)'
+                  : '0 4px 10px -8px rgba(42,37,34,0.72), inset 0 1px 0 rgba(255,244,225,0.18)',
                 color: palette.labelTapeText,
-                fontSize: layout.labelFontSize + 2,
+                fontSize: layout.labelFontSize,
                 fontFamily: 'Stampwriter',
                 fontWeight: 400,
-                letterSpacing: '0.035em',
-                transform: 'rotate(-1.2deg)',
+                letterSpacing: '0.075em',
+                lineHeight: 1.08,
+                transform: 'rotate(-0.7deg)',
+                whiteSpace: 'nowrap',
               },
             },
             'Autore del giorno'
@@ -321,11 +313,28 @@ export async function POST(req: NextRequest) {
                 transform: fotoB64 ? 'rotate(-2deg)' : 'rotate(1.2deg)',
                 background: palette.tone === 'dark' ? '#F4F0E6' : '#FDFCF8',
                 border: `3px solid ${palette.tone === 'dark' ? '#D8CDBC' : palette.borderColor}`,
+                borderRadius: '5px 4px 8px 5px',
                 padding: `${layout.photoPaddingTop}px ${layout.photoPaddingX}px ${layout.photoPaddingBottom}px`,
                 display: 'flex',
+                flexDirection: 'column',
                 boxShadow: palette.photoShadow,
+                boxSizing: 'border-box',
+                position: 'relative',
               },
             },
+            React.createElement('img', {
+              src: photoWashiB64,
+              width: 150,
+              height: 44,
+              style: {
+                position: 'absolute',
+                top: -19,
+                left: -35,
+                zIndex: 3,
+                opacity: 0.82,
+                transform: 'rotate(-32deg)',
+              },
+            }),
             fotoB64
               ? React.createElement('img', {
                   src: fotoB64,
@@ -380,7 +389,25 @@ export async function POST(req: NextRequest) {
                     },
                     initials
                   )
-                )
+                ),
+            React.createElement(
+              'div',
+              {
+                style: {
+                  position: 'absolute',
+                  bottom: 10,
+                  left: layout.photoPaddingX + 4,
+                  color: 'rgba(95,73,52,0.78)',
+                  fontSize: 28,
+                  fontFamily: 'Caveat',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  transform: 'rotate(-1.5deg)',
+                  whiteSpace: 'nowrap',
+                },
+              },
+              photoCaption
+            )
           )
         ),
         // Nome autore
@@ -388,7 +415,7 @@ export async function POST(req: NextRequest) {
           'div',
           {
             style: {
-              fontSize: layout.authorFontSize,
+              fontSize: authorFontSize,
               fontWeight: 700,
               color: palette.textPrimary,
               textAlign: 'center',

@@ -2133,6 +2133,7 @@ export default function Home() {
             fotoAutoreUrl={data.foto_autore_url}
             citazione={data.citazione}
             dataOdierna={data.data_odierna}
+            dataIso={dataExLibris}
             isDark={isDark}
             onHidePreview={() => setShowExportCard(false)}
             hidePreviewLabel={lingua === 'IT' ? 'Nascondi' : 'Hide'}
