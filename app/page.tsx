@@ -1783,7 +1783,7 @@ export default function Home() {
   const season = getSeason(dataExLibris);
 
   return (
-    <ParallaxBackground season={season}>
+    <ParallaxBackground season={season} showEspresso>
       <div
         className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
         style={{

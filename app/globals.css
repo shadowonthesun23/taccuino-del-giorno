@@ -300,6 +300,83 @@ body {
   --journal-light-x: 45%;
 }
 
+.espresso-corner {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .espresso-corner {
+    aspect-ratio: 1 / 1;
+    display: block;
+    left: clamp(-150px, -6vw, -96px);
+    pointer-events: none;
+    position: absolute;
+    top: -104px;
+    width: clamp(380px, 24vw, 500px);
+    z-index: 6;
+  }
+
+  .espresso-corner-image {
+    display: block;
+    filter: drop-shadow(5px 8px 10px rgba(63, 46, 27, 0.06));
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    position: relative;
+    transform: translate3d(0, -14px, 0) rotate(-3.5deg) scale(0.985);
+    transform-origin: center;
+    transition:
+      opacity 520ms ease-out,
+      transform 680ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 760ms ease-out;
+    width: 100%;
+    z-index: 1;
+  }
+
+  .espresso-corner.is-ready .espresso-corner-image {
+    filter: drop-shadow(14px 20px 18px rgba(63, 46, 27, 0.2));
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(-3.5deg) scale(1);
+  }
+
+  .espresso-corner.is-dark .espresso-corner-image {
+    filter: drop-shadow(5px 8px 10px rgba(0, 0, 0, 0.12));
+  }
+
+  .espresso-corner.is-dark.is-ready .espresso-corner-image {
+    filter: drop-shadow(14px 20px 20px rgba(0, 0, 0, 0.4));
+  }
+
+  .espresso-corner-smoke {
+    height: 165%;
+    left: -27.5%;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: -55%;
+    transition: opacity 560ms ease-out 240ms;
+    width: 155%;
+    z-index: 2;
+  }
+
+  .espresso-corner.is-ready .espresso-corner-smoke {
+    opacity: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espresso-corner-image {
+    filter: drop-shadow(14px 20px 18px rgba(63, 46, 27, 0.2));
+    opacity: 1;
+    transform: rotate(-3.5deg);
+    transition: none;
+  }
+
+  .espresso-corner-smoke {
+    display: none;
+  }
+}
+
 /* Dark mode: forza bg scuro su tutto il viewport */
 @media (prefers-color-scheme: dark) {
   body {

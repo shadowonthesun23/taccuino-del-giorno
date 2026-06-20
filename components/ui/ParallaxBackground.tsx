@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import EspressoCorner from '@/components/ui/EspressoCorner';
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
@@ -8,11 +9,14 @@ const revealSeasons: SeasonId[] = ['spring', 'summer'];
 export default function ParallaxBackground({
   children,
   season,
+  showEspresso = false,
 }: {
   children: React.ReactNode;
   season?: SeasonId;
+  showEspresso?: boolean;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
+  const coffeeLayerRef = useRef<HTMLDivElement>(null);
   const lineArtRef = useRef<HTMLDivElement>(null);
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const [dark, setDark] = useState(false);
@@ -50,7 +54,9 @@ export default function ParallaxBackground({
       }
       if (Math.abs(targetY - currentY) < 0.12) currentY = targetY;
 
-      image.style.transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
+      const transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
+      image.style.transform = transform;
+      if (coffeeLayerRef.current) coffeeLayerRef.current.style.transform = transform;
       frame = currentY === targetY ? null : window.requestAnimationFrame(paintParallax);
     };
 
@@ -273,6 +279,21 @@ export default function ParallaxBackground({
           }}
         />
       </div>
+
+      {showEspresso ? (
+        <div
+          ref={coffeeLayerRef}
+          aria-hidden="true"
+          className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden will-change-transform"
+          style={{
+            backfaceVisibility: 'hidden',
+            contain: 'layout paint style',
+            transform: 'translate3d(0, 0, 0)',
+          }}
+        >
+          <EspressoCorner isDark={dark} />
+        </div>
+      ) : null}
 
       {/* Contenuto */}
       <div className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''}`}>
