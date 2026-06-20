@@ -95,6 +95,10 @@ img {
   background-blend-mode: multiply;
 }
 
+.seasonal-artwork-caption {
+  display: none;
+}
+
 .seasonal-line-art {
   --paint-head-x: 50vw;
   --paint-head-y: 50vh;
@@ -230,6 +234,53 @@ img {
     box-shadow:
       0 12px 28px -20px rgba(0, 0, 0, 0.72),
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+}
+
+@media (min-width: 1180px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .seasonal-artwork-caption {
+    position: fixed;
+    right: max(24px, env(safe-area-inset-right, 0px));
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+    display: block;
+    max-width: 360px;
+    color: rgba(61, 54, 47, 0.68);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    letter-spacing: 0;
+    text-align: right;
+    text-wrap: balance;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(0, 5px, 0);
+    transition: opacity 520ms ease-out, transform 520ms ease-out;
+    text-shadow: 0 1px 8px rgba(253, 250, 241, 0.96);
+  }
+
+  .seasonal-artwork-caption.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .seasonal-artwork-caption cite {
+    font-style: italic;
+  }
+
+  .seasonal-artwork-caption span {
+    display: block;
+    margin-top: 2px;
+    color: rgba(83, 74, 65, 0.58);
+    font-size: 0.7rem;
+  }
+
+  .seasonal-artwork-caption.is-dark {
+    color: rgba(232, 224, 210, 0.64);
+    text-shadow: 0 1px 9px rgba(24, 23, 22, 0.92);
+  }
+
+  .seasonal-artwork-caption.is-dark span {
+    color: rgba(214, 204, 187, 0.54);
   }
 }
 

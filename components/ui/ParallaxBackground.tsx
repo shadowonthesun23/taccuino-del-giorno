@@ -5,22 +5,45 @@ import EspressoCorner from '@/components/ui/EspressoCorner';
 
 type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
+const seasonalArtworkCaptions: Partial<Record<SeasonId, {
+  title: string;
+  year: string;
+  artist: string;
+  collection: string;
+}>> = {
+  spring: {
+    title: 'Primavera',
+    year: 'circa 1480-1485',
+    artist: 'Sandro Botticelli',
+    collection: 'Gallerie degli Uffizi, Firenze',
+  },
+  summer: {
+    title: 'Campo di grano con cipressi',
+    year: '1889',
+    artist: 'Vincent van Gogh',
+    collection: 'The Metropolitan Museum of Art, New York',
+  },
+};
 
 export default function ParallaxBackground({
   children,
   season,
   showEspresso = false,
+  captionClassName = '',
 }: {
   children: React.ReactNode;
   season?: SeasonId;
   showEspresso?: boolean;
+  captionClassName?: string;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
   const coffeeLayerRef = useRef<HTMLDivElement>(null);
   const lineArtRef = useRef<HTMLDivElement>(null);
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
+  const seasonalCaptionRef = useRef<HTMLElement>(null);
   const [dark, setDark] = useState(false);
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
+  const seasonalArtwork = season ? seasonalArtworkCaptions[season] : undefined;
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -96,6 +119,8 @@ export default function ParallaxBackground({
     const reveal = seasonalRevealRef.current;
     const lineArt = lineArtRef.current;
     if (!reveal || !lineArt || !hasSeasonalReveal) return;
+    const caption = seasonalCaptionRef.current;
+    caption?.classList.remove('is-visible');
 
     const pointerQuery = window.matchMedia(
       '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
@@ -206,6 +231,7 @@ export default function ParallaxBackground({
       }
       reveal.style.opacity = revealOpacity.toFixed(3);
       lineArt.classList.add('is-disturbed');
+      caption?.classList.add('is-visible');
       if (frame === null) frame = window.requestAnimationFrame(paintFrame);
     };
 
@@ -228,6 +254,7 @@ export default function ParallaxBackground({
       document.documentElement.removeEventListener('pointerleave', hideReveal);
       if (frame !== null) window.cancelAnimationFrame(frame);
       if (hideTimer !== null) window.clearTimeout(hideTimer);
+      caption?.classList.remove('is-visible');
     };
   }, [dark, hasSeasonalReveal, season]);
 
@@ -257,6 +284,17 @@ export default function ParallaxBackground({
           ].join(' ')}
         />
       )}
+
+      {hasSeasonalReveal && seasonalArtwork ? (
+        <aside
+          ref={seasonalCaptionRef}
+          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''}`}
+          aria-label="Opera stagionale in trasparenza"
+        >
+          <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
+          <span>{seasonalArtwork.artist} · {seasonalArtwork.collection}</span>
+        </aside>
+      ) : null}
 
       {/* Immagine parallax sovrapposta */}
       <div
