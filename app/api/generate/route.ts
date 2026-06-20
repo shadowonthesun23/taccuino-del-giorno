@@ -97,27 +97,55 @@ function extractFirstJsonObject(text: string) {
   throw new Error('La risposta del modello contiene un JSON incompleto.');
 }
 
-function parseGeneratedJson(responseText: string) {
+type GeneratedDailyData = Record<string, unknown> & {
+  parola_giorno?: { parola?: unknown };
+  poesia?: { autore?: unknown };
+};
+
+function parseGeneratedJson(responseText: string): GeneratedDailyData {
   const cleanedText = stripJsonCodeFences(responseText);
   const jsonText = extractFirstJsonObject(cleanedText);
 
   try {
-    return JSON.parse(jsonText);
+    return JSON.parse(jsonText) as GeneratedDailyData;
   } catch (err) {
     console.error('Risposta Gemini non parsabile:', cleanedText.slice(0, 1000));
     throw err;
   }
 }
 
-type RecentMusicRecord = {
+type RecentContentRecord = {
+  autore_giorno?: unknown;
   musica: {
     brano?: unknown;
     autore?: unknown;
     genere?: unknown;
   } | null;
+  parola_giorno: {
+    parola?: unknown;
+  } | null;
+  poesia: {
+    autore?: unknown;
+    fonte?: unknown;
+  } | null;
 };
 
-function formatRecentMusicExclusions(records: RecentMusicRecord[] | null): string {
+const GENERIC_DAILY_WORDS = new Set([
+  'amore', 'anima', 'bellezza', 'coraggio', 'coscienza', 'destino', 'fede',
+  'giustizia', 'identita', 'liberta', 'memoria', 'responsabilita', 'scelta',
+  'speranza', 'tempo', 'verita', 'vita', 'solitudine',
+]);
+
+function normalizeEditorialValue(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function formatRecentMusicExclusions(records: RecentContentRecord[] | null): string {
   const unique = new Set<string>();
 
   for (const record of records ?? []) {
@@ -133,6 +161,53 @@ function formatRecentMusicExclusions(records: RecentMusicRecord[] | null): strin
   }
 
   return [...unique].slice(0, 35).map((item) => `- ${item}`).join('\n');
+}
+
+function formatRecentWordExclusions(records: RecentContentRecord[] | null): string {
+  return [...new Set((records ?? [])
+    .map((record) => typeof record.parola_giorno?.parola === 'string' ? record.parola_giorno.parola.trim() : '')
+    .filter(Boolean))]
+    .slice(0, 60)
+    .map((word) => `- ${word}`)
+    .join('\n');
+}
+
+function formatRecentPoemExclusions(records: RecentContentRecord[] | null): string {
+  const unique = new Set<string>();
+  for (const record of (records ?? []).slice(0, 45)) {
+    const author = typeof record.poesia?.autore === 'string' ? record.poesia.autore.trim() : '';
+    const source = typeof record.poesia?.fonte === 'string' ? record.poesia.fonte.trim() : '';
+    if (author) unique.add([author, source].filter(Boolean).join(' — '));
+  }
+  return [...unique].map((poem) => `- ${poem}`).join('\n');
+}
+
+function validateEditorialQuality(data: GeneratedDailyData, recentRows: RecentContentRecord[] | null): string[] {
+  const issues: string[] = [];
+  const word = typeof data?.parola_giorno?.parola === 'string' ? data.parola_giorno.parola.trim() : '';
+  const wordKey = normalizeEditorialValue(word);
+  const recentWords = new Set((recentRows ?? [])
+    .map((record) => typeof record.parola_giorno?.parola === 'string'
+      ? normalizeEditorialValue(record.parola_giorno.parola)
+      : '')
+    .filter(Boolean));
+
+  if (!word) issues.push('la parola del giorno è assente');
+  if (wordKey && GENERIC_DAILY_WORDS.has(wordKey)) issues.push(`la parola "${word}" è troppo generica`);
+  if (wordKey && recentWords.has(wordKey)) issues.push(`la parola "${word}" è già stata usata di recente`);
+
+  const poet = typeof data?.poesia?.autore === 'string' ? data.poesia.autore.trim() : '';
+  const poetKey = normalizeEditorialValue(poet);
+  const recentPoets = new Set((recentRows ?? []).slice(0, 45)
+    .map((record) => typeof record.poesia?.autore === 'string'
+      ? normalizeEditorialValue(record.poesia.autore)
+      : '')
+    .filter(Boolean));
+
+  if (!poet) issues.push('l’autore della poesia è assente');
+  if (poetKey && recentPoets.has(poetKey)) issues.push(`il poeta "${poet}" è già comparso negli ultimi 45 giorni`);
+
+  return issues;
 }
 
 export async function GET(request: Request) {
@@ -161,21 +236,23 @@ export async function GET(request: Request) {
 
     const { dataIso, dataDiOggiStr } = getRomeDateParts();
 
-    const { data: recentMusicRows, error: recentMusicError } = await supabase
+    const { data: recentContentRows, error: recentContentError } = await supabase
       .from('contenuti_giornalieri')
-      .select('musica')
+      .select('autore_giorno, musica, parola_giorno, poesia')
       .lt('data', dataIso)
-      .not('musica', 'is', null)
       .order('data', { ascending: false })
       .limit(90);
 
-    if (recentMusicError) {
-      console.warn('Impossibile leggere lo storico musicale recente:', recentMusicError.message);
+    if (recentContentError) {
+      console.warn('Impossibile leggere lo storico editoriale recente:', recentContentError.message);
     }
 
+    const recentRows = recentContentRows as RecentContentRecord[] | null;
     const recentMusicExclusions = formatRecentMusicExclusions(
-      recentMusicRows as RecentMusicRecord[] | null
+      recentRows
     );
+    const recentWordExclusions = formatRecentWordExclusions(recentRows);
+    const recentPoemExclusions = formatRecentPoemExclusions(recentRows);
 
     const prompt = `Sei un erudito critico letterario e teologo. Cura "Il giorno da custodire" per il ${dataDiOggiStr}.
 
@@ -184,9 +261,16 @@ REGOLE DI CURATELA:
 2. DESCRIZIONE AUTORE: **DEVE** iniziare esplicitando il motivo della scelta (es. "Nato in questo giorno nel [anno]..." oppure "Scomparso in questa data nel [anno]..."). Questa informazione è fondamentale per il contesto.
 3. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
 4. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
-5. POESIA: Solo in ITALIANO. Se l'autore è straniero, usa la traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
-6. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente.
-7. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
+5. PAROLA DEL GIORNO: scegli un lemma italiano preciso, colto ma realmente attestato, capace di aprire una sfumatura inattesa del tema. NON usare il semplice nome astratto del tema e non proporre parole generiche come libertà, responsabilità, amore, speranza, fede, verità, vita, memoria, anima, coscienza, scelta, identità, tempo o solitudine. Privilegia termini lessicalmente interessanti, con un'etimologia verificabile e una definizione comprensibile. Non ripetere parole recenti.
+6. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non usare poeti comparsi negli ultimi 45 giorni. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
+7. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente. In "chiave_ricerca" inserisci soltanto artista e titolo esatti, senza genere o commenti aggiuntivi.
+8. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
+
+PAROLE RECENTI DA NON RIPETERE:
+${recentWordExclusions || '- Nessuna parola storica disponibile: evita comunque i concetti generici elencati sopra.'}
+
+POETI E POESIE RECENTI DA NON RIPETERE:
+${recentPoemExclusions || '- Nessuno storico disponibile: scegli comunque un autore non ovvio e varia il canone.'}
 
 CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
 ${recentMusicExclusions || '- Nessuno storico disponibile: varia comunque genere, epoca e area geografica.'}
@@ -209,7 +293,9 @@ Restituisci questo JSON:
 }`;
 
     let result: GenerateContentResult | null = null;
+    let generatedData: GeneratedDailyData | null = null;
     let lastGenerationError: unknown = null;
+    let qualityFeedback = '';
     const modelCandidates = uniqueModelCandidates(process.env.GEMINI_MODEL);
 
     for (const modelName of modelCandidates) {
@@ -223,11 +309,20 @@ Restituisci questo JSON:
       const maxRetries = 2;
       for (let i = 0; i < maxRetries; i++) {
         try {
-          result = await withTimeout(
-            model.generateContent(prompt),
+          const attemptResult = await withTimeout(
+            model.generateContent(`${prompt}${qualityFeedback}`),
             GEMINI_ATTEMPT_TIMEOUT_MS,
             `Generazione Gemini (${modelName})`
           );
+          const candidateData = parseGeneratedJson(attemptResult.response.text());
+          const qualityIssues = validateEditorialQuality(candidateData, recentRows);
+          if (qualityIssues.length > 0) {
+            qualityFeedback = `\n\nLa proposta precedente è stata rifiutata perché ${qualityIssues.join('; ')}. `
+              + 'Rigenera l’intero JSON correggendo rigorosamente questi problemi.';
+            throw new Error(`Controllo editoriale fallito: ${qualityIssues.join('; ')}`);
+          }
+          result = attemptResult;
+          generatedData = candidateData;
           console.info(`Contenuto generato con ${modelName} al tentativo ${i + 1}.`);
           break;
         } catch (err) {
@@ -250,8 +345,7 @@ Restituisci questo JSON:
         : new Error('Nessuna risposta ricevuta dal modello.');
     }
 
-    const responseText = result.response.text();
-    const data = parseGeneratedJson(responseText);
+    const data = generatedData ?? parseGeneratedJson(result.response.text());
 
     const { error } = await supabase.from('contenuti_giornalieri').upsert(
       { ...data, data: dataIso },

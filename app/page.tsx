@@ -967,7 +967,7 @@ function DailyPassport({
                 <span>{label.artwork}</span>
                 {opera.immagine_url_hd || opera.immagine_url ? (
                   <figure className="daily-passport-artwork">
-                    <img draggable={false} src={opera.immagine_url_hd || opera.immagine_url} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
+                    <img draggable={false} src={opera.immagine_url || opera.immagine_url_hd} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
                   </figure>
                 ) : null}
                 <h4>{opera.titolo}</h4>
@@ -1231,11 +1231,6 @@ export default function Home() {
     });
   }, []);
 
-  const updateArtworkAccent = useCallback((image: HTMLImageElement) => {
-    const sampled = sampleArtworkAccent(image);
-    if (sampled) setDailyAccent(sampled);
-  }, []);
-
   const checkArchivioScroll = useCallback(() => {
     const el = archivioScrollRef.current;
     if (!el) return;
@@ -1403,6 +1398,24 @@ export default function Home() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isDark]);
+
+  useEffect(() => {
+    const artworkUrl = opera?.immagine_url || opera?.immagine_url_hd;
+    if (!artworkUrl) return;
+    let cancelled = false;
+    const sampler = new Image();
+    sampler.crossOrigin = 'anonymous';
+    sampler.onload = () => {
+      if (cancelled) return;
+      const sampled = sampleArtworkAccent(sampler);
+      if (sampled) setDailyAccent(sampled);
+    };
+    sampler.src = artworkUrl;
+    return () => {
+      cancelled = true;
+      sampler.onload = null;
+    };
+  }, [opera]);
   
   const caricaGiorno = (dataIso: string | null, usePageTurn = false, targetSection = 'autore') => {
     if (usePageTurn) {
@@ -1462,12 +1475,13 @@ export default function Home() {
           });
         }
         runWhenIdle(() => {
-          fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(dati.musica.chiave_ricerca)}&entity=album&limit=3`)
-            .then(r => r.json())
-            .then(j => {
-              const result = j.results?.[0];
-              setMusicCover(result?.artworkUrl100 ? result.artworkUrl100.replace('100x100bb', '600x600bb') : null);
-            })
+          const coverParams = new URLSearchParams({
+            title: dati.musica.brano,
+            artist: dati.musica.autore,
+          });
+          fetch(`/api/music-cover?${coverParams.toString()}`)
+            .then((response) => response.status === 204 ? null : response.ok ? response.json() : null)
+            .then((cover) => setMusicCover(cover?.imageUrl ?? null))
             .catch(() => setMusicCover(null));
         });
       })
@@ -2245,11 +2259,15 @@ export default function Home() {
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
                       <img
                         draggable={false}
-                        src={opera.immagine_url_hd || opera.immagine_url}
+                        src={opera.immagine_url || opera.immagine_url_hd}
                         alt={`${opera.titolo} by ${opera.artista}`}
-                        crossOrigin="anonymous"
                         className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
-                        onLoad={(event) => updateArtworkAccent(event.currentTarget)}
+                        onError={(event) => {
+                          const fallback = opera.immagine_url_hd;
+                          if (fallback && event.currentTarget.src !== fallback) {
+                            event.currentTarget.src = fallback;
+                          }
+                        }}
                         {...lowPriorityImageProps}
                       />
                     </a>
@@ -2334,6 +2352,7 @@ export default function Home() {
                         draggable={false}
                         src={musicCover}
                         alt={`${data.musica.brano} cover`}
+                        onError={() => setMusicCover(null)}
                         {...lazyImageProps}
                       />
                     ) : (
