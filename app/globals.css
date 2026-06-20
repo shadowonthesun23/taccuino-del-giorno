@@ -2695,26 +2695,41 @@ body {
 }
 
 .notebook-quick-nav.is-dark a {
-  background: rgba(30,30,30,0.38);
-  border-color: rgba(255,255,255,0.07);
+  background: rgba(34,32,29,0.78);
+  border-color: rgba(203,177,139,0.22);
   box-shadow:
     0 10px 24px -20px rgba(0,0,0,0.72),
-    inset 0 1px 0 rgba(255,255,255,0.04);
-  color: #a0a0a0;
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  color: #d6bf9b;
+}
+
+.notebook-quick-nav.is-dark a svg {
+  opacity: 0.76;
+  transition: opacity 180ms ease;
 }
 
 .notebook-quick-nav.is-dark a::after {
-  background: rgba(30,30,30,0.78);
-  border-color: rgba(255,255,255,0.08);
-  color: #c8c8c8;
+  background: rgba(34,32,29,0.9);
+  border-color: rgba(203,177,139,0.24);
+  color: #d6bf9b;
+}
+
+.notebook-quick-nav.is-dark a::before {
+  background: #d6bf9b;
 }
 
 .notebook-quick-nav.is-dark a:hover,
 .notebook-quick-nav.is-dark a:focus-visible,
 .notebook-quick-nav.is-dark a[aria-current="true"] {
-  background: rgba(222,107,88,0.1);
-  border-color: rgba(222,107,88,0.4);
-  color: #de6b58;
+  background: rgba(181,149,106,0.16);
+  border-color: rgba(203,177,139,0.56);
+  color: #ead8ba;
+}
+
+.notebook-quick-nav.is-dark a:hover svg,
+.notebook-quick-nav.is-dark a:focus-visible svg,
+.notebook-quick-nav.is-dark a[aria-current="true"] svg {
+  opacity: 1;
 }
 
 .notebook-quick-nav a[aria-current="true"] {
@@ -2722,6 +2737,12 @@ body {
     0 0 0 3px rgba(222,107,88,0.08),
     0 12px 26px -18px rgba(42,37,34,0.48);
   transform: translateX(3px) scale(1.05);
+}
+
+.notebook-quick-nav.is-dark a[aria-current="true"] {
+  box-shadow:
+    0 0 0 3px rgba(181,149,106,0.1),
+    0 12px 26px -18px rgba(0,0,0,0.68);
 }
 
 /* Filo di lettura mobile */
@@ -3091,8 +3112,8 @@ body {
 .seasonal-bookmark-astronomy span {
   align-items: baseline;
   display: grid;
-  gap: 8px;
-  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 7px;
+  grid-template-columns: max-content minmax(0, 1fr);
 }
 
 .seasonal-bookmark-astronomy em {
@@ -6021,14 +6042,14 @@ body {
     background:
       linear-gradient(176deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.018)),
       rgba(34, 32, 30, 0.76) !important;
-    border-color: rgba(198, 174, 148, 0.2) !important;
+    border-color: rgba(203, 177, 139, 0.28) !important;
     box-shadow:
       2px 3px 0 rgba(0, 0, 0, 0.24),
       0 12px 30px -20px rgba(0, 0, 0, 0.72),
       inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     -webkit-backdrop-filter: blur(9px) saturate(1.04);
     backdrop-filter: blur(9px) saturate(1.04);
-    color: #e5a297;
+    color: #d6bf9b;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.82);
   }
 
@@ -6049,15 +6070,64 @@ body {
     .journal-footer-link
   ):is(:hover, :focus-visible) {
     background:
-      linear-gradient(176deg, rgba(255, 255, 255, 0.13), rgba(222, 107, 88, 0.035)),
-      rgba(54, 40, 37, 0.8) !important;
-    border-color: rgba(222, 107, 88, 0.54) !important;
-    color: #f0b0a5;
+      linear-gradient(176deg, rgba(255, 255, 255, 0.13), rgba(181, 149, 106, 0.055)),
+      rgba(49, 44, 37, 0.82) !important;
+    border-color: rgba(203, 177, 139, 0.58) !important;
+    color: #ead8ba;
     box-shadow:
       3px 4px 0 rgba(0, 0, 0, 0.28),
       0 14px 32px -20px rgba(0, 0, 0, 0.78),
       inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
   }
+}
+
+:root.dark :is(
+  .top-control-button,
+  .author-share-trigger,
+  .author-export-action,
+  .card-export-button,
+  .card-save-button,
+  .editorial-link-button,
+  .daily-passport-open-button,
+  .journal-footer-link
+),
+:root[data-theme="dark"] :is(
+  .top-control-button,
+  .author-share-trigger,
+  .author-export-action,
+  .card-export-button,
+  .card-save-button,
+  .editorial-link-button,
+  .daily-passport-open-button,
+  .journal-footer-link
+) {
+  border-color: rgba(203, 177, 139, 0.3) !important;
+  color: #d6bf9b !important;
+}
+
+:root.dark :is(
+  .top-control-button,
+  .author-share-trigger,
+  .author-export-action,
+  .card-export-button,
+  .card-save-button,
+  .editorial-link-button,
+  .daily-passport-open-button,
+  .journal-footer-link
+):is(:hover, :focus-visible, [aria-expanded="true"], [aria-pressed="true"], .is-saved),
+:root[data-theme="dark"] :is(
+  .top-control-button,
+  .author-share-trigger,
+  .author-export-action,
+  .card-export-button,
+  .card-save-button,
+  .editorial-link-button,
+  .daily-passport-open-button,
+  .journal-footer-link
+):is(:hover, :focus-visible, [aria-expanded="true"], [aria-pressed="true"], .is-saved) {
+  background-color: rgba(181, 149, 106, 0.12) !important;
+  border-color: rgba(203, 177, 139, 0.58) !important;
+  color: #ead8ba !important;
 }
 
 .top-control-button {
