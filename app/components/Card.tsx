@@ -23,8 +23,21 @@ const badgeVariants: Record<string, string> = {
 
 const SOCIAL_EXPORT_WIDTH = 1080;
 const SOCIAL_EXPORT_HEIGHT = 1920;
-const SOCIAL_EXPORT_SIDE_PADDING = 30;
-const SOCIAL_EXPORT_VERTICAL_PADDING = 88;
+const SOCIAL_EXPORT_SIDE_PADDING = 54;
+const SOCIAL_EXPORT_TOP_PADDING = 150;
+const SOCIAL_EXPORT_BOTTOM_PADDING = 190;
+const SOCIAL_EXPORT_LAYOUT_WIDTH = 900;
+
+const SOCIAL_EXPORT_TARGET_HEIGHTS: Record<string, number> = {
+  citazione: 1120,
+  parola: 1280,
+  santi: 1320,
+  opera: 1320,
+  avvenimenti: 1320,
+  poesia: 1420,
+  bibbia: 1420,
+  musica: 1320,
+};
 
 interface CardProps {
   id?: string;
@@ -79,7 +92,7 @@ export default function Card({
       exportFrame.style.display = 'flex';
       exportFrame.style.alignItems = 'center';
       exportFrame.style.justifyContent = 'center';
-      exportFrame.style.padding = `${SOCIAL_EXPORT_VERTICAL_PADDING}px ${SOCIAL_EXPORT_SIDE_PADDING}px`;
+      exportFrame.style.padding = `${SOCIAL_EXPORT_TOP_PADDING}px ${SOCIAL_EXPORT_SIDE_PADDING}px ${SOCIAL_EXPORT_BOTTOM_PADDING}px`;
       exportFrame.style.overflow = 'hidden';
       exportFrame.style.pointerEvents = 'none';
       exportFrame.style.zIndex = '-1';
@@ -127,8 +140,9 @@ export default function Card({
       exportSignature.style.pointerEvents = 'none';
 
       const contentMaxWidth = SOCIAL_EXPORT_WIDTH - SOCIAL_EXPORT_SIDE_PADDING * 2;
-      const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_VERTICAL_PADDING * 2;
-      const exportLayoutWidth = contentMaxWidth;
+      const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_TOP_PADDING - SOCIAL_EXPORT_BOTTOM_PADDING;
+      const exportLayoutWidth = SOCIAL_EXPORT_LAYOUT_WIDTH;
+      const widthScale = contentMaxWidth / exportLayoutWidth;
 
       const measureWrap = document.createElement('div');
       measureWrap.style.position = 'fixed';
@@ -151,20 +165,29 @@ export default function Card({
       measureWrap.appendChild(clone);
       document.body.appendChild(measureWrap);
 
+      const densityClasses = [
+        'social-export-card-dense',
+        'social-export-card-compact',
+        'social-export-card-tight',
+      ];
       let exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
-      if (exportLayoutHeight > contentMaxHeight) {
-        clone.classList.add('social-export-card-dense');
+      for (const densityClass of densityClasses) {
+        if (exportLayoutHeight * widthScale <= contentMaxHeight) break;
+        clone.classList.add(densityClass);
         exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
       }
-      if (exportLayoutHeight > contentMaxHeight) {
-        clone.classList.add('social-export-card-compact');
-        exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
-      }
-      const scale = Math.min(
-        1.08,
-        contentMaxWidth / exportLayoutWidth,
-        contentMaxHeight / exportLayoutHeight
+
+      const targetHeight = Math.min(
+        SOCIAL_EXPORT_TARGET_HEIGHTS[id ?? ''] ?? 1260,
+        contentMaxHeight
       );
+      if (exportLayoutHeight * widthScale < targetHeight) {
+        clone.classList.add('social-export-card-spacious');
+        clone.style.minHeight = `${targetHeight / widthScale}px`;
+        exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
+      }
+
+      const scale = Math.min(widthScale, contentMaxHeight / exportLayoutHeight);
       measureWrap.remove();
 
       const contentWrap = document.createElement('div');
