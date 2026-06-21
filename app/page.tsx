@@ -913,7 +913,7 @@ function SeasonalBookmark({
           </span>
           <button
             type="button"
-            className={`${stampwriter.className} seasonal-bookmark-download`}
+            className="seasonal-bookmark-download"
             data-ticket-export-ignore="true"
             disabled={exportingTicket}
             aria-label={lingua === 'IT' ? 'Scarica il biglietto in PNG ad alta risoluzione' : 'Download the ticket as a high-resolution PNG'}
