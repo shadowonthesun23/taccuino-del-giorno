@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
+import { QRCodeSVG } from 'qrcode.react';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
@@ -12,6 +13,7 @@ import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import type { Artwork } from '@/lib/artwork';
 import type { SaintArtwork } from '@/lib/saint-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
+import { getSeasonalArtwork } from '@/lib/seasonal-artwork';
 
 const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: string; cityEN: string }[] = [
   { id: 'north', IT: 'Nord', EN: 'North', cityIT: 'Milano', cityEN: 'Milan' },
@@ -46,7 +48,7 @@ const stampwriter = localFont({
 
 const THEME_SURFACE = {
   light: '#F8F6F0',
-  dark: '#252422',
+  dark: '#171614',
 } as const;
 
 function applyBrowserTheme(nextDark: boolean) {
@@ -469,6 +471,7 @@ function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
   return new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
     day: 'numeric',
     month: 'long',
+    year: 'numeric',
   }).format(new Date(anno, mese - 1, giorno));
 }
 
@@ -681,9 +684,20 @@ function MoonDoodle({ phase }: { phase: MoonPhaseId }) {
   );
 }
 
-function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua: 'IT' | 'EN'; isDark: boolean }) {
+function SeasonalBookmark({
+  dataIso,
+  lingua,
+  isDark,
+}: {
+  dataIso: string;
+  lingua: 'IT' | 'EN';
+  isDark: boolean;
+}) {
+  const ticketRef = useRef<HTMLSpanElement>(null);
   const [skyRegion, setSkyRegion] = useState<SkyRegion>('center');
   const [planetResult, setPlanetResult] = useState<{ key: string; planets: VisiblePlanet[] } | null>(null);
+  const [dayPermalink, setDayPermalink] = useState('');
+  const [exportingTicket, setExportingTicket] = useState(false);
   const season = getSeason(dataIso);
   const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
     spring: { IT: 'Primavera', EN: 'Spring' },
@@ -715,6 +729,10 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
   const fullMoonRowLabel = lingua === 'IT' ? 'Luna piena' : 'Full moon';
   const planetsLabel = lingua === 'IT' ? 'Pianeti osservabili' : 'Observable planets';
   const selectedRegion = SKY_REGION_OPTIONS.find((region) => region.id === skyRegion) ?? SKY_REGION_OPTIONS[1];
+  const dayOfYear = getDayOfYearInfo(dataIso);
+  const seasonalArtwork = getSeasonalArtwork(season);
+  const artworkMuseumUrl = seasonalArtwork?.museumUrl || dayPermalink;
+  const ticketArtworkImageUrl = seasonalArtwork?.imageUrl || '';
   const planetResultKey = `${dataIso}:${skyRegion}:${lingua}`;
   const visiblePlanets = planetResult?.key === planetResultKey ? planetResult.planets : null;
   const planetSummary = visiblePlanets?.length
@@ -728,6 +746,17 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
     const frame = window.requestAnimationFrame(() => setSkyRegion(savedRegion));
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = '';
+      url.searchParams.set('data', dataIso);
+      setDayPermalink(url.toString());
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [dataIso]);
 
   useEffect(() => {
     const desktopQuery = window.matchMedia('(min-width: 1180px)');
@@ -754,20 +783,85 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
     window.localStorage.setItem(SKY_REGION_STORAGE_KEY, region);
   };
 
+  const downloadTicket = async () => {
+    if (!ticketRef.current || exportingTicket) return;
+    setExportingTicket(true);
+    try {
+      await document.fonts.ready;
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(ticketRef.current, {
+        width: 588,
+        height: 226,
+        pixelRatio: 4,
+        cacheBust: true,
+        style: {
+          inset: 'auto',
+          position: 'relative',
+          transform: 'none',
+        },
+        filter: (node) => {
+          const exportMarker = node.getAttribute?.('data-ticket-export-ignore');
+          return exportMarker === null || exportMarker === undefined;
+        },
+      });
+      const link = document.createElement('a');
+      link.download = `effemeridi-${dataIso}-4x.png`;
+      link.href = dataUrl;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Errore durante l’esportazione delle effemeridi:', error);
+    } finally {
+      setExportingTicket(false);
+    }
+  };
+
+  const museumQrLabel = lingua === 'IT' ? 'Apri al museo' : 'View at museum';
+
   return (
     <aside
+      id="effemeridi"
       className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${isDark ? 'is-dark' : ''}`}
       aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
       tabIndex={0}
     >
-      <span className="seasonal-bookmark-ticket">
+      <span ref={ticketRef} className="seasonal-bookmark-ticket">
         <span className="seasonal-bookmark-stub" aria-hidden="true">
           <span className="seasonal-bookmark-label">{almanacLabel}</span>
           <span className="seasonal-bookmark-motif"><MoonDoodle phase={moon.phase} /></span>
           <span className="seasonal-bookmark-serial">No. {ticketSerial}</span>
         </span>
         <span className="seasonal-bookmark-stitch" aria-hidden="true" />
-        <span className="seasonal-bookmark-copy">
+        <span className={`seasonal-bookmark-copy ${ticketArtworkImageUrl ? 'has-artwork' : ''}`}>
+          {ticketArtworkImageUrl ? (
+            <svg
+              className="seasonal-bookmark-artwork"
+              viewBox="0 0 404 226"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <filter id="ticket-ink-edge" x="-12%" y="-18%" width="124%" height="136%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.018 0.055" numOctaves="4" seed="17" result="paperNoise" />
+                  <feDisplacementMap in="SourceGraphic" in2="paperNoise" scale="13" xChannelSelector="R" yChannelSelector="B" result="roughEdge" />
+                  <feGaussianBlur in="roughEdge" stdDeviation="1.4" />
+                </filter>
+                <mask id="ticket-ink-mask">
+                  <rect x="7" y="6" width="390" height="214" rx="5" fill="white" filter="url(#ticket-ink-edge)" />
+                </mask>
+              </defs>
+              <image
+                href={ticketArtworkImageUrl}
+                width="404"
+                height="226"
+                preserveAspectRatio="xMidYMid slice"
+                mask="url(#ticket-ink-mask)"
+              />
+            </svg>
+          ) : null}
+          {ticketArtworkImageUrl ? <span className="seasonal-bookmark-artwork-wash" aria-hidden="true" /> : null}
           <span className="seasonal-bookmark-heading">
             <strong className="seasonal-bookmark-date">{dateLabel}</strong>
             <span className="seasonal-bookmark-season">{label}</span>
@@ -812,11 +906,72 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
               )}
             </span>
             <small>
-              {lingua === 'IT' ? 'Riferimento' : 'Reference'}: {lingua === 'IT' ? selectedRegion.cityIT : selectedRegion.cityEN}
+              {lingua === 'IT' ? 'Cielo calcolato per' : 'Sky calculated for'} {lingua === 'IT' ? selectedRegion.cityIT : selectedRegion.cityEN}
               {' · '}
-              {lingua === 'IT' ? 'cielo sereno' : 'clear sky'}
+              {lingua === 'IT' ? 'condizioni ideali' : 'ideal conditions'}
             </small>
           </span>
+          <button
+            type="button"
+            className={`${stampwriter.className} seasonal-bookmark-download`}
+            data-ticket-export-ignore="true"
+            disabled={exportingTicket}
+            aria-label={lingua === 'IT' ? 'Scarica il biglietto in PNG ad alta risoluzione' : 'Download the ticket as a high-resolution PNG'}
+            title={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
+            onClick={downloadTicket}
+          >
+            {exportingTicket
+              ? <Loader2 aria-hidden="true" className="animate-spin" strokeWidth={1.7} />
+              : <FileDown aria-hidden="true" strokeWidth={1.7} />}
+            <span>{lingua === 'IT' ? 'Scarica' : 'Download'}</span>
+          </button>
+        </span>
+        <span className="seasonal-bookmark-stitch is-trailing" aria-hidden="true" />
+        <span className={`seasonal-bookmark-tail ${seasonalArtwork ? 'has-artwork' : ''}`}>
+          {artworkMuseumUrl ? (
+            <a
+              className="seasonal-bookmark-qr-link"
+              href={artworkMuseumUrl}
+              target={seasonalArtwork ? '_blank' : undefined}
+              rel={seasonalArtwork ? 'noopener noreferrer' : undefined}
+              aria-label={seasonalArtwork
+                ? (lingua === 'IT' ? `Apri ${seasonalArtwork.title} sul sito del museo` : `Open ${seasonalArtwork.title} on the museum website`)
+                : (lingua === 'IT' ? `Apri il giorno ${dateLabel}` : `Open ${dateLabel}`)}
+              title={seasonalArtwork ? museumQrLabel : (lingua === 'IT' ? 'Apri il permalink di questo giorno' : 'Open this day’s permalink')}
+            >
+              <span className="seasonal-bookmark-qr">
+                <QRCodeSVG
+                  value={artworkMuseumUrl}
+                  size={68}
+                  level="H"
+                  marginSize={3}
+                  bgColor="transparent"
+                  fgColor="currentColor"
+                  title={seasonalArtwork
+                    ? (lingua === 'IT' ? `QR della scheda museale di ${seasonalArtwork.title}` : `Museum page QR for ${seasonalArtwork.title}`)
+                    : (lingua === 'IT' ? `QR del ${dateLabel}` : `${dateLabel} QR code`)}
+                />
+                <span className="seasonal-bookmark-qr-mark" aria-hidden="true">
+                  <MoonDoodle phase={moon.phase} />
+                </span>
+              </span>
+              <small>{seasonalArtwork ? museumQrLabel : (lingua === 'IT' ? 'Apri il giorno' : 'Open the day')}</small>
+            </a>
+          ) : null}
+          {seasonalArtwork ? (
+            <span className="seasonal-bookmark-artwork-caption">
+              <strong className={stampwriter.className} title={seasonalArtwork.title}>{seasonalArtwork.title}</strong>
+              <span>{seasonalArtwork.artist} · {seasonalArtwork.year}</span>
+              <em>{seasonalArtwork.medium} · {seasonalArtwork.collection}</em>
+              <small>{lingua === 'IT' ? 'Edizione' : 'Edition'} {dayOfYear.day}/{dayOfYear.total}</small>
+            </span>
+          ) : null}
+          {!seasonalArtwork ? (
+            <span className="seasonal-bookmark-tail-ledger" aria-hidden="true">
+              <span><em>{lingua === 'IT' ? 'Foglio' : 'Sheet'}</em><strong>{dayOfYear.day}/{dayOfYear.total}</strong></span>
+              <span><em>{lingua === 'IT' ? 'Valido' : 'Valid'}</em><strong>{lingua === 'IT' ? '1 giorno' : '1 day'}</strong></span>
+            </span>
+          ) : null}
         </span>
       </span>
     </aside>
@@ -1461,6 +1616,10 @@ export default function Home() {
     ])
       .then(([dati, operaData]) => {
         setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
+        const nextUrl = new URL(window.location.href);
+        if (dataIso) nextUrl.searchParams.set('data', dataIso);
+        else nextUrl.searchParams.delete('data');
+        window.history.replaceState(window.history.state, '', nextUrl);
         rememberVisitedDate(dataIso ?? oggi);
         if (targetSection === 'autore') {
           window.scrollTo({ top: 0, behavior: usePageTurn ? 'auto' : 'smooth' });
@@ -1541,7 +1700,11 @@ export default function Home() {
       applyBrowserTheme(calcolatoDark);
     }
     const loadTimer = window.setTimeout(() => {
-      caricaGiorno(null);
+      const requestedDate = new URLSearchParams(window.location.search).get('data');
+      const initialDate = requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)
+        ? requestedDate
+        : null;
+      caricaGiorno(initialDate);
       fetch('/api/archivio').then(res => res.ok ? res.json() : []).then(setArchivio).catch(() => setArchivio([]));
     }, 0);
     return () => {
@@ -1570,7 +1733,7 @@ export default function Home() {
   };
 
   const themeClasses = {
-    bg: isDark ? 'bg-[#252422]' : 'bg-[#F8F6F0]',
+    bg: isDark ? 'bg-[#171614]' : 'bg-[#F8F6F0]',
     text: isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]',
     textMuted: isDark ? 'text-[#A0A0A0]' : 'text-[#8A817C]',
     border: isDark ? 'border-white/10' : 'border-[#EBE5DB]',
@@ -1845,7 +2008,11 @@ export default function Home() {
           }}
           onNavigate={() => setMobileNavOpen(false)}
         />
-        <SeasonalBookmark dataIso={dataExLibris} lingua={lingua} isDark={isDark} />
+        <SeasonalBookmark
+          dataIso={dataExLibris}
+          lingua={lingua}
+          isDark={isDark}
+        />
         <div className={`top-control-panel ${controlsHidden && !popoverOpen && !savedDrawerOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
           <button
             onClick={toggleLingua}

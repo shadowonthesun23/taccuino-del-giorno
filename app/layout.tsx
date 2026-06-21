@@ -25,7 +25,7 @@ const themeBootstrapScript = `
     const savedTheme = localStorage.getItem('theme');
     const dark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     const scheme = dark ? 'dark' : 'light';
-    const color = dark ? '#252422' : '#F8F6F0';
+    const color = dark ? '#171614' : '#F8F6F0';
     const root = document.documentElement;
     root.classList.toggle('dark', dark);
     root.dataset.theme = scheme;
@@ -68,7 +68,7 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#F8F6F0' },
-    { media: '(prefers-color-scheme: dark)', color: '#252422' },
+    { media: '(prefers-color-scheme: dark)', color: '#171614' },
   ],
 };
 

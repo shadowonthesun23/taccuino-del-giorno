@@ -18,9 +18,9 @@
 
 :root.dark,
 :root[data-theme="dark"] {
-  --background: #252422;
+  --background: #171614;
   --foreground: #E0E0E0;
-  --browser-surface: #252422;
+  --browser-surface: #171614;
   color-scheme: dark;
 }
 
@@ -91,8 +91,26 @@ img {
 }
 
 .seasonal-paint-reveal.is-dark {
-  background-color: rgba(20, 19, 18, 0.14);
+  background-color: rgba(12, 11, 10, 0.56);
   background-blend-mode: multiply;
+  filter: brightness(0.62) saturate(0.62);
+}
+
+.dark .notebook-line-art,
+[data-theme="dark"] .notebook-line-art {
+  opacity: 0.085 !important;
+}
+
+@media (max-width: 1360px) {
+  .dark .notebook-line-art,
+  [data-theme="dark"] .notebook-line-art {
+    filter: brightness(0.38) saturate(0.3) contrast(0.64) !important;
+    opacity: 0.045 !important;
+  }
+
+  .seasonal-paint-reveal.is-dark {
+    filter: brightness(0.48) saturate(0.5);
+  }
 }
 
 .seasonal-artwork-caption {
@@ -244,7 +262,8 @@ img {
     bottom: max(20px, env(safe-area-inset-bottom, 0px));
     z-index: 20;
     display: block;
-    max-width: 360px;
+    max-width: 270px;
+    width: 270px;
     color: rgba(55, 48, 42, 0.86);
     font-size: 0.78rem;
     line-height: 1.35;
@@ -274,6 +293,7 @@ img {
     margin-top: 2px;
     color: rgba(74, 65, 57, 0.72);
     font-size: 0.7rem;
+    white-space: nowrap;
   }
 
   .seasonal-artwork-caption.is-dark {
@@ -285,6 +305,21 @@ img {
 
   .seasonal-artwork-caption.is-dark span {
     color: rgba(220, 210, 193, 0.7);
+  }
+
+}
+
+@media (min-width: 1180px) and (max-width: 1360px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .seasonal-artwork-caption {
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    font-size: 0.68rem;
+    max-width: 220px;
+    right: max(10px, env(safe-area-inset-right, 0px));
+    width: 220px;
+  }
+
+  .seasonal-artwork-caption span {
+    font-size: 0.56rem;
   }
 }
 
@@ -446,7 +481,7 @@ body {
     rgba(255, 255, 255, 0.025) 0%,
     transparent 72%
   );
-  background-color: #252422;
+  background-color: #171614;
 }
 
 .notebook-wordmark {
@@ -1910,7 +1945,8 @@ body {
 }
 
 [data-theme="dark"] .author-photo-caption {
-  color: rgba(218, 195, 168, 0.72);
+  color: rgba(76, 55, 38, 0.9);
+  text-shadow: 0 1px rgba(255,255,255,0.58);
 }
 
 @keyframes authorPhotoSettle {
@@ -3012,6 +3048,7 @@ body {
   --ticket-stock: color-mix(in srgb, var(--bookmark-paper) 42%, #f5eddb);
   --ticket-stub: color-mix(in srgb, var(--bookmark-paper) 68%, #eadcbf);
   --ticket-fibre: rgba(91, 67, 39, 0.055);
+  --ticket-tail-width: 116px;
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -3022,7 +3059,7 @@ body {
   overflow: visible;
   padding: 0;
   position: fixed;
-  right: -404px;
+  right: -520px;
   top: 24%;
   transition:
     color 220ms ease,
@@ -3030,7 +3067,7 @@ body {
     right 320ms cubic-bezier(0.22,1,0.36,1);
   transform: rotate(-0.38deg);
   transform-origin: right center;
-  width: 472px;
+  width: 588px;
   z-index: 36;
 }
 
@@ -3041,23 +3078,26 @@ body {
     radial-gradient(ellipse at 42% 81%, rgba(91,67,39,0.035) 0 0.45px, transparent 0.8px) 0 0 / 43px 19px,
     linear-gradient(178deg, color-mix(in srgb, var(--ticket-stock) 97%, white), var(--ticket-stock));
   border: 1px solid var(--bookmark-edge);
-  border-radius: 8px 0 0 8px;
-  border-right: 0;
+  border-radius: 8px;
   box-shadow:
     -1px 1px 1px rgba(91,67,39,0.06),
     inset 1px 0 rgba(255,255,255,0.34),
     inset 0 1px rgba(255,255,255,0.32),
     inset 0 -1px rgba(103,76,42,0.1);
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr);
+  grid-template-columns: 68px minmax(0, 1fr) var(--ticket-tail-width);
   inset: 0;
   -webkit-mask-image:
     radial-gradient(circle 8px at 68px 0, transparent 0 7px, #000 7.6px),
-    radial-gradient(circle 8px at 68px 100%, transparent 0 7px, #000 7.6px);
+    radial-gradient(circle 8px at 68px 100%, transparent 0 7px, #000 7.6px),
+    radial-gradient(circle 8px at calc(100% - var(--ticket-tail-width)) 0, transparent 0 7px, #000 7.6px),
+    radial-gradient(circle 8px at calc(100% - var(--ticket-tail-width)) 100%, transparent 0 7px, #000 7.6px);
   -webkit-mask-composite: source-in;
   mask-image:
     radial-gradient(circle 8px at 68px 0, transparent 0 7px, #000 7.6px),
-    radial-gradient(circle 8px at 68px 100%, transparent 0 7px, #000 7.6px);
+    radial-gradient(circle 8px at 68px 100%, transparent 0 7px, #000 7.6px),
+    radial-gradient(circle 8px at calc(100% - var(--ticket-tail-width)) 0, transparent 0 7px, #000 7.6px),
+    radial-gradient(circle 8px at calc(100% - var(--ticket-tail-width)) 100%, transparent 0 7px, #000 7.6px);
   mask-composite: intersect;
   overflow: hidden;
   position: absolute;
@@ -3085,6 +3125,7 @@ body {
     inset -1px 0 color-mix(in srgb, var(--bookmark-ink) 15%, transparent),
     inset 1px 0 rgba(255,255,255,0.26);
   display: grid;
+  grid-column: 1;
   grid-template-rows: 44px minmax(0, 1fr) 24px;
   justify-items: center;
   min-width: 0;
@@ -3093,21 +3134,27 @@ body {
 }
 
 .seasonal-bookmark-stitch {
-  border-left: 1px dashed color-mix(in srgb, var(--bookmark-ink) 38%, transparent);
-  bottom: 12px;
-  left: 67px;
+  background:
+    radial-gradient(ellipse 2.85px 0.72px at 50% 4px, rgba(37,28,18,0.74) 0 58%, rgba(37,28,18,0.32) 70%, transparent 82%) 0 0 / 8px 9px repeat-y,
+    radial-gradient(ellipse 3.1px 0.95px at 50% 4.65px, rgba(255,255,255,0.36) 0 56%, transparent 72%) 0 0 / 8px 9px repeat-y;
+  border: 0;
+  bottom: 10px;
+  filter: drop-shadow(0 -0.35px rgba(73,51,29,0.22));
+  left: 64px;
   overflow: hidden;
   position: absolute;
-  top: 12px;
-  width: 2px;
+  top: 10px;
+  width: 8px;
   z-index: 3;
 }
 
 .seasonal-bookmark-stitch::before {
-  border-left: 1px dashed rgba(255,255,255,0.34);
-  content: "";
-  inset: 0;
-  position: absolute;
+  content: none;
+}
+
+.seasonal-bookmark-stitch.is-trailing {
+  left: auto;
+  right: calc(var(--ticket-tail-width) - 4px);
 }
 
 .seasonal-bookmark-motif {
@@ -3145,6 +3192,7 @@ body {
   align-content: center;
   display: grid;
   gap: 8px;
+  grid-column: 2;
   min-width: 0;
   opacity: 1;
   padding: 14px 18px 12px 17px;
@@ -3153,6 +3201,328 @@ body {
   transition:
     opacity 180ms ease 70ms,
     transform 260ms cubic-bezier(0.22,1,0.36,1) 40ms;
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+}
+
+.seasonal-bookmark-copy.has-artwork {
+  color: #342411;
+  text-shadow:
+    0 1px rgba(255,252,239,0.98),
+    0 0 4px rgba(247,238,216,0.96),
+    0 0 9px rgba(247,238,216,0.72);
+}
+
+.seasonal-bookmark-copy.has-artwork > :not(.seasonal-bookmark-artwork, .seasonal-bookmark-artwork-wash, .seasonal-bookmark-download) {
+  position: relative;
+  z-index: 2;
+}
+
+.seasonal-bookmark-artwork {
+  height: 100%;
+  inset: 0;
+  opacity: 0.96;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: -2;
+}
+
+.seasonal-bookmark-artwork-wash {
+  background:
+    linear-gradient(90deg, rgba(247,239,219,0.5) 0%, rgba(244,233,207,0.36) 48%, rgba(238,223,190,0.24) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.035), rgba(79,55,27,0.1));
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.seasonal-bookmark-tail {
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 23% 29%, var(--ticket-fibre) 0 0.55px, transparent 0.9px) 0 0 / 21px 31px,
+    radial-gradient(ellipse at 71% 76%, rgba(255,255,255,0.11) 0 0.45px, transparent 0.8px) 0 0 / 31px 37px,
+    linear-gradient(270deg, rgba(96,70,39,0.045), transparent 46%, rgba(255,255,255,0.05)),
+    var(--ticket-stub);
+  border-radius: 0 7px 7px 0;
+  box-shadow:
+    inset 1px 0 color-mix(in srgb, var(--bookmark-ink) 13%, transparent),
+    inset -1px 0 rgba(255,255,255,0.22);
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  grid-column: 3;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 8px;
+  position: relative;
+}
+
+.seasonal-bookmark-download {
+  align-items: center;
+  appearance: none;
+  background: color-mix(in srgb, var(--ticket-stock) 58%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bookmark-ink) 22%, transparent);
+  border-radius: 4px 5px 4px 6px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  bottom: 8px;
+  height: 23px;
+  justify-content: center;
+  opacity: 0.76;
+  padding: 0 7px;
+  transition: opacity 160ms ease, transform 180ms ease, background-color 160ms ease;
+  position: absolute;
+  right: 10px;
+  width: 70px;
+  z-index: 4;
+}
+
+.seasonal-bookmark-copy .seasonal-bookmark-download {
+  position: absolute;
+}
+
+.seasonal-bookmark-download svg {
+  height: 12px;
+  width: 12px;
+}
+
+.seasonal-bookmark-download span {
+  font-family: inherit;
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.seasonal-bookmark-download:hover,
+.seasonal-bookmark-download:focus-visible {
+  background: color-mix(in srgb, var(--bookmark-ink) 9%, var(--ticket-stock));
+  opacity: 1;
+  outline: none;
+  transform: translateY(-1px) rotate(-2deg);
+}
+
+.seasonal-bookmark-download:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.seasonal-bookmark-qr-link {
+  align-items: center;
+  color: inherit;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1;
+  text-decoration: none;
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.seasonal-bookmark-qr {
+  align-items: center;
+  background: color-mix(in srgb, var(--ticket-stock) 76%, white);
+  border: 1px solid color-mix(in srgb, var(--bookmark-ink) 16%, transparent);
+  border-radius: 3px;
+  box-shadow: inset 0 1px rgba(255,255,255,0.28);
+  display: inline-flex;
+  height: 66px;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  width: 66px;
+}
+
+.seasonal-bookmark-qr > svg {
+  display: block;
+  height: 62px;
+  width: 62px;
+}
+
+.seasonal-bookmark-qr-mark {
+  align-items: center;
+  background: var(--ticket-stub);
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--ticket-stub);
+  display: inline-flex;
+  height: 13px;
+  justify-content: center;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+}
+
+.seasonal-bookmark-qr-mark svg {
+  fill: none;
+  height: 11px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  width: 11px;
+}
+
+.seasonal-bookmark-qr-mark .moon-doodle-star {
+  display: none;
+}
+
+.seasonal-bookmark-qr-link small {
+  font-family: inherit;
+  font-size: 0.42rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  opacity: 0.62;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.seasonal-bookmark-artwork-caption {
+  border-top: 1px solid color-mix(in srgb, var(--bookmark-ink) 18%, transparent);
+  display: grid;
+  flex: 1 1 auto;
+  gap: 4px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 7px 1px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.seasonal-bookmark-artwork-caption strong,
+.seasonal-bookmark-artwork-caption span,
+.seasonal-bookmark-artwork-caption em,
+.seasonal-bookmark-artwork-caption small {
+  display: block;
+  line-height: 1.18;
+  overflow: hidden;
+}
+
+.seasonal-bookmark-artwork-caption span,
+.seasonal-bookmark-artwork-caption em,
+.seasonal-bookmark-artwork-caption small,
+.seasonal-bookmark-qr-link small {
+  font-family: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.seasonal-bookmark-artwork-caption strong {
+  display: -webkit-box;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-transform: lowercase;
+}
+
+.seasonal-bookmark-artwork-caption span,
+.seasonal-bookmark-artwork-caption em {
+  font-size: 0.47rem;
+  opacity: 0.8;
+}
+
+.seasonal-bookmark-artwork-caption em {
+  font-style: normal;
+}
+
+.seasonal-bookmark-artwork-caption small {
+  align-self: end;
+  font-size: 0.42rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-top: auto;
+  opacity: 0.54;
+  text-transform: uppercase;
+}
+
+.seasonal-bookmark-qr-link:hover .seasonal-bookmark-qr,
+.seasonal-bookmark-qr-link:focus-visible .seasonal-bookmark-qr {
+  box-shadow:
+    0 3px 9px rgba(61,45,26,0.12),
+    inset 0 1px rgba(255,255,255,0.38);
+  transform: translateY(-1px) rotate(0.5deg);
+}
+
+.seasonal-bookmark-qr-link:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+
+.seasonal-bookmark-tail-ledger {
+  align-self: stretch;
+  border-top: 1px solid color-mix(in srgb, var(--bookmark-ink) 18%, transparent);
+  display: grid;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 5px;
+  width: 100%;
+}
+
+.seasonal-bookmark-tail-ledger > span {
+  align-items: baseline;
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.seasonal-bookmark-tail-ledger em,
+.seasonal-bookmark-tail-ledger strong {
+  font-family: "Courier New", monospace;
+  font-size: 0.46rem;
+  font-style: normal;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.seasonal-bookmark-tail-ledger em {
+  opacity: 0.5;
+}
+
+.seasonal-bookmark-tail-ledger strong {
+  font-weight: 800;
+  max-width: 48px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-qr {
+  background: #e7decc;
+  border-color: rgba(0,0,0,0.28);
+  color: #302e2a;
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-qr-mark {
+  background: #e7decc;
+  box-shadow: 0 0 0 2px #e7decc;
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-copy.has-artwork {
+  color: #eee2c8;
+  text-shadow:
+    0 1px 1px rgba(0,0,0,0.62),
+    0 0 8px rgba(22,18,13,0.5);
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-artwork {
+  opacity: 0.88;
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-artwork-wash {
+  background:
+    linear-gradient(90deg, rgba(22,20,17,0.68) 0%, rgba(28,24,19,0.54) 48%, rgba(24,21,17,0.36) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.018), rgba(0,0,0,0.22));
 }
 
 .seasonal-bookmark:hover .seasonal-bookmark-copy,
@@ -3341,14 +3711,16 @@ body {
 .seasonal-bookmark-planet-list > em {
   font-size: 0.76rem;
   font-style: italic;
-  opacity: 0.86;
+  opacity: 0.96;
 }
 
 .seasonal-bookmark-planets small {
+  display: block;
   font-size: 0.66rem;
   font-style: italic;
   letter-spacing: 0.025em;
   opacity: 0.7;
+  padding-right: 76px;
 }
 
 .seasonal-bookmark.season-spring {
@@ -3476,6 +3848,13 @@ body {
   box-shadow:
     inset -1px 0 rgba(216,195,160,0.14),
     inset 1px 0 rgba(255,255,255,0.045);
+}
+
+.seasonal-bookmark.is-dark .seasonal-bookmark-stitch {
+  background:
+    radial-gradient(ellipse 2.85px 0.72px at 50% 4px, rgba(0,0,0,0.82) 0 58%, rgba(0,0,0,0.44) 70%, transparent 82%) 0 0 / 8px 9px repeat-y,
+    radial-gradient(ellipse 3.1px 0.95px at 50% 4.65px, rgba(255,255,255,0.09) 0 56%, transparent 72%) 0 0 / 8px 9px repeat-y;
+  filter: drop-shadow(0 -0.35px rgba(0,0,0,0.48));
 }
 
 /* Archivio come schedario */

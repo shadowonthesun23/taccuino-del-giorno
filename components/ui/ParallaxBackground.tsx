@@ -2,30 +2,11 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
+import { getSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
-type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
 const darkNotebookBackground = '/images/sfondo-taccuino-dark-paper.webp';
-const seasonalArtworkCaptions: Partial<Record<SeasonId, {
-  title: string;
-  year: string;
-  artist: string;
-  collection: string;
-}>> = {
-  spring: {
-    title: 'Primavera',
-    year: 'circa 1480-1485',
-    artist: 'Sandro Botticelli',
-    collection: 'Gallerie degli Uffizi, Firenze',
-  },
-  summer: {
-    title: 'Campo di grano con cipressi',
-    year: '1889',
-    artist: 'Vincent van Gogh',
-    collection: 'The Metropolitan Museum of Art, New York',
-  },
-};
 
 export default function ParallaxBackground({
   children,
@@ -45,7 +26,7 @@ export default function ParallaxBackground({
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const [dark, setDark] = useState(false);
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
-  const seasonalArtwork = season ? seasonalArtworkCaptions[season] : undefined;
+  const seasonalArtwork = season ? getSeasonalArtwork(season) : undefined;
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -222,8 +203,8 @@ export default function ParallaxBackground({
       previousTargetX = targetX;
       previousTargetY = targetY;
       const readabilityProtection = getReadabilityProtection(targetX, targetY);
-      const regularOpacity = dark ? 0.64 : 0.82;
-      const protectedOpacity = dark ? 0.24 : 0.36;
+      const regularOpacity = dark ? 0.32 : 0.82;
+      const protectedOpacity = dark ? 0.12 : 0.36;
       const revealOpacity =
         regularOpacity - (regularOpacity - protectedOpacity) * readabilityProtection;
 
@@ -260,10 +241,10 @@ export default function ParallaxBackground({
     };
   }, [dark, hasSeasonalReveal, season]);
 
-  const bgColor = dark ? '#252422' : '#F8F6F0';
-  const imageOpacity = dark ? 0.2 : 0.13;
+  const bgColor = dark ? '#171614' : '#F8F6F0';
+  const imageOpacity = dark ? 0.085 : 0.13;
   const imageFilter = dark
-    ? 'none'
+    ? 'brightness(0.52) saturate(0.42) contrast(0.72)'
     : 'saturate(0.72) brightness(1.04) contrast(0.94)';
 
   return (
@@ -295,14 +276,15 @@ export default function ParallaxBackground({
           data-reveal-readability
         >
           <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
-          <span>{seasonalArtwork.artist} · {seasonalArtwork.collection}</span>
+          <span className="seasonal-artwork-artist">{seasonalArtwork.artist}</span>
+          <span className="seasonal-artwork-collection">{seasonalArtwork.collection}</span>
         </aside>
       ) : null}
 
       {/* Immagine parallax sovrapposta */}
       <div
         ref={lineArtRef}
-        className={`safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden ${
+        className={`notebook-line-art safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden ${
           hasSeasonalReveal ? 'seasonal-line-art' : ''
         }`}
         style={{ filter: imageFilter, opacity: imageOpacity }}
