@@ -52,8 +52,6 @@ img {
 }
 
 .seasonal-paint-reveal {
-  --summer-painting-active: url('/images/seasonal/van-gogh-wheat-field-cypresses.webp');
-  --summer-painting-previous: url('/images/seasonal/van-gogh-summer-evening.webp');
   --paint-head-x: 50vw;
   --paint-head-y: 50vh;
   --paint-wake-x: 50vw;
@@ -81,12 +79,7 @@ img {
     radial-gradient(circle var(--paint-tail-r) at var(--paint-tail-x) var(--paint-tail-y), rgba(0, 0, 0, 0.68) 0 31%, rgba(0, 0, 0, 0.2) 70%, transparent 94%);
 }
 
-.seasonal-paint-reveal.season-spring {
-  background-image: url('/images/seasonal/botticelli-primavera.webp');
-}
-
 .seasonal-paint-reveal.season-summer {
-  background-image: var(--summer-painting-active);
   background-position: center center;
 }
 
@@ -3261,6 +3254,18 @@ body {
   pointer-events: none;
   position: absolute;
   z-index: -1;
+}
+
+.seasonal-bookmark.artwork-tone-bright .seasonal-bookmark-artwork-wash {
+  background:
+    linear-gradient(90deg, rgba(247,239,219,0.44) 0%, rgba(244,233,207,0.31) 48%, rgba(238,223,190,0.2) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.025), rgba(79,55,27,0.085));
+}
+
+.seasonal-bookmark.artwork-tone-dense .seasonal-bookmark-artwork-wash {
+  background:
+    linear-gradient(90deg, rgba(247,239,219,0.61) 0%, rgba(244,233,207,0.47) 50%, rgba(238,223,190,0.34) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.055), rgba(79,55,27,0.14));
 }
 
 .seasonal-bookmark-tail {

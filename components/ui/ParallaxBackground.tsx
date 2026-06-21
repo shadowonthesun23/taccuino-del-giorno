@@ -11,11 +11,13 @@ const darkNotebookBackground = '/images/sfondo-taccuino-dark-paper.webp';
 export default function ParallaxBackground({
   children,
   season,
+  dataIso,
   showEspresso = false,
   captionClassName = '',
 }: {
   children: React.ReactNode;
   season?: SeasonId;
+  dataIso?: string;
   showEspresso?: boolean;
   captionClassName?: string;
 }) {
@@ -26,7 +28,7 @@ export default function ParallaxBackground({
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const [dark, setDark] = useState(false);
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
-  const seasonalArtwork = season ? getSeasonalArtwork(season) : undefined;
+  const seasonalArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -262,9 +264,14 @@ export default function ParallaxBackground({
           className={[
             'seasonal-paint-reveal',
             `season-${season}`,
+            seasonalArtwork ? `artwork-${seasonalArtwork.id}` : '',
             'safe-viewport-backdrop fixed z-0 pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
+          style={seasonalArtwork ? {
+            backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
+            backgroundPosition: seasonalArtwork.revealPosition,
+          } : undefined}
         />
       )}
 

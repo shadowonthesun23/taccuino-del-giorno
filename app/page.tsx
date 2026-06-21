@@ -730,8 +730,8 @@ function SeasonalBookmark({
   const planetsLabel = lingua === 'IT' ? 'Pianeti osservabili' : 'Observable planets';
   const selectedRegion = SKY_REGION_OPTIONS.find((region) => region.id === skyRegion) ?? SKY_REGION_OPTIONS[1];
   const dayOfYear = getDayOfYearInfo(dataIso);
-  const seasonalArtwork = getSeasonalArtwork(season);
-  const artworkMuseumUrl = seasonalArtwork?.museumUrl || dayPermalink;
+  const seasonalArtwork = getSeasonalArtwork(season, dataIso);
+  const artworkSourceUrl = seasonalArtwork?.sourceUrl || dayPermalink;
   const ticketArtworkImageUrl = seasonalArtwork?.imageUrl || '';
   const planetResultKey = `${dataIso}:${skyRegion}:${lingua}`;
   const visiblePlanets = planetResult?.key === planetResultKey ? planetResult.planets : null;
@@ -818,12 +818,14 @@ function SeasonalBookmark({
     }
   };
 
-  const museumQrLabel = lingua === 'IT' ? 'Apri al museo' : 'View at museum';
+  const artworkQrLabel = seasonalArtwork?.linkKind === 'source'
+    ? (lingua === 'IT' ? 'Apri la fonte' : 'View source')
+    : (lingua === 'IT' ? 'Apri al museo' : 'View at museum');
 
   return (
     <aside
       id="effemeridi"
-      className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${isDark ? 'is-dark' : ''}`}
+      className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''}`}
       aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
       tabIndex={0}
     >
@@ -856,7 +858,7 @@ function SeasonalBookmark({
                 href={ticketArtworkImageUrl}
                 width="404"
                 height="226"
-                preserveAspectRatio="xMidYMid slice"
+                preserveAspectRatio={`${seasonalArtwork?.ticketAlignment ?? 'xMidYMid'} slice`}
                 mask="url(#ticket-ink-mask)"
               />
             </svg>
@@ -928,39 +930,43 @@ function SeasonalBookmark({
         </span>
         <span className="seasonal-bookmark-stitch is-trailing" aria-hidden="true" />
         <span className={`seasonal-bookmark-tail ${seasonalArtwork ? 'has-artwork' : ''}`}>
-          {artworkMuseumUrl ? (
+          {artworkSourceUrl ? (
             <a
               className="seasonal-bookmark-qr-link"
-              href={artworkMuseumUrl}
+              href={artworkSourceUrl}
               target={seasonalArtwork ? '_blank' : undefined}
               rel={seasonalArtwork ? 'noopener noreferrer' : undefined}
               aria-label={seasonalArtwork
-                ? (lingua === 'IT' ? `Apri ${seasonalArtwork.title} sul sito del museo` : `Open ${seasonalArtwork.title} on the museum website`)
+                ? seasonalArtwork.linkKind === 'museum'
+                  ? (lingua === 'IT' ? `Apri ${seasonalArtwork.title} sul sito del museo` : `Open ${seasonalArtwork.title} on the museum website`)
+                  : (lingua === 'IT' ? `Apri la fonte di ${seasonalArtwork.title}` : `Open the source for ${seasonalArtwork.title}`)
                 : (lingua === 'IT' ? `Apri il giorno ${dateLabel}` : `Open ${dateLabel}`)}
-              title={seasonalArtwork ? museumQrLabel : (lingua === 'IT' ? 'Apri il permalink di questo giorno' : 'Open this day’s permalink')}
+              title={seasonalArtwork ? artworkQrLabel : (lingua === 'IT' ? 'Apri il permalink di questo giorno' : 'Open this day’s permalink')}
             >
               <span className="seasonal-bookmark-qr">
                 <QRCodeSVG
-                  value={artworkMuseumUrl}
+                  value={artworkSourceUrl}
                   size={68}
                   level="H"
                   marginSize={3}
                   bgColor="transparent"
                   fgColor="currentColor"
                   title={seasonalArtwork
-                    ? (lingua === 'IT' ? `QR della scheda museale di ${seasonalArtwork.title}` : `Museum page QR for ${seasonalArtwork.title}`)
+                    ? seasonalArtwork.linkKind === 'museum'
+                      ? (lingua === 'IT' ? `QR della scheda museale di ${seasonalArtwork.title}` : `Museum page QR for ${seasonalArtwork.title}`)
+                      : (lingua === 'IT' ? `QR della fonte di ${seasonalArtwork.title}` : `Source QR for ${seasonalArtwork.title}`)
                     : (lingua === 'IT' ? `QR del ${dateLabel}` : `${dateLabel} QR code`)}
                 />
                 <span className="seasonal-bookmark-qr-mark" aria-hidden="true">
                   <MoonDoodle phase={moon.phase} />
                 </span>
               </span>
-              <small>{seasonalArtwork ? museumQrLabel : (lingua === 'IT' ? 'Apri il giorno' : 'Open the day')}</small>
+              <small>{seasonalArtwork ? artworkQrLabel : (lingua === 'IT' ? 'Apri il giorno' : 'Open the day')}</small>
             </a>
           ) : null}
           {seasonalArtwork ? (
             <span className="seasonal-bookmark-artwork-caption">
-              <strong className={stampwriter.className} title={seasonalArtwork.title}>{seasonalArtwork.title}</strong>
+              <strong className={stampwriter.className} title={seasonalArtwork.title}>{seasonalArtwork.ticketTitle}</strong>
               <span>{seasonalArtwork.artist} · {seasonalArtwork.year}</span>
               <em>{seasonalArtwork.medium} · {seasonalArtwork.collection}</em>
               <small>{lingua === 'IT' ? 'Edizione' : 'Edition'} {dayOfYear.day}/{dayOfYear.total}</small>
@@ -1978,7 +1984,7 @@ export default function Home() {
   const season = isSeasonId(localSeasonPreview) ? localSeasonPreview : getSeason(dataExLibris);
 
   return (
-    <ParallaxBackground season={season} showEspresso captionClassName={garamond.className}>
+    <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className}>
       <div
         className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
         style={{
