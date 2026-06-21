@@ -3110,16 +3110,6 @@ body {
   position: absolute;
 }
 
-.seasonal-bookmark-stitch > span {
-  background: var(--bookmark-ink);
-  display: block;
-  height: 100%;
-  opacity: 0.44;
-  transform: scaleY(var(--reading-progress-scale, 0));
-  transform-origin: top center;
-  width: 1px;
-}
-
 .seasonal-bookmark-motif {
   align-items: center;
   display: flex;

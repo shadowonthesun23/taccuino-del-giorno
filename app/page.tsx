@@ -766,7 +766,7 @@ function SeasonalBookmark({ dataIso, lingua, isDark }: { dataIso: string; lingua
           <span className="seasonal-bookmark-motif"><MoonDoodle phase={moon.phase} /></span>
           <span className="seasonal-bookmark-serial">No. {ticketSerial}</span>
         </span>
-        <span className="seasonal-bookmark-stitch" aria-hidden="true"><span /></span>
+        <span className="seasonal-bookmark-stitch" aria-hidden="true" />
         <span className="seasonal-bookmark-copy">
           <span className="seasonal-bookmark-heading">
             <strong className="seasonal-bookmark-date">{dateLabel}</strong>
