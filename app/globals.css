@@ -747,17 +747,21 @@ body {
     transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.opera-postcard-link::after {
+.opera-postcard-source-label {
   bottom: 9px;
   color: rgba(95, 73, 52, 0.54);
-  content: "scheda museo";
+  display: block;
   font-family: "Courier New", monospace;
   font-size: 10px;
   font-weight: 700;
   left: 14px;
   letter-spacing: 0.12em;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
   position: absolute;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .opera-postcard-link:hover,
@@ -786,6 +790,10 @@ body {
     3px 4px 0 rgba(0,0,0,0.16),
     0 20px 44px -32px rgba(0,0,0,0.72),
     inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .opera-postcard-source-label {
+  color: rgba(231, 203, 172, 0.55);
 }
 
 [data-theme="dark"] .opera-postcard-link::after {
@@ -910,6 +918,73 @@ body {
 
 .social-export-card[data-social-export-section="santi"] .card-primary-title {
   font-size: 34px !important;
+}
+
+.social-export-card[data-social-export-section="opera"] {
+  padding: 48px 54px 58px !important;
+}
+
+.social-export-card[data-social-export-section="opera"] .card-section-heading {
+  margin-bottom: 28px;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard {
+  align-items: stretch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 34px !important;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-media {
+  order: 1 !important;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-copy {
+  border-top: 1px solid rgba(117, 88, 57, 0.18);
+  order: 2 !important;
+  padding-top: 28px;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-link {
+  border-radius: 5px 4px 7px 5px;
+  padding: 18px 18px 54px;
+  transform: none !important;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-image {
+  background: rgba(255, 255, 255, 0.18);
+  display: block;
+  max-height: 890px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-source-label {
+  bottom: 16px;
+  font-size: 16px;
+  left: 20px;
+  max-width: calc(100% - 40px);
+}
+
+.social-export-card[data-social-export-section="opera"] .card-primary-title {
+  font-size: 50px !important;
+  line-height: 1.03;
+}
+
+.social-export-card[data-social-export-section="opera"] .card-byline {
+  font-size: 30px !important;
+  line-height: 1.3;
+}
+
+.social-export-card[data-social-export-section="opera"] .card-secondary-meta {
+  font-size: 24px;
+  line-height: 1.38;
+}
+
+.social-export-card[data-social-export-section="opera"] .editorial-link-button {
+  display: none !important;
 }
 
 .social-export-card-spacious {
@@ -1281,6 +1356,12 @@ body {
 .card-export-button:focus-visible,
 .card-export-button:disabled {
   opacity: 1;
+  transform: translateY(0);
+}
+
+.card-section-opera .card-export-button {
+  color: #b55347;
+  opacity: 0.88;
   transform: translateY(0);
 }
 

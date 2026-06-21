@@ -1596,6 +1596,14 @@ export default function Home() {
   const groupedArchivio = groupByMonth(archivioFiltrato);
   const dataExLibris = dataSelezionata ?? oggi;
   const operaSourceUrl = opera?.source_url || opera?.met_url || '';
+  const operaImageUrl = opera?.immagine_url || opera?.immagine_url_hd || '';
+  const operaImageHdUrl = opera?.immagine_url_hd || opera?.immagine_url || '';
+  const proxiedOperaImageUrl = operaImageUrl
+    ? `/api/image-proxy?url=${encodeURIComponent(operaImageUrl)}`
+    : '';
+  const proxiedOperaImageHdUrl = operaImageHdUrl
+    ? `/api/image-proxy?url=${encodeURIComponent(operaImageHdUrl)}`
+    : '';
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
@@ -2261,6 +2269,7 @@ export default function Home() {
                 icon={Palette}
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-5"
+                filename={`opera-${dataExLibris}`}
                 isSaved={isCardSaved('opera')}
                 onToggleSaved={() => saveCard('opera', opera.titolo, [operaMedium, operaDepartment].filter(Boolean).join(' · '), opera.artista)}
               >
@@ -2284,19 +2293,22 @@ export default function Home() {
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
                       <img
                         draggable={false}
-                        src={opera.immagine_url || opera.immagine_url_hd}
+                        src={proxiedOperaImageUrl}
                         alt={`${opera.titolo} by ${opera.artista}`}
                         className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
                         onError={(event) => {
-                          const fallback = opera.immagine_url_hd;
-                          if (fallback && event.currentTarget.src !== fallback) {
+                          const fallback = proxiedOperaImageHdUrl;
+                          if (fallback && event.currentTarget.getAttribute('src') !== fallback) {
                             event.currentTarget.src = fallback;
                           }
                         }}
                         {...lowPriorityImageProps}
                       />
+                      <span className="opera-postcard-source-label">
+                        {lingua === 'IT' ? 'Fonte' : 'Source'}: {opera.museo}
+                        {opera.rights ? ` · ${opera.rights}` : ''}
+                      </span>
                     </a>
-                    <p className={`card-secondary-meta text-sm ${themeClasses.textMuted} italic mt-3 text-center`}>{opera.museo}</p>
                   </div>
                 </div>
               </Card>
