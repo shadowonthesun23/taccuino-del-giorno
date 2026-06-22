@@ -9,6 +9,102 @@
   font-display: swap;
 }
 
+.ticket-download-ready {
+  align-items: flex-end;
+  background: rgba(37, 31, 26, 0.28);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 18px;
+  position: fixed;
+  z-index: 100;
+}
+
+.ticket-download-ready-card {
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 18% 22%, rgba(91, 67, 39, 0.055) 0 0.6px, transparent 0.9px) 0 0 / 23px 29px,
+    #f5eddb;
+  border: 1px solid rgba(104, 84, 49, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(42, 37, 34, 0.2);
+  color: #5e4d31;
+  display: flex;
+  flex-direction: column;
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  max-width: 360px;
+  padding: 24px 22px 20px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.ticket-download-ready-icon {
+  height: 24px;
+  margin-bottom: 9px;
+  stroke-width: 1.5;
+  width: 24px;
+}
+
+.ticket-download-ready-card strong {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.ticket-download-ready-card > span {
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-top: 4px;
+  opacity: 0.74;
+}
+
+.ticket-download-ready-card > a {
+  background: rgba(100, 85, 56, 0.08);
+  border: 1px solid rgba(100, 85, 56, 0.32);
+  border-radius: 6px;
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  margin-top: 17px;
+  padding: 10px 17px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.ticket-download-ready-close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  opacity: 0.55;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 36px;
+}
+
+.ticket-download-ready-close svg {
+  height: 18px;
+  width: 18px;
+}
+
+.ticket-download-ready.is-dark {
+  background: rgba(8, 8, 7, 0.5);
+}
+
+.ticket-download-ready.is-dark .ticket-download-ready-card {
+  background:
+    radial-gradient(ellipse at 18% 22%, rgba(255, 255, 255, 0.035) 0 0.6px, transparent 0.9px) 0 0 / 23px 29px,
+    #292722;
+  border-color: rgba(230, 217, 188, 0.16);
+  color: #e0d4bb;
+}
+
 :root {
   --background: #F8F6F0;
   --foreground: #1f2933;

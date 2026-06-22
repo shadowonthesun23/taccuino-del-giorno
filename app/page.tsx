@@ -23,6 +23,12 @@ const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: strin
 const SKY_REGION_STORAGE_KEY = 'taccuino-sky-region-v1';
 const TICKET_DOWNLOAD_EVENT = 'taccuino:download-ticket';
 
+function isMobileChromiumBrowser(): boolean {
+  const userAgent = window.navigator.userAgent;
+  return window.matchMedia('(max-width: 1179px)').matches
+    && /Chrome|Chromium|CriOS|EdgA|EdgiOS/i.test(userAgent);
+}
+
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
   weight: ['400'],
@@ -700,6 +706,8 @@ function SeasonalBookmark({
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingTicket, setExportingTicket] = useState(false);
   const [desktopTicketEnabled, setDesktopTicketEnabled] = useState(false);
+  const [preparedTicketDownload, setPreparedTicketDownload] = useState<{ url: string; filename: string } | null>(null);
+  const preparedTicketUrlRef = useRef<string | null>(null);
   const season = getSeason(dataIso);
   const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
     spring: { IT: 'Primavera', EN: 'Spring' },
@@ -791,13 +799,23 @@ function SeasonalBookmark({
     window.localStorage.setItem(SKY_REGION_STORAGE_KEY, region);
   };
 
+  const dismissPreparedTicket = useCallback(() => {
+    if (preparedTicketUrlRef.current) URL.revokeObjectURL(preparedTicketUrlRef.current);
+    preparedTicketUrlRef.current = null;
+    setPreparedTicketDownload(null);
+  }, []);
+
+  useEffect(() => () => {
+    if (preparedTicketUrlRef.current) URL.revokeObjectURL(preparedTicketUrlRef.current);
+  }, []);
+
   const downloadTicket = useCallback(async () => {
     if (!ticketRef.current || exportingTicket) return;
     setExportingTicket(true);
     let exportFrame: HTMLElement | null = null;
     try {
       await document.fonts.ready;
-      const { toPng } = await import('html-to-image');
+      const { toBlob } = await import('html-to-image');
 
       const sourceBookmark = ticketRef.current.closest<HTMLElement>('.seasonal-bookmark');
       if (!sourceBookmark) throw new Error('Contenitore del biglietto non trovato.');
@@ -820,7 +838,7 @@ function SeasonalBookmark({
       });
       document.body.appendChild(exportFrame);
 
-      const dataUrl = await toPng(exportFrame, {
+      const imageBlob = await toBlob(exportFrame, {
         width: 588,
         height: 226,
         pixelRatio: 4,
@@ -832,11 +850,24 @@ function SeasonalBookmark({
           transform: 'none',
         },
       });
+      if (!imageBlob) throw new Error('Impossibile creare il file PNG del biglietto.');
+
       const filename = `effemeridi-${dataIso}-4x.png`;
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = dataUrl;
-      link.click();
+      const objectUrl = URL.createObjectURL(imageBlob);
+      if (isMobileChromiumBrowser()) {
+        if (preparedTicketUrlRef.current) URL.revokeObjectURL(preparedTicketUrlRef.current);
+        preparedTicketUrlRef.current = objectUrl;
+        setPreparedTicketDownload({ url: objectUrl, filename });
+      } else {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = objectUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      }
     } catch (error) {
       console.error('Errore durante l’esportazione delle effemeridi:', error);
     } finally {
@@ -856,7 +887,8 @@ function SeasonalBookmark({
     : (lingua === 'IT' ? 'Apri al museo' : 'View at museum');
 
   return (
-    <aside
+    <>
+      <aside
       id="effemeridi"
       className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''}`}
       aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
@@ -1018,7 +1050,37 @@ function SeasonalBookmark({
           ) : null}
         </span>
       </span>
-    </aside>
+      </aside>
+      {preparedTicketDownload ? createPortal(
+        <div className={`ticket-download-ready ${isDark ? 'is-dark' : ''}`} role="dialog" aria-modal="true" aria-labelledby="ticket-download-ready-title">
+          <div className="ticket-download-ready-card">
+            <button
+              type="button"
+              className="ticket-download-ready-close"
+              onClick={dismissPreparedTicket}
+              aria-label={lingua === 'IT' ? 'Chiudi' : 'Close'}
+            >
+              <X aria-hidden="true" />
+            </button>
+            <FileDown className="ticket-download-ready-icon" aria-hidden="true" />
+            <strong id="ticket-download-ready-title">
+              {lingua === 'IT' ? 'Il biglietto è pronto' : 'Your ticket is ready'}
+            </strong>
+            <span>
+              {lingua === 'IT' ? 'Tocca qui sotto per salvarlo in alta risoluzione.' : 'Tap below to save it in high resolution.'}
+            </span>
+            <a
+              href={preparedTicketDownload.url}
+              download={preparedTicketDownload.filename}
+              onClick={() => window.setTimeout(dismissPreparedTicket, 2_000)}
+            >
+              {lingua === 'IT' ? 'Salva il biglietto' : 'Save ticket'}
+            </a>
+          </div>
+        </div>,
+        document.body
+      ) : null}
+    </>
   );
 }
 
