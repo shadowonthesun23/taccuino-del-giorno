@@ -84,9 +84,9 @@ img {
 }
 
 .seasonal-paint-reveal.is-dark {
-  background-color: rgba(12, 11, 10, 0.56);
+  background-color: rgba(12, 11, 10, 0.24);
   background-blend-mode: multiply;
-  filter: brightness(0.62) saturate(0.62);
+  filter: brightness(0.84) saturate(0.8) contrast(0.96);
 }
 
 .dark .notebook-line-art,
@@ -102,7 +102,7 @@ img {
   }
 
   .seasonal-paint-reveal.is-dark {
-    filter: brightness(0.48) saturate(0.5);
+    filter: brightness(0.72) saturate(0.7) contrast(0.94);
   }
 }
 
