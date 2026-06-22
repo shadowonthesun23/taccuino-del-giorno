@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Historical snapshots are not part of the running application.
+    "app/backup*.*",
+    "app/api/generate/backup_route.ts",
   ]),
 ]);
 

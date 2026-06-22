@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Download, FileText, Printer, Scissors, X } from 'lucide-react';
+import NextImage from 'next/image';
 import { renderTargetToJpegDataUrl } from './ExportJpegButton';
 import { createA4PdfBytes } from './pdf';
 import styles from './passaporto.module.css';
@@ -118,10 +119,13 @@ export default function PrintableZineButton({ targetId, filename }: PrintableZin
             </div>
 
             <figure className={styles.guideFigure}>
-              <img
+              <NextImage
                 draggable={false}
                 src="/images/zine-folding-guide.png"
                 alt="Sequenza illustrata per piegare un foglio A4 in una zine di otto facciate"
+                width={1448}
+                height={696}
+                sizes="(max-width: 768px) 92vw, 720px"
               />
               <figcaption>Segui i passaggi da sinistra a destra, riga per riga.</figcaption>
             </figure>

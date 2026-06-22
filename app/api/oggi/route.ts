@@ -30,8 +30,8 @@ async function getFotoAutore(nomeAutore: string): Promise<string | null> {
 
 export async function GET(request: Request) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error('Configurazione Supabase incompleta: verifica NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.');
     }
@@ -60,7 +60,8 @@ export async function GET(request: Request) {
     const fotoUrl = await getFotoAutore(data.autore_giorno);
 
     return NextResponse.json({ ...data, foto_autore_url: fotoUrl });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Errore inatteso durante il caricamento del giorno.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import NextImage from 'next/image';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Download, EyeOff, Loader2 } from 'lucide-react';
@@ -318,11 +319,14 @@ export default function AuthorExportCard({
                 }}
               />
               {fotoAutoreUrl ? (
-                <img
+                <NextImage
                   draggable={false}
                   src={fotoAutoreUrl}
                   alt={autoreGiorno}
                   crossOrigin="anonymous"
+                  width={layout.photoWidth}
+                  height={layout.photoHeight}
+                  sizes={`${layout.photoWidth}px`}
                   style={{
                     display: 'block',
                     width: `${layout.photoWidth}px`,
