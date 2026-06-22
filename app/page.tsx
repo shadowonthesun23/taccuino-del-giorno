@@ -851,8 +851,8 @@ function SeasonalBookmark({
         const panel = downloadDocument.createElement('div');
         const message = downloadDocument.createElement('p');
         message.textContent = lingua === 'IT'
-          ? 'Il download dovrebbe iniziare automaticamente. Se non parte, usa il pulsante.'
-          : 'The download should start automatically. If it does not, use the button.';
+          ? 'Il biglietto è pronto. Tocca il pulsante per salvarlo.'
+          : 'Your ticket is ready. Tap the button to save it.';
         link.style.cssText = 'display:inline-flex;margin-top:14px;padding:11px 16px;border:1px solid #b5956a;border-radius:7px;color:#6f5a3c;text-decoration:none;font-style:normal;font-weight:700';
         panel.append(message, link);
         downloadDocument.body.appendChild(panel);
@@ -860,10 +860,9 @@ function SeasonalBookmark({
       } else {
         link.style.display = 'none';
         document.body.appendChild(link);
+        link.click();
+        link.remove();
       }
-
-      link.click();
-      if (!downloadWindow || downloadWindow.closed) link.remove();
     } catch (error) {
       console.error('Errore durante l’esportazione delle effemeridi:', error);
       if (downloadWindow && !downloadWindow.closed) {
