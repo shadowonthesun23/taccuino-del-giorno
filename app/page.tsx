@@ -21,6 +21,7 @@ const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: strin
   { id: 'south', IT: 'Sud', EN: 'South', cityIT: 'Palermo', cityEN: 'Palermo' },
 ];
 const SKY_REGION_STORAGE_KEY = 'taccuino-sky-region-v1';
+const TICKET_DOWNLOAD_EVENT = 'taccuino:download-ticket';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -698,6 +699,7 @@ function SeasonalBookmark({
   const [planetResult, setPlanetResult] = useState<{ key: string; planets: VisiblePlanet[] } | null>(null);
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingTicket, setExportingTicket] = useState(false);
+  const [desktopTicketEnabled, setDesktopTicketEnabled] = useState(false);
   const season = getSeason(dataIso);
   const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
     spring: { IT: 'Primavera', EN: 'Spring' },
@@ -760,8 +762,14 @@ function SeasonalBookmark({
 
   useEffect(() => {
     const desktopQuery = window.matchMedia('(min-width: 1180px)');
-    if (!desktopQuery.matches) return;
+    const updateDesktopTicket = () => setDesktopTicketEnabled(desktopQuery.matches);
+    updateDesktopTicket();
+    desktopQuery.addEventListener('change', updateDesktopTicket);
 
+    return () => desktopQuery.removeEventListener('change', updateDesktopTicket);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     void import('@/lib/visible-planets').then(({ getVisiblePlanets }) => {
@@ -783,7 +791,7 @@ function SeasonalBookmark({
     window.localStorage.setItem(SKY_REGION_STORAGE_KEY, region);
   };
 
-  const downloadTicket = async () => {
+  const downloadTicket = useCallback(async () => {
     if (!ticketRef.current || exportingTicket) return;
     setExportingTicket(true);
     try {
@@ -793,6 +801,7 @@ function SeasonalBookmark({
         width: 588,
         height: 226,
         pixelRatio: 4,
+        backgroundColor: 'transparent',
         cacheBust: true,
         style: {
           inset: 'auto',
@@ -816,7 +825,13 @@ function SeasonalBookmark({
     } finally {
       setExportingTicket(false);
     }
-  };
+  }, [dataIso, exportingTicket]);
+
+  useEffect(() => {
+    const handleTicketDownload = () => void downloadTicket();
+    window.addEventListener(TICKET_DOWNLOAD_EVENT, handleTicketDownload);
+    return () => window.removeEventListener(TICKET_DOWNLOAD_EVENT, handleTicketDownload);
+  }, [downloadTicket]);
 
   const artworkQrLabel = seasonalArtwork?.linkKind === 'source'
     ? (lingua === 'IT' ? 'Apri la fonte' : 'View source')
@@ -827,7 +842,9 @@ function SeasonalBookmark({
       id="effemeridi"
       className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''}`}
       aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
-      tabIndex={0}
+      aria-hidden={!desktopTicketEnabled}
+      inert={!desktopTicketEnabled ? true : undefined}
+      tabIndex={desktopTicketEnabled ? 0 : -1}
     >
       <span ref={ticketRef} className="seasonal-bookmark-ticket">
         <span className="seasonal-bookmark-stub" aria-hidden="true">
@@ -966,7 +983,7 @@ function SeasonalBookmark({
           ) : null}
           {seasonalArtwork ? (
             <span className="seasonal-bookmark-artwork-caption">
-              <strong className={stampwriter.className} title={seasonalArtwork.title}>{seasonalArtwork.ticketTitle}</strong>
+              <strong title={seasonalArtwork.title}>{seasonalArtwork.title}</strong>
               <span>{seasonalArtwork.artist} · {seasonalArtwork.year}</span>
               <em>{seasonalArtwork.medium} · {seasonalArtwork.collection}</em>
               <small>{lingua === 'IT' ? 'Edizione' : 'Edition'} {dayOfYear.day}/{dayOfYear.total}</small>
@@ -2138,6 +2155,17 @@ export default function Home() {
             >
               {savedCards.length > 0 ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
               <span>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileToolsOpen(false);
+                window.dispatchEvent(new Event(TICKET_DOWNLOAD_EVENT));
+              }}
+              aria-label={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
+            >
+              <FileDown className="h-4 w-4" />
+              <span>{lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}</span>
             </button>
             <button
               type="button"

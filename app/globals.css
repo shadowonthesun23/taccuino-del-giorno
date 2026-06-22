@@ -3063,13 +3063,16 @@ body {
   border: 0;
   box-shadow: none;
   color: var(--bookmark-ink);
-  display: none;
+  display: block;
   filter: drop-shadow(-3px 5px 4px rgba(42,37,34,0.18));
   height: 226px;
   overflow: visible;
   padding: 0;
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
   position: fixed;
-  right: -520px;
+  right: auto;
   top: 24%;
   transition:
     color 220ms ease,
@@ -3229,16 +3232,50 @@ body {
     0 1px rgba(255,252,239,1),
     0 0 2px rgba(255,252,239,1),
     0 0 5px rgba(247,238,216,0.98),
-    0 0 10px rgba(247,238,216,0.9),
-    0 0 17px rgba(247,238,216,0.64);
+    0 0 9px rgba(247,238,216,0.82);
 }
 
 .seasonal-bookmark:not(.is-dark) .seasonal-bookmark-copy.has-artwork :is(
-  .seasonal-bookmark-heading,
-  .seasonal-bookmark-astronomy,
-  .seasonal-bookmark-planets
+  .seasonal-bookmark-heading > *,
+  .seasonal-bookmark-astronomy em,
+  .seasonal-bookmark-astronomy strong,
+  .seasonal-bookmark-planets-heading > strong,
+  .seasonal-bookmark-regions,
+  .seasonal-bookmark-planet-list > span
 ) {
-  filter: drop-shadow(0 0 4px rgba(250,243,226,0.72));
+  filter: drop-shadow(0 0 3px rgba(250,243,226,0.62));
+  isolation: isolate;
+  justify-self: start;
+  position: relative;
+  width: fit-content;
+}
+
+.seasonal-bookmark:not(.is-dark) .seasonal-bookmark-copy.has-artwork :is(
+  .seasonal-bookmark-heading > *,
+  .seasonal-bookmark-astronomy em,
+  .seasonal-bookmark-astronomy strong,
+  .seasonal-bookmark-planets-heading > strong,
+  .seasonal-bookmark-regions,
+  .seasonal-bookmark-planet-list > span
+)::before {
+  background: linear-gradient(
+    92deg,
+    rgba(252,248,237,0.5) 0%,
+    rgba(250,244,228,0.38) 62%,
+    rgba(250,244,228,0.16) 86%,
+    transparent 100%
+  );
+  clip-path: polygon(
+    0 18%, 7% 8%, 17% 13%, 29% 5%, 43% 11%, 57% 4%, 71% 13%, 84% 7%, 100% 22%,
+    97% 79%, 86% 91%, 72% 84%, 58% 95%, 43% 87%, 28% 94%, 14% 85%, 2% 91%
+  );
+  content: "";
+  filter: blur(0.45px);
+  inset: -3px -7px -3px -7px;
+  pointer-events: none;
+  position: absolute;
+  transform: rotate(-0.25deg);
+  z-index: -1;
 }
 
 .seasonal-bookmark-copy.has-artwork > :not(.seasonal-bookmark-artwork, .seasonal-bookmark-artwork-wash, .seasonal-bookmark-download) {
@@ -3249,7 +3286,7 @@ body {
 .seasonal-bookmark-artwork {
   height: 100%;
   inset: 0;
-  opacity: 0.96;
+  opacity: 1;
   pointer-events: none;
   position: absolute;
   width: 100%;
@@ -3258,8 +3295,8 @@ body {
 
 .seasonal-bookmark-artwork-wash {
   background:
-    linear-gradient(90deg, rgba(247,239,219,0.5) 0%, rgba(244,233,207,0.36) 48%, rgba(238,223,190,0.24) 100%),
-    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.035), rgba(79,55,27,0.1));
+    linear-gradient(90deg, rgba(247,239,219,0.3) 0%, rgba(244,233,207,0.18) 48%, rgba(238,223,190,0.08) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.018), rgba(79,55,27,0.045));
   inset: 0;
   pointer-events: none;
   position: absolute;
@@ -3268,14 +3305,14 @@ body {
 
 .seasonal-bookmark.artwork-tone-bright .seasonal-bookmark-artwork-wash {
   background:
-    linear-gradient(90deg, rgba(247,239,219,0.44) 0%, rgba(244,233,207,0.31) 48%, rgba(238,223,190,0.2) 100%),
-    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.025), rgba(79,55,27,0.085));
+    linear-gradient(90deg, rgba(247,239,219,0.24) 0%, rgba(244,233,207,0.12) 48%, rgba(238,223,190,0.045) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.012), rgba(79,55,27,0.035));
 }
 
 .seasonal-bookmark.artwork-tone-dense .seasonal-bookmark-artwork-wash {
   background:
-    linear-gradient(90deg, rgba(247,239,219,0.61) 0%, rgba(244,233,207,0.47) 50%, rgba(238,223,190,0.34) 100%),
-    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.055), rgba(79,55,27,0.14));
+    linear-gradient(90deg, rgba(247,239,219,0.38) 0%, rgba(244,233,207,0.24) 50%, rgba(238,223,190,0.12) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.026), rgba(79,55,27,0.065));
 }
 
 .seasonal-bookmark-tail {
@@ -3447,27 +3484,35 @@ body {
   overflow: hidden;
 }
 
-.seasonal-bookmark-artwork-caption span,
 .seasonal-bookmark-artwork-caption em,
 .seasonal-bookmark-artwork-caption small,
 .seasonal-bookmark-qr-link small {
   font-family: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Consolas, monospace;
 }
 
+.seasonal-bookmark-artwork-caption strong,
+.seasonal-bookmark-artwork-caption span {
+  font-family: inherit;
+}
+
 .seasonal-bookmark-artwork-caption strong {
   display: -webkit-box;
   font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.01em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  text-transform: lowercase;
 }
 
 .seasonal-bookmark-artwork-caption span,
 .seasonal-bookmark-artwork-caption em {
   font-size: 0.47rem;
   opacity: 0.8;
+}
+
+.seasonal-bookmark-artwork-caption span {
+  font-size: 0.52rem;
+  font-style: italic;
 }
 
 .seasonal-bookmark-artwork-caption em {
@@ -3555,13 +3600,13 @@ body {
 }
 
 .seasonal-bookmark.is-dark .seasonal-bookmark-artwork {
-  opacity: 0.88;
+  opacity: 0.98;
 }
 
 .seasonal-bookmark.is-dark .seasonal-bookmark-artwork-wash {
   background:
-    linear-gradient(90deg, rgba(22,20,17,0.68) 0%, rgba(28,24,19,0.54) 48%, rgba(24,21,17,0.36) 100%),
-    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.018), rgba(0,0,0,0.22));
+    linear-gradient(90deg, rgba(22,20,17,0.42) 0%, rgba(28,24,19,0.3) 48%, rgba(24,21,17,0.16) 100%),
+    radial-gradient(ellipse at 54% 45%, rgba(255,255,255,0.012), rgba(0,0,0,0.1));
 }
 
 .seasonal-bookmark:hover .seasonal-bookmark-copy,
@@ -4888,6 +4933,10 @@ body {
 
   .seasonal-bookmark {
     display: block;
+    left: auto;
+    opacity: 1;
+    pointer-events: auto;
+    right: -520px;
   }
 }
 
