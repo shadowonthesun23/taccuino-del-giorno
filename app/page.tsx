@@ -23,28 +23,6 @@ const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: strin
 const SKY_REGION_STORAGE_KEY = 'taccuino-sky-region-v1';
 const TICKET_DOWNLOAD_EVENT = 'taccuino:download-ticket';
 
-type TicketDownloadEventDetail = {
-  downloadWindow?: Window | null;
-};
-
-function openChromiumMobileDownloadWindow(lingua: 'IT' | 'EN'): Window | null {
-  const userAgent = window.navigator.userAgent;
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(userAgent);
-  const isChromium = /Chrome|Chromium|CriOS|EdgA|EdgiOS/i.test(userAgent);
-  if (!isMobile || !isChromium) return null;
-
-  const downloadWindow = window.open('', '_blank');
-  if (!downloadWindow) return null;
-
-  downloadWindow.document.title = lingua === 'IT' ? 'Preparazione del biglietto' : 'Preparing ticket';
-  downloadWindow.document.body.style.cssText = 'margin:0;min-height:100vh;display:grid;place-items:center;background:#f8f6f0;color:#4a433f;font:italic 18px Georgia,serif;text-align:center;padding:24px;box-sizing:border-box';
-  downloadWindow.document.body.textContent = lingua === 'IT'
-    ? 'Sto preparando il biglietto…'
-    : 'Preparing your ticket…';
-
-  return downloadWindow;
-}
-
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
   weight: ['400'],
@@ -813,13 +791,36 @@ function SeasonalBookmark({
     window.localStorage.setItem(SKY_REGION_STORAGE_KEY, region);
   };
 
-  const downloadTicket = useCallback(async (downloadWindow?: Window | null) => {
+  const downloadTicket = useCallback(async () => {
     if (!ticketRef.current || exportingTicket) return;
     setExportingTicket(true);
+    let exportFrame: HTMLElement | null = null;
     try {
       await document.fonts.ready;
       const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(ticketRef.current, {
+
+      const sourceBookmark = ticketRef.current.closest<HTMLElement>('.seasonal-bookmark');
+      if (!sourceBookmark) throw new Error('Contenitore del biglietto non trovato.');
+
+      exportFrame = sourceBookmark.cloneNode(true) as HTMLElement;
+      exportFrame.removeAttribute('aria-hidden');
+      exportFrame.removeAttribute('inert');
+      exportFrame.querySelectorAll('[data-ticket-export-ignore]').forEach((node) => node.remove());
+      Object.assign(exportFrame.style, {
+        filter: 'none',
+        left: '0',
+        opacity: '1',
+        pointerEvents: 'none',
+        position: 'fixed',
+        right: 'auto',
+        top: '0',
+        transform: 'none',
+        transition: 'none',
+        zIndex: '-1',
+      });
+      document.body.appendChild(exportFrame);
+
+      const dataUrl = await toPng(exportFrame, {
         width: 588,
         height: 226,
         pixelRatio: 4,
@@ -830,56 +831,22 @@ function SeasonalBookmark({
           position: 'relative',
           transform: 'none',
         },
-        filter: (node) => {
-          const exportMarker = node.getAttribute?.('data-ticket-export-ignore');
-          return exportMarker === null || exportMarker === undefined;
-        },
       });
       const filename = `effemeridi-${dataIso}-4x.png`;
-      const downloadDocument = downloadWindow && !downloadWindow.closed
-        ? downloadWindow.document
-        : document;
-      const link = downloadDocument.createElement('a');
+      const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
-      link.textContent = lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket';
-
-      if (downloadWindow && !downloadWindow.closed) {
-        downloadDocument.body.replaceChildren();
-        downloadDocument.title = lingua === 'IT' ? 'Biglietto pronto' : 'Ticket ready';
-        downloadDocument.body.style.cssText = 'margin:0;min-height:100vh;display:grid;place-items:center;background:#f8f6f0;color:#4a433f;font:italic 18px Georgia,serif;text-align:center;padding:24px;box-sizing:border-box';
-        const panel = downloadDocument.createElement('div');
-        const message = downloadDocument.createElement('p');
-        message.textContent = lingua === 'IT'
-          ? 'Il biglietto è pronto. Tocca il pulsante per salvarlo.'
-          : 'Your ticket is ready. Tap the button to save it.';
-        link.style.cssText = 'display:inline-flex;margin-top:14px;padding:11px 16px;border:1px solid #b5956a;border-radius:7px;color:#6f5a3c;text-decoration:none;font-style:normal;font-weight:700';
-        panel.append(message, link);
-        downloadDocument.body.appendChild(panel);
-        downloadWindow.focus();
-      } else {
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      }
+      link.click();
     } catch (error) {
       console.error('Errore durante l’esportazione delle effemeridi:', error);
-      if (downloadWindow && !downloadWindow.closed) {
-        downloadWindow.document.body.textContent = lingua === 'IT'
-          ? 'Non sono riuscito a preparare il biglietto. Chiudi questa scheda e riprova.'
-          : 'The ticket could not be prepared. Close this tab and try again.';
-      }
     } finally {
+      exportFrame?.remove();
       setExportingTicket(false);
     }
-  }, [dataIso, exportingTicket, lingua]);
+  }, [dataIso, exportingTicket]);
 
   useEffect(() => {
-    const handleTicketDownload = (event: Event) => {
-      const detail = (event as CustomEvent<TicketDownloadEventDetail>).detail;
-      void downloadTicket(detail?.downloadWindow);
-    };
+    const handleTicketDownload = () => void downloadTicket();
     window.addEventListener(TICKET_DOWNLOAD_EVENT, handleTicketDownload);
     return () => window.removeEventListener(TICKET_DOWNLOAD_EVENT, handleTicketDownload);
   }, [downloadTicket]);
@@ -2214,10 +2181,7 @@ export default function Home() {
               type="button"
               onClick={() => {
                 setMobileToolsOpen(false);
-                const downloadWindow = openChromiumMobileDownloadWindow(lingua);
-                window.dispatchEvent(new CustomEvent<TicketDownloadEventDetail>(TICKET_DOWNLOAD_EVENT, {
-                  detail: { downloadWindow },
-                }));
+                window.dispatchEvent(new Event(TICKET_DOWNLOAD_EVENT));
               }}
               aria-label={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
             >
