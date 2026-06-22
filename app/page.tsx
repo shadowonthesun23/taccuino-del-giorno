@@ -29,6 +29,15 @@ function isMobileChromiumBrowser(): boolean {
     && /Chrome|Chromium|CriOS|EdgA|EdgiOS/i.test(userAgent);
 }
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error('Impossibile incorporare l’immagine del quadro.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
   weight: ['400'],
@@ -815,17 +824,65 @@ function SeasonalBookmark({
     let exportFrame: HTMLElement | null = null;
     try {
       await document.fonts.ready;
-      const { toBlob } = await import('html-to-image');
+      const { toBlob, toPng } = await import('html-to-image');
+
+      const exportOptions = {
+        width: 588,
+        height: 226,
+        pixelRatio: 4,
+        backgroundColor: 'transparent',
+        cacheBust: true,
+        style: {
+          inset: 'auto',
+          position: 'relative',
+          transform: 'none',
+        },
+      } as const;
+
+      if (!window.matchMedia('(max-width: 1179px)').matches) {
+        const dataUrl = await toPng(ticketRef.current, {
+          ...exportOptions,
+          filter: (node) => {
+            const exportMarker = node.getAttribute?.('data-ticket-export-ignore');
+            return exportMarker === null || exportMarker === undefined;
+          },
+        });
+        const link = document.createElement('a');
+        link.download = `effemeridi-${dataIso}-4x.png`;
+        link.href = dataUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+      }
 
       const sourceBookmark = ticketRef.current.closest<HTMLElement>('.seasonal-bookmark');
       if (!sourceBookmark) throw new Error('Contenitore del biglietto non trovato.');
 
+      const sourceFontFamily = window.getComputedStyle(sourceBookmark).fontFamily;
+      const artworkDataUrl = ticketArtworkImageUrl
+        ? await fetch(ticketArtworkImageUrl, { cache: 'force-cache' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`Immagine del quadro non disponibile (${response.status}).`);
+            return response.blob();
+          })
+          .then(blobToDataUrl)
+        : null;
+
       exportFrame = sourceBookmark.cloneNode(true) as HTMLElement;
+      exportFrame.classList.add(garamond.className);
       exportFrame.removeAttribute('aria-hidden');
       exportFrame.removeAttribute('inert');
       exportFrame.querySelectorAll('[data-ticket-export-ignore]').forEach((node) => node.remove());
+      if (artworkDataUrl) {
+        const artworkImage = exportFrame.querySelector<SVGImageElement>('.seasonal-bookmark-artwork image');
+        artworkImage?.setAttribute('href', artworkDataUrl);
+        artworkImage?.setAttributeNS('http://www.w3.org/1999/xlink', 'href', artworkDataUrl);
+      }
       Object.assign(exportFrame.style, {
         filter: 'none',
+        fontFamily: sourceFontFamily,
         left: '0',
         opacity: '1',
         pointerEvents: 'none',
@@ -838,18 +895,7 @@ function SeasonalBookmark({
       });
       document.body.appendChild(exportFrame);
 
-      const imageBlob = await toBlob(exportFrame, {
-        width: 588,
-        height: 226,
-        pixelRatio: 4,
-        backgroundColor: 'transparent',
-        cacheBust: true,
-        style: {
-          inset: 'auto',
-          position: 'relative',
-          transform: 'none',
-        },
-      });
+      const imageBlob = await toBlob(exportFrame, exportOptions);
       if (!imageBlob) throw new Error('Impossibile creare il file PNG del biglietto.');
 
       const filename = `effemeridi-${dataIso}-4x.png`;
@@ -874,7 +920,7 @@ function SeasonalBookmark({
       exportFrame?.remove();
       setExportingTicket(false);
     }
-  }, [dataIso, exportingTicket]);
+  }, [dataIso, exportingTicket, ticketArtworkImageUrl]);
 
   useEffect(() => {
     const handleTicketDownload = () => void downloadTicket();
