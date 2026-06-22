@@ -84,9 +84,9 @@ img {
 }
 
 .seasonal-paint-reveal.is-dark {
-  background-color: rgba(12, 11, 10, 0.24);
+  background-color: rgba(12, 11, 10, 0.04);
   background-blend-mode: multiply;
-  filter: brightness(0.84) saturate(0.8) contrast(0.96);
+  filter: brightness(1.12) saturate(1.05) contrast(1.03);
 }
 
 .dark .notebook-line-art,
@@ -102,7 +102,7 @@ img {
   }
 
   .seasonal-paint-reveal.is-dark {
-    filter: brightness(0.72) saturate(0.7) contrast(0.94);
+    filter: brightness(1.04) saturate(0.98) contrast(1.02);
   }
 }
 
@@ -3224,11 +3224,21 @@ body {
 }
 
 .seasonal-bookmark-copy.has-artwork {
-  color: #342411;
+  color: #25180d;
   text-shadow:
-    0 1px rgba(255,252,239,0.98),
-    0 0 4px rgba(247,238,216,0.96),
-    0 0 9px rgba(247,238,216,0.72);
+    0 1px rgba(255,252,239,1),
+    0 0 2px rgba(255,252,239,1),
+    0 0 5px rgba(247,238,216,0.98),
+    0 0 10px rgba(247,238,216,0.9),
+    0 0 17px rgba(247,238,216,0.64);
+}
+
+.seasonal-bookmark:not(.is-dark) .seasonal-bookmark-copy.has-artwork :is(
+  .seasonal-bookmark-heading,
+  .seasonal-bookmark-astronomy,
+  .seasonal-bookmark-planets
+) {
+  filter: drop-shadow(0 0 4px rgba(250,243,226,0.72));
 }
 
 .seasonal-bookmark-copy.has-artwork > :not(.seasonal-bookmark-artwork, .seasonal-bookmark-artwork-wash, .seasonal-bookmark-download) {

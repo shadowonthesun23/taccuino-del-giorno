@@ -205,8 +205,8 @@ export default function ParallaxBackground({
       previousTargetX = targetX;
       previousTargetY = targetY;
       const readabilityProtection = getReadabilityProtection(targetX, targetY);
-      const regularOpacity = dark ? 0.56 : 0.82;
-      const protectedOpacity = dark ? 0.22 : 0.36;
+      const regularOpacity = dark ? 0.82 : 0.82;
+      const protectedOpacity = dark ? 0.44 : 0.36;
       const revealOpacity =
         regularOpacity - (regularOpacity - protectedOpacity) * readabilityProtection;
 
