@@ -3467,7 +3467,7 @@ body {
   border-top: 1px solid color-mix(in srgb, var(--bookmark-ink) 18%, transparent);
   display: grid;
   flex: 1 1 auto;
-  gap: 4px;
+  gap: 2px;
   min-height: 0;
   overflow: hidden;
   padding: 7px 1px 0;
@@ -3477,6 +3477,7 @@ body {
 
 .seasonal-bookmark-artwork-caption strong,
 .seasonal-bookmark-artwork-caption span,
+.seasonal-bookmark-artwork-caption b,
 .seasonal-bookmark-artwork-caption em,
 .seasonal-bookmark-artwork-caption small {
   display: block;
@@ -3485,6 +3486,7 @@ body {
 }
 
 .seasonal-bookmark-artwork-caption em,
+.seasonal-bookmark-artwork-caption b,
 .seasonal-bookmark-artwork-caption small,
 .seasonal-bookmark-qr-link small {
   font-family: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Consolas, monospace;
@@ -3513,6 +3515,18 @@ body {
 .seasonal-bookmark-artwork-caption span {
   font-size: 0.52rem;
   font-style: italic;
+  margin-top: -1px;
+}
+
+.seasonal-bookmark-artwork-caption b {
+  border-top: 1px dotted color-mix(in srgb, var(--bookmark-ink) 15%, transparent);
+  font-size: 0.4rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  margin-top: 1px;
+  opacity: 0.62;
+  padding-top: 3px;
+  text-transform: uppercase;
 }
 
 .seasonal-bookmark-artwork-caption em {
