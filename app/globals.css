@@ -385,6 +385,14 @@ img {
     white-space: nowrap;
   }
 
+  .seasonal-artwork-caption .seasonal-artwork-hint {
+    font-size: 0.62rem;
+    font-style: italic;
+    letter-spacing: 0.025em;
+    margin: 0 0 3px;
+    opacity: 0.78;
+  }
+
   .seasonal-artwork-caption.is-dark {
     color: rgba(238, 230, 216, 0.82);
     text-shadow:
@@ -409,6 +417,10 @@ img {
 
   .seasonal-artwork-caption span {
     font-size: 0.56rem;
+  }
+
+  .seasonal-artwork-caption .seasonal-artwork-hint {
+    font-size: 0.54rem;
   }
 }
 

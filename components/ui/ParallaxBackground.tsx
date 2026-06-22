@@ -282,6 +282,7 @@ export default function ParallaxBackground({
           aria-label="Opera stagionale in trasparenza"
           data-reveal-readability
         >
+          <span className="seasonal-artwork-hint">Opera nello sfondo · muovi il cursore</span>
           <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
           <span className="seasonal-artwork-artist">{seasonalArtwork.artist}</span>
           <span className="seasonal-artwork-collection">{seasonalArtwork.collection}</span>
