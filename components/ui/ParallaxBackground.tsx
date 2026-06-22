@@ -244,7 +244,7 @@ export default function ParallaxBackground({
   }, [dark, hasSeasonalReveal, season]);
 
   const bgColor = dark ? '#171614' : '#F8F6F0';
-  const imageOpacity = dark ? 0.085 : 0.13;
+  const imageOpacity = dark ? 0.102 : 0.13;
   const imageFilter = dark
     ? 'brightness(0.52) saturate(0.42) contrast(0.72)'
     : 'saturate(0.72) brightness(1.04) contrast(0.94)';

@@ -3332,27 +3332,29 @@ body {
 }
 
 .seasonal-bookmark:not(.is-dark) .seasonal-bookmark-copy.has-artwork :is(
-  .seasonal-bookmark-heading > *,
-  .seasonal-bookmark-astronomy em,
-  .seasonal-bookmark-astronomy strong,
-  .seasonal-bookmark-planets-heading > strong,
-  .seasonal-bookmark-regions,
-  .seasonal-bookmark-planet-list > span
+  .seasonal-bookmark-heading,
+  .seasonal-bookmark-astronomy > span,
+  .seasonal-bookmark-planets-heading,
+  .seasonal-bookmark-planet-list
 ) {
   filter: drop-shadow(0 0 3px rgba(250,243,226,0.62));
   isolation: isolate;
-  justify-self: start;
   position: relative;
+}
+
+.seasonal-bookmark:not(.is-dark) .seasonal-bookmark-copy.has-artwork :is(
+  .seasonal-bookmark-astronomy > span,
+  .seasonal-bookmark-planet-list
+) {
+  justify-self: start;
   width: fit-content;
 }
 
 .seasonal-bookmark:not(.is-dark) .seasonal-bookmark-copy.has-artwork :is(
-  .seasonal-bookmark-heading > *,
-  .seasonal-bookmark-astronomy em,
-  .seasonal-bookmark-astronomy strong,
-  .seasonal-bookmark-planets-heading > strong,
-  .seasonal-bookmark-regions,
-  .seasonal-bookmark-planet-list > span
+  .seasonal-bookmark-heading,
+  .seasonal-bookmark-astronomy > span,
+  .seasonal-bookmark-planets-heading,
+  .seasonal-bookmark-planet-list
 )::before {
   background: linear-gradient(
     92deg,
