@@ -297,8 +297,6 @@ export default async function PassportPage({
       <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
         {data.foto_autore_url && (
           <figure className={styles.authorPhoto}>
-            {/* Plain img keeps the printable sheet deterministic for client-side rasterization. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img draggable={false} crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
           </figure>
         )}
@@ -371,8 +369,6 @@ export default async function PassportPage({
     <>
       {albumCoverUrl && (
         <figure className={styles.albumCover}>
-          {/* Plain img is decoded synchronously before the PDF capture. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             draggable={false}
             decoding="sync"
@@ -397,8 +393,6 @@ export default async function PassportPage({
         <>
           {artworkImageUrl && (
             <figure className={styles.artwork}>
-              {/* Plain img preserves srcSet and eager decoding for the PDF capture. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 draggable={false}
                 decoding="sync"

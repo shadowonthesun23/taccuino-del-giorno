@@ -1,20 +1,5 @@
 export const maxDuration = 30;
 
-const ALLOWED_IMAGE_HOSTS = new Set([
-  'images.metmuseum.org',
-  'openaccess-cdn.clevelandart.org',
-  'upload.wikimedia.org',
-  'www.artic.edu',
-]);
-
-const ALLOWED_IMAGE_HOST_SUFFIXES = ['.dzcdn.net', '.mzstatic.com'];
-
-function isAllowedImageHost(hostname: string): boolean {
-  const normalizedHost = hostname.toLowerCase();
-  return ALLOWED_IMAGE_HOSTS.has(normalizedHost)
-    || ALLOWED_IMAGE_HOST_SUFFIXES.some((suffix) => normalizedHost.endsWith(suffix));
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawUrl = searchParams.get('url');
@@ -30,12 +15,8 @@ export async function GET(request: Request) {
     return new Response('Invalid image URL', { status: 400 });
   }
 
-  if (imageUrl.protocol !== 'https:') {
+  if (!['http:', 'https:'].includes(imageUrl.protocol)) {
     return new Response('Unsupported image URL', { status: 400 });
-  }
-
-  if (!isAllowedImageHost(imageUrl.hostname)) {
-    return new Response('Image host not allowed', { status: 403 });
   }
 
   const upstream = await fetch(imageUrl, {
@@ -43,7 +24,6 @@ export async function GET(request: Request) {
       'User-Agent': 'TaccuinoDelGiorno/1.0',
     },
     next: { revalidate: 86400 },
-    signal: AbortSignal.timeout(15_000),
   });
 
   if (!upstream.ok || !upstream.body) {
@@ -51,9 +31,6 @@ export async function GET(request: Request) {
   }
 
   const contentType = upstream.headers.get('content-type') || 'image/jpeg';
-  if (!contentType.startsWith('image/')) {
-    return new Response('Unsupported upstream content', { status: 415 });
-  }
 
   return new Response(upstream.body, {
     headers: {

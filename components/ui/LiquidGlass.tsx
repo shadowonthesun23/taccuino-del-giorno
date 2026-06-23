@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useRef } from 'react'
 
 interface LiquidGlassProps {
   children: React.ReactNode
@@ -17,13 +17,12 @@ export default function LiquidGlass({
   blur = true,
   borderRadius = '28px',
 }: LiquidGlassProps) {
-  const reactId = useId()
-  const filterId = `lg-${reactId.replaceAll(':', '')}`
+  const filterId = useRef(`lg-${Math.random().toString(36).slice(2, 7)}`)
 
   return (
     <>
       <svg style={{ display: 'none' }} aria-hidden="true">
-        <filter id={filterId}>
+        <filter id={filterId.current}>
           <feTurbulence
             type="turbulence"
             baseFrequency={baseFrequency}
@@ -47,10 +46,10 @@ export default function LiquidGlass({
           overflow: 'hidden',
           backdropFilter: `brightness(1.1)${
             blur ? ' blur(2px)' : ''
-          } url(#${filterId})`,
+          } url(#${filterId.current})`,
           WebkitBackdropFilter: `brightness(1.1)${
             blur ? ' blur(2px)' : ''
-          } url(#${filterId})`,
+          } url(#${filterId.current})`,
           boxShadow: `
             inset 6px 6px 0px -6px rgba(255,255,255,0.7),
             inset 0 0 8px 1px rgba(255,255,255,0.7),

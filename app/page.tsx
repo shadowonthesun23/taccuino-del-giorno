@@ -5,7 +5,6 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
-import NextImage from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
 import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
@@ -110,7 +109,14 @@ function runWhenIdle(callback: () => void) {
   globalThis.setTimeout(callback, 350);
 }
 
-const lazyImageProps = { loading: 'lazy' as const, decoding: 'async' as const };
+function getImageLoadingProps(priority = false) {
+  return priority
+    ? { decoding: 'async' as const, fetchPriority: 'high' as const }
+    : { loading: 'lazy' as const, decoding: 'async' as const };
+}
+
+const eagerImageProps = getImageLoadingProps(true);
+const lazyImageProps = getImageLoadingProps();
 const lowPriorityImageProps = { decoding: 'async' as const, fetchPriority: 'low' as const };
 
 const XIcon = ({ className, strokeWidth = 1.5 }: { className?: string, strokeWidth?: number }) => (
@@ -1215,8 +1221,6 @@ function DailyPassport({
             </div>
             {data.foto_autore_url && (
               <figure className="daily-passport-author-photo">
-                {/* Plain img is required for deterministic DOM-to-image passport export. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img draggable={false} src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} {...lazyImageProps} />
               </figure>
             )}
@@ -1291,8 +1295,6 @@ function DailyPassport({
                 <span>{label.artwork}</span>
                 {opera.immagine_url_hd || opera.immagine_url ? (
                   <figure className="daily-passport-artwork">
-                    {/* Plain img is required for deterministic DOM-to-image passport export. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img draggable={false} src={opera.immagine_url || opera.immagine_url_hd} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
                   </figure>
                 ) : null}
@@ -1345,15 +1347,13 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
           aria-label="Il taccuino si sta preparando"
           className={`loading-notebook-paper ${isDark ? 'is-dark' : ''}`}
         >
-          <NextImage
+          <img
             draggable={false}
             className="loading-notebook-sheet"
             src="/images/loading-paper-torn.png"
             alt=""
             aria-hidden="true"
-            width={1226}
-            height={940}
-            preload
+            {...eagerImageProps}
           />
           <div className="loading-notebook-content">
             <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
@@ -1745,7 +1745,7 @@ export default function Home() {
     };
   }, [opera]);
   
-  const caricaGiorno = useCallback((dataIso: string | null, usePageTurn = false, targetSection = 'autore') => {
+  const caricaGiorno = (dataIso: string | null, usePageTurn = false, targetSection = 'autore') => {
     if (usePageTurn) {
       setIsTurningPage(true);
       setPageTurnPhase('covering');
@@ -1820,7 +1820,7 @@ export default function Home() {
       .catch(err => {
         setError(err.message); setLoading(false); setIsTurningPage(false); setPageTurnPhase('idle');
       });
-  }, [oggi, rememberVisitedDate]);
+  };
 
   const toggleLingua = useCallback(async () => {
     if (lingua === 'EN') { setLingua('IT'); setData(dataOriginale); return; }
@@ -1863,7 +1863,7 @@ export default function Home() {
       if (mountedTimer !== undefined) window.clearTimeout(mountedTimer);
       window.clearTimeout(loadTimer);
     };
-  }, [caricaGiorno]);
+  }, []);
 
   const toggleTheme = () => {
     const next = !isDark;
@@ -1918,12 +1918,6 @@ export default function Home() {
     : '';
   const proxiedOperaImageHdUrl = operaImageHdUrl
     ? `/api/image-proxy?url=${encodeURIComponent(operaImageHdUrl)}`
-    : '';
-  const proxiedAuthorPhotoUrl = data?.foto_autore_url
-    ? `/api/image-proxy?url=${encodeURIComponent(data.foto_autore_url)}`
-    : '';
-  const proxiedMusicCoverUrl = musicCover
-    ? `/api/image-proxy?url=${encodeURIComponent(musicCover)}`
     : '';
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
@@ -2385,7 +2379,7 @@ export default function Home() {
         <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
     <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
-      {proxiedAuthorPhotoUrl && (
+      {data.foto_autore_url && (
         <div className="author-photo-wrap relative z-20 flex-shrink-0" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
           <div
             className="masking-tape author-photo-tape"
@@ -2411,14 +2405,11 @@ export default function Home() {
                 : '0 16px 34px -28px rgba(42,37,34,0.42), 0 2px 8px -6px rgba(42,37,34,0.2)',
             }}
           >
-            <NextImage
+            <img
               draggable={false}
-              src={proxiedAuthorPhotoUrl}
+              src={data.foto_autore_url}
               alt={data.autore_giorno}
-              width={140}
-              height={180}
-              sizes="140px"
-              preload
+              {...eagerImageProps}
               style={{
                 display: 'block',
                 width: '140px',
@@ -2501,7 +2492,7 @@ export default function Home() {
           <AuthorExportCard
             autoreGiorno={data.autore_giorno}
             breveDescrizione={data.breve_descrizione}
-            fotoAutoreUrl={proxiedAuthorPhotoUrl}
+            fotoAutoreUrl={data.foto_autore_url}
             citazione={data.citazione}
             dataOdierna={data.data_odierna}
             dataIso={dataExLibris}
@@ -2564,12 +2555,12 @@ export default function Home() {
               <div className="saints-card-layout">
                 {visibleSaintArtwork ? (
                   <figure className="saint-card-artwork">
-                    <NextImage
+                    <img
                       draggable={false}
                       src={`/api/image-proxy?url=${encodeURIComponent(visibleSaintArtwork.imageUrl)}`}
                       alt=""
-                      fill
-                      sizes="(max-width: 767px) 70vw, 340px"
+                      crossOrigin="anonymous"
+                      {...lazyImageProps}
                     />
                   </figure>
                 ) : null}
@@ -2630,8 +2621,6 @@ export default function Home() {
                   </div>
                   <div className="opera-postcard-media order-1 md:order-2">
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      {/* Preserve the provider's natural aspect ratio and direct fallback for card export. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         draggable={false}
                         src={proxiedOperaImageUrl}
@@ -2725,15 +2714,13 @@ export default function Home() {
 
                 <div className="music-media-cell select-none">
                   <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
-                    {proxiedMusicCoverUrl ? (
-                      <NextImage
+                    {musicCover ? (
+                      <img
                         draggable={false}
-                        src={proxiedMusicCoverUrl}
+                        src={musicCover}
                         alt={`${data.musica.brano} cover`}
-                        width={600}
-                        height={600}
-                        sizes="244px"
                         onError={() => setMusicCover(null)}
+                        {...lazyImageProps}
                       />
                     ) : (
                       <div className="music-cover-placeholder" aria-hidden="true">
