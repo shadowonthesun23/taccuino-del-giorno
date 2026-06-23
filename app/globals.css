@@ -386,12 +386,13 @@ img {
   }
 
   .seasonal-artwork-caption .seasonal-artwork-hint {
-    font-size: 0.62rem;
-    font-style: italic;
-    letter-spacing: 0.025em;
-    margin: 0 0 3px;
-    opacity: 0.78;
-  }
+  font-size: 0.62rem;
+  font-style: italic;
+  letter-spacing: 0.025em;
+  margin: 0 0 3px;
+  opacity: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
 
   .seasonal-artwork-caption.is-dark {
     color: rgba(238, 230, 216, 0.82);
