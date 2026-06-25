@@ -248,6 +248,21 @@ export const SEASONAL_ARTWORKS: Partial<Record<SeasonId, readonly SeasonalArtwor
       ticketAlignment: 'xMidYMid',
       tone: 'dense',
     },
+    {
+      id: 'koekkoek-summer-day-dutch',
+      title: 'A summer\'s day on a Dutch river',
+      ticketTitle: 'A summer\'s day on a Dutch river',
+      year: '1865',
+      artist: 'Hermanus Koekkoek',
+      collection: 'Collezione privata',
+      medium: 'Olio su tela',
+      imageUrl: '/images/seasonal/koekkoek-summer-day-dutch.webp',
+      sourceUrl: 'https://www.christies.com/en/lot/lot-5847889',
+      linkKind: 'source',
+      revealPosition: '56% center',
+      ticketAlignment: 'xMidYMid',
+      tone: 'bright',
+    },
   ],
 };
 
