@@ -765,7 +765,7 @@ body {
   --card-hover-edge: rgba(222,107,88,0.62);
   --card-hover-edge-soft: rgba(231,203,172,0.06);
   --card-hover-wash: rgba(255,231,200,0.04);
-  background-color: rgba(48, 42, 35, 0.96) !important;
+  background-color: rgba(40, 35, 30, 0.97) !important;
   background-image:
     radial-gradient(circle at 14% 12%, rgba(255, 214, 166, 0.052), transparent 25%),
     radial-gradient(circle at 82% 76%, rgba(255, 214, 166, 0.03), transparent 22%),
