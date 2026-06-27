@@ -918,25 +918,6 @@ body {
   filter: saturate(0.94) contrast(0.98);
 }
 
-[data-theme="dark"] .opera-postcard-link {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.07), transparent),
-    #332a22;
-  border-color: rgba(231, 203, 172, 0.13);
-  box-shadow:
-    3px 4px 0 rgba(0,0,0,0.16),
-    0 20px 44px -32px rgba(0,0,0,0.72),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
-[data-theme="dark"] .opera-postcard-source-label {
-  color: rgba(231, 203, 172, 0.55);
-}
-
-[data-theme="dark"] .opera-postcard-link::after {
-  color: rgba(229, 205, 172, 0.42);
-}
-
 .card-section-heading {
   margin-bottom: 22px;
 }
@@ -5168,24 +5149,6 @@ body {
   color: rgba(117,88,57,0.46);
   display: flex;
   justify-content: center;
-}
-
-.music-cover-frame.is-dark {
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.07), transparent 44%),
-    #332a22;
-  border-color: rgba(231,203,172,0.13);
-  box-shadow:
-    3px 4px 0 rgba(0,0,0,0.18),
-    0 20px 40px -28px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(255,255,255,0.06);
-}
-
-.music-cover-frame.is-dark .music-cover-placeholder {
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.06), transparent 48%),
-    rgba(42, 42, 42, 0.78);
-  color: rgba(216,199,180,0.42);
 }
 
 .music-copy-cell {
