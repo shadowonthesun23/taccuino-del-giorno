@@ -21,8 +21,8 @@ const garamond = IM_Fell_Double_Pica({
   display: 'swap',
 });
 
-const jocky = localFont({
-  src: '../../public/fonts/JockyStarline.ttf',
+const masterSignature = localFont({
+  src: '../../public/fonts/MasterSignature.otf',
   display: 'block',
   preload: true,
   fallback: ['serif'],
@@ -382,7 +382,7 @@ export default async function PassportPage({
       <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
       <p>{data.musica.motivo}</p>
       <footer className={styles.signature}>
-        <strong className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</strong>
+        <strong className={`${masterSignature.className} notebook-wordmark`}>Il giorno da custodire</strong>
         <span>Realizzato con amore da Antonello.</span>
       </footer>
     </>

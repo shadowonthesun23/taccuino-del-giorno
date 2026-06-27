@@ -55,6 +55,12 @@ const jocky = localFont({
   preload: true,
   fallback: ['serif'],
 });
+const masterSignature = localFont({
+  src: '../public/fonts/MasterSignature.otf',
+  display: 'block',
+  preload: true,
+  fallback: ['serif'],
+});
 const stampwriter = localFont({
   src: '../public/fonts/STAMPWRITER-KIT.ttf',
   display: 'swap',
@@ -1309,7 +1315,7 @@ function DailyPassport({
             )}
 
             <footer className="daily-passport-signature">
-              <strong className={`${jocky.className} notebook-wordmark`}>{lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}</strong>
+              <strong className={`${masterSignature.className} notebook-wordmark`}>{lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}</strong>
               <span>{lingua === 'IT' ? 'Realizzato con amore da Antonello.' : 'Made with love by Antonello.'}</span>
             </footer>
           </aside>
@@ -1356,7 +1362,7 @@ function LoadingNotebook({ isDark }: { isDark: boolean }) {
             {...eagerImageProps}
           />
           <div className="loading-notebook-content">
-            <h1 className={`${jocky.className} notebook-wordmark`}>Il giorno da custodire</h1>
+            <h1 className={`${masterSignature.className} notebook-wordmark`}>Il giorno da custodire</h1>
             <div className="loading-writing-stack" aria-hidden="true">
               <span className="loading-pen-line line-one" />
               <span className="loading-pen-line line-two" />
@@ -2355,7 +2361,7 @@ export default function Home() {
                     : '0 1px 1px rgba(255,252,242,0.75)',
                 }}
               >
-                <span className={`${jocky.className} notebook-wordmark hero-ink-title journal-wordmark-reserve animate-handwrite`}>
+                <span className={`${masterSignature.className} notebook-wordmark hero-ink-title journal-wordmark-reserve animate-handwrite`}>
                   {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
                 </span>
               </h1>
@@ -2780,7 +2786,7 @@ export default function Home() {
                 <span className="daily-ex-libris-date">{formatExLibrisDate(dataExLibris)}</span>
                 <span className="daily-ex-libris-ledger">{formatExLibrisLedger(dataExLibris, lingua)}</span>
               </div>
-              <p className={`journal-footer-title ${jocky.className} notebook-wordmark`}>
+              <p className={`journal-footer-title ${masterSignature.className} notebook-wordmark`}>
                 {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
               </p>
               <p className="journal-footer-note">
