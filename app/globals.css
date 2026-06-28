@@ -2616,7 +2616,7 @@ body {
 }
 
 .loading-notebook-paper h1 {
-  font-size: 44px;
+  font-size: 32px;
   font-weight: 500;
   line-height: 0.9;
   margin: 0 0 34px;
@@ -2629,7 +2629,7 @@ body {
   }
 
   .loading-notebook-paper h1 {
-    font-size: 68px;
+    font-size: 52px;
   }
 
   .loading-notebook-paper .loading-notebook-content p {
@@ -2676,7 +2676,7 @@ body {
   }
 
   .loading-notebook-paper h1 {
-    font-size: clamp(38px, 12vw, 48px);
+    font-size: clamp(28px, 10vw, 36px);
     line-height: 0.94;
     margin-bottom: 22px;
     max-width: 100%;
