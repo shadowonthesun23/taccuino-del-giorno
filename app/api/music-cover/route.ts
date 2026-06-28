@@ -44,11 +44,12 @@ function scoreMatch(candidateTitle: string, candidateArtist: string, title: stri
   return score;
 }
 
-async function findItunesCover(title: string, artist: string): Promise<string> {
+async function findItunesCover(title: string, artist: string, searchTerm: string): Promise<string> {
   const url = new URL('https://itunes.apple.com/search');
-  url.searchParams.set('term', `${artist} ${title}`);
+  url.searchParams.set('term', searchTerm);
   url.searchParams.set('entity', 'song');
   url.searchParams.set('limit', '12');
+  url.searchParams.set('country', 'IT');
   const payload = asRecord(await fetchJson(url.toString()));
   const results = Array.isArray(payload?.results) ? payload.results : [];
   const ranked = results
@@ -60,6 +61,27 @@ async function findItunesCover(title: string, artist: string): Promise<string> {
     }))
     .sort((left, right) => right.score - left.score);
   const bestMatch = ranked.find((candidate) => candidate.score >= 7);
+  const artwork = asString(bestMatch?.value.artworkUrl100);
+  return artwork.replace(/100x100bb/i, '600x600bb');
+}
+
+async function findItunesAlbumCover(title: string, artist: string, searchTerm: string): Promise<string> {
+  const url = new URL('https://itunes.apple.com/search');
+  url.searchParams.set('term', searchTerm);
+  url.searchParams.set('entity', 'album');
+  url.searchParams.set('limit', '10');
+  url.searchParams.set('country', 'IT');
+  const payload = asRecord(await fetchJson(url.toString()));
+  const results = Array.isArray(payload?.results) ? payload.results : [];
+  const ranked = results
+    .map((value) => asRecord(value))
+    .filter((value): value is JsonRecord => value !== null)
+    .map((value) => ({
+      value,
+      score: scoreMatch(asString(value.collectionName), asString(value.artistName), title, artist),
+    }))
+    .sort((left, right) => right.score - left.score);
+  const bestMatch = ranked.find((candidate) => candidate.score >= 2) ?? ranked[0];
   const artwork = asString(bestMatch?.value.artworkUrl100);
   return artwork.replace(/100x100bb/i, '600x600bb');
 }
@@ -90,13 +112,21 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const title = searchParams.get('title')?.trim() ?? '';
   const artist = searchParams.get('artist')?.trim() ?? '';
+  const query = searchParams.get('query')?.trim() ?? '';
   if (!title || !artist) {
     return Response.json({ error: 'Titolo e artista sono obbligatori' }, { status: 400 });
   }
 
-  for (const provider of [findItunesCover, findDeezerCover]) {
+  const searchTerm = query || `${artist} ${title}`.trim();
+  const providers = [
+    () => findItunesCover(title, artist, searchTerm),
+    () => findItunesAlbumCover(title, artist, searchTerm),
+    () => findDeezerCover(title, artist),
+  ];
+
+  for (const provider of providers) {
     try {
-      const imageUrl = await provider(title, artist);
+      const imageUrl = await provider();
       if (imageUrl) {
         return Response.json(
           { imageUrl },

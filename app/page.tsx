@@ -38,6 +38,14 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+function proxiedImageUrl(url: string | null | undefined) {
+  return url ? `/api/image-proxy?url=${encodeURIComponent(url)}` : '';
+}
+
+function uniqueImageCandidates(...urls: Array<string | null | undefined>) {
+  return Array.from(new Set(urls.filter((url): url is string => Boolean(url))));
+}
+
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
   weight: ['400'],
@@ -1817,9 +1825,12 @@ export default function Home() {
             title: dati.musica.brano,
             artist: dati.musica.autore,
           });
+          if (dati.musica.chiave_ricerca) {
+            coverParams.set('query', dati.musica.chiave_ricerca);
+          }
           fetch(`/api/music-cover?${coverParams.toString()}`)
             .then((response) => response.status === 204 ? null : response.ok ? response.json() : null)
-            .then((cover) => setMusicCover(cover?.imageUrl ?? null))
+            .then((cover) => setMusicCover(proxiedImageUrl(cover?.imageUrl)))
             .catch(() => setMusicCover(null));
         });
       })
@@ -1919,12 +1930,12 @@ export default function Home() {
   const operaSourceUrl = opera?.source_url || opera?.met_url || '';
   const operaImageUrl = opera?.immagine_url || opera?.immagine_url_hd || '';
   const operaImageHdUrl = opera?.immagine_url_hd || opera?.immagine_url || '';
-  const proxiedOperaImageUrl = operaImageUrl
-    ? `/api/image-proxy?url=${encodeURIComponent(operaImageUrl)}`
-    : '';
-  const proxiedOperaImageHdUrl = operaImageHdUrl
-    ? `/api/image-proxy?url=${encodeURIComponent(operaImageHdUrl)}`
-    : '';
+  const operaImageCandidates = uniqueImageCandidates(
+    proxiedImageUrl(operaImageUrl),
+    proxiedImageUrl(operaImageHdUrl),
+    operaImageUrl,
+    operaImageHdUrl,
+  );
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
@@ -2627,19 +2638,24 @@ export default function Home() {
                   </div>
                   <div className="opera-postcard-media order-1 md:order-2">
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      <img
-                        draggable={false}
-                        src={proxiedOperaImageUrl}
-                        alt={`${opera.titolo} by ${opera.artista}`}
-                        className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
-                        onError={(event) => {
-                          const fallback = proxiedOperaImageHdUrl;
-                          if (fallback && event.currentTarget.getAttribute('src') !== fallback) {
-                            event.currentTarget.src = fallback;
-                          }
-                        }}
-                        {...lowPriorityImageProps}
-                      />
+                      {operaImageCandidates.length > 0 ? (
+                        <img
+                          draggable={false}
+                          src={operaImageCandidates[0]}
+                          alt={`${opera.titolo} by ${opera.artista}`}
+                          className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
+                          onError={(event) => {
+                            const currentIndex = Number(event.currentTarget.dataset.fallbackIndex ?? '0');
+                            const nextIndex = currentIndex + 1;
+                            const fallback = operaImageCandidates[nextIndex];
+                            if (fallback) {
+                              event.currentTarget.dataset.fallbackIndex = String(nextIndex);
+                              event.currentTarget.src = fallback;
+                            }
+                          }}
+                          {...lowPriorityImageProps}
+                        />
+                      ) : null}
                       <span className="opera-postcard-source-label">
                         {lingua === 'IT' ? 'Fonte' : 'Source'}: {opera.museo}
                         {opera.rights ? ` · ${opera.rights}` : ''}
