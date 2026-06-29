@@ -25,6 +25,18 @@ function getRomeDateParts(date = new Date()) {
   return { dataIso, dataDiOggiStr };
 }
 
+function getDatePartsFromIso(dataIso: string) {
+  const [year, month, day] = dataIso.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const dataDiOggiStr = new Intl.DateTimeFormat('it-IT', {
+    timeZone: 'Europe/Rome',
+    day: 'numeric',
+    month: 'long',
+  }).format(date);
+
+  return { dataIso, dataDiOggiStr };
+}
+
 function uniqueModelCandidates(primaryModel?: string) {
   return [primaryModel?.trim(), DEFAULT_GEMINI_MODEL, 'gemini-flash-latest']
     .filter((model): model is string => Boolean(model))
@@ -225,16 +237,23 @@ export async function GET(request: Request) {
     }
     const genAI = new GoogleGenerativeAI(apiKey);
 
+    const requestUrl = new URL(request.url);
     const cronHeader = request.headers.get('x-vercel-cron');
     const authHeader = request.headers.get('authorization');
     const isVercelCron = cronHeader === '1';
-    const isManualCall = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    const cronSecret = process.env.CRON_SECRET;
+    const isManualCall = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
 
     if (!isVercelCron && !isManualCall) {
       return new Response('Non autorizzato', { status: 401 });
     }
 
-    const { dataIso, dataDiOggiStr } = getRomeDateParts();
+    const dataParam = requestUrl.searchParams.get('data')?.trim();
+    const forcedAuthor = isManualCall ? requestUrl.searchParams.get('autore')?.trim() ?? '' : '';
+    const editorialNotes = isManualCall ? requestUrl.searchParams.get('note')?.trim() ?? '' : '';
+    const { dataIso, dataDiOggiStr } = dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)
+      ? getDatePartsFromIso(dataParam)
+      : getRomeDateParts();
 
     const { data: recentContentRows, error: recentContentError } = await supabase
       .from('contenuti_giornalieri')
@@ -253,12 +272,23 @@ export async function GET(request: Request) {
     );
     const recentWordExclusions = formatRecentWordExclusions(recentRows);
     const recentPoemExclusions = formatRecentPoemExclusions(recentRows);
+    const manualDirection = forcedAuthor || editorialNotes
+      ? `
+DIREZIONE EDITORIALE MANUALE — PRIORITÀ MASSIMA:
+${forcedAuthor ? `- Autore del giorno obbligatorio: ${forcedAuthor}. Usa esattamente questo autore come "autore_giorno".` : ''}
+${editorialNotes ? `- Note curatoriale da rispettare: ${editorialNotes}` : ''}
+- Se l'autore obbligatorio non è nato o morto in questa data, trattalo come eccezione editoriale consapevole: la "breve_descrizione" deve iniziare con "Scelta editoriale:" e spiegare in modo naturale perché oggi viene custodito questo autore.
+- La citazione deve appartenere all'autore obbligatorio, con fonte credibile quando possibile.
+`
+      : '';
 
     const prompt = `Sei un erudito critico letterario e teologo. Cura "Il giorno da custodire" per il ${dataDiOggiStr}.
 
+${manualDirection}
+
 REGOLE DI CURATELA:
 1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
-2. DESCRIZIONE AUTORE: **DEVE** iniziare esplicitando il motivo della scelta (es. "Nato in questo giorno nel [anno]..." oppure "Scomparso in questa data nel [anno]..."). Questa informazione è fondamentale per il contesto.
+2. DESCRIZIONE AUTORE: **DEVE** iniziare esplicitando il motivo della scelta (es. "Nato in questo giorno nel [anno]..." oppure "Scomparso in questa data nel [anno]..."). Questa informazione è fondamentale per il contesto. Se è attiva una DIREZIONE EDITORIALE MANUALE con autore obbligatorio non legato alla data, segui invece la regola speciale indicata nella direzione manuale.
 3. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
 4. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 5. PAROLA DEL GIORNO: scegli un lemma italiano preciso, colto ma realmente attestato, capace di aprire una sfumatura inattesa del tema. NON usare il semplice nome astratto del tema e non proporre parole generiche come libertà, responsabilità, amore, speranza, fede, verità, vita, memoria, anima, coscienza, scelta, identità, tempo o solitudine. Privilegia termini lessicalmente interessanti, con un'etimologia verificabile e una definizione comprensibile. Non ripetere parole recenti.
