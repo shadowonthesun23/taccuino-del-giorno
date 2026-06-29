@@ -14,12 +14,14 @@ export default function ParallaxBackground({
   dataIso,
   showEspresso = false,
   captionClassName = '',
+  language = 'IT',
 }: {
   children: React.ReactNode;
   season?: SeasonId;
   dataIso?: string;
   showEspresso?: boolean;
   captionClassName?: string;
+  language?: 'IT' | 'EN';
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
   const coffeeLayerRef = useRef<HTMLDivElement>(null);
@@ -29,6 +31,12 @@ export default function ParallaxBackground({
   const [dark, setDark] = useState(false);
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
   const seasonalArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
+  const seasonalCaptionLabel = language === 'IT'
+    ? 'Opera stagionale in trasparenza'
+    : 'Seasonal artwork revealed in the background';
+  const seasonalCaptionHint = language === 'IT'
+    ? 'Opera nello sfondo · muovi il cursore'
+    : 'Background artwork · move the cursor';
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -279,10 +287,10 @@ export default function ParallaxBackground({
         <aside
           ref={seasonalCaptionRef}
           className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''}`}
-          aria-label="Opera stagionale in trasparenza"
+          aria-label={seasonalCaptionLabel}
           data-reveal-readability
         >
-          <span className="seasonal-artwork-hint">Opera nello sfondo · muovi il cursore</span>
+          <span className="seasonal-artwork-hint">{seasonalCaptionHint}</span>
           <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
           <span className="seasonal-artwork-artist">{seasonalArtwork.artist}</span>
           <span className="seasonal-artwork-collection">{seasonalArtwork.collection}</span>
