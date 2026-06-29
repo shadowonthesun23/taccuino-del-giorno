@@ -21,6 +21,10 @@ function todayInRome() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+function snapshotKey(date: string) {
+  return `taccuino-editor-snapshot-${date}`;
+}
+
 export default function EditorPage() {
   const [secret, setSecret] = useState('');
   const [date, setDate] = useState(todayInRome);
@@ -28,15 +32,26 @@ export default function EditorPage() {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [hasSnapshot, setHasSnapshot] = useState(false);
 
   useEffect(() => {
     setSecret(window.localStorage.getItem('taccuino-editor-secret') ?? '');
   }, []);
 
+  useEffect(() => {
+    setHasSnapshot(Boolean(window.localStorage.getItem(snapshotKey(date))));
+  }, [date]);
+
+  async function fetchCurrentDay() {
+    const response = await fetch(`/api/oggi?data=${encodeURIComponent(date.trim())}`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return response.json();
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus('loading');
-    setMessage('Sto rigenerando il giorno con la direzione curatoriale indicata…');
+    setMessage('Salvo una copia locale e poi rigenero il giorno…');
 
     try {
       if (!secret.trim()) throw new Error('Inserisci il CRON_SECRET.');
@@ -46,6 +61,14 @@ export default function EditorPage() {
       }
 
       window.localStorage.setItem('taccuino-editor-secret', secret.trim());
+      const currentDay = await fetchCurrentDay();
+      if (currentDay) {
+        window.localStorage.setItem(snapshotKey(date.trim()), JSON.stringify({
+          savedAt: new Date().toISOString(),
+          data: currentDay,
+        }));
+        setHasSnapshot(true);
+      }
 
       const params = new URLSearchParams({ data: date.trim() });
       if (author.trim()) params.set('autore', author.trim());
@@ -67,6 +90,39 @@ export default function EditorPage() {
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Rigenerazione non riuscita.');
+    }
+  }
+
+  async function handleRestore() {
+    setStatus('loading');
+    setMessage('Ripristino la copia locale salvata prima della rigenerazione…');
+
+    try {
+      if (!secret.trim()) throw new Error('Inserisci il CRON_SECRET.');
+      const rawSnapshot = window.localStorage.getItem(snapshotKey(date.trim()));
+      if (!rawSnapshot) throw new Error('Non c’è una copia locale da ripristinare per questa data.');
+      const snapshot = JSON.parse(rawSnapshot) as { data?: Record<string, unknown> };
+      if (!snapshot.data) throw new Error('La copia locale non è valida.');
+
+      const response = await fetch('/api/editor/restore', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: date.trim(), contenuto: snapshot.data }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Errore ${response.status}`);
+      }
+
+      setStatus('success');
+      setMessage(`Ripristinata la versione precedente del ${date}.`);
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Ripristino non riuscito.');
     }
   }
 
@@ -126,15 +182,25 @@ export default function EditorPage() {
 
           <div className="flex flex-col gap-3 border-t border-[#b5956a]/20 pt-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm italic text-[#756957]">
-              Suggerimento: per cambiare solo autore, compila autore e lascia una nota breve.
+              Prima della rigenerazione salvo una copia locale nel browser, così puoi ripristinarla.
             </p>
-            <button
-              className="rounded-xl border border-[#9e2a2b]/55 bg-[#9e2a2b] px-6 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#fffdf6] transition hover:bg-[#7f2223] disabled:cursor-wait disabled:opacity-55"
-              disabled={status === 'loading'}
-              type="submit"
-            >
-              {status === 'loading' ? 'Rigenero…' : 'Rigenera giorno'}
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                className="rounded-xl border border-[#756957]/35 bg-transparent px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#5f5548] transition hover:border-[#9e2a2b]/45 disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={status === 'loading' || !hasSnapshot}
+                type="button"
+                onClick={handleRestore}
+              >
+                Ripristina copia
+              </button>
+              <button
+                className="rounded-xl border border-[#9e2a2b]/55 bg-[#9e2a2b] px-6 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#fffdf6] transition hover:bg-[#7f2223] disabled:cursor-wait disabled:opacity-55"
+                disabled={status === 'loading'}
+                type="submit"
+              >
+                {status === 'loading' ? 'Lavoro…' : 'Rigenera giorno'}
+              </button>
+            </div>
           </div>
         </form>
 
