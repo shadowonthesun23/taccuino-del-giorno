@@ -323,6 +323,21 @@ export const SEASONAL_ARTWORKS: Partial<Record<SeasonId, readonly SeasonalArtwor
       ticketAlignment: 'xMidYMid',
       tone: 'dense',
     },
+    {
+      id: 'sohlberg-notte-destate',
+      title: 'Notte d\'estate',
+      ticketTitle: 'Notte d\'estate',
+      year: '1899',
+      artist: 'Harald Sohlberg',
+      collection: 'Museo Nazionale di Oslo',
+      medium: 'Olio su tela',
+      imageUrl: '/images/seasonal/sohlberg-notte-destate.webp',
+      sourceUrl: 'https://www.nasjonalmuseet.no/en/collection/object/NG.M.00525',
+      linkKind: 'museum',
+      revealPosition: 'center bottom',
+      ticketAlignment: 'xMidYMid',
+      tone: 'dense',
+    },
   ],
 };
 
