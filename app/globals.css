@@ -3749,7 +3749,6 @@ body {
 
 .seasonal-bookmark-heading {
   align-items: baseline;
-  border-bottom: 1px solid color-mix(in srgb, var(--bookmark-ink) 24%, transparent);
   display: flex;
   gap: 10px;
   justify-content: space-between;
@@ -3802,7 +3801,6 @@ body {
 }
 
 .seasonal-bookmark-planets {
-  border-top: 1px solid color-mix(in srgb, var(--bookmark-ink) 18%, transparent);
   display: grid;
   gap: 6px;
   padding-top: 10px;
