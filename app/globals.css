@@ -386,13 +386,19 @@ img {
   }
 
   .seasonal-artwork-caption .seasonal-artwork-hint {
-  font-size: 0.62rem;
-  font-style: italic;
-  letter-spacing: 0.025em;
-  margin: 0 0 3px;
-  opacity: 1;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
+    background: rgba(253, 250, 241, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 3px;
+    display: inline-block;
+    font-size: 0.62rem;
+    font-style: italic;
+    letter-spacing: 0.025em;
+    margin: 0 0 3px;
+    opacity: 1;
+    padding: 1px 5px;
+    text-shadow: none;
+  }
 
   .seasonal-artwork-caption.is-dark {
     color: rgba(238, 230, 216, 0.82);
@@ -403,6 +409,10 @@ img {
 
   .seasonal-artwork-caption.is-dark span {
     color: rgba(220, 210, 193, 0.7);
+  }
+
+  .seasonal-artwork-caption.is-dark .seasonal-artwork-hint {
+    background: rgba(24, 23, 22, 0.5);
   }
 
 }
