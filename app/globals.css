@@ -349,10 +349,10 @@ img {
     position: fixed;
     right: max(24px, env(safe-area-inset-right, 0px));
     bottom: max(20px, env(safe-area-inset-bottom, 0px));
-    z-index: 20;
+    z-index: 5;
     display: block;
+    width: auto;
     max-width: 270px;
-    width: 270px;
     color: rgba(55, 48, 42, 0.92);
     font-size: 0.78rem;
     line-height: 1.35;
@@ -413,7 +413,6 @@ img {
     font-size: 0.68rem;
     max-width: 220px;
     right: max(10px, env(safe-area-inset-right, 0px));
-    width: 220px;
   }
 
   .seasonal-artwork-caption span {
