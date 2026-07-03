@@ -1,4 +1,4 @@
-import { Body, Equator, Horizon, Illumination, Observer } from 'astronomy-engine';
+import { Body, Equator, Horizon, Illumination, Observer, SearchRiseSet } from 'astronomy-engine';
 
 export type SkyRegion = 'north' | 'center' | 'south';
 
@@ -142,4 +142,26 @@ export function getVisiblePlanets(
       second.altitude - first.altitude
     ))
     .slice(0, 3);
+}
+
+export function getDaylightDuration(dataIso: string): string {
+  // Use Rome coordinates (latitude, longitude, height) as the standard observer location
+  const observer = new Observer(41.9028, 12.4964, 20);
+  const midnight = makeRomeDate(dataIso, 0);
+
+  const rise = SearchRiseSet(Body.Sun, observer, 1, midnight, 1);
+  const searchStart = rise ? rise.date : midnight;
+  const set = SearchRiseSet(Body.Sun, observer, -1, searchStart, 1);
+
+  if (rise && set) {
+    const diffMs = set.date.getTime() - rise.date.getTime();
+    const diffMinutes = Math.round(diffMs / 60_000);
+    if (diffMinutes > 0) {
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+      return `${hours} h ${minutes} min`;
+    }
+  }
+
+  return '—';
 }

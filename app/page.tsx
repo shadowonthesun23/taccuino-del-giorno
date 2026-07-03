@@ -725,7 +725,7 @@ function SeasonalBookmark({
 }) {
   const ticketRef = useRef<HTMLSpanElement>(null);
   const [skyRegion, setSkyRegion] = useState<SkyRegion>('center');
-  const [planetResult, setPlanetResult] = useState<{ key: string; planets: VisiblePlanet[] } | null>(null);
+  const [planetResult, setPlanetResult] = useState<{ key: string; planets: VisiblePlanet[]; daylight: string } | null>(null);
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingTicket, setExportingTicket] = useState(false);
   const [desktopTicketEnabled, setDesktopTicketEnabled] = useState(false);
@@ -754,12 +754,12 @@ function SeasonalBookmark({
     'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent' },
   };
   const moonLabel = moonLabels[moon.phase][lingua];
-  const seasonEvent = getNextAstronomicalSeasonLabel(dataIso, lingua);
   const nextFullMoonLabel = formatUtcDate(getNextFullMoonDate(dataIso), lingua);
   const fullMoonAriaLabel = lingua === 'IT' ? 'Prossima luna piena' : 'Next full moon';
   const almanacLabel = lingua === 'IT' ? 'Effemeridi' : 'Almanac';
-  const moonRowLabel = lingua === 'IT' ? 'Luna' : 'Moon';
-  const fullMoonRowLabel = lingua === 'IT' ? 'Luna piena' : 'Full moon';
+  const moonRowLabel = lingua === 'IT' ? 'Luna:' : 'Moon:';
+  const fullMoonRowLabel = lingua === 'IT' ? 'Luna piena:' : 'Full moon:';
+  const daylightRowLabel = lingua === 'IT' ? 'Luce del giorno:' : 'Daylight:';
   const planetsLabel = lingua === 'IT' ? 'Pianeti osservabili' : 'Observable planets';
   const selectedRegion = SKY_REGION_OPTIONS.find((region) => region.id === skyRegion) ?? SKY_REGION_OPTIONS[1];
   const dayOfYear = getDayOfYearInfo(dataIso);
@@ -768,6 +768,7 @@ function SeasonalBookmark({
   const ticketArtworkImageUrl = seasonalArtwork?.imageUrl || '';
   const planetResultKey = `${dataIso}:${skyRegion}:${lingua}`;
   const visiblePlanets = planetResult?.key === planetResultKey ? planetResult.planets : null;
+  const daylightValue = planetResult?.key === planetResultKey ? planetResult.daylight : null;
   const planetSummary = visiblePlanets?.length
     ? visiblePlanets.map((planet) => `${planet.name}, ${planet.direction}, ${planet.bestTime}`).join('. ')
     : lingua === 'IT' ? 'Nessun pianeta ben osservabile' : 'No planet clearly observable';
@@ -803,11 +804,12 @@ function SeasonalBookmark({
   useEffect(() => {
     let cancelled = false;
 
-    void import('@/lib/visible-planets').then(({ getVisiblePlanets }) => {
+    void import('@/lib/visible-planets').then(({ getVisiblePlanets, getDaylightDuration }) => {
       if (!cancelled) {
         setPlanetResult({
           key: planetResultKey,
           planets: getVisiblePlanets(dataIso, skyRegion, lingua),
+          daylight: getDaylightDuration(dataIso),
         });
       }
     });
@@ -951,7 +953,7 @@ function SeasonalBookmark({
       <aside
       id="effemeridi"
       className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''}`}
-      aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${seasonEvent.event}: ${seasonEvent.countdown}. ${planetsLabel}, ${selectedRegion[lingua]}: ${planetSummary}`}
+      aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${daylightRowLabel}: ${daylightValue || '…'}. ${planetsLabel}: ${planetSummary}`}
       aria-hidden={!desktopTicketEnabled}
       inert={!desktopTicketEnabled ? true : undefined}
       tabIndex={desktopTicketEnabled ? 0 : -1}
@@ -998,47 +1000,25 @@ function SeasonalBookmark({
           <span className="seasonal-bookmark-astronomy">
             <span><em>{moonRowLabel}</em><strong>{moonLabel} · {moon.illumination}%</strong></span>
             <span><em>{fullMoonRowLabel}</em><strong>{nextFullMoonLabel}</strong></span>
-            <span><em>{seasonEvent.event}</em><strong>{seasonEvent.countdown}</strong></span>
+            <span><em>{daylightRowLabel}</em><strong>{daylightValue || (lingua === 'IT' ? 'Calcolo…' : 'Calculating…')}</strong></span>
           </span>
           <span className="seasonal-bookmark-planets">
             <span className="seasonal-bookmark-planets-heading">
               <strong>{planetsLabel}</strong>
-              <span
-                className="seasonal-bookmark-regions"
-                role="group"
-                aria-label={lingua === 'IT' ? 'Zona italiana di riferimento' : 'Reference area in Italy'}
-              >
-                {SKY_REGION_OPTIONS.map((region) => (
-                  <button
-                    key={region.id}
-                    type="button"
-                    className={skyRegion === region.id ? 'is-active' : ''}
-                    aria-pressed={skyRegion === region.id}
-                    aria-label={`${region[lingua]}, ${lingua === 'IT' ? region.cityIT : region.cityEN}`}
-                    onClick={() => selectSkyRegion(region.id)}
-                  >
-                    {region[lingua]}
-                  </button>
-                ))}
-              </span>
             </span>
             <span className="seasonal-bookmark-planet-list" aria-live="polite">
               {visiblePlanets === null ? (
                 <em>{lingua === 'IT' ? 'Calcolo del cielo…' : 'Reading the sky…'}</em>
               ) : visiblePlanets.length > 0 ? visiblePlanets.map((planet) => (
-                <span key={planet.body}>
+                <span key={planet.body} className="seasonal-bookmark-planet-row">
                   <strong>{planet.name}</strong>
-                  <span>{planet.direction} · {planet.bestTime}</span>
+                  <span>{planet.direction}</span>
+                  <span>{planet.bestTime}</span>
                 </span>
               )) : (
                 <em>{lingua === 'IT' ? 'Nessuno ben osservabile stanotte' : 'None clearly observable tonight'}</em>
               )}
             </span>
-            <small>
-              {lingua === 'IT' ? 'Cielo calcolato per' : 'Sky calculated for'} {lingua === 'IT' ? selectedRegion.cityIT : selectedRegion.cityEN}
-              {' · '}
-              {lingua === 'IT' ? 'condizioni ideali' : 'ideal conditions'}
-            </small>
           </span>
           <button
             type="button"
