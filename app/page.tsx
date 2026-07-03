@@ -2345,7 +2345,7 @@ export default function Home() {
                 </div>
               </div>
               <h1
-                className="journal-hero-title text-[42px] sm:text-5xl md:text-[56px] lg:text-6xl font-medium tracking-tight mb-2"
+                className="journal-hero-title text-[36px] sm:text-[44px] md:text-[48px] lg:text-[52px] font-medium tracking-tight mb-2"
                 style={{
                   textShadow: isDark
                     ? '0 2px 10px rgba(0,0,0,0.55)'
