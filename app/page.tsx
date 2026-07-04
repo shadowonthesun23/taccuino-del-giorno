@@ -1921,6 +1921,12 @@ export default function Home() {
     ? opera?.dipartimento_it || opera?.dipartimento
     : opera?.dipartimento;
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
+  const { day: dayOfYear, total: totalDays } = getDayOfYearInfo(dataExLibris);
+  const sealColors = [
+    'blu', 'rosso', 'oro', 'verde-scuro', 'salvia', 'verde-chiaro', 'borgogna', 
+    'rame', 'terracotta', 'argento', 'ocra', 'antracite', 'ottanio'
+  ];
+  const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
   const visibleSaintArtwork = (
     saintArtwork
     && data?.santi.length === 1
@@ -2775,12 +2781,16 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer ref={footerRef} className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner" data-reveal-readability>
-              <div className="daily-ex-libris" aria-label={`${lingua === 'IT' ? 'Ex libris del giorno' : 'Daily ex libris'}: ${data.autore_giorno}`}>
-                <span className="daily-ex-libris-ring" aria-hidden="true" />
-                <span className="daily-ex-libris-kicker">Ex Libris</span>
-                <strong>{inizialiExLibris}</strong>
-                <span className="daily-ex-libris-date">{formatExLibrisDate(dataExLibris)}</span>
-                <span className="daily-ex-libris-ledger">{formatExLibrisLedger(dataExLibris, lingua)}</span>
+              <div className={`daily-wax-seal seal-${currentSealColor}`} aria-label={`${lingua === 'IT' ? 'Sigillo di ceralacca del giorno' : 'Daily wax seal'}: ${data.autore_giorno}`}>
+                <div className="daily-wax-seal-inner">
+                  <span className="seal-initials">{inizialiExLibris}</span>
+                  <span className="seal-date">{formatExLibrisDate(dataExLibris)}</span>
+                  <span className="seal-edition">
+                    {lingua === 'IT' ? 'edizione' : 'edition'}
+                    <br />
+                    {lingua === 'IT' ? `n. ${dayOfYear} di ${totalDays}` : `no. ${dayOfYear} of ${totalDays}`}
+                  </span>
+                </div>
               </div>
               <p className={`journal-footer-title ${masterSignature.className} notebook-wordmark`}>
                 {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}

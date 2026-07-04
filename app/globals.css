@@ -5350,6 +5350,234 @@ body {
   border-color: rgba(222,107,88,0.3);
 }
 
+/* ── DAILY WAX SEAL (CERALACCA) ── */
+.daily-wax-seal {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  transform: rotate(-3deg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  user-select: none;
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.32));
+  transition: transform 0.3s ease;
+}
+
+.daily-wax-seal:hover {
+  transform: rotate(-1deg) scale(1.03);
+}
+
+.daily-wax-seal-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  text-align: center;
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  line-height: 1.05;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.daily-wax-seal .seal-initials {
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 5px;
+  margin-bottom: 0px;
+  line-height: 0.95;
+  display: block;
+}
+
+.daily-wax-seal .seal-date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: block;
+  white-space: nowrap;
+}
+
+.daily-wax-seal .seal-edition {
+  font-size: 0.58rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  display: block;
+}
+
+/* 1. RED SEAL */
+.daily-wax-seal.seal-rosso {
+  background-image: url('/images/sigillo-rosso.png');
+}
+.daily-wax-seal.seal-rosso .daily-wax-seal-inner {
+  color: #5a1216;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.45), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.16);
+  mix-blend-mode: multiply;
+}
+
+/* 2. BLUE SEAL */
+.daily-wax-seal.seal-blu {
+  background-image: url('/images/sigillo-blu.png');
+}
+.daily-wax-seal.seal-blu .daily-wax-seal-inner {
+  color: #142638;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.5), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.12);
+  mix-blend-mode: multiply;
+}
+
+/* 3. GOLD SEAL */
+.daily-wax-seal.seal-oro {
+  background-image: url('/images/sigillo-oro.png');
+}
+.daily-wax-seal.seal-oro .daily-wax-seal-inner {
+  color: #624d2d;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.48), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.22);
+  mix-blend-mode: multiply;
+}
+
+/* 4. DARK GREEN SEAL */
+.daily-wax-seal.seal-verde-scuro {
+  background-image: url('/images/sigillo-verde-scuro.png');
+}
+.daily-wax-seal.seal-verde-scuro .daily-wax-seal-inner {
+  color: #10351d;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.48), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.15);
+  mix-blend-mode: multiply;
+}
+
+/* 5. SAGE GREEN SEAL */
+.daily-wax-seal.seal-salvia {
+  background-image: url('/images/sigillo-salvia.png');
+}
+.daily-wax-seal.seal-salvia .daily-wax-seal-inner {
+  color: #2d3524;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.42), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.22);
+  mix-blend-mode: multiply;
+}
+
+/* 5b. LIGHT GREEN SEAL */
+.daily-wax-seal.seal-verde-chiaro {
+  background-image: url('/images/sigillo-verde-chiaro.png');
+}
+.daily-wax-seal.seal-verde-chiaro .daily-wax-seal-inner {
+  color: #2d3d2c;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.38), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.35);
+  mix-blend-mode: multiply;
+}
+
+/* 6. BURGUNDY SEAL */
+.daily-wax-seal.seal-borgogna {
+  background-image: url('/images/sigillo-borgogna.png');
+}
+.daily-wax-seal.seal-borgogna .daily-wax-seal-inner {
+  color: #3d0c11;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.5), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.16);
+  mix-blend-mode: multiply;
+}
+
+/* 7. COPPER SEAL */
+.daily-wax-seal.seal-rame {
+  background-image: url('/images/sigillo-rame.png');
+}
+.daily-wax-seal.seal-rame .daily-wax-seal-inner {
+  color: #633924;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.42), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.32);
+  mix-blend-mode: multiply;
+}
+
+/* 8. TERRACOTTA SEAL */
+.daily-wax-seal.seal-terracotta {
+  background-image: url('/images/sigillo-terracotta.png');
+}
+.daily-wax-seal.seal-terracotta .daily-wax-seal-inner {
+  color: #602e1a;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.45), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.25);
+  mix-blend-mode: multiply;
+}
+
+/* 9. SILVER SEAL */
+.daily-wax-seal.seal-argento {
+  background-image: url('/images/sigillo-argento.png');
+}
+.daily-wax-seal.seal-argento .daily-wax-seal-inner {
+  color: #4a4c4e;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.38), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.45);
+  mix-blend-mode: multiply;
+}
+
+/* 10. OCHRE SEAL */
+.daily-wax-seal.seal-ocra {
+  background-image: url('/images/sigillo-ocra.png');
+}
+.daily-wax-seal.seal-ocra .daily-wax-seal-inner {
+  color: #6d5225;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.4), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.3);
+  mix-blend-mode: multiply;
+}
+
+/* 11. ANTHRACITE SEAL */
+.daily-wax-seal.seal-antracite {
+  background-image: url('/images/sigillo-antracite.png');
+}
+.daily-wax-seal.seal-antracite .daily-wax-seal-inner {
+  color: #1c1d1e;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.65), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.12);
+  mix-blend-mode: multiply;
+}
+
+/* 12. TEAL SEAL */
+.daily-wax-seal.seal-ottanio {
+  background-image: url('/images/sigillo-ottanio.png');
+}
+.daily-wax-seal.seal-ottanio .daily-wax-seal-inner {
+  color: #0e3034;
+  text-shadow: 
+    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.5), 
+    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.18);
+  mix-blend-mode: multiply;
+}
+
+/* Dark mode atmospheric override */
+.dark .daily-wax-seal,
+[data-theme="dark"] .daily-wax-seal {
+  filter: brightness(0.85) contrast(1.05) drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.58));
+}
+
+
 .journal-footer-title {
   color: #2a2522;
   font-size: clamp(2.1rem, 5vw, 3.2rem);
@@ -6658,6 +6886,28 @@ body {
 
   .daily-ex-libris strong {
     font-size: 1.5rem;
+  }
+
+  .daily-wax-seal {
+    width: 112px;
+    height: 112px;
+    margin-bottom: 20px;
+  }
+  .daily-wax-seal-inner {
+    width: 74px;
+    height: 74px;
+  }
+  .daily-wax-seal .seal-initials {
+    font-size: 1.45rem;
+    margin-top: 4px;
+    margin-bottom: 0px;
+  }
+  .daily-wax-seal .seal-date {
+    font-size: 0.58rem;
+    margin-bottom: 2px;
+  }
+  .daily-wax-seal .seal-edition {
+    font-size: 0.46rem;
   }
 
   .journal-footer::before {
