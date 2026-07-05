@@ -19,6 +19,7 @@ const badgeVariants: Record<string, string> = {
   avvenimenti: 'badge-tilt-right',
   poesia: 'badge-tilt-left',
   bibbia: 'badge-tilt-right',
+  apod: 'badge-tilt-left',
 };
 
 const SOCIAL_EXPORT_WIDTH = 1080;
@@ -37,6 +38,7 @@ const SOCIAL_EXPORT_TARGET_HEIGHTS: Record<string, number> = {
   poesia: 1420,
   bibbia: 1420,
   musica: 1320,
+  apod: 1420,
 };
 
 interface CardProps {

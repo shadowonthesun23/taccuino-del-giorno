@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import { QRCodeSVG } from 'qrcode.react';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck, Telescope } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -192,6 +192,19 @@ const WatercolorDivider = ({ isDark, accentColor }: { isDark: boolean; accentCol
 type OperaGiorno = Artwork;
 type SaintArtworkResult = SaintArtwork & { saintName: string };
 
+interface ApodData {
+  date: string;
+  media_type: 'image' | 'video' | string;
+  url: string;
+  hdurl?: string;
+  thumbnail_url?: string;
+  title_en: string;
+  explanation_en: string;
+  title_it: string;
+  explanation_it: string;
+  copyright?: string;
+}
+
 interface DatiTaccuino {
   data_odierna: string;
   autore_giorno: string;
@@ -211,7 +224,7 @@ interface ArchivioItem {
   autore_giorno: string;
 }
 
-type SavedSectionId = 'citazione' | 'parola' | 'santi' | 'opera' | 'avvenimenti' | 'poesia' | 'bibbia' | 'musica';
+type SavedSectionId = 'citazione' | 'parola' | 'santi' | 'opera' | 'avvenimenti' | 'poesia' | 'bibbia' | 'musica' | 'apod';
 
 interface SavedCardItem {
   id: string;
@@ -1329,6 +1342,7 @@ const notebookNavItems = [
   { id: 'avvenimenti', icon: CalendarDays, labelIT: 'Accadde oggi', labelEN: 'This day in history' },
   { id: 'poesia', icon: Feather, labelIT: 'Poesia', labelEN: 'Poem' },
   { id: 'bibbia', icon: BookOpen, labelIT: 'Passaggio biblico', labelEN: 'Biblical passage' },
+  { id: 'apod', icon: Telescope, labelIT: 'Foto astronomica', labelEN: 'Astronomy picture', optional: true },
   { id: 'musica', icon: Music, labelIT: 'Musica', labelEN: 'Music' },
 ];
 
@@ -1369,16 +1383,22 @@ function NotebookQuickNav({
   isDark,
   lingua,
   hasOpera,
+  hasApod,
   activeSection,
   readingComplete,
 }: {
   isDark: boolean;
   lingua: 'IT' | 'EN';
   hasOpera: boolean;
+  hasApod: boolean;
   activeSection: string;
   readingComplete: boolean;
 }) {
-  const visibleItems = notebookNavItems.filter((item) => hasOpera || !item.optional);
+  const visibleItems = notebookNavItems.filter((item) => {
+    if (item.id === 'opera') return hasOpera;
+    if (item.id === 'apod') return hasApod;
+    return true;
+  });
 
   return (
     <nav
@@ -1404,6 +1424,7 @@ function MobileReadingThread({
   isDark,
   lingua,
   hasOpera,
+  hasApod,
   activeSection,
   open,
   hidden,
@@ -1413,13 +1434,18 @@ function MobileReadingThread({
   isDark: boolean;
   lingua: 'IT' | 'EN';
   hasOpera: boolean;
+  hasApod: boolean;
   activeSection: string;
   open: boolean;
   hidden: boolean;
   onToggle: () => void;
   onNavigate: () => void;
 }) {
-  const visibleItems = notebookNavItems.filter((item) => hasOpera || !item.optional);
+  const visibleItems = notebookNavItems.filter((item) => {
+    if (item.id === 'opera') return hasOpera;
+    if (item.id === 'apod') return hasApod;
+    return true;
+  });
   const activeItem = visibleItems.find((item) => item.id === activeSection) ?? visibleItems[0];
   const ActiveIcon = activeItem.icon;
   const activeLabel = lingua === 'IT' ? activeItem.labelIT : activeItem.labelEN;
@@ -1476,6 +1502,7 @@ export default function Home() {
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
+  const [apod, setApod] = useState<ApodData | null>(null);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
   const [musicCover, setMusicCover] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -1621,7 +1648,11 @@ export default function Home() {
     if (!data) return;
 
     const sectionIds = notebookNavItems
-      .filter((item) => Boolean(opera) || !item.optional)
+      .filter((item) => {
+        if (item.id === 'opera') return Boolean(opera);
+        if (item.id === 'apod') return Boolean(apod);
+        return true;
+      })
       .map((item) => item.id);
     const sections = sectionIds
       .map((id) => document.getElementById(id))
@@ -1639,7 +1670,7 @@ export default function Home() {
 
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, [data, opera]);
+  }, [data, opera, apod]);
 
   useEffect(() => {
     if (!data) return;
@@ -1746,7 +1777,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1758,10 +1789,14 @@ export default function Home() {
         if (res.status === 204) return null;
         return res.ok ? res.json() : null;
       }).catch(() => null),
+      fetch(dataIso ? `/api/apod?data=${encodeURIComponent(dataIso)}` : '/api/apod').then(res => {
+        if (res.status === 204) return null;
+        return res.ok ? res.json() : null;
+      }).catch(() => null),
       minimumTurnDelay,
     ])
-      .then(([dati, operaData]) => {
-        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
+      .then(([dati, operaData, apodData]) => {
+        setData(dati); setDataOriginale(dati); setOpera(operaData); setApod(apodData); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
         const nextUrl = new URL(window.location.href);
         if (dataIso) nextUrl.searchParams.set('data', dataIso);
         else nextUrl.searchParams.delete('data');
@@ -2146,6 +2181,7 @@ export default function Home() {
           isDark={isDark}
           lingua={lingua}
           hasOpera={Boolean(opera)}
+          hasApod={Boolean(apod)}
           activeSection={activeSection}
           readingComplete={readingComplete}
         />
@@ -2153,6 +2189,7 @@ export default function Home() {
           isDark={isDark}
           lingua={lingua}
           hasOpera={Boolean(opera)}
+          hasApod={Boolean(apod)}
           activeSection={activeSection}
           open={mobileNavOpen}
           hidden={footerInView || !mobileReadingVisible}
@@ -2709,11 +2746,109 @@ export default function Home() {
               )}
             </Card>
 
+            {/* ── IMMAGINE ASTRONOMICA ── */}
+            {apod && (
+              <Card
+                id="apod"
+                isDark={isDark}
+                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
+                filename={`apod-${dataExLibris}`}
+                isSaved={isCardSaved('apod')}
+                onToggleSaved={() =>
+                  saveCard(
+                    'apod',
+                    lingua === 'IT' ? apod.title_it : apod.title_en,
+                    (lingua === 'IT' ? apod.explanation_it : apod.explanation_en).slice(0, 180),
+                    apod.copyright
+                  )
+                }
+              >
+                <div className="card-section-heading flex items-center justify-center">
+                  <img
+                    draggable={false}
+                    src="/images/tape-astronomia.png"
+                    alt={lingua === 'IT' ? 'Foto astronomica del giorno' : 'Astronomy picture of the day'}
+                    className="apod-card-tape"
+                  />
+                </div>
+
+                <div className="apod-card-layout">
+                  <div className="apod-media-container select-none">
+                    <div className={`apod-postcard ${isDark ? 'is-dark' : ''}`}>
+                      {apod.media_type === 'video' ? (
+                        <div className="relative w-full aspect-video rounded-md overflow-hidden bg-black/10 border border-black/5 dark:border-white/5">
+                          {apod.thumbnail_url ? (
+                            <img
+                              draggable={false}
+                              src={`/api/image-proxy?url=${encodeURIComponent(apod.thumbnail_url)}`}
+                              alt={lingua === 'IT' ? apod.title_it : apod.title_en}
+                              className="w-full h-full object-cover filter saturate-[0.94] contrast-[0.98]"
+                              {...lazyImageProps}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm text-neutral-400 italic">
+                              {lingua === 'IT' ? 'Anteprima video non disponibile' : 'Video preview not available'}
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                            <span className="w-14 h-14 rounded-full bg-white/90 dark:bg-neutral-900/90 flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300">
+                              <ExternalLink className="w-6 h-6 text-[#DE6B58]" strokeWidth={2} />
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <img
+                          draggable={false}
+                          src={`/api/image-proxy?url=${encodeURIComponent(apod.url)}`}
+                          alt={lingua === 'IT' ? apod.title_it : apod.title_en}
+                          className="apod-image"
+                          {...lazyImageProps}
+                        />
+                      )}
+                      <span className="apod-postcard-source-label">
+                        NASA APOD · {lingua === 'IT' ? apod.title_it : apod.title_en} · {data.data_odierna}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="apod-copy-cell mt-6">
+                    <h4 className="card-primary-title text-3xl font-bold mb-2">
+                      {lingua === 'IT' ? apod.title_it : apod.title_en}
+                    </h4>
+                    {apod.copyright && (
+                      <p className="card-byline text-lg font-medium mb-4">
+                        {lingua === 'IT' ? 'Crediti:' : 'Credit:'}{' '}
+                        <span className="font-bold">{apod.copyright}</span>
+                      </p>
+                    )}
+                    <p className="card-body-copy text-xl font-medium leading-relaxed mb-6 whitespace-pre-line">
+                      {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
+                    </p>
+                    <div className="apod-link-actions flex gap-4" data-export-ignore>
+                      <a
+                        href={apod.hdurl || apod.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                        <span>
+                          {apod.media_type === 'video'
+                            ? (lingua === 'IT' ? 'Guarda il video' : 'Watch video')
+                            : (lingua === 'IT' ? 'Vedi risoluzione originale' : 'View original resolution')}
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* ── CONSIGLIO MUSICALE ── */}
             <Card
               id="musica"
               isDark={isDark}
-              className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
+              className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
               filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
               isSaved={isCardSaved('musica')}
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
