@@ -247,6 +247,7 @@ export default function AuthorExportCard({
 
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '68px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
             <div className="author-tape-title-wrapper select-none">
+              <span className="badge-tape-bg" aria-hidden="true" />
               <Feather className="w-[19px] h-[19px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
               <span className={`${garamond.className} italic text-[22px] font-medium text-[#f4f0e6] leading-none`}>
                 {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}

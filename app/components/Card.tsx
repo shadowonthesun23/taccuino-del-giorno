@@ -119,6 +119,10 @@ export default function Card({
       exportFrame.style.backgroundSize = 'cover, cover, cover';
       exportFrame.style.backgroundPosition = 'center, center, center';
       exportFrame.style.fontFamily = sourceFontFamily;
+      
+      const computedStyle = window.getComputedStyle(source);
+      const parentTapeFilter = computedStyle.getPropertyValue('--tape-filter') || 'none';
+      exportFrame.style.setProperty('--tape-filter', parentTapeFilter);
 
       const exportVignette = document.createElement('div');
       exportVignette.style.position = 'absolute';
@@ -288,6 +292,7 @@ export default function Card({
         {title && (
           <div className="card-section-heading flex items-center justify-start">
             <h3 className={`${garamond.className} italic section-typewriter-badge badge-${id} ${id ? badgeVariants[id] ?? '' : ''} text-sm m-0`}>
+              <span className="badge-tape-bg" aria-hidden="true" />
               {Icon && <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />}
               <span>{title}</span>
             </h3>

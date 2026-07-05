@@ -1968,6 +1968,27 @@ export default function Home() {
     'rame', 'terracotta', 'argento', 'ocra', 'antracite', 'ottanio'
   ];
   const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
+
+  const tapeFilters = [
+    'none', // Burgundy (Original)
+    'hue-rotate(95deg) saturate(0.65) brightness(0.95)', // Sage Olive Green
+    'hue-rotate(25deg) saturate(0.85) brightness(0.9)', // Warm Terracotta
+    'hue-rotate(205deg) saturate(0.7) brightness(0.9)', // Slate Blue
+    'hue-rotate(135deg) saturate(0.65) brightness(0.85)', // Forest Green
+    'hue-rotate(220deg) saturate(0.75) brightness(0.8)', // Deep Indigo/Navy
+    'hue-rotate(275deg) saturate(0.7) brightness(0.85)', // Plum Purple
+    'hue-rotate(50deg) saturate(0.8) brightness(0.95)', // Ochre Yellow
+    'hue-rotate(165deg) saturate(0.7) brightness(0.85)', // Vintage Teal
+    'hue-rotate(345deg) saturate(0.95) brightness(0.85)', // Deep Crimson
+  ];
+  const currentTapeFilter = tapeFilters[(dayOfYear - 1) % tapeFilters.length];
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.style.setProperty('--tape-filter', currentTapeFilter);
+    }
+  }, [currentTapeFilter]);
+
   const visibleSaintArtwork = (
     saintArtwork
     && data?.santi.length === 1
@@ -2478,6 +2499,7 @@ export default function Home() {
         <div className="relative z-10">
           <div className="mb-3 select-none flex justify-start">
             <div className="author-tape-title-wrapper">
+              <span className="badge-tape-bg" aria-hidden="true" />
               <Feather className="w-[17px] h-[17px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
               <span className={`${garamond.className} italic text-[19px] font-medium text-[#f4f0e6] leading-none`}>
                 {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
@@ -2932,6 +2954,7 @@ export default function Home() {
                 <div className="music-copy-cell">
                   <div className="flex items-center justify-start mb-5">
                     <h3 className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}>
+                      <span className="badge-tape-bg" aria-hidden="true" />
                       <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
                       <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
                     </h3>

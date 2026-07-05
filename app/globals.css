@@ -2348,9 +2348,6 @@ body {
   height: 38px;
   max-width: 100%;
   z-index: 5;
-  background-image: url("/images/tape-vuoto.png");
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
   transform: rotate(var(--badge-rotation, -0.7deg));
   padding: 0 10px 3px 14px;
   box-shadow: none !important;
@@ -2401,7 +2398,7 @@ body {
 }
 
 /* No shadow/effects on dynamic text and icon inside tape */
-.section-typewriter-badge span,
+.section-typewriter-badge span:not(.badge-tape-bg),
 .section-typewriter-badge svg {
   text-shadow: none !important;
   filter: none !important;
@@ -7441,9 +7438,6 @@ body {
   height: 38px;
   max-width: 100%;
   z-index: 5;
-  background-image: url("/images/tape-vuoto.png");
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
   transform: rotate(-0.7deg);
   padding: 0 10px 3px 14px; /* offset padding to center content vertically and push to the left */
 }
@@ -7480,10 +7474,22 @@ body {
 }
 
 /* No shadow/effects on dynamic text and icon inside tape */
-.author-tape-title-wrapper span,
+.author-tape-title-wrapper span:not(.badge-tape-bg),
 .author-tape-title-wrapper svg {
   text-shadow: none !important;
   filter: none !important;
+}
+
+/* Background dynamic washi tape styling layer */
+.badge-tape-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("/images/tape-vuoto.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  filter: var(--tape-filter, none);
+  pointer-events: none;
 }
 
 /* Override tape size on social export card to accommodate larger export typography scale */
@@ -7496,7 +7502,7 @@ body {
   gap: 6px !important;
 }
 
-.social-export-card .section-typewriter-badge span {
+.social-export-card .section-typewriter-badge span:not(.badge-tape-bg) {
   font-size: 22px !important;
 }
 
@@ -7507,8 +7513,11 @@ body {
 }
 
 /* Specific override to use the medium tape PNG for the Citazione (Quote) section */
-.section-typewriter-badge.badge-citazione {
+.section-typewriter-badge.badge-citazione .badge-tape-bg {
   background-image: url("/images/tape-medio.png") !important;
+}
+
+.section-typewriter-badge.badge-citazione {
   min-width: 150px !important;
 }
 
@@ -7523,7 +7532,7 @@ body {
   flex-direction: row-reverse !important; /* visually preserves the Icon-left and Text-right order */
 }
 
-.section-typewriter-badge.badge-mirrored span,
+.section-typewriter-badge.badge-mirrored span:not(.badge-tape-bg),
 .section-typewriter-badge.badge-mirrored svg {
   transform: scaleX(-1) !important;
   display: inline-block !important;
