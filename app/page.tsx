@@ -2774,7 +2774,7 @@ export default function Home() {
                 <div className="card-section-heading flex items-center justify-center">
                   <img
                     draggable={false}
-                    src="/images/tape-astronomia.png"
+                    src={lingua === 'IT' ? "/images/tape-astronomia.png" : "/images/tape-astronomia-en.png"}
                     alt={lingua === 'IT' ? 'Foto astronomica del giorno' : 'Astronomy picture of the day'}
                     className="apod-card-tape"
                   />
