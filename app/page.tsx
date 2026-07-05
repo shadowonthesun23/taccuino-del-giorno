@@ -1503,6 +1503,7 @@ export default function Home() {
   const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [apod, setApod] = useState<ApodData | null>(null);
+  const [apodLoading, setApodLoading] = useState(false);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
   const [musicCover, setMusicCover] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -1777,7 +1778,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1789,18 +1790,22 @@ export default function Home() {
         if (res.status === 204) return null;
         return res.ok ? res.json() : null;
       }).catch(() => null),
-      fetch(dataIso ? `/api/apod?data=${encodeURIComponent(dataIso)}` : '/api/apod').then(res => {
-        if (res.status === 204) return null;
-        return res.ok ? res.json() : null;
-      }).catch(() => null),
       minimumTurnDelay,
     ])
-      .then(([dati, operaData, apodData]) => {
-        setData(dati); setDataOriginale(dati); setOpera(operaData); setApod(apodData); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
+      .then(([dati, operaData]) => {
+        setData(dati); setDataOriginale(dati); setOpera(operaData); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
         const nextUrl = new URL(window.location.href);
         if (dataIso) nextUrl.searchParams.set('data', dataIso);
         else nextUrl.searchParams.delete('data');
         window.history.replaceState(window.history.state, '', nextUrl);
+
+        // Caricamento asincrono in background dell'APOD
+        setApodLoading(true);
+        fetch(dataIso ? `/api/apod?data=${encodeURIComponent(dataIso)}` : '/api/apod')
+          .then((res) => (res.status === 204 ? null : res.ok ? res.json() : null))
+          .then((apodData) => setApod(apodData))
+          .catch(() => setApod(null))
+          .finally(() => setApodLoading(false));
         rememberVisitedDate(dataIso ?? oggi);
         if (targetSection === 'autore') {
           window.scrollTo({ top: 0, behavior: usePageTurn ? 'auto' : 'smooth' });
@@ -2181,7 +2186,7 @@ export default function Home() {
           isDark={isDark}
           lingua={lingua}
           hasOpera={Boolean(opera)}
-          hasApod={Boolean(apod)}
+          hasApod={Boolean(apod) || apodLoading}
           activeSection={activeSection}
           readingComplete={readingComplete}
         />
@@ -2189,7 +2194,7 @@ export default function Home() {
           isDark={isDark}
           lingua={lingua}
           hasOpera={Boolean(opera)}
-          hasApod={Boolean(apod)}
+          hasApod={Boolean(apod) || apodLoading}
           activeSection={activeSection}
           open={mobileNavOpen}
           hidden={footerInView || !mobileReadingVisible}
@@ -2747,20 +2752,23 @@ export default function Home() {
             </Card>
 
             {/* ── IMMAGINE ASTRONOMICA ── */}
-            {apod && (
+            {(apod || apodLoading) && (
               <Card
                 id="apod"
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
-                filename={`apod-${dataExLibris}`}
+                filename={apod ? `apod-${dataExLibris}` : undefined}
                 isSaved={isCardSaved('apod')}
-                onToggleSaved={() =>
-                  saveCard(
-                    'apod',
-                    lingua === 'IT' ? apod.title_it : apod.title_en,
-                    (lingua === 'IT' ? apod.explanation_it : apod.explanation_en).slice(0, 180),
-                    apod.copyright
-                  )
+                onToggleSaved={
+                  apod
+                    ? () =>
+                        saveCard(
+                          'apod',
+                          lingua === 'IT' ? apod.title_it : apod.title_en,
+                          (lingua === 'IT' ? apod.explanation_it : apod.explanation_en).slice(0, 180),
+                          apod.copyright
+                        )
+                    : undefined
                 }
               >
                 <div className="card-section-heading flex items-center justify-center">
@@ -2772,75 +2780,92 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="apod-card-layout">
-                  <div className="apod-media-container select-none">
-                    <div className={`apod-postcard ${isDark ? 'is-dark' : ''}`}>
-                      {apod.media_type === 'video' ? (
-                        <div className="relative w-full aspect-video rounded-md overflow-hidden bg-black/10 border border-black/5 dark:border-white/5">
-                          {apod.thumbnail_url ? (
+                {apodLoading ? (
+                  <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                    <div className="relative w-12 h-12 flex items-center justify-center">
+                      <Telescope className="w-8 h-8 text-[#DE6B58] animate-pulse" strokeWidth={1.5} />
+                      <div 
+                        className="absolute inset-0 border-2 border-dashed border-[#DE6B58]/30 rounded-full"
+                        style={{ animation: 'spin 10s linear infinite' }}
+                      />
+                    </div>
+                    <p className={`text-xl font-medium italic ${isDark ? 'text-[#A0A0A0]' : 'text-[#7D7571]'} animate-pulse`}>
+                      {lingua === 'IT' ? 'Osservo le stelle...' : 'Observing the stars...'}
+                    </p>
+                  </div>
+                ) : (
+                  apod && (
+                    <div className="apod-card-layout">
+                      <div className="apod-media-container select-none">
+                        <div className={`apod-postcard ${isDark ? 'is-dark' : ''}`}>
+                          {apod.media_type === 'video' ? (
+                            <div className="relative w-full aspect-video rounded-md overflow-hidden bg-black/10 border border-black/5 dark:border-white/5">
+                              {apod.thumbnail_url ? (
+                                <img
+                                  draggable={false}
+                                  src={`/api/image-proxy?url=${encodeURIComponent(apod.thumbnail_url)}`}
+                                  alt={lingua === 'IT' ? apod.title_it : apod.title_en}
+                                  className="w-full h-full object-cover filter saturate-[0.94] contrast-[0.98]"
+                                  {...lazyImageProps}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-sm text-neutral-400 italic">
+                                  {lingua === 'IT' ? 'Anteprima video non disponibile' : 'Video preview not available'}
+                                </div>
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                                <span className="w-14 h-14 rounded-full bg-white/90 dark:bg-neutral-900/90 flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300">
+                                  <ExternalLink className="w-6 h-6 text-[#DE6B58]" strokeWidth={2} />
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
                             <img
                               draggable={false}
-                              src={`/api/image-proxy?url=${encodeURIComponent(apod.thumbnail_url)}`}
+                              src={`/api/image-proxy?url=${encodeURIComponent(apod.url)}`}
                               alt={lingua === 'IT' ? apod.title_it : apod.title_en}
-                              className="w-full h-full object-cover filter saturate-[0.94] contrast-[0.98]"
+                              className="apod-image"
                               {...lazyImageProps}
                             />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-sm text-neutral-400 italic">
-                              {lingua === 'IT' ? 'Anteprima video non disponibile' : 'Video preview not available'}
-                            </div>
                           )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/25">
-                            <span className="w-14 h-14 rounded-full bg-white/90 dark:bg-neutral-900/90 flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300">
-                              <ExternalLink className="w-6 h-6 text-[#DE6B58]" strokeWidth={2} />
-                            </span>
-                          </div>
+                          <span className="apod-postcard-source-label">
+                            NASA APOD · {lingua === 'IT' ? apod.title_it : apod.title_en} · {data.data_odierna}
+                          </span>
                         </div>
-                      ) : (
-                        <img
-                          draggable={false}
-                          src={`/api/image-proxy?url=${encodeURIComponent(apod.url)}`}
-                          alt={lingua === 'IT' ? apod.title_it : apod.title_en}
-                          className="apod-image"
-                          {...lazyImageProps}
-                        />
-                      )}
-                      <span className="apod-postcard-source-label">
-                        NASA APOD · {lingua === 'IT' ? apod.title_it : apod.title_en} · {data.data_odierna}
-                      </span>
-                    </div>
-                  </div>
+                      </div>
 
-                  <div className="apod-copy-cell mt-6">
-                    <h4 className="card-primary-title text-3xl font-bold mb-2">
-                      {lingua === 'IT' ? apod.title_it : apod.title_en}
-                    </h4>
-                    {apod.copyright && (
-                      <p className="card-byline text-lg font-medium mb-4">
-                        {lingua === 'IT' ? 'Crediti:' : 'Credit:'}{' '}
-                        <span className="font-bold">{apod.copyright}</span>
-                      </p>
-                    )}
-                    <p className="card-body-copy text-xl font-medium leading-relaxed mb-6 whitespace-pre-line">
-                      {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
-                    </p>
-                    <div className="apod-link-actions flex gap-4" data-export-ignore>
-                      <a
-                        href={apod.hdurl || apod.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
-                        <span>
-                          {apod.media_type === 'video'
-                            ? (lingua === 'IT' ? 'Guarda il video' : 'Watch video')
-                            : (lingua === 'IT' ? 'Vedi risoluzione originale' : 'View original resolution')}
-                        </span>
-                      </a>
+                      <div className="apod-copy-cell mt-6">
+                        <h4 className="card-primary-title text-3xl font-bold mb-2">
+                          {lingua === 'IT' ? apod.title_it : apod.title_en}
+                        </h4>
+                        {apod.copyright && (
+                          <p className="card-byline text-lg font-medium mb-4">
+                            {lingua === 'IT' ? 'Crediti:' : 'Credit:'}{' '}
+                            <span className="font-bold">{apod.copyright}</span>
+                          </p>
+                        )}
+                        <p className="card-body-copy text-xl font-medium leading-relaxed mb-6 whitespace-pre-line">
+                          {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
+                        </p>
+                        <div className="apod-link-actions flex gap-4" data-export-ignore>
+                          <a
+                            href={apod.hdurl || apod.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                            <span>
+                              {apod.media_type === 'video'
+                                ? (lingua === 'IT' ? 'Guarda il video' : 'Watch video')
+                                : (lingua === 'IT' ? 'Vedi risoluzione originale' : 'View original resolution')}
+                            </span>
+                          </a>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )
+                )}
               </Card>
             )}
 
