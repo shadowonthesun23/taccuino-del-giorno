@@ -118,6 +118,8 @@ async function processApod(apodJson: any) {
   };
 }
 
+const memoryCache = new Map<string, any>();
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -128,6 +130,15 @@ export async function GET(request: NextRequest) {
       dataIso = dateParam;
     } else {
       dataIso = getRomeDateIso();
+    }
+
+    // 1. Verifica cache in memoria (risposta istantanea)
+    if (memoryCache.has(dataIso)) {
+      return NextResponse.json(memoryCache.get(dataIso), {
+        headers: {
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+        },
+      });
     }
 
     const apiKey = process.env.NASA_API_KEY || 'DEMO_KEY';
@@ -146,6 +157,17 @@ export async function GET(request: NextRequest) {
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayIso = getRomeDateIso(yesterday);
 
+        // Verifica cache in memoria per ieri prima di fare fetch
+        if (memoryCache.has(yesterdayIso)) {
+          const cachedResult = memoryCache.get(yesterdayIso);
+          memoryCache.set(dataIso, cachedResult);
+          return NextResponse.json(cachedResult, {
+            headers: {
+              'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+            },
+          });
+        }
+
         const fallbackUrl = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&date=${yesterdayIso}&thumbs=true`;
         const fallbackRes = await fetch(fallbackUrl, {
           next: { revalidate: 86400 },
@@ -154,7 +176,13 @@ export async function GET(request: NextRequest) {
         if (fallbackRes.ok) {
           const apodJson = await fallbackRes.json();
           const result = await processApod(apodJson);
-          return NextResponse.json(result);
+          memoryCache.set(dataIso, result);
+          memoryCache.set(yesterdayIso, result);
+          return NextResponse.json(result, {
+            headers: {
+              'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+            },
+          });
         }
       }
 
@@ -166,7 +194,13 @@ export async function GET(request: NextRequest) {
 
     const apodJson = await nasaRes.json();
     const result = await processApod(apodJson);
-    return NextResponse.json(result);
+    memoryCache.set(dataIso, result);
+
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+      },
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
