@@ -60,6 +60,18 @@ The product direction is not “generic dashboard”. It should feel like a refi
 - Music covers should use `app/api/music-cover/route.ts` and then be displayed through `/api/image-proxy`.
 - Artwork images can have long URLs or provider quirks; maintain fallback chains between normal image, HD image, proxied URL, and direct URL where useful.
 
+## Footer Wax Seal (Ceralacca)
+
+The footer features a realistic daily alternating 3D wax seal (13 colors, cycling via `(dayOfYear - 1) % 13` in `app/page.tsx`).
+- **Assets**: Transparent PNG images stored in `public/images/sigillo-[colore].png`.
+- **Styling**: The text container `.daily-wax-seal-inner` uses `opacity: 1` and has no blend mode (`mix-blend-mode: normal`) to ensure opaque text rendering.
+- **Colors**: CSS variables match each seal's flat center color exactly (calculated via average R/G/B) to ensure the face of the letters blends into the wax.
+- **3D Engraved (Debossed / Letterpress) Effect**:
+  - Simulated using a dark top-left inner shadow (`-0.5px -0.5px` offset) representing the recessed shadow, and a light bottom-right inner highlight (`0.6px 0.6px` offset) representing illuminated inner edges.
+  - A highly opaque black shadow (`rgba(0, 0, 0, 0.98)`) is centered (`0 0 [blur]`) behind the text to guarantee contrast and stacco.
+  - Typographic scaling: shadows are wider on `.seal-initials` (`1.8px`/`2.2px` blur) and extremely tight/close on `.seal-date` and `.seal-edition` (`1.2px`/`1.4px` blur) to keep the tiny text perfectly legible.
+  - Bold weight: `.seal-date` uses `font-weight: 800` and `.seal-edition` uses `font-weight: 700`.
+
 ## Working rules
 
 - Before writing Next.js-specific code, consult the relevant local docs in `node_modules/next/dist/docs/`.

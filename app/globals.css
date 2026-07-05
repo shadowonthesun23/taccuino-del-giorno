@@ -5383,7 +5383,8 @@ body {
   font-family: "IM Fell Double Pica", Georgia, serif;
   line-height: 1.05;
   pointer-events: none;
-  opacity: 0.9;
+  opacity: 1;
+  color: var(--seal-text-color);
 }
 
 .daily-wax-seal .seal-initials {
@@ -5394,181 +5395,154 @@ body {
   margin-bottom: 0px;
   line-height: 0.95;
   display: block;
+  text-shadow: 
+    -0.5px -0.5px 0.2px rgba(0, 0, 0, 0.85), 
+    0.6px 0.6px 0.3px var(--seal-highlight), 
+    0 0 1.8px rgba(0, 0, 0, 0.98);
 }
 
 .daily-wax-seal .seal-date {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-bottom: 4px;
   display: block;
   white-space: nowrap;
+  text-shadow: 
+    -0.3px -0.3px 0.1px rgba(0, 0, 0, 0.85), 
+    0.4px 0.4px 0.2px var(--seal-highlight), 
+    0 0 1.2px rgba(0, 0, 0, 0.98);
 }
 
 .daily-wax-seal .seal-edition {
   font-size: 0.58rem;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.15;
   text-transform: uppercase;
   display: block;
+  text-shadow: 
+    -0.3px -0.3px 0.1px rgba(0, 0, 0, 0.85), 
+    0.4px 0.4px 0.2px var(--seal-highlight), 
+    0 0 1.2px rgba(0, 0, 0, 0.98);
 }
 
 /* 1. RED SEAL */
 .daily-wax-seal.seal-rosso {
   background-image: url('/images/sigillo-rosso.png');
-}
-.daily-wax-seal.seal-rosso .daily-wax-seal-inner {
-  color: #5a1216;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.45), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.16);
-  mix-blend-mode: multiply;
+  --seal-text-color: #7e0814;
+  --seal-highlight: rgba(255, 255, 255, 0.45);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.65);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.4);
 }
 
 /* 2. BLUE SEAL */
 .daily-wax-seal.seal-blu {
   background-image: url('/images/sigillo-blu.png');
-}
-.daily-wax-seal.seal-blu .daily-wax-seal-inner {
-  color: #142638;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.5), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.12);
-  mix-blend-mode: multiply;
+  --seal-text-color: #11304e;
+  --seal-highlight: rgba(255, 255, 255, 0.4);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.75);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.45);
 }
 
 /* 3. GOLD SEAL */
 .daily-wax-seal.seal-oro {
   background-image: url('/images/sigillo-oro.png');
-}
-.daily-wax-seal.seal-oro .daily-wax-seal-inner {
-  color: #624d2d;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.48), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.22);
-  mix-blend-mode: multiply;
+  --seal-text-color: #86683a;
+  --seal-highlight: rgba(255, 255, 255, 0.55);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.65);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.38);
 }
 
 /* 4. DARK GREEN SEAL */
 .daily-wax-seal.seal-verde-scuro {
   background-image: url('/images/sigillo-verde-scuro.png');
-}
-.daily-wax-seal.seal-verde-scuro .daily-wax-seal-inner {
-  color: #10351d;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.48), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.15);
-  mix-blend-mode: multiply;
+  --seal-text-color: #3c6146;
+  --seal-highlight: rgba(255, 255, 255, 0.45);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.68);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.4);
 }
 
 /* 5. SAGE GREEN SEAL */
 .daily-wax-seal.seal-salvia {
   background-image: url('/images/sigillo-salvia.png');
-}
-.daily-wax-seal.seal-salvia .daily-wax-seal-inner {
-  color: #2d3524;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.42), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.22);
-  mix-blend-mode: multiply;
+  --seal-text-color: #6c7d60;
+  --seal-highlight: rgba(255, 255, 255, 0.48);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.62);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.38);
 }
 
 /* 5b. LIGHT GREEN SEAL */
 .daily-wax-seal.seal-verde-chiaro {
   background-image: url('/images/sigillo-verde-chiaro.png');
-}
-.daily-wax-seal.seal-verde-chiaro .daily-wax-seal-inner {
-  color: #2d3d2c;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.38), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.35);
-  mix-blend-mode: multiply;
+  --seal-text-color: #7d8e75;
+  --seal-highlight: rgba(255, 255, 255, 0.55);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.58);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.35);
 }
 
 /* 6. BURGUNDY SEAL */
 .daily-wax-seal.seal-borgogna {
   background-image: url('/images/sigillo-borgogna.png');
-}
-.daily-wax-seal.seal-borgogna .daily-wax-seal-inner {
-  color: #3d0c11;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.5), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.16);
-  mix-blend-mode: multiply;
+  --seal-text-color: #54191f;
+  --seal-highlight: rgba(255, 255, 255, 0.4);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.72);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.45);
 }
 
 /* 7. COPPER SEAL */
 .daily-wax-seal.seal-rame {
   background-image: url('/images/sigillo-rame.png');
-}
-.daily-wax-seal.seal-rame .daily-wax-seal-inner {
-  color: #633924;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.42), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.32);
-  mix-blend-mode: multiply;
+  --seal-text-color: #bb7652;
+  --seal-highlight: rgba(255, 255, 255, 0.55);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.62);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.38);
 }
 
 /* 8. TERRACOTTA SEAL */
 .daily-wax-seal.seal-terracotta {
   background-image: url('/images/sigillo-terracotta.png');
-}
-.daily-wax-seal.seal-terracotta .daily-wax-seal-inner {
-  color: #602e1a;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.45), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.25);
-  mix-blend-mode: multiply;
+  --seal-text-color: #a8480e;
+  --seal-highlight: rgba(255, 255, 255, 0.52);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.65);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.4);
 }
 
 /* 9. SILVER SEAL */
 .daily-wax-seal.seal-argento {
   background-image: url('/images/sigillo-argento.png');
-}
-.daily-wax-seal.seal-argento .daily-wax-seal-inner {
-  color: #4a4c4e;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.38), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.45);
-  mix-blend-mode: multiply;
+  --seal-text-color: #9fa3a6;
+  --seal-highlight: rgba(255, 255, 255, 0.68);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.58);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.32);
 }
 
 /* 10. OCHRE SEAL */
 .daily-wax-seal.seal-ocra {
   background-image: url('/images/sigillo-ocra.png');
-}
-.daily-wax-seal.seal-ocra .daily-wax-seal-inner {
-  color: #6d5225;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.4), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.3);
-  mix-blend-mode: multiply;
+  --seal-text-color: #ca8e2d;
+  --seal-highlight: rgba(255, 255, 255, 0.58);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.62);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.38);
 }
 
 /* 11. ANTHRACITE SEAL */
 .daily-wax-seal.seal-antracite {
   background-image: url('/images/sigillo-antracite.png');
-}
-.daily-wax-seal.seal-antracite .daily-wax-seal-inner {
-  color: #1c1d1e;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.65), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.12);
-  mix-blend-mode: multiply;
+  --seal-text-color: #424143;
+  --seal-highlight: rgba(255, 255, 255, 0.38);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.8);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.55);
 }
 
 /* 12. TEAL SEAL */
 .daily-wax-seal.seal-ottanio {
   background-image: url('/images/sigillo-ottanio.png');
-}
-.daily-wax-seal.seal-ottanio .daily-wax-seal-inner {
-  color: #0e3034;
-  text-shadow: 
-    -0.75px -0.75px 0.5px rgba(0, 0, 0, 0.5), 
-    0.75px 0.75px 0.5px rgba(255, 255, 255, 0.18);
-  mix-blend-mode: multiply;
+  --seal-text-color: #196066;
+  --seal-highlight: rgba(255, 255, 255, 0.48);
+  --seal-shadow-sharp: rgba(0, 0, 0, 0.65);
+  --seal-shadow-soft: rgba(0, 0, 0, 0.4);
 }
 
 /* Dark mode atmospheric override */
