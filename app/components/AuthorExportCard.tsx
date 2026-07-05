@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
-import { Download, EyeOff, Loader2 } from 'lucide-react';
+import { Download, EyeOff, Loader2, Feather } from 'lucide-react';
 import {
   clampText,
   formatAuthorCardDate,
@@ -42,6 +42,7 @@ interface AuthorExportCardProps {
   onHidePreview?: () => void;
   hidePreviewLabel?: string;
   saveImageLabel?: string;
+  lingua?: string;
 }
 
 const CARD_W = 360;
@@ -58,6 +59,7 @@ export default function AuthorExportCard({
   onHidePreview,
   hidePreviewLabel = 'Nascondi',
   saveImageLabel = 'Salva',
+  lingua = 'IT',
 }: AuthorExportCardProps) {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -243,18 +245,13 @@ export default function AuthorExportCard({
             </span>
           </div>
 
-          {/* ── Nastro sezione ── */}
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '68px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
-            <span
-              className={`${stampwriter.className} section-typewriter-badge badge-tilt-left`}
-              style={{
-                fontSize: `${layout.labelFontSize}px`,
-                padding: '16px 26px 14px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Autore del giorno
-            </span>
+            <div className="author-tape-title-wrapper select-none">
+              <Feather className="w-[19px] h-[19px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
+              <span className={`${garamond.className} italic text-[22px] font-medium text-[#f4f0e6] leading-none`}>
+                {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
+              </span>
+            </div>
           </div>
 
           {/* ── Watermark — figlio diretto del root 1080px, right:0 = vero bordo card ── */}

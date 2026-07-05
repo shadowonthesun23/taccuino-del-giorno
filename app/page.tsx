@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { IM_Fell_Double_Pica, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import { QRCodeSVG } from 'qrcode.react';
-import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck, Telescope } from 'lucide-react';
+import { BookOpen, Quote, Type, CalendarDays, Feather, Music, Sparkles, Church, Sun, Moon, Palette, ExternalLink, X, ChevronLeft, ChevronUp, ChevronDown, Languages, Loader2, Search, FileDown, Printer, Stamp, SlidersHorizontal, Bookmark, BookmarkCheck, Telescope } from 'lucide-react';
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
@@ -1504,6 +1504,7 @@ export default function Home() {
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [apod, setApod] = useState<ApodData | null>(null);
   const [apodLoading, setApodLoading] = useState(false);
+  const [isApodExpanded, setIsApodExpanded] = useState(false);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
   const [musicCover, setMusicCover] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -1778,7 +1779,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -2475,9 +2476,14 @@ export default function Home() {
         data-reveal-readability
       >
         <div className="relative z-10">
-          <span className={`${stampwriter.className} section-typewriter-badge badge-tilt-left text-sm mb-3`}>
-            {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
-          </span>
+          <div className="mb-3 select-none flex justify-start">
+            <div className="author-tape-title-wrapper">
+              <Feather className="w-[17px] h-[17px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
+              <span className={`${garamond.className} italic text-[19px] font-medium text-[#f4f0e6] leading-none`}>
+                {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
+              </span>
+            </div>
+          </div>
           <h2
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{
@@ -2545,6 +2551,7 @@ export default function Home() {
             onHidePreview={() => setShowExportCard(false)}
             hidePreviewLabel={lingua === 'IT' ? 'Nascondi' : 'Hide'}
             saveImageLabel={lingua === 'IT' ? 'Salva' : 'Save'}
+            lingua={lingua}
           />
         </div>
       </div>
@@ -2834,20 +2841,44 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="apod-copy-cell mt-6">
-                        <h4 className="card-primary-title text-3xl font-bold mb-2">
-                          {lingua === 'IT' ? apod.title_it : apod.title_en}
-                        </h4>
-                        {apod.copyright && (
-                          <p className="card-byline text-lg font-medium mb-4">
-                            {lingua === 'IT' ? 'Crediti:' : 'Credit:'}{' '}
-                            <span className="font-bold">{apod.copyright}</span>
-                          </p>
-                        )}
-                        <p className="card-body-copy text-xl font-medium leading-relaxed mb-6 whitespace-pre-line">
-                          {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
-                        </p>
-                        <div className="apod-link-actions flex gap-4" data-export-ignore>
+                      <div className="apod-copy-cell mt-6 md:mt-0 flex flex-col h-full justify-between">
+                        <div>
+                          <h4 className="card-primary-title text-3xl font-bold mb-2">
+                            {lingua === 'IT' ? apod.title_it : apod.title_en}
+                          </h4>
+                          {apod.copyright && (
+                            <p className="card-byline text-lg font-medium mb-4">
+                              {lingua === 'IT' ? 'Crediti:' : 'Credit:'}{' '}
+                              <span className="font-bold">{apod.copyright}</span>
+                            </p>
+                          )}
+                          <div className="relative">
+                            <p className={`card-body-copy text-xl font-medium leading-relaxed mb-1 whitespace-pre-line transition-all duration-300 ${
+                              !isApodExpanded ? 'max-h-[220px] overflow-hidden' : ''
+                            }`}>
+                              {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
+                            </p>
+                            {!isApodExpanded && (
+                              <div className={`absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t pointer-events-none ${
+                                isDark ? 'from-[#2A2A2A] to-transparent' : 'from-[#FDFCF8] to-transparent'
+                              }`} />
+                            )}
+                          </div>
+                          
+                          <button
+                            onClick={() => setIsApodExpanded(!isApodExpanded)}
+                            className="mt-2 text-lg font-bold text-[#DE6B58] hover:text-[#c55b4a] transition-colors inline-flex items-center gap-1 cursor-pointer focus:outline-none"
+                          >
+                            <span>
+                              {isApodExpanded 
+                                ? (lingua === 'IT' ? 'Mostra meno' : 'Show less') 
+                                : (lingua === 'IT' ? 'Leggi tutto' : 'Read more')}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isApodExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                        </div>
+
+                        <div className="apod-link-actions flex gap-4 mt-6" data-export-ignore>
                           <a
                             href={apod.hdurl || apod.url}
                             target="_blank"
@@ -2899,9 +2930,9 @@ export default function Home() {
                 </div>
 
                 <div className="music-copy-cell">
-                  <div className="flex items-center justify-center md:justify-start mb-5">
-                    <h3 className={`${stampwriter.className} section-typewriter-badge badge-tilt-right text-sm`}>
-                      <Music className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />
+                  <div className="flex items-center justify-start mb-5">
+                    <h3 className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}>
+                      <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
                       <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
                     </h3>
                   </div>

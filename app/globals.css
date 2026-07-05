@@ -109,6 +109,8 @@
   --background: #F8F6F0;
   --foreground: #1f2933;
   --browser-surface: #F8F6F0;
+  --badge-shadow-color: rgba(42, 37, 34, 0.28);
+  --badge-ambient-shadow: rgba(42, 37, 34, 0.14);
   color-scheme: light;
 }
 
@@ -117,6 +119,8 @@
   --background: #171614;
   --foreground: #E0E0E0;
   --browser-surface: #171614;
+  --badge-shadow-color: rgba(0, 0, 0, 0.5);
+  --badge-ambient-shadow: rgba(0, 0, 0, 0.35);
   color-scheme: dark;
 }
 
@@ -2334,27 +2338,78 @@ body {
 }
 
 .section-typewriter-badge {
-  --badge-rotation: -0.2deg;
-  align-items: center;
-  background: #cf5d4f;
-  border: 1px solid rgba(158, 42, 43, 0.18);
-  border-radius: 3px 2px 4px 2px;
-  box-shadow:
-    0 4px 10px -8px rgba(42, 37, 34, 0.72),
-    inset 0 1px 0 rgba(255, 244, 225, 0.18);
-  color: #f4f0e6;
-  display: inline-flex;
-  gap: 7px;
-  font-weight: 400;
-  letter-spacing: 0.09em;
-  line-height: 1;
-  padding: 7px 11px 6px;
   position: relative;
-  -webkit-text-stroke: 0.22px currentColor;
-  text-shadow: 0 1px 0 rgba(82, 31, 27, 0.22);
-  text-transform: none;
-  transform: rotate(var(--badge-rotation));
-  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 210px;
+  width: max-content;
+  height: 38px;
+  max-width: 100%;
+  z-index: 5;
+  background-image: url("/images/tape-vuoto.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transform: rotate(var(--badge-rotation, -0.7deg));
+  padding: 0 10px 3px 14px;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  -webkit-text-stroke: 0 !important;
+  color: #f4f0e6 !important;
+  font-size: 19px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.section-typewriter-badge::before,
+.section-typewriter-badge::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 5px !important;
+  width: 38% !important;
+  height: 8px !important;
+  background: rgba(42, 37, 34, 0.24) !important;
+  filter: blur(5px) !important;
+  z-index: -1 !important;
+  transition: opacity 300ms ease, transform 300ms ease !important;
+  pointer-events: none !important;
+  inset: auto !important; /* reset inset from old before/after styles */
+  background-size: auto !important; /* reset background-size from old styles */
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+.section-typewriter-badge::before {
+  left: 14px !important;
+  transform: skew(-8deg) rotate(-2.5deg) !important;
+}
+
+.section-typewriter-badge::after {
+  right: 14px !important;
+  transform: skew(8deg) rotate(2.5deg) !important;
+}
+
+/* Adattamento Dark Mode per l'ombra */
+[data-theme="dark"] .section-typewriter-badge::before,
+[data-theme="dark"] .section-typewriter-badge::after {
+  background: rgba(0, 0, 0, 0.62) !important;
+  filter: blur(6px) !important;
+}
+
+/* No shadow/effects on dynamic text and icon inside tape */
+.section-typewriter-badge span,
+.section-typewriter-badge svg {
+  text-shadow: none !important;
+  filter: none !important;
+  color: #f4f0e6 !important;
+}
+
+.section-typewriter-badge svg {
+  color: #E5B869 !important;
 }
 
 .section-typewriter-badge.badge-tilt-left {
@@ -6835,6 +6890,22 @@ body {
     width: 100%;
   }
 
+  .apod-card-layout {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .apod-media-container {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .apod-copy-cell {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 0;
+  }
+
   .editorial-link-button {
     font-size: 15px;
     letter-spacing: 0.012em;
@@ -7172,14 +7243,24 @@ body {
 
 
 .apod-card-layout {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: 38px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  align-items: start;
   width: 100%;
 }
 
 .apod-media-container {
+  grid-column: 2;
+  grid-row: 1;
   perspective: 900px;
   width: 100%;
+}
+
+.apod-copy-cell {
+  grid-column: 1;
+  grid-row: 1;
+  margin-top: 0;
 }
 
 .apod-postcard {
@@ -7347,4 +7428,103 @@ body {
     stroke-dashoffset: 0;
   }
 
+}
+
+/* ── Ombra sollevata per il titolo autore in PNG ───────────────── */
+.author-tape-title-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 210px;
+  height: 38px;
+  max-width: 100%;
+  z-index: 5;
+  background-image: url("/images/tape-vuoto.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transform: rotate(-0.7deg);
+  padding: 0 10px 3px 14px; /* offset padding to center content vertically and push to the left */
+}
+
+.author-tape-title-wrapper::before,
+.author-tape-title-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  width: 38%;
+  height: 8px;
+  background: rgba(42, 37, 34, 0.24);
+  filter: blur(5px);
+  z-index: -1;
+  transition: opacity 300ms ease, transform 300ms ease;
+  pointer-events: none;
+}
+
+.author-tape-title-wrapper::before {
+  left: 14px;
+  transform: skew(-8deg) rotate(-2.5deg);
+}
+
+.author-tape-title-wrapper::after {
+  right: 14px;
+  transform: skew(8deg) rotate(2.5deg);
+}
+
+/* Adattamento Dark Mode per l'ombra */
+[data-theme="dark"] .author-tape-title-wrapper::before,
+[data-theme="dark"] .author-tape-title-wrapper::after {
+  background: rgba(0, 0, 0, 0.62);
+  filter: blur(6px);
+}
+
+/* No shadow/effects on dynamic text and icon inside tape */
+.author-tape-title-wrapper span,
+.author-tape-title-wrapper svg {
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Override tape size on social export card to accommodate larger export typography scale */
+.social-export-card .author-tape-title-wrapper,
+.social-export-card .section-typewriter-badge {
+  min-width: 236px !important;
+  width: max-content !important;
+  height: 43px !important;
+  padding: 0 12px 3px 18px !important;
+  gap: 6px !important;
+}
+
+.social-export-card .section-typewriter-badge span {
+  font-size: 22px !important;
+}
+
+.social-export-card .section-typewriter-badge svg {
+  width: 19px !important;
+  height: 19px !important;
+  color: #E5B869 !important;
+}
+
+/* Specific override to use the medium tape PNG for the Citazione (Quote) section */
+.section-typewriter-badge.badge-citazione {
+  background-image: url("/images/tape-medio.png") !important;
+  min-width: 150px !important;
+}
+
+/* Social Export Card specific override for the Quote tape width */
+.social-export-card .section-typewriter-badge.badge-citazione {
+  min-width: 170px !important;
+}
+
+/* Mirroring effect for dynamic washi tape randomization */
+.section-typewriter-badge.badge-mirrored {
+  transform: rotate(var(--badge-rotation, -0.7deg)) scaleX(-1) !important;
+  flex-direction: row-reverse !important; /* visually preserves the Icon-left and Text-right order */
+}
+
+.section-typewriter-badge.badge-mirrored span,
+.section-typewriter-badge.badge-mirrored svg {
+  transform: scaleX(-1) !important;
+  display: inline-block !important;
 }

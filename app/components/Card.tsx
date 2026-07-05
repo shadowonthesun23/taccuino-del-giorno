@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 import localFont from 'next/font/local';
+import { IM_Fell_Double_Pica } from 'next/font/google';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
 
 const stampwriter = localFont({
@@ -11,14 +12,21 @@ const stampwriter = localFont({
   fallback: ['Courier New', 'monospace'],
 });
 
+const garamond = IM_Fell_Double_Pica({
+  subsets: ['latin'],
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
 const badgeVariants: Record<string, string> = {
   citazione: 'badge-tilt-right',
-  parola: 'badge-tilt-left',
+  parola: 'badge-tilt-left badge-mirrored',
   santi: 'badge-tilt-right',
-  opera: 'badge-tilt-left',
+  opera: 'badge-tilt-left badge-mirrored',
   avvenimenti: 'badge-tilt-right',
   poesia: 'badge-tilt-left',
-  bibbia: 'badge-tilt-right',
+  bibbia: 'badge-tilt-right badge-mirrored',
   apod: 'badge-tilt-left',
 };
 
@@ -278,9 +286,9 @@ export default function Card({
         )}
 
         {title && (
-          <div className="card-section-heading flex items-center justify-center">
-            <h3 className={`${stampwriter.className} section-typewriter-badge ${id ? badgeVariants[id] ?? '' : ''} text-sm text-center m-0`}>
-              {Icon && <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />}
+          <div className="card-section-heading flex items-center justify-start">
+            <h3 className={`${garamond.className} italic section-typewriter-badge badge-${id} ${id ? badgeVariants[id] ?? '' : ''} text-sm m-0`}>
+              {Icon && <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />}
               <span>{title}</span>
             </h3>
           </div>
