@@ -392,6 +392,10 @@ img {
     white-space: nowrap;
   }
 
+  .seasonal-artwork-caption .seasonal-artwork-artist {
+    font-weight: 700;
+  }
+
   .seasonal-artwork-caption .seasonal-artwork-hint {
     font-size: 0.62rem;
     font-style: italic;
@@ -2007,6 +2011,54 @@ body {
   animation: authorPaperShadowSettle 900ms cubic-bezier(0.22, 1, 0.36, 1) 720ms both;
   border-radius: 4px 3px 7px 4px;
   overflow: hidden;
+  box-shadow: 0 16px 34px -28px rgba(42, 37, 34, 0.42), 0 2px 8px -6px rgba(42, 37, 34, 0.2);
+  transform-origin: 22px 3px;
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg);
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, box-shadow;
+}
+
+[data-theme="dark"] .author-photo-paper {
+  box-shadow: 0 16px 34px -28px rgba(0, 0, 0, 0.72), 0 2px 8px -6px rgba(0, 0, 0, 0.42);
+}
+
+.author-photo-wrap:hover .author-photo-paper {
+  transform: perspective(800px) rotateX(9deg) rotateY(-11deg) translateZ(1px);
+  box-shadow: 
+    0 26px 48px -18px rgba(42, 37, 34, 0.32),
+    0 12px 24px -10px rgba(42, 37, 34, 0.14);
+}
+
+[data-theme="dark"] .author-photo-wrap:hover .author-photo-paper {
+  box-shadow: 
+    0 26px 48px -18px rgba(0, 0, 0, 0.75),
+    0 12px 24px -10px rgba(0, 0, 0, 0.4);
+}
+
+.author-photo-wrap .photo-paper-shadow::before,
+.author-photo-wrap .photo-paper-shadow::after {
+  transition: 
+    opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), 
+    transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1),
+    filter 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Left corner shadow near tape stays close and sharp */
+.author-photo-wrap:hover .photo-paper-shadow::before {
+  transform: skew(-7deg) rotate(-1.5deg) translate(0.5px, 0px) scale(0.98);
+  filter: blur(5px);
+  opacity: 0.76;
+}
+
+/* Right corner shadow stretches and blurs as it lifts */
+.author-photo-wrap:hover .photo-paper-shadow::after {
+  transform: skew(10deg) rotate(4deg) translate(5px, 6px) scale(1.04);
+  filter: blur(10px);
+  opacity: 0.55;
+}
+
+.dark .author-photo-wrap:hover .photo-paper-shadow::after {
+  opacity: 0.45;
 }
 
 .author-photo-tape {

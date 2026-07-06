@@ -2527,9 +2527,6 @@ export default function Home() {
               background: themeClasses.photoBg,
               border: `1px solid ${themeClasses.photoBorder}`,
               padding: '10px 10px 28px 10px',
-              boxShadow: isDark
-                ? '0 16px 34px -28px rgba(0,0,0,0.72), 0 2px 8px -6px rgba(0,0,0,0.42)'
-                : '0 16px 34px -28px rgba(42,37,34,0.42), 0 2px 8px -6px rgba(42,37,34,0.2)',
             }}
           >
             <img
