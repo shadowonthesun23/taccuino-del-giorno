@@ -1597,6 +1597,8 @@ export default function Home() {
   const savedDrawerRef = useRef<HTMLDivElement>(null);
   const desktopArchiveTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileArchiveTriggerRef = useRef<HTMLButtonElement>(null);
+  const desktopSavedTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileSavedTriggerRef = useRef<HTMLButtonElement>(null);
   const lastArchiveTriggerRef = useRef<HTMLButtonElement | null>(null);
   const mobileToolsRef = useRef<HTMLDivElement>(null);
   const mobileToolsTriggerRef = useRef<HTMLButtonElement>(null);
@@ -1664,11 +1666,14 @@ export default function Home() {
       const clickedArchiveTrigger =
         desktopArchiveTriggerRef.current?.contains(target) ||
         mobileArchiveTriggerRef.current?.contains(target);
+      const clickedSavedTrigger =
+        desktopSavedTriggerRef.current?.contains(target) ||
+        mobileSavedTriggerRef.current?.contains(target);
 
       if (popoverRef.current && !popoverRef.current.contains(target) && !clickedArchiveTrigger) {
         setPopoverOpen(false);
       }
-      if (savedDrawerRef.current && !savedDrawerRef.current.contains(target)) {
+      if (savedDrawerRef.current && !savedDrawerRef.current.contains(target) && !clickedSavedTrigger) {
         setSavedDrawerOpen(false);
       }
       if (mobileToolsRef.current && !mobileToolsRef.current.contains(target)) {
@@ -2069,13 +2074,13 @@ export default function Home() {
   };
 
   // ── POPOVER ARCHIVIO (shared, rendered via portal) ──
-  const archivioPopover = isMounted && popoverOpen ? createPortal(
+  const archivioPopover = isMounted ? createPortal(
     <div
       ref={popoverRef}
       role="dialog"
       aria-modal="false"
       aria-label="Archivio dei giorni"
-      className={`archive-popover is-open ${isDark ? 'is-dark' : ''} fixed z-[9999] flex flex-col overflow-hidden ${garamond.className}`}
+      className={`archive-popover ${popoverOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} fixed z-[9999] flex flex-col overflow-hidden ${garamond.className}`}
       style={{
         top: `${popoverPos.top}px`,
         right: `${popoverPos.right}px`,
@@ -2169,13 +2174,13 @@ export default function Home() {
     document.body
   ) : null;
 
-  const savedCardsDrawer = isMounted && savedDrawerOpen ? createPortal(
+  const savedCardsDrawer = isMounted ? createPortal(
     <aside
       ref={savedDrawerRef}
       role="dialog"
       aria-modal="false"
       aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
-      className={`saved-cards-drawer ${isDark ? 'is-dark' : ''} ${garamond.className}`}
+      className={`saved-cards-drawer ${savedDrawerOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} ${garamond.className}`}
     >
       <header className="saved-cards-header">
         <div>
@@ -2330,6 +2335,7 @@ export default function Home() {
           )}
 
           <button
+            ref={desktopSavedTriggerRef}
             type="button"
             onClick={() => {
               setPopoverOpen(false);
@@ -2400,11 +2406,12 @@ export default function Home() {
               </button>
             )}
             <button
+              ref={mobileSavedTriggerRef}
               type="button"
               onClick={() => {
                 setMobileToolsOpen(false);
                 setPopoverOpen(false);
-                setSavedDrawerOpen(true);
+                setSavedDrawerOpen((current) => !current);
               }}
               aria-expanded={savedDrawerOpen}
               aria-haspopup="dialog"
