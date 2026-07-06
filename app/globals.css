@@ -7053,21 +7053,6 @@ body {
     width: 100%;
   }
 
-  .apod-card-layout {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-
-  .apod-media-container {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .apod-copy-cell {
-    grid-column: 1;
-    grid-row: 2;
-    margin-top: 0;
-  }
 
   .editorial-link-button {
     font-size: 15px;
@@ -7407,14 +7392,14 @@ body {
 
 .apod-card-layout {
   display: grid;
-  gap: 38px;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  gap: 22px;
+  grid-template-columns: 1fr;
   align-items: start;
   width: 100%;
 }
 
 .apod-media-container {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
   perspective: 900px;
   width: 100%;
@@ -7422,8 +7407,25 @@ body {
 
 .apod-copy-cell {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 2;
   margin-top: 0;
+}
+
+@media (min-width: 1024px) {
+  .apod-card-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    gap: 38px;
+  }
+
+  .apod-media-container {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .apod-copy-cell {
+    grid-column: 1;
+    grid-row: 1;
+  }
 }
 
 .apod-postcard {

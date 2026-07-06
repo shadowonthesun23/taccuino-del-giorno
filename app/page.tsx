@@ -2554,7 +2554,7 @@ export default function Home() {
         data-reveal-readability
       >
         <div className="relative z-10">
-          <div className="mb-3 select-none flex justify-start">
+          <div className="mb-3 select-none flex justify-center md:justify-start">
             <ScrollRevealBadge className="author-tape-title-wrapper" resetTrigger={dataExLibris}>
               <span className="badge-tape-bg" aria-hidden="true" />
               <Feather className="w-[17px] h-[17px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
@@ -2996,6 +2996,19 @@ export default function Home() {
             >
               <div className="music-card-layout">
 
+                {/* Mobile-only tape (first element at the top on mobile) */}
+                <div className="flex md:hidden items-center justify-center mb-1 select-none w-full">
+                  <ScrollRevealBadge 
+                    as="h3"
+                    className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
+                    resetTrigger={dataExLibris}
+                  >
+                    <span className="badge-tape-bg" aria-hidden="true" />
+                    <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
+                    <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
+                  </ScrollRevealBadge>
+                </div>
+
                 <div className="music-media-cell select-none">
                   <div className="music-vinyl-wrapper">
                     <div className="music-vinyl-disc" aria-hidden="true">
@@ -3023,7 +3036,8 @@ export default function Home() {
                 </div>
 
                 <div className="music-copy-cell">
-                  <div className="flex items-center justify-start mb-5">
+                  {/* Desktop-only tape */}
+                  <div className="hidden md:flex items-center justify-start mb-5 select-none">
                     <ScrollRevealBadge 
                       as="h3"
                       className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
