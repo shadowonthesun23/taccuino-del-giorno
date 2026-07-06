@@ -2997,21 +2997,29 @@ export default function Home() {
               <div className="music-card-layout">
 
                 <div className="music-media-cell select-none">
-                  <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
-                    {musicCover ? (
-                      <img
-                        draggable={false}
-                        src={musicCover}
-                        alt={`${data.musica.brano} cover`}
-                        onError={() => setMusicCover(null)}
-                        {...lazyImageProps}
+                  <div className="music-vinyl-wrapper">
+                    <div className="music-vinyl-disc" aria-hidden="true">
+                      <div
+                        className="music-vinyl-label"
+                        style={{ backgroundImage: musicCover ? `url('${musicCover}')` : 'none' }}
                       />
-                    ) : (
-                      <div className="music-cover-placeholder" aria-hidden="true">
-                        <Music className="h-10 w-10" strokeWidth={1.4} />
-                      </div>
-                    )}
-                  </figure>
+                    </div>
+                    <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
+                      {musicCover ? (
+                        <img
+                          draggable={false}
+                          src={musicCover}
+                          alt={`${data.musica.brano} cover`}
+                          onError={() => setMusicCover(null)}
+                          {...lazyImageProps}
+                        />
+                      ) : (
+                        <div className="music-cover-placeholder" aria-hidden="true">
+                          <Music className="h-10 w-10" strokeWidth={1.4} />
+                        </div>
+                      )}
+                    </figure>
+                  </div>
                 </div>
 
                 <div className="music-copy-cell">
