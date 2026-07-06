@@ -7540,20 +7540,33 @@ body {
 
 /* Entrance animation reveal mask effect */
 .section-typewriter-badge,
-.author-tape-title-wrapper {
+.author-tape-title-wrapper,
+.apod-card-tape-wrapper {
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 850ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: clip-path 850ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
   will-change: clip-path;
 }
 
+.apod-card-tape-wrapper {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+/* Mirrored badges require an inverted initial clip path to reveal from visual left to right */
+.section-typewriter-badge.badge-mirrored {
+  clip-path: inset(0 0 0 100%);
+}
+
 .section-typewriter-badge.is-revealed,
-.author-tape-title-wrapper.is-revealed {
+.author-tape-title-wrapper.is-revealed,
+.apod-card-tape-wrapper.is-revealed {
   clip-path: inset(0 0 0 0);
 }
 
 /* Ensure social export cards are always fully revealed, bypassing clip transitions */
 .social-export-card .section-typewriter-badge,
-.social-export-card .author-tape-title-wrapper {
+.social-export-card .author-tape-title-wrapper,
+.social-export-card .apod-card-tape-wrapper {
   clip-path: inset(0 0 0 0) !important;
   transition: none !important;
 }
@@ -7561,8 +7574,25 @@ body {
 /* Accessibility: respect users' prefers-reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .section-typewriter-badge,
-  .author-tape-title-wrapper {
+  .author-tape-title-wrapper,
+  .apod-card-tape-wrapper {
     clip-path: inset(0 0 0 0) !important;
     transition: none !important;
   }
 }
+
+/* Staggered delay for washi tape rollout animations */
+.author-tape-title-wrapper {
+  --reveal-delay: 150ms;
+}
+
+.stagger-1 .section-typewriter-badge { --reveal-delay: 80ms; }
+.stagger-2 .section-typewriter-badge { --reveal-delay: 160ms; }
+.stagger-3 .section-typewriter-badge { --reveal-delay: 240ms; }
+.stagger-4 .section-typewriter-badge { --reveal-delay: 320ms; }
+.stagger-5 .section-typewriter-badge { --reveal-delay: 400ms; }
+.stagger-6 .section-typewriter-badge { --reveal-delay: 480ms; }
+.stagger-7 .section-typewriter-badge { --reveal-delay: 560ms; }
+.stagger-8 .section-typewriter-badge,
+.stagger-8 .apod-card-tape-wrapper { --reveal-delay: 640ms; }
+.stagger-9 .section-typewriter-badge { --reveal-delay: 720ms; }

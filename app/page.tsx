@@ -1497,6 +1497,61 @@ function MobileReadingThread({
   );
 }
 
+interface ScrollRevealBadgeProps {
+  className: string;
+  children: React.ReactNode;
+  resetTrigger?: any;
+  as?: 'div' | 'h3';
+}
+
+function ScrollRevealBadge({
+  className,
+  children,
+  resetTrigger,
+  as: Component = 'div',
+}: ScrollRevealBadgeProps) {
+  const [isRevealed, setIsRevealed] = useState(false);
+  const ref = useRef<any>(null);
+
+  useEffect(() => {
+    setIsRevealed(false);
+    const el = ref.current;
+    if (!el) return;
+
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsRevealed(true);
+      return;
+    }
+
+    if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) {
+      setIsRevealed(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsRevealed(true);
+          observer.unobserve(el);
+        }
+      },
+      {
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [resetTrigger]);
+
+  return (
+    <Component ref={ref} className={`${className} ${isRevealed ? 'is-revealed' : ''}`}>
+      {children}
+    </Component>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
@@ -1992,58 +2047,7 @@ export default function Home() {
     }
   }, [currentTapeFilter]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
 
-    // Reset revealed classes first
-    document.querySelectorAll('.section-typewriter-badge, .author-tape-title-wrapper')
-      .forEach((el) => el.classList.remove('is-revealed'));
-
-    const observed = new Set<Element>();
-
-    const intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed');
-            intersectionObserver.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        rootMargin: '0px 0px -50px 0px',
-        threshold: 0.1,
-      }
-    );
-
-    const setupObservation = () => {
-      const elements = document.querySelectorAll('.section-typewriter-badge, .author-tape-title-wrapper');
-      elements.forEach((el) => {
-        if (!observed.has(el)) {
-          observed.add(el);
-          intersectionObserver.observe(el);
-        }
-      });
-    };
-
-    // Initial check
-    setupObservation();
-
-    // Observe document body for added nodes to support React mounting changes
-    const mutationObserver = new MutationObserver(() => {
-      setupObservation();
-    });
-
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    return () => {
-      intersectionObserver.disconnect();
-      mutationObserver.disconnect();
-    };
-  }, [dataExLibris, loading]);
 
   const visibleSaintArtwork = (
     saintArtwork
@@ -2554,13 +2558,13 @@ export default function Home() {
       >
         <div className="relative z-10">
           <div className="mb-3 select-none flex justify-start">
-            <div className="author-tape-title-wrapper">
+            <ScrollRevealBadge className="author-tape-title-wrapper" resetTrigger={dataExLibris}>
               <span className="badge-tape-bg" aria-hidden="true" />
               <Feather className="w-[17px] h-[17px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
               <span className={`${garamond.className} italic text-[19px] font-medium text-[#f4f0e6] leading-none`}>
                 {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
               </span>
-            </div>
+            </ScrollRevealBadge>
           </div>
           <h2
             className="text-4xl md:text-5xl font-bold mb-4"
@@ -2640,6 +2644,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
             <Card
+              key={`${dataExLibris}:citazione`}
               id="citazione"
               title={lingua === 'IT' ? 'Citazione' : 'Quote'}
               icon={Quote}
@@ -2658,7 +2663,7 @@ export default function Home() {
               </blockquote>
             </Card>
 
-            <Card id="parola" title={lingua === 'IT' ? 'Parola del giorno' : 'Word of the day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
+            <Card key={`${dataExLibris}:parola`} id="parola" title={lingua === 'IT' ? 'Parola del giorno' : 'Word of the day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
               isSaved={isCardSaved('parola')}
               onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
@@ -2678,7 +2683,7 @@ export default function Home() {
               )}
             </Card>
 
-            <Card id="santi" title={lingua === 'IT' ? 'I santi di oggi' : "Today's saints"} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
+            <Card key={`${dataExLibris}:santi`} id="santi" title={lingua === 'IT' ? 'I santi di oggi' : "Today's saints"} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename="santi"
               isSaved={isCardSaved('santi')}
               onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
@@ -2724,6 +2729,7 @@ export default function Home() {
 
             {opera && (
               <Card
+                key={`${dataExLibris}:opera`}
                 id="opera"
                 title={lingua === 'IT' ? 'Opera del giorno' : 'Artwork of the day'}
                 icon={Palette}
@@ -2779,7 +2785,7 @@ export default function Home() {
               </Card>
             )}
 
-            <Card id="avvenimenti" title={lingua === 'IT' ? 'Accadde oggi' : 'This day in history'} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
+            <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={lingua === 'IT' ? 'Accadde oggi' : 'This day in history'} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
               filename="avvenimenti"
               isSaved={isCardSaved('avvenimenti')}
               onToggleSaved={() => saveCard('avvenimenti', lingua === 'IT' ? 'Accadde oggi' : 'This day in history', data.avvenimenti[0] ?? '')}>
@@ -2796,7 +2802,7 @@ export default function Home() {
               </ul>
             </Card>
 
-            <Card id="poesia" title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card key={`${dataExLibris}:poesia`} id="poesia" title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}
               isSaved={isCardSaved('poesia')}
               onToggleSaved={() => saveCard('poesia', data.poesia.fonte || (lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the day'), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
@@ -2817,7 +2823,7 @@ export default function Home() {
               )}
             </Card>
 
-            <Card id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia"
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
@@ -2839,6 +2845,7 @@ export default function Home() {
             {/* ── IMMAGINE ASTRONOMICA ── */}
             {(apod || apodLoading) && (
               <Card
+                key={`${dataExLibris}:apod`}
                 id="apod"
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
@@ -2856,13 +2863,15 @@ export default function Home() {
                     : undefined
                 }
               >
-                <div className="card-section-heading flex items-center justify-center">
-                  <img
-                    draggable={false}
-                    src={lingua === 'IT' ? "/images/tape-astronomia.png" : "/images/tape-astronomia-en.png"}
-                    alt={lingua === 'IT' ? 'Foto astronomica del giorno' : 'Astronomy picture of the day'}
-                    className="apod-card-tape"
-                  />
+                <div className="card-section-heading flex items-center justify-start">
+                  <ScrollRevealBadge className="apod-card-tape-wrapper" resetTrigger={dataExLibris}>
+                    <img
+                      draggable={false}
+                      src={lingua === 'IT' ? "/images/tape-astronomia.png" : "/images/tape-astronomia-en.png"}
+                      alt={lingua === 'IT' ? 'Foto astronomica del giorno' : 'Astronomy picture of the day'}
+                      className="apod-card-tape"
+                    />
+                  </ScrollRevealBadge>
                 </div>
 
                 {apodLoading ? (
@@ -2980,6 +2989,7 @@ export default function Home() {
 
             {/* ── CONSIGLIO MUSICALE ── */}
             <Card
+              key={`${dataExLibris}:musica`}
               id="musica"
               isDark={isDark}
               className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
@@ -3009,11 +3019,15 @@ export default function Home() {
 
                 <div className="music-copy-cell">
                   <div className="flex items-center justify-start mb-5">
-                    <h3 className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}>
+                    <ScrollRevealBadge 
+                      as="h3"
+                      className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
+                      resetTrigger={dataExLibris}
+                    >
                       <span className="badge-tape-bg" aria-hidden="true" />
                       <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
                       <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
-                    </h3>
+                    </ScrollRevealBadge>
                   </div>
 
                   <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>

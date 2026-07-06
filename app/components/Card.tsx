@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import localFont from 'next/font/local';
 import { IM_Fell_Double_Pica } from 'next/font/google';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
@@ -76,6 +76,40 @@ export default function Card({
 }: CardProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const badgeRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    setIsRevealed(false);
+    const el = badgeRef.current;
+    if (!el) return;
+
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsRevealed(true);
+      return;
+    }
+
+    if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) {
+      setIsRevealed(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsRevealed(true);
+          observer.unobserve(el);
+        }
+      },
+      {
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [title]);
 
   const handleExport = useCallback(async () => {
     if (!sectionRef.current || exporting) return;
@@ -291,7 +325,10 @@ export default function Card({
 
         {title && (
           <div className="card-section-heading flex items-center justify-start">
-            <h3 className={`${garamond.className} italic section-typewriter-badge badge-${id} ${id ? badgeVariants[id] ?? '' : ''} text-sm m-0`}>
+            <h3 
+              ref={badgeRef}
+              className={`${garamond.className} italic section-typewriter-badge badge-${id} ${id ? badgeVariants[id] ?? '' : ''} ${isRevealed ? 'is-revealed' : ''} text-sm m-0`}
+            >
               <span className="badge-tape-bg" aria-hidden="true" />
               {Icon && <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />}
               <span>{title}</span>
