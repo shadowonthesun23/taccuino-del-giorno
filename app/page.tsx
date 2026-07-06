@@ -2944,7 +2944,7 @@ export default function Home() {
                             </p>
                             {!isApodExpanded && (
                               <div className={`absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t pointer-events-none ${
-                                isDark ? 'from-[#2A2A2A] to-transparent' : 'from-[#FDFCF8] to-transparent'
+                                isDark ? 'from-[#2A2A2A] to-[#2A2A2A]/0' : 'from-[#FDFCF8] to-[#FDFCF8]/0'
                               }`} />
                             )}
                           </div>
