@@ -1970,16 +1970,19 @@ export default function Home() {
   const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
 
   const tapeFilters = [
-    'none', // Burgundy (Original)
-    'hue-rotate(95deg) saturate(0.65) brightness(0.95)', // Sage Olive Green
-    'hue-rotate(25deg) saturate(0.85) brightness(0.9)', // Warm Terracotta
-    'hue-rotate(205deg) saturate(0.7) brightness(0.9)', // Slate Blue
-    'hue-rotate(135deg) saturate(0.65) brightness(0.85)', // Forest Green
-    'hue-rotate(220deg) saturate(0.75) brightness(0.8)', // Deep Indigo/Navy
-    'hue-rotate(275deg) saturate(0.7) brightness(0.85)', // Plum Purple
-    'hue-rotate(50deg) saturate(0.8) brightness(0.95)', // Ochre Yellow
-    'hue-rotate(165deg) saturate(0.7) brightness(0.85)', // Vintage Teal
-    'hue-rotate(345deg) saturate(0.95) brightness(0.85)', // Deep Crimson
+    'hue-rotate(205deg) saturate(0.8) brightness(0.8)', // 1. blu
+    'hue-rotate(350deg) saturate(1.1) brightness(1.1)', // 2. rosso
+    'hue-rotate(45deg) saturate(0.9) brightness(1.3)', // 3. oro
+    'hue-rotate(120deg) saturate(0.55) brightness(0.8)', // 4. verde-scuro
+    'hue-rotate(95deg) saturate(0.4) brightness(1.1)', // 5. salvia
+    'hue-rotate(90deg) saturate(0.45) brightness(1.3)', // 6. verde-chiaro
+    'none', // 7. borgogna (original burgundy matches base washi tape)
+    'hue-rotate(20deg) saturate(0.8) brightness(1.1)', // 8. rame
+    'hue-rotate(15deg) saturate(0.9) brightness(0.9)', // 9. terracotta
+    'saturate(0) brightness(1.35) contrast(0.95)', // 10. argento
+    'hue-rotate(45deg) saturate(0.7) brightness(1.1)', // 11. ocra
+    'saturate(0.08) brightness(0.65)', // 12. antracite
+    'hue-rotate(170deg) saturate(0.6) brightness(0.85)', // 13. ottanio
   ];
   const currentTapeFilter = tapeFilters[(dayOfYear - 1) % tapeFilters.length];
 
@@ -1988,6 +1991,59 @@ export default function Home() {
       document.documentElement.style.setProperty('--tape-filter', currentTapeFilter);
     }
   }, [currentTapeFilter]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Reset revealed classes first
+    document.querySelectorAll('.section-typewriter-badge, .author-tape-title-wrapper')
+      .forEach((el) => el.classList.remove('is-revealed'));
+
+    const observed = new Set<Element>();
+
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            intersectionObserver.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1,
+      }
+    );
+
+    const setupObservation = () => {
+      const elements = document.querySelectorAll('.section-typewriter-badge, .author-tape-title-wrapper');
+      elements.forEach((el) => {
+        if (!observed.has(el)) {
+          observed.add(el);
+          intersectionObserver.observe(el);
+        }
+      });
+    };
+
+    // Initial check
+    setupObservation();
+
+    // Observe document body for added nodes to support React mounting changes
+    const mutationObserver = new MutationObserver(() => {
+      setupObservation();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      intersectionObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [dataExLibris, loading]);
 
   const visibleSaintArtwork = (
     saintArtwork

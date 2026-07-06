@@ -156,7 +156,7 @@ export default function AuthorExportCard({
         */}
         <div
           ref={exportRef}
-          className={garamond.className}
+          className={`${garamond.className} social-export-card`}
           style={{
             width: '1080px',
             height: '1920px',

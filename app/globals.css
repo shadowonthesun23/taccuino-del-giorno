@@ -7537,3 +7537,32 @@ body {
   transform: scaleX(-1) !important;
   display: inline-block !important;
 }
+
+/* Entrance animation reveal mask effect */
+.section-typewriter-badge,
+.author-tape-title-wrapper {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 850ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: clip-path;
+}
+
+.section-typewriter-badge.is-revealed,
+.author-tape-title-wrapper.is-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Ensure social export cards are always fully revealed, bypassing clip transitions */
+.social-export-card .section-typewriter-badge,
+.social-export-card .author-tape-title-wrapper {
+  clip-path: inset(0 0 0 0) !important;
+  transition: none !important;
+}
+
+/* Accessibility: respect users' prefers-reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .section-typewriter-badge,
+  .author-tape-title-wrapper {
+    clip-path: inset(0 0 0 0) !important;
+    transition: none !important;
+  }
+}
