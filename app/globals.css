@@ -593,6 +593,13 @@ body {
   background-color: #171614;
 }
 
+[data-theme="dark"] .journal-material,
+.dark .journal-material {
+  --journal-light-color: transparent !important;
+  --journal-material-wash: transparent !important;
+  --journal-side-wash: transparent !important;
+}
+
 .notebook-wordmark {
   font-kerning: normal;
   letter-spacing: 0.016em;
@@ -603,8 +610,8 @@ body {
   box-sizing: content-box;
   display: inline-block;
   line-height: 1.12;
-  margin: -0.18em -0.14em -0.2em;
-  padding: 0.18em 0.14em 0.2em;
+  margin: -0.25em -0.45em -0.35em -0.3em;
+  padding: 0.25em 0.45em 0.35em 0.3em;
   position: relative;
   z-index: 0;
 }
@@ -625,9 +632,7 @@ body {
 
 [data-theme="dark"] .journal-wordmark-reserve::before,
 .dark .journal-wordmark-reserve::before {
-  background:
-    radial-gradient(ellipse 78% 58% at 50% 54%, rgba(255,244,224,0.08), rgba(255,244,224,0.035) 52%, transparent 76%);
-  opacity: 1;
+  display: none;
 }
 
 .typewriter-text {
@@ -7661,13 +7666,30 @@ body {
 }
 
 /* Override tape size on social export card to accommodate larger export typography scale */
-.social-export-card .author-tape-title-wrapper,
 .social-export-card .section-typewriter-badge {
   min-width: 236px !important;
   width: max-content !important;
   height: 43px !important;
   padding: 0 12px 3px 18px !important;
   gap: 6px !important;
+}
+
+.social-export-card .author-tape-title-wrapper {
+  min-width: 320px !important;
+  width: max-content !important;
+  height: 52px !important;
+  padding: 0 16px 3px 20px !important;
+  gap: 8px !important;
+  justify-content: center !important;
+}
+
+.social-export-card .author-tape-title-wrapper span:not(.badge-tape-bg) {
+  font-size: 28px !important;
+}
+
+.social-export-card .author-tape-title-wrapper svg {
+  width: 24px !important;
+  height: 24px !important;
 }
 
 .social-export-card .section-typewriter-badge span:not(.badge-tape-bg) {

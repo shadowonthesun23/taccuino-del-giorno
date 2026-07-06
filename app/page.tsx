@@ -503,7 +503,7 @@ function getAmbientLightStyle(now: Date, isDark: boolean): CSSProperties {
   return {
     '--journal-light-x': `${interpolate(lower.x, upper.x).toFixed(2)}%`,
     '--journal-light-y': `${interpolate(lower.y, upper.y).toFixed(2)}%`,
-    '--journal-light-color': `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha.toFixed(3)})`,
+    '--journal-light-color': isDark ? 'transparent' : `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha.toFixed(3)})`,
     '--journal-material-blend': isDark ? 'screen' : 'multiply',
     '--journal-material-opacity': isDark ? 0.56 : 0.9,
   } as CSSProperties;

@@ -192,18 +192,6 @@ export default function AuthorExportCard({
             aria-hidden="true"
             style={{
               position: 'absolute',
-              inset: '64px 44px 54px',
-              borderRadius: '46px',
-              background: palette.spotlight,
-              boxShadow: isDark
-                ? '0 0 120px 96px rgba(30,30,30,0.54)'
-                : '0 0 120px 96px rgba(255,252,242,0.36)',
-            }}
-          />
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
               inset: 0,
               backgroundImage: 'url("/beige-paper.png")',
               backgroundRepeat: 'repeat',
@@ -224,8 +212,11 @@ export default function AuthorExportCard({
               textAlign: 'center',
             }}
           >
-            <div className={stampwriter.className} style={{ fontSize: '26px', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-              Il giorno da custodire
+            <div className={garamond.className} style={{ fontSize: '32px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 400 }}>
+              IL GIORNO DA CUSTODIRE
+            </div>
+            <div className={garamond.className} style={{ fontSize: '20px', letterSpacing: '0.08em', marginTop: '6px', color: palette.textMuted, opacity: 0.9 }}>
+              taccuino-del-giorno.vercel.app
             </div>
             <div style={{ height: '1px', margin: '12px auto 0', width: '260px', background: palette.wcColor, opacity: 0.42 }} />
           </div>
@@ -245,11 +236,11 @@ export default function AuthorExportCard({
             </span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '68px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '60px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
             <div className="author-tape-title-wrapper select-none">
               <span className="badge-tape-bg" aria-hidden="true" />
-              <Feather className="w-[19px] h-[19px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
-              <span className={`${garamond.className} italic text-[22px] font-medium text-[#f4f0e6] leading-none`}>
+              <Feather className="w-[24px] h-[24px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
+              <span className={`${garamond.className} italic text-[28px] font-medium text-[#f4f0e6] leading-none`}>
                 {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
               </span>
             </div>
@@ -403,6 +394,9 @@ export default function AuthorExportCard({
               flexShrink: 0,
               position: 'relative',
               zIndex: 1,
+              textShadow: !isDark
+                ? '0 0 12px #ffffff, 0 0 8px #ffffff, 0 0 4px #ffffff'
+                : undefined,
             }}
           >
             {descTesto}

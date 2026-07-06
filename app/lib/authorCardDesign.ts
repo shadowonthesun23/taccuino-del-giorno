@@ -199,7 +199,7 @@ export function getAuthorCardLayout(citation: string, description: string, autho
   if (load > 460) {
     return {
       variant: 'compact',
-      topPadding: 202,
+      topPadding: 480,
       sidePadding: 76,
       bottomPadding: 54,
       tapeWidth: 286,
@@ -238,7 +238,7 @@ export function getAuthorCardLayout(citation: string, description: string, autho
   if (load > 220) {
     return {
       variant: 'balanced',
-      topPadding: 210,
+      topPadding: 500,
       sidePadding: 74,
       bottomPadding: 52,
       tapeWidth: 292,
@@ -276,7 +276,7 @@ export function getAuthorCardLayout(citation: string, description: string, autho
 
   return {
     variant: 'airy',
-    topPadding: 218,
+    topPadding: 520,
     sidePadding: 78,
     bottomPadding: 56,
     tapeWidth: 300,
