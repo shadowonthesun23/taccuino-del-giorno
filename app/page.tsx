@@ -1570,6 +1570,7 @@ export default function Home() {
   const [savedCards, setSavedCards] = useState<SavedCardItem[]>(getSavedCards);
   const [dailyAccent, setDailyAccent] = useState({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
   const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
+  const [savedDrawerPos, setSavedDrawerPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
   const [visitedArchiveDates, setVisitedArchiveDates] = useState<Set<string>>(getSavedVisitedDates);
   const [archivioQuery, setArchivioQuery] = useState('');
@@ -1982,6 +1983,18 @@ export default function Home() {
     setPopoverOpen((current) => !current);
   };
 
+  const toggleSavedDrawer = (trigger: HTMLButtonElement, returnFocus = trigger) => {
+    setPopoverOpen(false);
+    if (!savedDrawerOpen) {
+      const rect = trigger.getBoundingClientRect();
+      setSavedDrawerPos({
+        top: rect.bottom + 10,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setSavedDrawerOpen((current) => !current);
+  };
+
   const themeClasses = {
     bg: isDark ? 'bg-[#171614]' : 'bg-[#F8F6F0]',
     text: isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]',
@@ -2181,6 +2194,10 @@ export default function Home() {
       aria-modal="false"
       aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
       className={`saved-cards-drawer ${savedDrawerOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} ${garamond.className}`}
+      style={{
+        top: `${savedDrawerPos.top}px`,
+        right: `${savedDrawerPos.right}px`,
+      }}
     >
       <header className="saved-cards-header">
         <div>
@@ -2337,9 +2354,8 @@ export default function Home() {
           <button
             ref={desktopSavedTriggerRef}
             type="button"
-            onClick={() => {
-              setPopoverOpen(false);
-              setSavedDrawerOpen((current) => !current);
+            onClick={(event) => {
+              toggleSavedDrawer(event.currentTarget);
             }}
             className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
               savedDrawerOpen
@@ -2408,10 +2424,9 @@ export default function Home() {
             <button
               ref={mobileSavedTriggerRef}
               type="button"
-              onClick={() => {
+              onClick={(event) => {
                 setMobileToolsOpen(false);
-                setPopoverOpen(false);
-                setSavedDrawerOpen((current) => !current);
+                toggleSavedDrawer(event.currentTarget, mobileToolsTriggerRef.current ?? event.currentTarget);
               }}
               aria-expanded={savedDrawerOpen}
               aria-haspopup="dialog"
