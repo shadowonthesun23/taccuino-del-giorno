@@ -7526,6 +7526,32 @@ body {
   min-width: 170px !important;
 }
 
+/* Specific overrides to use the new short tape PNG for Parole, Santi, Opera, Avvenimenti, and Bibbia */
+.section-typewriter-badge.badge-parola .badge-tape-bg,
+.section-typewriter-badge.badge-santi .badge-tape-bg,
+.section-typewriter-badge.badge-opera .badge-tape-bg,
+.section-typewriter-badge.badge-avvenimenti .badge-tape-bg,
+.section-typewriter-badge.badge-bibbia .badge-tape-bg {
+  background-image: url("/images/tape-corto.png") !important;
+}
+
+.section-typewriter-badge.badge-parola,
+.section-typewriter-badge.badge-santi,
+.section-typewriter-badge.badge-opera,
+.section-typewriter-badge.badge-avvenimenti,
+.section-typewriter-badge.badge-bibbia {
+  min-width: 170px !important;
+}
+
+/* Social Export Card specific overrides for the new short tape width */
+.social-export-card .section-typewriter-badge.badge-parola,
+.social-export-card .section-typewriter-badge.badge-santi,
+.social-export-card .section-typewriter-badge.badge-opera,
+.social-export-card .section-typewriter-badge.badge-avvenimenti,
+.social-export-card .section-typewriter-badge.badge-bibbia {
+  min-width: 190px !important;
+}
+
 /* Mirroring effect for dynamic washi tape randomization */
 .section-typewriter-badge.badge-mirrored {
   transform: rotate(var(--badge-rotation, -0.7deg)) scaleX(-1) !important;
