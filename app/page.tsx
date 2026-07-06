@@ -2943,9 +2943,14 @@ export default function Home() {
                               {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
                             </p>
                             {!isApodExpanded && (
-                              <div className={`absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t pointer-events-none ${
-                                isDark ? 'from-[#2A2A2A] to-[#2A2A2A]/0' : 'from-[#FDFCF8] to-[#FDFCF8]/0'
-                              }`} />
+                              <div 
+                                className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"
+                                style={{
+                                  backgroundImage: isDark
+                                    ? 'linear-gradient(to top, #2A2A2A 0%, rgba(42, 42, 42, 0) 100%)'
+                                    : 'linear-gradient(to top, #FDFCF8 0%, rgba(253, 252, 248, 0) 100%)'
+                                }}
+                              />
                             )}
                           </div>
                           
