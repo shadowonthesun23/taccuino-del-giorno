@@ -197,14 +197,11 @@ img {
   cursor: pointer;
   z-index: 8 !important;
   
-  /* Museum wall background for light mode */
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(246, 243, 237, 0.86) 0%, rgba(220, 215, 203, 0.94) 100%),
-    url('/images/sfondo-taccuino.webp') !important;
-  background-size: cover, cover !important;
+  /* Classic museum wall background (light mode) - clean sand-stone paint */
+  background-image: radial-gradient(circle at 50% 50%, #f7f4ec 0%, #dcd6c8 100%) !important;
+  background-size: cover !important;
   background-repeat: no-repeat !important;
   background-color: transparent !important;
-  background-blend-mode: multiply !important;
 }
 
 .museum-frame-container {
@@ -252,14 +249,11 @@ img {
     inset 0 0 0 clamp(4px, 0.8vw, 8px) #1a100a;
 }
 
-/* Dark mode overrides for the museum frame & wall */
 .is-dark .seasonal-paint-reveal.is-solo,
 .dark .seasonal-paint-reveal.is-solo,
 [data-theme="dark"] .seasonal-paint-reveal.is-solo {
-  /* Museum wall background for dark mode */
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(45, 47, 52, 0.90) 0%, rgba(20, 21, 23, 0.96) 100%),
-    url('/images/sfondo-taccuino-dark-paper.webp') !important;
+  /* Classic museum wall background (dark mode) - clean slate paint */
+  background-image: radial-gradient(circle at 50% 50%, #2f333a 0%, #151619 100%) !important;
 }
 
 .is-dark .museum-frame-image,
