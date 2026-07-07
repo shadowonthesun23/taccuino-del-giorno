@@ -212,13 +212,13 @@ img {
 }
 
 .museum-frame-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  padding: 32px 48px; /* Snugger 32px margin from top and bottom */
-  box-sizing: border-box;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 32px 48px !important; /* Snugger 32px margin from top and bottom */
+  box-sizing: border-box !important;
 }
 
 .museum-artwork-wrapper {
@@ -261,12 +261,12 @@ img {
 }
 
 .museum-frame-image {
-  max-width: min(92vw, 1800px);
-  max-height: min(calc(100vh - 300px), 1050px);
-  width: auto;
-  height: auto;
-  box-sizing: border-box;
-  display: block;
+  max-width: min(92vw, 1800px) !important;
+  max-height: min(calc(100vh - 300px), 1050px) !important;
+  width: auto !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  display: block !important;
   
   /* Passepartout cream paper texture & color */
   background-color: #f7f4eb;
