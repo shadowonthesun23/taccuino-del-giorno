@@ -196,8 +196,15 @@ img {
   pointer-events: auto !important;
   cursor: pointer;
   z-index: 8 !important;
+  
+  /* Museum wall background for light mode */
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(246, 243, 237, 0.86) 0%, rgba(220, 215, 203, 0.94) 100%),
+    url('/images/sfondo-taccuino.webp') !important;
+  background-size: cover, cover !important;
+  background-repeat: no-repeat !important;
   background-color: transparent !important;
-  background-image: none !important;
+  background-blend-mode: multiply !important;
 }
 
 .museum-frame-container {
@@ -206,13 +213,28 @@ img {
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 40px;
+  padding: 24px;
   box-sizing: border-box;
 }
 
+.museum-artwork-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 3vh, 32px);
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.museum-frame-inner {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .museum-frame-image {
-  max-width: min(80vw, 1000px);
-  max-height: min(72vh, 650px);
+  max-width: min(85vw, 1100px);
+  max-height: min(72vh, 700px);
   width: auto;
   height: auto;
   box-sizing: border-box;
@@ -220,7 +242,6 @@ img {
   background-color: #f7f4eb; /* Passepartout */
   padding: clamp(16px, 3.5vw, 36px);
   border: clamp(12px, 2.5vw, 24px) solid #312317; /* Walnut wood */
-  transition: transform 300ms ease;
   box-shadow:
     0 35px 80px rgba(0, 0, 0, 0.52),
     0 12px 28px rgba(0, 0, 0, 0.35),
@@ -231,7 +252,16 @@ img {
     inset 0 0 0 clamp(4px, 0.8vw, 8px) #1a100a;
 }
 
-/* Dark mode overrides for the museum frame */
+/* Dark mode overrides for the museum frame & wall */
+.is-dark .seasonal-paint-reveal.is-solo,
+.dark .seasonal-paint-reveal.is-solo,
+[data-theme="dark"] .seasonal-paint-reveal.is-solo {
+  /* Museum wall background for dark mode */
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(45, 47, 52, 0.90) 0%, rgba(20, 21, 23, 0.96) 100%),
+    url('/images/sfondo-taccuino-dark-paper.webp') !important;
+}
+
 .is-dark .museum-frame-image,
 .dark .museum-frame-image,
 [data-theme="dark"] .museum-frame-image {
@@ -245,6 +275,93 @@ img {
     inset 0 0 0 clamp(2px, 0.4vw, 4px) #12100e,
     inset 0 0 0 clamp(3px, 0.6vw, 6px) #806535,
     inset 0 0 0 clamp(4px, 0.8vw, 8px) #0c0a09;
+}
+
+/* Museum Brass/Golden Label */
+.museum-brass-label {
+  position: relative;
+  background: linear-gradient(180deg, #dfc07f 0%, #c4a15a 40%, #a3813c 100%);
+  border: 1px solid #947330;
+  border-radius: 2px;
+  padding: 8px 32px;
+  text-align: center;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  max-width: 320px;
+  min-width: 200px;
+  color: #372a15;
+  text-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.is-dark .museum-brass-label,
+.dark .museum-brass-label,
+[data-theme="dark"] .museum-brass-label {
+  background: linear-gradient(180deg, #b0955d 0%, #947942 40%, #765d2e 100%);
+  border-color: #614c24;
+  color: #241b0b;
+  text-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.museum-label-screw {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  background: #5c4b2b;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.7),
+    0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.is-dark .museum-label-screw,
+.dark .museum-label-screw,
+[data-theme="dark"] .museum-label-screw {
+  background: #3a2e16;
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.museum-label-screw.left {
+  left: 12px;
+}
+
+.museum-label-screw.right {
+  right: 12px;
+}
+
+.museum-label-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-style: italic;
+  margin: 0 0 2px;
+  line-height: 1.25;
+}
+
+.museum-label-meta {
+  font-size: 0.74rem;
+  font-weight: 500;
+  margin: 0 0 2px;
+  opacity: 0.95;
+}
+
+.museum-label-collection {
+  font-size: 0.64rem;
+  font-style: italic;
+  margin: 0;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .dark .notebook-line-art,

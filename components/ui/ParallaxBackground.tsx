@@ -350,12 +350,28 @@ export default function ParallaxBackground({
         >
           {isArtworkSolo && seasonalArtwork && (
             <div className="museum-frame-container">
-              <img
-                src={seasonalArtwork.imageUrl}
-                alt={seasonalArtwork.title}
-                className="museum-frame-image"
-                draggable={false}
-              />
+              <div className="museum-artwork-wrapper">
+                <div className="museum-frame-inner">
+                  <img
+                    src={seasonalArtwork.imageUrl}
+                    alt={seasonalArtwork.title}
+                    className="museum-frame-image"
+                    draggable={false}
+                  />
+                </div>
+                <div className="museum-brass-label" onClick={(e) => e.stopPropagation()}>
+                  <span className="museum-label-screw left" />
+                  <span className="museum-label-screw right" />
+                  <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                  <p className="museum-label-meta">
+                    <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                    {seasonalArtwork.year && (
+                      <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                    )}
+                  </p>
+                  <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
