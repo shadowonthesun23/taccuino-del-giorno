@@ -29,6 +29,14 @@ export default function ParallaxBackground({
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const [dark, setDark] = useState(false);
+  const [isArtworkSolo, setIsArtworkSolo] = useState(false);
+  const prevSolo = useRef(isArtworkSolo);
+
+  const bgColor = dark ? '#171614' : '#F8F6F0';
+  const imageOpacity = dark ? 0.102 : 0.13;
+  const imageFilter = dark
+    ? 'brightness(0.52) saturate(0.42) contrast(0.72)'
+    : 'saturate(0.72) brightness(1.04) contrast(0.94)';
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
   const seasonalArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
   const seasonalCaptionLabel = language === 'IT'
@@ -113,6 +121,16 @@ export default function ParallaxBackground({
     const lineArt = lineArtRef.current;
     if (!reveal || !lineArt || !hasSeasonalReveal) return;
     const caption = seasonalCaptionRef.current;
+
+    if (isArtworkSolo) {
+      reveal.style.opacity = '1';
+      caption?.classList.add('is-visible');
+      return () => {
+        reveal.style.opacity = '';
+        caption?.classList.remove('is-visible');
+      };
+    }
+
     caption?.classList.remove('is-visible');
 
     const pointerQuery = window.matchMedia(
@@ -248,14 +266,61 @@ export default function ParallaxBackground({
       if (frame !== null) window.cancelAnimationFrame(frame);
       if (hideTimer !== null) window.clearTimeout(hideTimer);
       caption?.classList.remove('is-visible');
+      reveal.style.opacity = '';
     };
-  }, [dark, hasSeasonalReveal, season]);
+  }, [dark, hasSeasonalReveal, season, isArtworkSolo]);
 
-  const bgColor = dark ? '#171614' : '#F8F6F0';
-  const imageOpacity = dark ? 0.102 : 0.13;
-  const imageFilter = dark
-    ? 'brightness(0.52) saturate(0.42) contrast(0.72)'
-    : 'saturate(0.72) brightness(1.04) contrast(0.94)';
+  useEffect(() => {
+    if (!hasSeasonalReveal) return;
+
+    if (prevSolo.current === isArtworkSolo) {
+      return;
+    }
+    prevSolo.current = isArtworkSolo;
+
+    const cards = Array.from(document.querySelectorAll('.card-paper-shadow')).map(el => el.parentElement).filter(Boolean) as HTMLElement[];
+    const others = Array.from(document.querySelectorAll(
+      'header.journal-hero, section.author-feature, footer.journal-footer, .seasonal-bookmark, .top-control-panel, .notebook-quick-nav, .mobile-reading-thread, .mobile-tools'
+    )) as HTMLElement[];
+    const targets = [...cards, ...others];
+
+    if (isArtworkSolo) {
+      const viewportMid = window.innerHeight / 2;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+
+      targets.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const elCenter = rect.top + rect.height / 2;
+        const goUp = elCenter < viewportMid;
+        
+        el.classList.add('solo-transition');
+        el.classList.add(goUp ? 'solo-go-up' : 'solo-go-down');
+      });
+    } else {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+
+      targets.forEach(el => {
+        el.classList.remove('solo-go-up', 'solo-go-down');
+      });
+
+      const timer = setTimeout(() => {
+        targets.forEach(el => {
+          el.classList.remove('solo-transition');
+        });
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [isArtworkSolo, hasSeasonalReveal]);
+
+
 
   return (
     <>
@@ -268,29 +333,36 @@ export default function ParallaxBackground({
       {hasSeasonalReveal && (
         <div
           ref={seasonalRevealRef}
-          aria-hidden="true"
+          aria-hidden={!isArtworkSolo}
           className={[
             'seasonal-paint-reveal',
             `season-${season}`,
             seasonalArtwork ? `artwork-${seasonalArtwork.id}` : '',
-            'safe-viewport-backdrop fixed z-0 pointer-events-none',
+            'safe-viewport-backdrop fixed z-0',
+            isArtworkSolo ? 'is-solo' : 'pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
           style={seasonalArtwork ? {
             backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
             backgroundPosition: seasonalArtwork.revealPosition,
           } : undefined}
+          onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
         />
       )}
 
       {hasSeasonalReveal && seasonalArtwork ? (
         <aside
           ref={seasonalCaptionRef}
-          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''}`}
+          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''} ${isArtworkSolo ? 'is-visible' : ''}`}
           aria-label={seasonalCaptionLabel}
           data-reveal-readability
+          onClick={() => setIsArtworkSolo(prev => !prev)}
         >
-          <span className="seasonal-artwork-hint">{seasonalCaptionHint}</span>
+          <span className="seasonal-artwork-hint">
+            {isArtworkSolo
+              ? (language === 'IT' ? 'Clicca per mostrare il testo' : 'Click to show text')
+              : seasonalCaptionHint}
+          </span>
           <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
           <span className="seasonal-artwork-artist">{seasonalArtwork.artist}</span>
           <span className="seasonal-artwork-collection">{seasonalArtwork.collection}</span>
@@ -303,7 +375,11 @@ export default function ParallaxBackground({
         className={`notebook-line-art safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden ${
           hasSeasonalReveal ? 'seasonal-line-art' : ''
         }`}
-        style={{ filter: imageFilter, opacity: imageOpacity }}
+        style={{ 
+          filter: imageFilter, 
+          opacity: isArtworkSolo ? 0 : imageOpacity,
+          transition: 'opacity 700ms ease',
+        }}
       >
         <div
           ref={imageRef}
@@ -323,11 +399,13 @@ export default function ParallaxBackground({
         <div
           ref={coffeeLayerRef}
           aria-hidden="true"
-          className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden will-change-transform"
+          className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden"
           style={{
             backfaceVisibility: 'hidden',
             contain: 'layout paint style',
-            transform: 'translate3d(0, 0, 0)',
+            transform: isArtworkSolo ? 'translate3d(-300px, -300px, 0)' : 'translate3d(0, 0, 0)',
+            opacity: isArtworkSolo ? 0 : 1,
+            transition: 'transform 800ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease',
           }}
         >
           <EspressoCorner isDark={dark} />
