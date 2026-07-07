@@ -352,25 +352,50 @@ export default function ParallaxBackground({
             <div className="museum-frame-container">
               <div className="museum-artwork-wrapper">
                 <div className="museum-frame-inner">
+                  <div className="museum-spotlight left" />
+                  <div className="museum-spotlight right" />
                   <img
                     src={seasonalArtwork.imageUrl}
                     alt={seasonalArtwork.title}
                     className="museum-frame-image"
                     draggable={false}
                   />
+                  <div className="museum-light-beams" />
                 </div>
-                <div className="museum-brass-label" onClick={(e) => e.stopPropagation()}>
-                  <span className="museum-label-screw left" />
-                  <span className="museum-label-screw right" />
-                  <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
-                  <p className="museum-label-meta">
-                    <span className="museum-label-artist">{seasonalArtwork.artist}</span>
-                    {seasonalArtwork.year && (
-                      <span className="museum-label-year"> · {seasonalArtwork.year}</span>
-                    )}
-                  </p>
-                  <p className="museum-label-collection">{seasonalArtwork.collection}</p>
-                </div>
+                {seasonalArtwork.sourceUrl ? (
+                  <a
+                    href={seasonalArtwork.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="museum-brass-label"
+                    onClick={(e) => e.stopPropagation()}
+                    title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
+                  >
+                    <span className="museum-label-screw left" />
+                    <span className="museum-label-screw right" />
+                    <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                    <p className="museum-label-meta">
+                      <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                      {seasonalArtwork.year && (
+                        <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                      )}
+                    </p>
+                    <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                  </a>
+                ) : (
+                  <div className="museum-brass-label" onClick={(e) => e.stopPropagation()}>
+                    <span className="museum-label-screw left" />
+                    <span className="museum-label-screw right" />
+                    <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                    <p className="museum-label-meta">
+                      <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                      {seasonalArtwork.year && (
+                        <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                      )}
+                    </p>
+                    <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

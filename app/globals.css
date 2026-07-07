@@ -224,14 +224,15 @@ img {
 }
 
 .museum-frame-inner {
+  position: relative;
   display: block;
   max-width: 100%;
   max-height: 100%;
 }
 
 .museum-frame-image {
-  max-width: min(85vw, 1100px);
-  max-height: min(72vh, 700px);
+  max-width: min(92vw, 1300px);
+  max-height: min(78vh, 850px);
   width: auto;
   height: auto;
   box-sizing: border-box;
@@ -271,23 +272,111 @@ img {
     inset 0 0 0 clamp(4px, 0.8vw, 8px) #0c0a09;
 }
 
+/* Spotlight Fixtures (Faretti) */
+.museum-spotlight {
+  position: absolute;
+  top: 0;
+  width: 40px;
+  height: 12px;
+  z-index: 10;
+  transform: translateY(-100%); /* sit directly on top of the frame */
+}
+
+.museum-spotlight.left {
+  left: 25%;
+}
+
+.museum-spotlight.right {
+  right: 25%;
+}
+
+/* Bracket arm */
+.museum-spotlight::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(90deg, #514228, #866d43, #514228);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Cylindrical hood */
+.museum-spotlight::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 10px;
+  background: linear-gradient(180deg, #b09359, #866d43, #5d4b2b);
+  border-radius: 2px;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.is-dark .museum-spotlight::after,
+.dark .museum-spotlight::after,
+[data-theme="dark"] .museum-spotlight::after {
+  background: linear-gradient(180deg, #8a713f, #67522d, #42341d);
+}
+
+/* Spotlight beams (Light Cones) */
+.museum-light-beams {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9;
+  mix-blend-mode: screen;
+  opacity: 0.14;
+  background-image: 
+    radial-gradient(circle at 25% 0%, rgba(255, 240, 200, 1) 0%, rgba(255, 240, 200, 0.4) 30%, rgba(255, 240, 200, 0) 70%),
+    radial-gradient(circle at 75% 0%, rgba(255, 240, 200, 1) 0%, rgba(255, 240, 200, 0.4) 30%, rgba(255, 240, 200, 0) 70%);
+}
+
+.is-dark .museum-light-beams,
+.dark .museum-light-beams,
+[data-theme="dark"] .museum-light-beams {
+  opacity: 0.25;
+}
+
 /* Museum Brass/Golden Label */
 .museum-brass-label {
   position: relative;
   background: linear-gradient(180deg, #dfc07f 0%, #c4a15a 40%, #a3813c 100%);
   border: 1px solid #947330;
   border-radius: 2px;
-  padding: 8px 32px;
+  padding: 6px 24px;
   text-align: center;
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  max-width: 320px;
-  min-width: 200px;
+  max-width: 250px;
+  min-width: 160px;
   color: #372a15;
   text-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.25);
   box-sizing: border-box;
   cursor: default;
+  font-family: "IM Fell Double Pica", Georgia, serif !important;
+}
+
+a.museum-brass-label {
+  text-decoration: none !important;
+  cursor: pointer !important;
+  display: block;
+  transition: transform 200ms ease, filter 200ms ease;
+}
+
+a.museum-brass-label:hover {
+  filter: brightness(1.06);
+  transform: scale(1.03);
 }
 
 .is-dark .museum-brass-label,
@@ -306,8 +395,8 @@ img {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   background: #5c4b2b;
   border-radius: 50%;
   box-shadow:
@@ -325,30 +414,30 @@ img {
 }
 
 .museum-label-screw.left {
-  left: 12px;
+  left: 10px;
 }
 
 .museum-label-screw.right {
-  right: 12px;
+  right: 10px;
 }
 
 .museum-label-title {
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   font-weight: 700;
   font-style: italic;
   margin: 0 0 2px;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .museum-label-meta {
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   font-weight: 500;
   margin: 0 0 2px;
   opacity: 0.95;
 }
 
 .museum-label-collection {
-  font-size: 0.64rem;
+  font-size: 0.56rem;
   font-style: italic;
   margin: 0;
   opacity: 0.85;
