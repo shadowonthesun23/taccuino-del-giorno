@@ -431,14 +431,18 @@ export default function ParallaxBackground({
           data-reveal-readability
           onClick={() => setIsArtworkSolo(prev => !prev)}
         >
-          <span className="seasonal-artwork-hint">
+          <span className="seasonal-artwork-hint" style={isArtworkSolo ? { margin: 0 } : undefined}>
             {isArtworkSolo
               ? (language === 'IT' ? 'Clicca per mostrare il testo' : 'Click to show text')
               : seasonalCaptionHint}
           </span>
-          <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
-          <span className="seasonal-artwork-artist">{seasonalArtwork.artist}</span>
-          <span className="seasonal-artwork-collection">{seasonalArtwork.collection}</span>
+          {!isArtworkSolo && (
+            <>
+              <cite>{seasonalArtwork.title}</cite>, <time>{seasonalArtwork.year}</time>
+              <span className="seasonal-artwork-artist">{seasonalArtwork.artist}</span>
+              <span className="seasonal-artwork-collection">{seasonalArtwork.collection}</span>
+            </>
+          )}
         </aside>
       ) : null}
 
