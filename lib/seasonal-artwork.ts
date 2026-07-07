@@ -15,7 +15,7 @@ export interface SeasonalArtwork {
   sourceUrl: string;
   linkKind: SeasonalArtworkLinkKind;
   revealPosition: string;
-  ticketAlignment: 'xMinYMid' | 'xMidYMid' | 'xMaxYMid';
+  ticketAlignment: 'xMinYMid' | 'xMidYMid' | 'xMaxYMid' | 'xMinYMax' | 'xMidYMax' | 'xMaxYMax';
   tone: SeasonalArtworkTone;
 }
 
@@ -215,7 +215,7 @@ export const SEASONAL_ARTWORKS: Partial<Record<SeasonId, readonly SeasonalArtwor
       sourceUrl: 'https://www.sammlung.pinakothek.de/en/artwork/8eGVjAYGWQ',
       linkKind: 'museum',
       revealPosition: '56% bottom',
-      ticketAlignment: 'xMidYMid',
+      ticketAlignment: 'xMidYMax',
       tone: 'balanced',
     },
     {
