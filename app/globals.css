@@ -217,7 +217,7 @@ img {
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 70px 48px; /* Strict 70px margin from top and bottom */
+  padding: 32px 48px; /* Snugger 32px margin from top and bottom */
   box-sizing: border-box;
 }
 
@@ -261,8 +261,8 @@ img {
 }
 
 .museum-frame-image {
-  max-width: min(85vw, 1200px);
-  max-height: min(calc(100vh - 300px), 800px);
+  max-width: min(85vw, 1300px);
+  max-height: min(calc(100vh - 300px), 1050px);
   width: auto;
   height: auto;
   box-sizing: border-box;
