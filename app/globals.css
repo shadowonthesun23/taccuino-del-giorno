@@ -189,6 +189,10 @@ img {
   filter: brightness(1.12) saturate(1.05) contrast(1.03);
 }
 
+body:has(.seasonal-paint-reveal.is-solo) main.journal-page-transition {
+  pointer-events: none !important;
+}
+
 .seasonal-paint-reveal.is-solo {
   opacity: 1 !important;
   -webkit-mask-image: none !important;
@@ -365,18 +369,42 @@ img {
   box-sizing: border-box;
   cursor: default;
   font-family: "IM Fell Double Pica", Georgia, serif !important;
+  overflow: hidden;
 }
 
 a.museum-brass-label {
   text-decoration: none !important;
   cursor: pointer !important;
   display: block;
-  transition: transform 200ms ease, filter 200ms ease;
 }
 
 a.museum-brass-label:hover {
-  filter: brightness(1.06);
-  transform: scale(1.03);
+  filter: brightness(1.08);
+}
+
+/* Diagonal sheen shine reflection on hover */
+.museum-brass-label::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-30deg);
+  pointer-events: none;
+  z-index: 2;
+  transition: left 0s;
+}
+
+a.museum-brass-label:hover::before {
+  left: 150%;
+  transition: left 850ms ease-out;
 }
 
 .is-dark .museum-brass-label,
