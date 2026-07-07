@@ -246,15 +246,14 @@ img {
   display: block;
   background-color: #f7f4eb; /* Passepartout */
   padding: clamp(16px, 3.5vw, 36px);
-  border: clamp(12px, 2.5vw, 24px) solid #312317; /* Walnut wood */
+  border: clamp(24px, 5.2vw, 56px) solid transparent;
+  border-image-source: url('/images/cornice-oro.png');
+  border-image-slice: 187 fill;
+  border-image-repeat: stretch;
   box-shadow:
     0 35px 80px rgba(0, 0, 0, 0.52),
     0 12px 28px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 0 15px rgba(0, 0, 0, 0.65),
-    inset 0 0 0 clamp(2px, 0.4vw, 4px) #1f140c,
-    inset 0 0 0 clamp(3px, 0.6vw, 6px) #b08d4b,
-    inset 0 0 0 clamp(4px, 0.8vw, 8px) #1a100a;
+    inset 0 0 15px rgba(0, 0, 0, 0.65);
 }
 
 
@@ -263,15 +262,10 @@ img {
 .dark .museum-frame-image,
 [data-theme="dark"] .museum-frame-image {
   background-color: #262422; /* Darker passepartout */
-  border-color: #1a1715; /* Charcoal wood */
   box-shadow:
     0 35px 80px rgba(0, 0, 0, 0.85),
     0 12px 28px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 0 15px rgba(0, 0, 0, 0.85),
-    inset 0 0 0 clamp(2px, 0.4vw, 4px) #12100e,
-    inset 0 0 0 clamp(3px, 0.6vw, 6px) #806535,
-    inset 0 0 0 clamp(4px, 0.8vw, 8px) #0c0a09;
+    inset 0 0 15px rgba(0, 0, 0, 0.85);
 }
 
 /* Spotlight Fixtures (Faretti) */
