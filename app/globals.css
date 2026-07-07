@@ -261,7 +261,7 @@ img {
 }
 
 .museum-frame-image {
-  max-width: min(85vw, 1300px);
+  max-width: min(92vw, 1800px);
   max-height: min(calc(100vh - 300px), 1050px);
   width: auto;
   height: auto;
