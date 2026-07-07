@@ -8,6 +8,22 @@ const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
 const darkNotebookBackground = '/images/sfondo-taccuino-dark-paper.webp';
 
+const SEAL_HEX_CODES: Record<string, string> = {
+  blu: '#11304e',
+  rosso: '#7e0814',
+  oro: '#86683a',
+  'verde-scuro': '#3c6146',
+  salvia: '#6c7d60',
+  'verde-chiaro': '#7d8e75',
+  borgogna: '#54191f',
+  rame: '#bb7652',
+  terracotta: '#a8480e',
+  argento: '#9fa3a6',
+  ocra: '#ca8e2d',
+  antracite: '#424143',
+  ottanio: '#196066',
+};
+
 export default function ParallaxBackground({
   children,
   season,
@@ -15,6 +31,7 @@ export default function ParallaxBackground({
   showEspresso = false,
   captionClassName = '',
   language = 'IT',
+  sealColor,
 }: {
   children: React.ReactNode;
   season?: SeasonId;
@@ -22,6 +39,7 @@ export default function ParallaxBackground({
   showEspresso?: boolean;
   captionClassName?: string;
   language?: 'IT' | 'EN';
+  sealColor?: string;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
   const coffeeLayerRef = useRef<HTMLDivElement>(null);
@@ -343,10 +361,12 @@ export default function ParallaxBackground({
             isArtworkSolo ? 'is-solo' : 'pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
-          style={!isArtworkSolo && seasonalArtwork ? {
+          style={isArtworkSolo ? {
+            '--daily-wall-color': sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143',
+          } as React.CSSProperties : (!isArtworkSolo && seasonalArtwork ? {
             backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
             backgroundPosition: seasonalArtwork.revealPosition,
-          } : undefined}
+          } : undefined)}
           onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
         >
           {isArtworkSolo && seasonalArtwork && (

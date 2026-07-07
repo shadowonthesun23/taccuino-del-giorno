@@ -201,11 +201,14 @@ img {
   cursor: pointer;
   z-index: 8 !important;
   
-  /* Classic museum wall background (light mode) - clean sand-stone paint */
-  background-image: radial-gradient(circle at 50% 50%, #f7f4ec 0%, #dcd6c8 100%) !important;
-  background-size: cover !important;
-  background-repeat: no-repeat !important;
+  /* Textured daily coordinated museum wall with radial spotlight (uniform for light/dark mode) */
+  background-image: 
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--daily-wall-color, #424143) 40%, #1c1a17 60%) 0%, color-mix(in srgb, var(--daily-wall-color, #424143) 12%, #0a0908 88%) 100%),
+    url('/beige-paper.png') !important;
+  background-size: cover, repeat !important;
+  background-repeat: no-repeat, repeat !important;
   background-color: transparent !important;
+  background-blend-mode: multiply !important;
 }
 
 .museum-frame-container {
@@ -254,12 +257,7 @@ img {
     inset 0 0 0 clamp(4px, 0.8vw, 8px) #1a100a;
 }
 
-.is-dark .seasonal-paint-reveal.is-solo,
-.dark .seasonal-paint-reveal.is-solo,
-[data-theme="dark"] .seasonal-paint-reveal.is-solo {
-  /* Classic museum wall background (dark mode) - clean slate paint */
-  background-image: radial-gradient(circle at 50% 50%, #2f333a 0%, #151619 100%) !important;
-}
+
 
 .is-dark .museum-frame-image,
 .dark .museum-frame-image,
