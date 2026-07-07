@@ -196,6 +196,55 @@ img {
   pointer-events: auto !important;
   cursor: pointer;
   z-index: 8 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.museum-frame-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.museum-frame-image {
+  max-width: min(80vw, 1000px);
+  max-height: min(72vh, 650px);
+  width: auto;
+  height: auto;
+  box-sizing: border-box;
+  display: block;
+  background-color: #f7f4eb; /* Passepartout */
+  padding: clamp(16px, 3.5vw, 36px);
+  border: clamp(12px, 2.5vw, 24px) solid #312317; /* Walnut wood */
+  transition: transform 300ms ease;
+  box-shadow:
+    0 35px 80px rgba(0, 0, 0, 0.52),
+    0 12px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 15px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 clamp(2px, 0.4vw, 4px) #1f140c,
+    inset 0 0 0 clamp(3px, 0.6vw, 6px) #b08d4b,
+    inset 0 0 0 clamp(4px, 0.8vw, 8px) #1a100a;
+}
+
+/* Dark mode overrides for the museum frame */
+.is-dark .museum-frame-image,
+.dark .museum-frame-image,
+[data-theme="dark"] .museum-frame-image {
+  background-color: #262422; /* Darker passepartout */
+  border-color: #1a1715; /* Charcoal wood */
+  box-shadow:
+    0 35px 80px rgba(0, 0, 0, 0.85),
+    0 12px 28px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 15px rgba(0, 0, 0, 0.85),
+    inset 0 0 0 clamp(2px, 0.4vw, 4px) #12100e,
+    inset 0 0 0 clamp(3px, 0.6vw, 6px) #806535,
+    inset 0 0 0 clamp(4px, 0.8vw, 8px) #0c0a09;
 }
 
 .dark .notebook-line-art,

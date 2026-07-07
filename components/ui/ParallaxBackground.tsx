@@ -342,12 +342,23 @@ export default function ParallaxBackground({
             isArtworkSolo ? 'is-solo' : 'pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
-          style={seasonalArtwork ? {
+          style={!isArtworkSolo && seasonalArtwork ? {
             backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
             backgroundPosition: seasonalArtwork.revealPosition,
           } : undefined}
           onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
-        />
+        >
+          {isArtworkSolo && seasonalArtwork && (
+            <div className="museum-frame-container">
+              <img
+                src={seasonalArtwork.imageUrl}
+                alt={seasonalArtwork.title}
+                className="museum-frame-image"
+                draggable={false}
+              />
+            </div>
+          )}
+        </div>
       )}
 
       {hasSeasonalReveal && seasonalArtwork ? (
