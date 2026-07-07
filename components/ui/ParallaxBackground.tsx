@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
-import { getSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
+import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
@@ -38,7 +38,8 @@ export default function ParallaxBackground({
     ? 'brightness(0.52) saturate(0.42) contrast(0.72)'
     : 'saturate(0.72) brightness(1.04) contrast(0.94)';
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
-  const seasonalArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
+  const rawArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
+  const seasonalArtwork = getLocalizedSeasonalArtwork(rawArtwork, language);
   const seasonalCaptionLabel = language === 'IT'
     ? 'Opera stagionale in trasparenza'
     : 'Seasonal artwork revealed in the background';

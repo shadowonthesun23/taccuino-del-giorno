@@ -369,3 +369,108 @@ export function getSeasonalArtwork(
 
   return orderedArtworks[((utcDay % orderedArtworks.length) + orderedArtworks.length) % orderedArtworks.length];
 }
+
+const ARTWORK_TRANSLATIONS: Record<string, { title?: string; collection?: string; year?: string }> = {
+  'botticelli-primavera': {
+    title: 'Primavera',
+    collection: 'Uffizi Gallery, Florence',
+  },
+  'van-gogh-wheat-field-cypresses': {
+    title: 'A Wheatfield with Cypresses',
+    collection: 'The Metropolitan Museum of Art, New York',
+  },
+  'van-gogh-summer-evening': {
+    title: 'Summer Evening',
+    collection: 'Kunst Museum Winterthur, Switzerland',
+  },
+  'renoir-summer-landscape': {
+    title: 'Summer Landscape',
+    collection: 'Museo Nacional Thyssen-Bornemisza, Madrid',
+  },
+  'adie-floral-garden-steps': {
+    title: 'Steps through a Floral Garden',
+    year: 'undated',
+    collection: 'Private collection',
+  },
+  'bruegel-harvesters': {
+    title: 'The Harvesters',
+    collection: 'The Metropolitan Museum of Art, New York',
+  },
+  'constable-flatford-mill': {
+    title: 'Flatford Mill (Scene on a Navigable River)',
+    collection: 'Tate Britain, London',
+  },
+  'monet-papaveri': {
+    title: 'Poppies',
+    collection: "Musée d'Orsay, Paris",
+  },
+  'fuller-golden-hour': {
+    title: 'A Golden Hour',
+    collection: 'National Gallery of Australia, Canberra',
+  },
+  'kandinsky-studio-carrozza': {
+    title: 'Kallmünz - Nature Study for the Yellow Coach',
+    collection: 'National Gallery of Australia, Canberra',
+  },
+  'edward-hopper-risacca': {
+    title: 'Ground Swell',
+    collection: 'National Gallery of Art, Washington',
+  },
+  'vernet-summer-evening': {
+    title: 'Summer Evening, Landscape in Italy',
+    collection: 'The National Museum of Western Art, Tokyo',
+  },
+  'friedrich-estate': {
+    title: 'Summer',
+    collection: 'Neue Pinakothek, Munich',
+  },
+  'sisley-estate-bougival': {
+    title: 'Summer at Bougival',
+    collection: 'Stiftung Sammlung E. G. Bührle, Zurich',
+  },
+  'homer-breezing-up': {
+    title: 'Breezing Up (A Fair Wind)',
+    collection: 'National Gallery of Art, Washington',
+  },
+  'koekkoek-summer-day-dutch': {
+    title: "A Summer's Day on a Dutch River",
+    collection: 'Private collection',
+  },
+  'klimt-cottage-garden': {
+    title: 'Cottage Garden',
+    collection: 'Private collection',
+  },
+  'sisley-ponte-moret': {
+    title: 'The Bridge at Moret',
+    collection: "Musée d'Orsay, Paris",
+  },
+  'godward-dolce-far-niente': {
+    title: 'Dolce Far Niente',
+    collection: 'Private collection',
+  },
+  'monet-ninfee': {
+    title: 'Water Lilies',
+    collection: 'Art Institute of Chicago',
+  },
+  'sohlberg-notte-destate': {
+    title: 'Summer Night',
+    collection: 'National Museum, Oslo',
+  },
+};
+
+export function getLocalizedSeasonalArtwork(
+  artwork: SeasonalArtwork | undefined,
+  language: 'IT' | 'EN',
+): SeasonalArtwork | undefined {
+  if (!artwork || language === 'IT') return artwork;
+  
+  const translation = ARTWORK_TRANSLATIONS[artwork.id];
+  if (!translation) return artwork;
+  
+  return {
+    ...artwork,
+    title: translation.title || artwork.title,
+    collection: translation.collection || artwork.collection,
+    year: translation.year || artwork.year,
+  };
+}
