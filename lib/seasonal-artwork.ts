@@ -214,7 +214,7 @@ export const SEASONAL_ARTWORKS: Partial<Record<SeasonId, readonly SeasonalArtwor
       imageUrl: '/images/seasonal/friedrich-estate.webp',
       sourceUrl: 'https://www.sammlung.pinakothek.de/en/artwork/8eGVjAYGWQ',
       linkKind: 'museum',
-      revealPosition: '56% center',
+      revealPosition: '56% bottom',
       ticketAlignment: 'xMidYMid',
       tone: 'balanced',
     },
