@@ -189,7 +189,7 @@ img {
   filter: brightness(1.12) saturate(1.05) contrast(1.03);
 }
 
-body:has(.seasonal-paint-reveal.is-solo) main.journal-page-transition {
+.seasonal-reveal-content.is-artwork-solo {
   pointer-events: none !important;
 }
 

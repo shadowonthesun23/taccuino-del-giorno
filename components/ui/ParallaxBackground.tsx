@@ -465,7 +465,7 @@ export default function ParallaxBackground({
       ) : null}
 
       {/* Contenuto */}
-      <div className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''}`}>
+      <div className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''} ${isArtworkSolo ? 'is-artwork-solo' : ''}`}>
         {children}
       </div>
     </>
