@@ -349,77 +349,91 @@ export default function ParallaxBackground({
         style={{ backgroundColor: bgColor, transition: 'background-color 300ms' }}
       />
 
-      {hasSeasonalReveal && (
+      {hasSeasonalReveal && seasonalArtwork && (
         <div
           ref={seasonalRevealRef}
           aria-hidden={!isArtworkSolo}
           className={[
             'seasonal-paint-reveal',
             `season-${season}`,
-            seasonalArtwork ? `artwork-${seasonalArtwork.id}` : '',
+            `artwork-${seasonalArtwork.id}`,
             'safe-viewport-backdrop fixed z-0',
             isArtworkSolo ? 'is-solo' : 'pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
-          style={isArtworkSolo ? {
-            '--daily-wall-color': sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143',
-          } as React.CSSProperties : (!isArtworkSolo && seasonalArtwork ? {
+          style={{
             backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
             backgroundPosition: seasonalArtwork.revealPosition,
-          } : undefined)}
+          }}
           onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
         >
-          {isArtworkSolo && seasonalArtwork && (
-            <div className="museum-frame-container">
-              <div className="museum-artwork-wrapper">
-                <div className="museum-frame-inner">
-                  <div className="museum-spotlight left" />
-                  <div className="museum-spotlight right" />
-                  <img
-                    src={seasonalArtwork.imageUrl}
-                    alt={seasonalArtwork.title}
-                    className="museum-frame-image"
-                    draggable={false}
-                  />
-                  <div className="museum-light-beams" />
-                </div>
-                {seasonalArtwork.sourceUrl ? (
-                  <a
-                    href={seasonalArtwork.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="museum-brass-label"
-                    onClick={(e) => e.stopPropagation()}
-                    title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
-                  >
-                    <span className="museum-label-screw left" />
-                    <span className="museum-label-screw right" />
-                    <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
-                    <p className="museum-label-meta">
-                      <span className="museum-label-artist">{seasonalArtwork.artist}</span>
-                      {seasonalArtwork.year && (
-                        <span className="museum-label-year"> · {seasonalArtwork.year}</span>
-                      )}
-                    </p>
-                    <p className="museum-label-collection">{seasonalArtwork.collection}</p>
-                  </a>
-                ) : (
-                  <div className="museum-brass-label" onClick={(e) => e.stopPropagation()}>
-                    <span className="museum-label-screw left" />
-                    <span className="museum-label-screw right" />
-                    <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
-                    <p className="museum-label-meta">
-                      <span className="museum-label-artist">{seasonalArtwork.artist}</span>
-                      {seasonalArtwork.year && (
-                        <span className="museum-label-year"> · {seasonalArtwork.year}</span>
-                      )}
-                    </p>
-                    <p className="museum-label-collection">{seasonalArtwork.collection}</p>
-                  </div>
-                )}
+          {/* Fading museum wall backdrop */}
+          <div
+            className={`museum-wall-backdrop absolute inset-0 transition-opacity duration-700 ease-out z-0 ${
+              isArtworkSolo ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 50% 50%, color-mix(in srgb, ${sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143'} 38%, #161513 62%) 0%, color-mix(in srgb, ${sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143'} 10%, #060605 90%) 100%),
+                url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.045'/%3E%3C/svg%3E")
+              `,
+              backgroundSize: 'cover, 150px 150px',
+              backgroundRepeat: 'no-repeat, repeat',
+              backgroundBlendMode: 'overlay',
+            }}
+          />
+
+          <div
+            className={`museum-frame-container ${isArtworkSolo ? 'is-visible' : ''}`}
+            onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
+          >
+            <div className="museum-artwork-wrapper" onClick={(e) => e.stopPropagation()}>
+              <div className="museum-frame-inner">
+                <div className="museum-spotlight left" />
+                <div className="museum-spotlight right" />
+                <img
+                  src={seasonalArtwork.imageUrl}
+                  alt={seasonalArtwork.title}
+                  className="museum-frame-image"
+                  draggable={false}
+                />
+                <div className="museum-light-beams" />
               </div>
+              {seasonalArtwork.sourceUrl ? (
+                <a
+                  href={seasonalArtwork.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="museum-brass-label"
+                  title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
+                >
+                  <span className="museum-label-screw left" />
+                  <span className="museum-label-screw right" />
+                  <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                  <p className="museum-label-meta">
+                    <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                    {seasonalArtwork.year && (
+                      <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                    )}
+                  </p>
+                  <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                </a>
+              ) : (
+                <div className="museum-brass-label">
+                  <span className="museum-label-screw left" />
+                  <span className="museum-label-screw right" />
+                  <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                  <p className="museum-label-meta">
+                    <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                    {seasonalArtwork.year && (
+                      <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                    )}
+                  </p>
+                  <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
 
