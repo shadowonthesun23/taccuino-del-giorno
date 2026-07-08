@@ -206,6 +206,7 @@ interface ApodData {
 }
 
 interface DatiTaccuino {
+  data?: string;
   data_odierna: string;
   autore_giorno: string;
   breve_descrizione: string;
@@ -273,6 +274,33 @@ function formatDataItaliana(dataIso: string): string {
   const mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   const [anno, mese, giorno] = dataIso.split('-');
   return `${parseInt(giorno)} ${mesi[parseInt(mese) - 1]} ${anno}`;
+}
+
+function formatDataInglese(dataIso: string): string {
+  if (!dataIso || !/^\d{4}-\d{2}-\d{2}$/.test(dataIso)) return '';
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const [, mese, giorno] = dataIso.split('-');
+  const dayNum = parseInt(giorno);
+  
+  let suffix = 'th';
+  if (dayNum < 11 || dayNum > 13) {
+    switch (dayNum % 10) {
+      case 1: suffix = 'st'; break;
+      case 2: suffix = 'nd'; break;
+      case 3: suffix = 'rd'; break;
+    }
+  }
+  
+  return `${months[parseInt(mese) - 1]} ${dayNum}${suffix}`;
+}
+
+function getDisplayDate(data: DatiTaccuino, lingua: 'IT' | 'EN', dataSelezionata: string | null): string {
+  if (lingua === 'IT') return data.data_odierna;
+  const isoDate = data.data || dataSelezionata || new Date().toISOString().split('T')[0];
+  return formatDataInglese(isoDate) || data.data_odierna;
 }
 
 function getMonthNumber(dataIso: string): number {
@@ -1206,7 +1234,7 @@ function DailyPassport({
       </div>
 
       <div className="daily-passport-preview">
-        <article className="daily-passport-document" aria-label={`${label.title}: ${data.data_odierna}`}>
+        <article className="daily-passport-document" aria-label={`${label.title}: ${getDisplayDate(data, lingua, dataIso)}`}>
           <div className="daily-passport-paper-grain" aria-hidden="true" />
           <div className="daily-passport-folds" aria-hidden="true">
             <span /><span /><span /><span /><span />
@@ -1215,7 +1243,7 @@ function DailyPassport({
           <section className="daily-passport-cover-panel">
             <p className="daily-passport-small-label">{label.number} {passportCode}</p>
             <h3>{label.title}</h3>
-            <p className="daily-passport-date">{data.data_odierna}</p>
+            <p className="daily-passport-date">{getDisplayDate(data, lingua, dataIso)}</p>
             <div className="daily-passport-stamp">
               <span>{label.stamp}</span>
               <strong>{initials}</strong>
@@ -2493,7 +2521,7 @@ export default function Home() {
             <div className="relative z-10" data-reveal-readability>
               <div className="flex justify-center mb-2">
                 <div className={`masking-tape journal-date-tape ${caveat.className} text-lg font-bold tracking-wider`}>
-                  {data.data_odierna}
+                  {getDisplayDate(data, lingua, dataSelezionata)}
                 </div>
               </div>
               <h1
@@ -2646,7 +2674,7 @@ export default function Home() {
             breveDescrizione={data.breve_descrizione}
             fotoAutoreUrl={data.foto_autore_url}
             citazione={data.citazione}
-            dataOdierna={data.data_odierna}
+            dataOdierna={getDisplayDate(data, lingua, dataSelezionata)}
             dataIso={dataExLibris}
             isDark={isDark}
             onHidePreview={() => setShowExportCard(false)}
@@ -2942,7 +2970,7 @@ export default function Home() {
                             />
                           )}
                           <span className="apod-postcard-source-label">
-                            NASA APOD · {lingua === 'IT' ? apod.title_it : apod.title_en} · {data.data_odierna}
+                            NASA APOD · {lingua === 'IT' ? apod.title_it : apod.title_en} · {getDisplayDate(data, lingua, dataSelezionata)}
                           </span>
                         </div>
                       </div>
