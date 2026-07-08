@@ -561,6 +561,33 @@ const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   },
   support: {
     IT: 'Supporta', EN: 'Support', FR: 'Soutenir', DE: 'Unterstützen', ES: 'Apoyar', PT: 'Apoiar'
+  },
+  quoteCard: {
+    IT: 'Citazione', EN: 'Quote', FR: 'Citation', DE: 'Zitat', ES: 'Cita', PT: 'Citação'
+  },
+  wordCard: {
+    IT: 'Parola del giorno', EN: 'Word of the day', FR: 'Mot du jour', DE: 'Wort des Tages', ES: 'Palabra del día', PT: 'Palavra do dia'
+  },
+  saintsCard: {
+    IT: 'I santi di oggi', EN: "Today's saints", FR: "Les saints d'aujourd'hui", DE: 'Die heutigen Heiligen', ES: 'Los santos de hoy', PT: 'Os saints de hoje'
+  },
+  artworkCard: {
+    IT: 'Opera del giorno', EN: 'Artwork of the day', FR: 'Œuvre du jour', DE: 'Kunstwerk des Tages', ES: 'Obra del día', PT: 'Obra do dia'
+  },
+  eventsCard: {
+    IT: 'Accadde oggi', EN: 'This day in history', FR: "Ce jour-là dans l'histoire", DE: 'Historische Ereignisse', ES: 'Un día como hoy', PT: 'Aconteceu hoje'
+  },
+  poemCard: {
+    IT: 'Poesia del giorno', EN: 'Poem of the Day', FR: 'Poème du jour', DE: 'Gedicht des Tages', ES: 'Poema del día', PT: 'Poema do dia'
+  },
+  bibleCard: {
+    IT: 'Passaggio biblico', EN: 'Biblical passage', FR: 'Passage biblique', DE: 'Bibelpassage', ES: 'Pasaje bíblico', PT: 'Passagem bíblica'
+  },
+  musicCard: {
+    IT: 'Consiglio musicale', EN: 'Musical recommendation', FR: 'Recommandation musicale', DE: 'Musikempfehlung', ES: 'Recomendación musical', PT: 'Recomendação musical'
+  },
+  apodCard: {
+    IT: 'Foto astronomica del giorno', EN: 'Astronomy picture of the day', FR: 'Photo astronomique du jour', DE: 'Astronomisches Bild des Tages', ES: 'Foto astronómica del día', PT: 'Foto astronómica do dia'
   }
 };
 
@@ -3253,7 +3280,7 @@ export default function Home() {
             <Card
               key={`${dataExLibris}:citazione`}
               id="citazione"
-              title={lingua === 'IT' ? 'Citazione' : 'Quote'}
+              title={t('quoteCard', lingua)}
               icon={Quote}
               isDark={isDark}
               className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-3"
@@ -3270,7 +3297,7 @@ export default function Home() {
               </blockquote>
             </Card>
 
-            <Card key={`${dataExLibris}:parola`} id="parola" title={lingua === 'IT' ? 'Parola del giorno' : 'Word of the day'} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
+            <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
               isSaved={isCardSaved('parola')}
               onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
@@ -3290,7 +3317,7 @@ export default function Home() {
               )}
             </Card>
 
-            <Card key={`${dataExLibris}:santi`} id="santi" title={lingua === 'IT' ? 'I santi di oggi' : "Today's saints"} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
+            <Card key={`${dataExLibris}:santi`} id="santi" title={t('saintsCard', lingua)} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename="santi"
               isSaved={isCardSaved('santi')}
               onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
@@ -3338,7 +3365,7 @@ export default function Home() {
               <Card
                 key={`${dataExLibris}:opera`}
                 id="opera"
-                title={lingua === 'IT' ? 'Opera del giorno' : 'Artwork of the day'}
+                title={t('artworkCard', lingua)}
                 icon={Palette}
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-5"
@@ -3392,10 +3419,10 @@ export default function Home() {
               </Card>
             )}
 
-            <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={lingua === 'IT' ? 'Accadde oggi' : 'This day in history'} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
+            <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
               filename="avvenimenti"
               isSaved={isCardSaved('avvenimenti')}
-              onToggleSaved={() => saveCard('avvenimenti', lingua === 'IT' ? 'Accadde oggi' : 'This day in history', data.avvenimenti[0] ?? '')}>
+              onToggleSaved={() => saveCard('avvenimenti', t('eventsCard', lingua), data.avvenimenti[0] ?? '')}>
               <ul className="space-y-4">
                 {data.avvenimenti.map((evento, idx) => {
                   const parts = evento.split(':');
@@ -3409,10 +3436,10 @@ export default function Home() {
               </ul>
             </Card>
 
-            <Card key={`${dataExLibris}:poesia`} id="poesia" title={lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day'} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card key={`${dataExLibris}:poesia`} id="poesia" title={t('poemCard', lingua)} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}
               isSaved={isCardSaved('poesia')}
-              onToggleSaved={() => saveCard('poesia', data.poesia.fonte || (lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the day'), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
+              onToggleSaved={() => saveCard('poesia', data.poesia.fonte || t('poemCard', lingua), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
               <DecorativeInitialText
                 text={data.poesia.testo}
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
@@ -3428,9 +3455,9 @@ export default function Home() {
                   {data.poesia.nota}
                 </div>
               )}
-            </Card>
+              </Card>
 
-            <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage'} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={t('bibleCard', lingua)} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia"
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
@@ -3475,7 +3502,7 @@ export default function Home() {
                     <img
                       draggable={false}
                       src={lingua === 'IT' ? "/images/tape-astronomia.png" : "/images/tape-astronomia-en.png"}
-                      alt={lingua === 'IT' ? 'Foto astronomica del giorno' : 'Astronomy picture of the day'}
+                      alt={t('apodCard', lingua)}
                       className="apod-card-tape"
                     />
                   </ScrollRevealBadge>
@@ -3620,7 +3647,7 @@ export default function Home() {
                   >
                     <span className="badge-tape-bg" aria-hidden="true" />
                     <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
-                    <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
+                    <span>{t('musicCard', lingua)}</span>
                   </ScrollRevealBadge>
                 </div>
 
@@ -3660,7 +3687,7 @@ export default function Home() {
                     >
                       <span className="badge-tape-bg" aria-hidden="true" />
                       <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
-                      <span>{lingua === 'IT' ? 'Consiglio musicale' : 'Musical recommendation'}</span>
+                      <span>{t('musicCard', lingua)}</span>
                     </ScrollRevealBadge>
                   </div>
 
