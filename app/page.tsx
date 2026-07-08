@@ -3196,7 +3196,7 @@ export default function Home() {
               <span className="badge-tape-bg" aria-hidden="true" />
               <Feather className="w-[17px] h-[17px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
               <span className={`${garamond.className} italic text-[19px] font-medium text-[#f4f0e6] leading-none`}>
-                {lingua === 'IT' ? 'Autore del giorno' : 'Author of the day'}
+                {t('authorOfTheDay', lingua)}
               </span>
             </ScrollRevealBadge>
           </div>
