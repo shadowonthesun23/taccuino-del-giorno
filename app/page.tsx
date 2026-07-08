@@ -588,6 +588,9 @@ const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   },
   apodCard: {
     IT: 'Foto astronomica del giorno', EN: 'Astronomy picture of the day', FR: 'Photo astronomique du jour', DE: 'Astronomisches Bild des Tages', ES: 'Foto astronómica del día', PT: 'Foto astronómica do dia'
+  },
+  archiveTitle: {
+    IT: 'Archivio', EN: 'Archive', FR: 'Archives', DE: 'Archiv', ES: 'Archivo', PT: 'Arquivo'
   }
 };
 
@@ -2731,7 +2734,7 @@ export default function Home() {
       <div className="archive-header">
         <div className="archive-heading">
           <CalendarDays className="archive-heading-icon" strokeWidth={1.45} aria-hidden="true" />
-          <span className={`${jocky.className} archive-heading-title`}>Archivio</span>
+          <span className={`${garamond.className} italic font-bold archive-heading-title`}>{t('archiveTitle', lingua)}</span>
         </div>
         <button onClick={() => setPopoverOpen(false)} className="archive-close" aria-label="Chiudi archivio"><X aria-hidden="true" /></button>
       </div>
@@ -2826,7 +2829,7 @@ export default function Home() {
       <header className="saved-cards-header">
         <div>
           <span className="saved-cards-kicker">{lingua === 'IT' ? 'Il tuo cassetto' : 'Your drawer'}</span>
-          <h2 className={jocky.className}>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</h2>
+          <h2 className={`${garamond.className} italic font-bold`}>{t('savedPages', lingua)}</h2>
         </div>
         <button type="button" onClick={() => setSavedDrawerOpen(false)} aria-label={lingua === 'IT' ? 'Chiudi' : 'Close'}>
           <X aria-hidden="true" />
