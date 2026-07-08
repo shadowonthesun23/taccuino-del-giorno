@@ -460,7 +460,7 @@ const ARTWORK_TRANSLATIONS: Record<string, { title?: string; collection?: string
 
 export function getLocalizedSeasonalArtwork(
   artwork: SeasonalArtwork | undefined,
-  language: 'IT' | 'EN',
+  language: string,
 ): SeasonalArtwork | undefined {
   if (!artwork || language === 'IT') return artwork;
   

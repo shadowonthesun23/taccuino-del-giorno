@@ -28,13 +28,18 @@ const LOCATIONS: Record<SkyRegion, SkyLocation> = {
   south: { latitude: 38.1157, longitude: 13.3615, height: 14 },
 };
 
-const PLANETS = [
-  { body: Body.Mercury, IT: 'Mercurio', EN: 'Mercury' },
-  { body: Body.Venus, IT: 'Venere', EN: 'Venus' },
-  { body: Body.Mars, IT: 'Marte', EN: 'Mars' },
-  { body: Body.Jupiter, IT: 'Giove', EN: 'Jupiter' },
-  { body: Body.Saturn, IT: 'Saturno', EN: 'Saturn' },
-] as const;
+type LanguageCode = 'IT' | 'EN' | 'FR' | 'DE' | 'ES' | 'PT';
+
+const PLANETS: ReadonlyArray<{
+  body: Body;
+  IT: string; EN: string; FR: string; DE: string; ES: string; PT: string;
+}> = [
+  { body: Body.Mercury, IT: 'Mercurio', EN: 'Mercury', FR: 'Mercure', DE: 'Merkur', ES: 'Mercurio', PT: 'Mercúrio' },
+  { body: Body.Venus, IT: 'Venere', EN: 'Venus', FR: 'Vénus', DE: 'Venus', ES: 'Venus', PT: 'Vénus' },
+  { body: Body.Mars, IT: 'Marte', EN: 'Mars', FR: 'Mars', DE: 'Mars', ES: 'Marte', PT: 'Marte' },
+  { body: Body.Jupiter, IT: 'Giove', EN: 'Jupiter', FR: 'Jupiter', DE: 'Jupiter', ES: 'Júpiter', PT: 'Júpiter' },
+  { body: Body.Saturn, IT: 'Saturno', EN: 'Saturn', FR: 'Saturne', DE: 'Saturn', ES: 'Saturno', PT: 'Saturno' },
+];
 
 function getTimeZoneOffset(date: Date): number {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -78,15 +83,23 @@ function getHorizontalPosition(body: Body, date: Date, observer: Observer) {
   return Horizon(date, observer, equatorial.ra, equatorial.dec, 'normal');
 }
 
-function getDirection(azimuth: number, lingua: 'IT' | 'EN'): string {
-  const directions = lingua === 'IT'
+function getDirection(azimuth: number, lingua: LanguageCode): string {
+  const directions = (lingua === 'IT' || lingua === 'FR' || lingua === 'ES' || lingua === 'PT')
     ? ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO']
     : ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
   return directions[Math.round(azimuth / 45) % directions.length];
 }
 
-function formatTime(date: Date, lingua: 'IT' | 'EN'): string {
-  return new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
+function formatTime(date: Date, lingua: LanguageCode): string {
+  const localeMap: Record<LanguageCode, string> = {
+    IT: 'it-IT',
+    FR: 'fr-FR',
+    DE: 'de-DE',
+    ES: 'es-ES',
+    PT: 'pt-PT',
+    EN: 'en-GB'
+  };
+  return new Intl.DateTimeFormat(localeMap[lingua] || 'en-GB', {
     timeZone: ROME_TIME_ZONE,
     hour: '2-digit',
     minute: '2-digit',
@@ -97,7 +110,7 @@ function formatTime(date: Date, lingua: 'IT' | 'EN'): string {
 export function getVisiblePlanets(
   dataIso: string,
   region: SkyRegion,
-  lingua: 'IT' | 'EN',
+  lingua: LanguageCode,
 ): VisiblePlanet[] {
   const location = LOCATIONS[region];
   const observer = new Observer(location.latitude, location.longitude, location.height);

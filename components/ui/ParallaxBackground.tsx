@@ -38,7 +38,7 @@ export default function ParallaxBackground({
   dataIso?: string;
   showEspresso?: boolean;
   captionClassName?: string;
-  language?: 'IT' | 'EN';
+  language?: string;
   sealColor?: string;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);

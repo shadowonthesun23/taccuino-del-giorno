@@ -205,6 +205,8 @@ interface ApodData {
   copyright?: string;
 }
 
+type LanguageCode = 'IT' | 'EN' | 'FR' | 'DE' | 'ES' | 'PT';
+
 interface DatiTaccuino {
   data?: string;
   data_odierna: string;
@@ -297,10 +299,279 @@ function formatDataInglese(dataIso: string): string {
   return `${months[parseInt(mese) - 1]} ${dayNum}${suffix}`;
 }
 
-function getDisplayDate(data: DatiTaccuino, lingua: 'IT' | 'EN', dataSelezionata: string | null): string {
+function formatDataMultilingua(dataIso: string, lingua: LanguageCode): string {
+  if (!dataIso || !/^\d{4}-\d{2}-\d{2}$/.test(dataIso)) return '';
+  const [anno, mese, giorno] = dataIso.split('-');
+  const dayNum = parseInt(giorno);
+  const monthNum = parseInt(mese) - 1;
+
+  if (lingua === 'IT') {
+    const mesi = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+    return `${dayNum} ${mesi[monthNum]}`;
+  }
+  
+  if (lingua === 'EN') {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    let suffix = 'th';
+    if (dayNum < 11 || dayNum > 13) {
+      switch (dayNum % 10) {
+        case 1: suffix = 'st'; break;
+        case 2: suffix = 'nd'; break;
+        case 3: suffix = 'rd'; break;
+      }
+    }
+    return `${months[monthNum]} ${dayNum}${suffix}`;
+  }
+
+  if (lingua === 'FR') {
+    const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const suffix = dayNum === 1 ? 'er' : '';
+    return `${dayNum}${suffix} ${months[monthNum]}`;
+  }
+
+  if (lingua === 'DE') {
+    const months = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    return `${dayNum}. ${months[monthNum]}`;
+  }
+
+  if (lingua === 'ES') {
+    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return `${dayNum} de ${months[monthNum]}`;
+  }
+
+  if (lingua === 'PT') {
+    const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    return `${dayNum} de ${months[monthNum]}`;
+  }
+
+  return '';
+}
+
+const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
+  almanac: {
+    IT: 'Effemeridi', EN: 'Almanac', FR: 'Éphémérides', DE: 'Almanach', ES: 'Efemérides', PT: 'Efemérides'
+  },
+  moon: {
+    IT: 'Luna:', EN: 'Moon:', FR: 'Lune:', DE: 'Mond:', ES: 'Luna:', PT: 'Lua:'
+  },
+  fullMoon: {
+    IT: 'Luna piena:', EN: 'Full moon:', FR: 'Pleine lune:', DE: 'Vollmond:', ES: 'Luna llena:', PT: 'Lua cheia:'
+  },
+  daylight: {
+    IT: 'Luce del giorno:', EN: 'Daylight:', FR: 'Lumière du jour:', DE: 'Tageslicht:', ES: 'Luz del día:', PT: 'Luz do dia:'
+  },
+  planets: {
+    IT: 'Pianeti osservabili', EN: 'Observable planets', FR: 'Planètes observables', DE: 'Beobachtbare Planeten', ES: 'Planetas observables', PT: 'Planetas observáveis'
+  },
+  readingSky: {
+    IT: 'Calcolo del cielo…', EN: 'Reading the sky…', FR: 'Lecture du ciel…', DE: 'Himmel wird berechnet…', ES: 'Leyendo el cielo…', PT: 'Lendo o céu…'
+  },
+  noPlanets: {
+    IT: 'Nessuno ben osservabile stanotte', EN: 'None clearly observable tonight', FR: 'Aucune bien observable ce soir', DE: 'Heute Nacht keine gut sichtbar', ES: 'Ninguno claramente observable esta noche', PT: 'Nenhum claramente observável esta noite'
+  },
+  dayTitle: {
+    IT: 'Il giorno da custodire', EN: 'A day to keep', FR: 'Un jour à garder', DE: 'Ein Tag zum Bewahren', ES: 'Un día para guardar', PT: 'Um dia para guardar'
+  },
+  daySubtitle: {
+    IT: 'Ogni giorno porta con sé qualcosa da non perdere: una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Uno spazio per raccoglierli, leggerli con calma e custodirli sulla carta o nel cuore.',
+    EN: 'Every day carries something worth keeping: a line, a poem, an image, a word, a memory, a passage of faith. A quiet space to gather them, read slowly, and keep them on paper or in the heart.',
+    FR: 'Chaque jour apporte son lot de choses à ne pas manquer : une phrase, un poème, une image, un mot, un souvenir, un passage de foi. Un espace pour les rassembler, les lire calmement et les garder sur le papier ou dans le cœur.',
+    DE: 'Jeder Tag bringt etwas Wertvolles mit sich: eine Zeile, ein Gedicht, ein Bild, ein Wort, eine Erinnerung, eine Glaubenspassage. Ein stiller Ort, um sie zu sammeln, langsam zu lesen und auf Papier oder im Herzen zu bewahren.',
+    ES: 'Cada día trae consigo algo digno de guardar: una frase, un poema, una imagen, una palabra, un recuerdo, un pasaje de fe. Un espacio tranquilo para reunirlos, leer lentamente y guardarlos en papel o en el corazón.',
+    PT: 'Cada dia traz consigo algo que vale a pena guardar: uma frase, um poema, uma imagem, uma palavra, uma memória, uma passagem de fé. Um espaço tranquilo para recolhê-los, ler devagar e guardá-los no papel ou no coração.'
+  },
+  savedPages: {
+    IT: 'Cose custodite', EN: 'Saved pages', FR: 'Pages sauvegardées', DE: 'Gespeicherte Seiten', ES: 'Páginas guardadas', PT: 'Páginas salvas'
+  },
+  savedPagesTitle: {
+    IT: 'Cose custodite', EN: 'Kept items', FR: 'Objets gardés', DE: 'Aufbewahrte Dinge', ES: 'Cosas guardadas', PT: 'Coisas guardadas'
+  },
+  noSaved: {
+    IT: 'Non hai ancora custodito nulla. Clicca sull\'icona della piuma o del segnalibro per salvare i tuoi momenti preferiti.',
+    EN: 'You haven\'t kept anything yet. Click the feather or bookmark icon to save your favorite moments.',
+    FR: 'Vous n\'avez encore rien gardé. Cliquez sur la plume ou le signet pour sauvegarder vos moments préférés.',
+    DE: 'Sie haben noch nichts gespeichert. Klicken Sie auf das Feder- oder Lesezeichensymbol, um Ihre Lieblingsmomente zu speichern.',
+    ES: 'Aún no has guardado nada. Haz clic en la pluma o en el marcador para guardar tus momentos favoritos.',
+    PT: 'Ainda não guardou nada. Clique na pena ou no marcador para guardar os seus momentos favoritos.'
+  },
+  clearAll: {
+    IT: 'Cancella tutto', EN: 'Clear all', FR: 'Tout effacer', DE: 'Alles löschen', ES: 'Borrar todo', PT: 'Limpar tudo'
+  },
+  visited: {
+    IT: 'già consultato', EN: 'already visited', FR: 'déjà visité', DE: 'bereits besucht', ES: 'ya visitado', PT: 'já visitado'
+  },
+  passportPreview: {
+    IT: 'Anteprima del passaporto', EN: 'Passport preview', FR: 'Aperçu du passeport', DE: 'Reisepass-Vorschau', ES: 'Vista previa del pasaporte', PT: 'Visualização del pasaporte'
+  },
+  keepsake: {
+    IT: 'Da conservare', EN: 'Keepsake', FR: 'À conserver', DE: 'Zum Aufbewahren', ES: 'Para conservar', PT: 'Para guardar'
+  },
+  zineSubtitle: {
+    IT: 'Un foglio A4, otto facciate di cultura quotidiana.', EN: 'One A4 sheet, eight pages of daily culture.', FR: 'Une feuille A4, huit pages de culture quotidienne.', DE: 'Ein A4-Blatt, acht Seiten täglicher Kultur.', ES: 'Una hoja A4, ocho páginas de cultura diaria.', PT: 'Uma folha A4, oito páginas de cultura quotidiana.'
+  },
+  printPdf: {
+    IT: 'Stampa / Salva PDF', EN: 'Print / Save PDF', FR: 'Imprimer / Sauver PDF', DE: 'Drucken / Als PDF speichern', ES: 'Imprimir / Guardar PDF', PT: 'Imprimir / Salvar PDF'
+  },
+  close: {
+    IT: 'Chiudi', EN: 'Close', FR: 'Fermer', DE: 'Schließen', ES: 'Cerrar', PT: 'Fechar'
+  },
+  closePreview: {
+    IT: 'Chiudi anteprima', EN: 'Close preview', FR: 'Fermer l\'aperçu', DE: 'Vorschau schließen', ES: 'Cerrar vista previa', PT: 'Fechar visualização'
+  },
+  author: {
+    IT: 'Autore', EN: 'Author', FR: 'Auteur', DE: 'Autor', ES: 'Autor', PT: 'Autor'
+  },
+  visitedStamp: {
+    IT: 'Visitato', EN: 'Visited', FR: 'Visité', DE: 'Besucht', ES: 'Visitado', PT: 'Visitado'
+  },
+  foldHint: {
+    IT: 'Piega lungo i tratteggi', EN: 'Fold on dashed lines', FR: 'Plier le long des pointillés', DE: 'An den gestrichelten Linien falten', ES: 'Doblar por las líneas discontinuas', PT: 'Dobrar ao longo das linhas tracejadas'
+  },
+  authorPhoto: {
+    IT: 'Ritratto dell’autore', EN: 'Author portrait', FR: 'Portrait de l\'auteur', DE: 'Porträt des Autors', ES: 'Retrato del autor', PT: 'Retrato do autor'
+  },
+  artworkImage: {
+    IT: 'Immagine dell’opera', EN: 'Artwork image', FR: 'Image de l\'œuvre', DE: 'Bild des Kunstwerks', ES: 'Imagen de la obra', PT: 'Imagem da obra'
+  },
+  authorOfTheDay: {
+    IT: 'Autore del giorno', EN: 'Author of the day', FR: 'Auteur du jour', DE: 'Autor des Tages', ES: 'Autor del día', PT: 'Autor do dia'
+  },
+  shareCardPreview: {
+    IT: 'Anteprima della card da condividere (formato 9:16)', EN: 'Preview of the shareable card (9:16 format)', FR: 'Aperçu de la carte à partager (format 9:16)', DE: 'Vorschau der teilbaren Karte (9:16 Format)', ES: 'Vista previa de la tarjeta para compartir (formato 9:16)', PT: 'Visualização do cartão de partilha (formato 9:16)'
+  },
+  hide: {
+    IT: 'Nascondi', EN: 'Hide', FR: 'Masquer', DE: 'Ausblenden', ES: 'Ocultar', PT: 'Ocultar'
+  },
+  save: {
+    IT: 'Salva', EN: 'Save', FR: 'Sauver', DE: 'Speichern', ES: 'Guardar', PT: 'Salvar'
+  },
+  generating: {
+    IT: 'Generando', EN: 'Generating', FR: 'Génération', DE: 'Wird generiert', ES: 'Generando', PT: 'Gerando'
+  },
+  createPassport: {
+    IT: 'Crea il passaporto del giorno', EN: 'Create today’s passport', FR: 'Créer le passeport du jour', DE: 'Reisepass des Tages erstellen', ES: 'Crear el pasaporte del día', PT: 'Criar o passaporte do dia'
+  },
+  download: {
+    IT: 'Scarica', EN: 'Download', FR: 'Télécharger', DE: 'Herunterladen', ES: 'Descargar', PT: 'Descarregar'
+  },
+  downloadTicket: {
+    IT: 'Scarica il biglietto', EN: 'Download ticket', FR: 'Télécharger le billet', DE: 'Ticket herunterladen', ES: 'Descargar billete', PT: 'Descarregar bilhete'
+  },
+  downloadTicketAria: {
+    IT: 'Scarica il biglietto in PNG ad alta risoluzione', EN: 'Download the ticket as a high-resolution PNG', FR: 'Télécharger le billet en PNG haute résolution', DE: 'Ticket als hochauflösendes PNG herunterladen', ES: 'Descargar el billete en PNG de alta resolución', PT: 'Descarregar o bilhete em PNG de alta resolução'
+  },
+  ticketReadyTitle: {
+    IT: 'Il biglietto è pronto', EN: 'Your ticket is ready', FR: 'Le billet est prêt', DE: 'Das Ticket ist bereit', ES: 'El billete está listo', PT: 'O bilhete está pronto'
+  },
+  ticketReadySubtitle: {
+    IT: 'Tocca qui sotto per salvarlo in alta risoluzione.', EN: 'Tap below to save it in high resolution.', FR: 'Appuyez ci-dessous pour le sauvegarder en haute résolution.', DE: 'Tippen Sie unten, um es in hoher Auflösung zu speichern.', ES: 'Toque a continuación para guardarlo en alta resolución.', PT: 'Toque abaixo para guardá-lo em alta resolução.'
+  },
+  saveTicket: {
+    IT: 'Salva il biglietto', EN: 'Save ticket', FR: 'Sauver le billet', DE: 'Ticket speichern', ES: 'Guardar billete', PT: 'Salvar bilhete'
+  },
+  openDay: {
+    IT: 'Apri il giorno', EN: 'Open the day', FR: 'Ouvrir le jour', DE: 'Tag öffnen', ES: 'Abrir el día', PT: 'Abrir o dia'
+  },
+  openDayAria: {
+    IT: 'Apri il giorno {date}', EN: 'Open {date}', FR: 'Ouvrir le {date}', DE: '{date} öffnen', ES: 'Abrir el día {date}', PT: 'Abrir o dia {date}'
+  },
+  changeTheme: {
+    IT: 'Cambia tema', EN: 'Change theme', FR: 'Changer de thème', DE: 'Thema ändern', ES: 'Cambiar tema', PT: 'Mudar de tema'
+  },
+  passportTitle: {
+    IT: 'Passaporto del Giorno', EN: 'Passport of the Day', FR: 'Passeport du Jour', DE: 'Reisepass des Tages', ES: 'Pasaporte del Día', PT: 'Passaporte do Dia'
+  },
+  passportSubtitle: {
+    IT: 'Una mappa pieghevole da scaricare, stampare e conservare.', EN: 'A foldable map to download, print, and keep.', FR: 'Une carte pliable à télécharger, imprimer et conserver.', DE: 'Eine faltbare Karte zum Herunterladen, Drucken und Aufbewahren.', ES: 'Un mapa plegable para descargar, imprimir y guardar.', PT: 'Um mapa dobrável para descarregar, imprimir e guardar.'
+  },
+  downloadPdf: {
+    IT: 'Scarica PDF', EN: 'Download PDF', FR: 'Télécharger PDF', DE: 'PDF herunterladen', ES: 'Descargar PDF', PT: 'Descarregar PDF'
+  },
+  openPrint: {
+    IT: 'Apri stampa', EN: 'Open print', FR: "Ouvrir l'impression", DE: 'Druckansicht', ES: 'Abrir impresión', PT: 'Abrir impressão'
+  },
+  quote: {
+    IT: 'Citazione', EN: 'Quote', FR: 'Citation', DE: 'Zitat', ES: 'Cita', PT: 'Citação'
+  },
+  word: {
+    IT: 'Parola del Giorno', EN: 'Word of the Day', FR: 'Mot du Jour', DE: 'Wort des Tages', ES: 'Palabra del Día', PT: 'Palavra do Dia'
+  },
+  saintsTitle: {
+    IT: 'I Santi di Oggi', EN: "Today's Saints", FR: "Les Saints d'Aujourd'hui", DE: 'Die heutigen Heiligen', ES: 'Los Santos de Hoy', PT: 'Os Santos de Hoje'
+  },
+  eventsTitle: {
+    IT: 'Accadde Oggi', EN: 'This Day in History', FR: "Ce Jour-là dans l'Histoire", DE: 'Historische Ereignisse', ES: 'Un Día Como Hoy', PT: 'Aconteceu Hoje'
+  },
+  poemTitle: {
+    IT: 'Poesia del giorno', EN: 'Poem of the Day', FR: 'Poème du Jour', DE: 'Gedicht des Tages', ES: 'Poema del Día', PT: 'Poema do Dia'
+  },
+  bibleTitle: {
+    IT: 'Passaggio biblico', EN: 'Biblical passage', FR: 'Passage biblique', DE: 'Bibelpassage', ES: 'Pasaje bíblico', PT: 'Passagem bíblica'
+  },
+  musicTitle: {
+    IT: 'Consiglio Musicale', EN: 'Musical Recommendation', FR: 'Recommandation Musicale', DE: 'Musikempfehlung', ES: 'Recomendación Musical', PT: 'Recomendação Musical'
+  },
+  artworkTitle: {
+    IT: 'Opera del Giorno', EN: 'Artwork of the Day', FR: 'Œuvre du Jour', DE: 'Kunstwerk des Tages', ES: 'Obra del Día', PT: 'Obra do Dia'
+  },
+  artworkSelectorPrefix: {
+    IT: 'Opera d’', EN: 'Artwork of d’', FR: 'Œuvre d’', DE: 'Kunstwerk d’', ES: 'Obra d’', PT: 'Obra d’'
+  },
+  artworkSelectorSuffix: {
+    IT: ' · selezione del giorno', EN: ' · selection of the day', FR: ' · sélection du jour', DE: ' · Auswahl des Tages', ES: ' · selección del día', PT: ' · seleção do dia'
+  },
+  artworkSelectorSpring: {
+    IT: 'Opera di primavera', EN: 'Spring artwork', FR: 'Œuvre de printemps', DE: 'Frühlingskunstwerk', ES: 'Obra de primavera', PT: 'Obra de primavera'
+  },
+  madeWithLove: {
+    IT: 'Realizzato con amore da Antonello.',
+    EN: 'Made with love by Antonello.',
+    FR: 'Fait avec amour par Antonello.',
+    DE: 'Mit Liebe gemacht von Antonello.',
+    ES: 'Hecho con amor por Antonello.',
+    PT: 'Feito com amor por Antonello.'
+  },
+  waxSealAria: {
+    IT: 'Sigillo di ceralacca del giorno',
+    EN: 'Daily wax seal',
+    FR: 'Sceau de cire quotidien',
+    DE: 'Tägliches Wachssiegel',
+    ES: 'Sello de lacre diario',
+    PT: 'Selo de lacre diário'
+  },
+  edition: {
+    IT: 'edizione', EN: 'edition', FR: 'édition', DE: 'Edition', ES: 'edición', PT: 'edição'
+  },
+  of: {
+    IT: 'di', EN: 'of', FR: 'de', DE: 'von', ES: 'de', PT: 'de'
+  },
+  number: {
+    IT: 'n.', EN: 'no.', FR: 'n°', DE: 'Nr.', ES: 'n.º', PT: 'n.º'
+  },
+  footerText: {
+    IT: 'Un foglio quotidiano di cultura, memoria e ascolto.',
+    EN: 'A daily page of culture, memory, and listening.',
+    FR: "Une page quotidienne de culture, de mémoire et d'écoute.",
+    DE: 'Ein tägliches Blatt für Kultur, Erinnerung und Zuhören.',
+    ES: 'Una página diaria de cultura, memoria y escucha.',
+    PT: 'Uma página diária de cultura, memória e escuta.'
+  },
+  socialLinks: {
+    IT: 'Collegamenti social', EN: 'Social links', FR: 'Liens réseaux sociaux', DE: 'Social Links', ES: 'Enlaces sociales', PT: 'Links de redes sociais'
+  },
+  support: {
+    IT: 'Supporta', EN: 'Support', FR: 'Soutenir', DE: 'Unterstützen', ES: 'Apoyar', PT: 'Apoiar'
+  }
+};
+
+function t(key: keyof typeof UI_TRANSLATIONS, lingua: LanguageCode): string {
+  return UI_TRANSLATIONS[key]?.[lingua] ?? UI_TRANSLATIONS[key]?.['EN'] ?? '';
+}
+
+function getDisplayDate(data: DatiTaccuino, lingua: LanguageCode, dataSelezionata: string | null): string {
   if (lingua === 'IT') return data.data_odierna;
   const isoDate = data.data || dataSelezionata || new Date().toISOString().split('T')[0];
-  return formatDataInglese(isoDate) || data.data_odierna;
+  return formatDataMultilingua(isoDate, lingua) || data.data_odierna;
 }
 
 function getMonthNumber(dataIso: string): number {
@@ -308,31 +579,39 @@ function getMonthNumber(dataIso: string): number {
   return mese;
 }
 
-function getArchiveMonthMood(dataIso: string, lingua: 'IT' | 'EN'): string {
+function getArchiveMonthMood(dataIso: string, lingua: LanguageCode): string {
   const month = getMonthNumber(dataIso);
-  const moods: Record<number, { IT: string; EN: string }> = {
-    1: { IT: 'silenzio chiaro', EN: 'clear silence' },
-    2: { IT: 'luce breve', EN: 'brief light' },
-    3: { IT: 'soglia verde', EN: 'green threshold' },
-    4: { IT: 'aria nuova', EN: 'new air' },
-    5: { IT: 'piena fioritura', EN: 'full bloom' },
-    6: { IT: 'luce lunga', EN: 'long light' },
-    7: { IT: 'giorni assolati', EN: 'sunlit days' },
-    8: { IT: 'oro lento', EN: 'slow gold' },
-    9: { IT: 'ritorno mite', EN: 'gentle return' },
-    10: { IT: 'rame e memoria', EN: 'copper and memory' },
-    11: { IT: 'ombra raccolta', EN: 'gathered shade' },
-    12: { IT: 'notte luminosa', EN: 'luminous night' },
+  const moods: Record<number, Record<LanguageCode, string>> = {
+    1: { IT: 'silenzio chiaro', EN: 'clear silence', FR: 'silence clair', DE: 'klare Stille', ES: 'claro silencio', PT: 'silêncio claro' },
+    2: { IT: 'luce breve', EN: 'brief light', FR: 'lumière brève', DE: 'kurzes Licht', ES: 'luz breve', PT: 'luz breve' },
+    3: { IT: 'soglia verde', EN: 'green threshold', FR: 'seuil vert', DE: 'grüne Schwelle', ES: 'umbral verde', PT: 'limiar verde' },
+    4: { IT: 'aria nuova', EN: 'new air', FR: 'air nouveau', DE: 'neue Luft', ES: 'aire nuevo', PT: 'ar novo' },
+    5: { IT: 'piena fioritura', EN: 'full bloom', FR: 'pleine floraison', DE: 'volle Blüte', ES: 'plena floración', PT: 'plena floração' },
+    6: { IT: 'luce lunga', EN: 'long light', FR: 'longue lumière', DE: 'langes Licht', ES: 'luz larga', PT: 'luz longa' },
+    7: { IT: 'giorni assolati', EN: 'sunlit days', FR: 'jours ensoleillés', DE: 'sonnige Tage', ES: 'días soleados', PT: 'dias ensolarados' },
+    8: { IT: 'oro lento', EN: 'slow gold', FR: 'or lent', DE: 'langsames Gold', ES: 'oro lento', PT: 'ouro lento' },
+    9: { IT: 'ritorno mite', EN: 'gentle return', FR: 'doux retour', DE: 'milde Rückkehr', ES: 'retorno suave', PT: 'retorno suave' },
+    10: { IT: 'rame e memoria', EN: 'copper and memory', FR: 'cuivre et mémoire', DE: 'Kupfer und Erinnerung', ES: 'cobre y memoria', PT: 'cobre e memória' },
+    11: { IT: 'ombra raccolta', EN: 'gathered shade', FR: 'ombre recueillie', DE: 'gesammelter Schatten', ES: 'sombra recogida', PT: 'sombra recolhida' },
+    12: { IT: 'notte luminosa', EN: 'luminous night', FR: 'nuit lumineuse', DE: 'leuchtende Nacht', ES: 'noche luminosa', PT: 'noite luminosa' },
   };
-  return moods[month]?.[lingua] ?? '';
+  return moods[month]?.[lingua] ?? moods[month]?.['EN'] ?? '';
 }
 
-function groupByMonth(items: ArchivioItem[]): Record<string, ArchivioItem[]> {
-  const mesiNome = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+function groupByMonth(items: ArchivioItem[], lingua: LanguageCode): Record<string, ArchivioItem[]> {
+  const mesiNome: Record<LanguageCode, string[]> = {
+    IT: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+    EN: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    FR: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    DE: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+    ES: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    PT: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+  };
   const groups: Record<string, ArchivioItem[]> = {};
   for (const item of items) {
     const [anno, mese] = item.data.split('-');
-    const key = `${mesiNome[parseInt(mese) - 1]} ${anno}`;
+    const mList = mesiNome[lingua] || mesiNome['EN'];
+    const key = `${mList[parseInt(mese) - 1]} ${anno}`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
   }
@@ -372,9 +651,18 @@ function getDayOfYearInfo(dataIso: string) {
   return { day, total };
 }
 
-function formatExLibrisLedger(dataIso: string, lingua: 'IT' | 'EN'): string {
+function formatExLibrisLedger(dataIso: string, lingua: LanguageCode): string {
   const { day, total } = getDayOfYearInfo(dataIso);
-  return lingua === 'IT' ? `foglio ${day}/${total}` : `page ${day}/${total}`;
+  const labels: Record<LanguageCode, string> = {
+    IT: 'foglio',
+    EN: 'page',
+    FR: 'page',
+    DE: 'Blatt',
+    ES: 'hoja',
+    PT: 'folha',
+  };
+  const label = labels[lingua] || 'page';
+  return `${label} ${day}/${total}`;
 }
 
 function getArchiveEntryMark(item: ArchivioItem) {
@@ -537,20 +825,19 @@ function getAmbientLightStyle(now: Date, isDark: boolean): CSSProperties {
   } as CSSProperties;
 }
 
-function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
+function formatBookmarkDate(dataIso: string, lingua: LanguageCode): string {
+  const [anno, mese, giorno] = dataIso.split('-').map(Number);
   if (lingua === 'IT') {
-    const [anno, mese, giorno] = dataIso.split('-').map(Number);
     return new Intl.DateTimeFormat('it-IT', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     }).format(new Date(anno, mese - 1, giorno));
-  } else {
+  } else if (lingua === 'EN') {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    const [anno, mese, giorno] = dataIso.split('-').map(Number);
     let suffix = 'th';
     if (giorno < 11 || giorno > 13) {
       switch (giorno % 10) {
@@ -560,6 +847,18 @@ function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
       }
     }
     return `${months[mese - 1]} ${giorno}${suffix}, ${anno}`;
+  } else {
+    const locales: Record<Exclude<LanguageCode, 'IT' | 'EN'>, string> = {
+      FR: 'fr-FR',
+      DE: 'de-DE',
+      ES: 'es-ES',
+      PT: 'pt-PT',
+    };
+    return new Intl.DateTimeFormat(locales[lingua as Exclude<LanguageCode, 'IT' | 'EN'>] || 'en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(anno, mese - 1, giorno));
   }
 }
 
@@ -594,22 +893,89 @@ function getNextFullMoonDate(dataIso: string): Date {
   return new Date(knownNewMoon + ((cyclesUntilFullMoon * synodicMonth) + fullMoonAge) * dayInMs);
 }
 
-function formatUtcDate(date: Date, lingua: 'IT' | 'EN'): string {
-  return new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
+function formatUtcDate(date: Date, lingua: LanguageCode): string {
+  const locales: Record<LanguageCode, string> = {
+    IT: 'it-IT',
+    EN: 'en-US',
+    FR: 'fr-FR',
+    DE: 'de-DE',
+    ES: 'es-ES',
+    PT: 'pt-PT',
+  };
+  if (lingua === 'EN') {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const d = date.getUTCDate();
+    let suffix = 'th';
+    if (d < 11 || d > 13) {
+      switch (d % 10) {
+        case 1: suffix = 'st'; break;
+        case 2: suffix = 'nd'; break;
+        case 3: suffix = 'rd'; break;
+      }
+    }
+    return `${months[date.getUTCMonth()]} ${d}${suffix}`;
+  }
+  return new Intl.DateTimeFormat(locales[lingua] || 'en-US', {
     day: 'numeric',
     month: 'long',
   }).format(new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN'): { event: string; countdown: string } {
+function getNextAstronomicalSeasonLabel(dataIso: string, lingua: LanguageCode): { event: string; countdown: string } {
   const date = parseIsoUtc(dataIso);
   const year = date.getUTCFullYear();
   const events = [
-    { month: 2, day: 21, IT: 'Equinozio di primavera', EN: 'Spring equinox' },
-    { month: 5, day: 21, IT: "Solstizio d'estate", EN: 'Summer solstice' },
-    { month: 8, day: 23, IT: "Equinozio d'autunno", EN: 'Autumn equinox' },
-    { month: 11, day: 21, IT: "Solstizio d'inverno", EN: 'Winter solstice' },
-    { month: 2, day: 21, IT: 'Equinozio di primavera', EN: 'Spring equinox', nextYear: true },
+    {
+      month: 2,
+      day: 21,
+      IT: 'Equinozio di primavera',
+      EN: 'Spring equinox',
+      FR: 'Équinoxe de printemps',
+      DE: 'Frühlings-Tagundnachtgleiche',
+      ES: 'Equinoccio de primavera',
+      PT: 'Equinócio de primavera',
+    },
+    {
+      month: 5,
+      day: 21,
+      IT: "Solstizio d'estate",
+      EN: 'Summer solstice',
+      FR: "Solstice d'été",
+      DE: 'Sommersonnenwende',
+      ES: 'Solsticio de verano',
+      PT: 'Solstício de verão',
+    },
+    {
+      month: 8,
+      day: 23,
+      IT: "Equinozio d'autunno",
+      EN: 'Autumn equinox',
+      FR: "Équinoxe d'automne",
+      DE: 'Herbst-Tagundnachtgleiche',
+      ES: 'Equinoccio de otoño',
+      PT: 'Equinócio de outono',
+    },
+    {
+      month: 11,
+      day: 21,
+      IT: "Solstizio d'inverno",
+      EN: 'Winter solstice',
+      FR: "Solstice d'hiver",
+      DE: 'Wintersonnenwende',
+      ES: 'Solsticio de invierno',
+      PT: 'Solstício de inverno',
+    },
+    {
+      month: 2,
+      day: 21,
+      IT: 'Equinozio di primavera',
+      EN: 'Spring equinox',
+      FR: 'Équinoxe de printemps',
+      DE: 'Frühlings-Tagundnachtgleiche',
+      ES: 'Equinoccio de primavera',
+      PT: 'Equinócio de primavera',
+      nextYear: true,
+    },
   ];
   const datedEvents = events
     .map((event) => ({
@@ -619,11 +985,18 @@ function getNextAstronomicalSeasonLabel(dataIso: string, lingua: 'IT' | 'EN'): {
   const nextEvent = datedEvents.find((event) => event.date >= date) ?? datedEvents[datedEvents.length - 1];
   const days = Math.round((nextEvent.date.getTime() - date.getTime()) / 86_400_000);
 
+  const countdowns: Record<LanguageCode, (d: number) => string> = {
+    IT: (d) => d === 0 ? 'oggi' : d === 1 ? 'domani' : `tra ${d} giorni`,
+    EN: (d) => d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`,
+    FR: (d) => d === 0 ? "aujourd'hui" : d === 1 ? 'demain' : `dans ${d} jours`,
+    DE: (d) => d === 0 ? 'heute' : d === 1 ? 'morgen' : `in ${d} Tagen`,
+    ES: (d) => d === 0 ? 'hoy' : d === 1 ? 'mañana' : `en ${d} días`,
+    PT: (d) => d === 0 ? 'hoje' : d === 1 ? 'amanhã' : `em ${d} dias`,
+  };
+
   return {
-    event: nextEvent[lingua],
-    countdown: lingua === 'IT'
-      ? days === 0 ? 'oggi' : days === 1 ? 'domani' : `tra ${days} giorni`
-      : days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`,
+    event: nextEvent[lingua] || nextEvent['EN'],
+    countdown: (countdowns[lingua] || countdowns['EN'])(days),
   };
 }
 
@@ -778,7 +1151,7 @@ function SeasonalBookmark({
   isDark,
 }: {
   dataIso: string;
-  lingua: 'IT' | 'EN';
+  lingua: LanguageCode;
   isDark: boolean;
 }) {
   const ticketRef = useRef<HTMLSpanElement>(null);
@@ -790,35 +1163,35 @@ function SeasonalBookmark({
   const [preparedTicketDownload, setPreparedTicketDownload] = useState<{ url: string; filename: string } | null>(null);
   const preparedTicketUrlRef = useRef<string | null>(null);
   const season = getSeason(dataIso);
-  const seasonLabels: Record<SeasonId, { IT: string; EN: string }> = {
-    spring: { IT: 'Primavera', EN: 'Spring' },
-    summer: { IT: 'Estate', EN: 'Summer' },
-    autumn: { IT: 'Autunno', EN: 'Autumn' },
-    winter: { IT: 'Inverno', EN: 'Winter' },
+  const seasonLabels: Record<SeasonId, Record<LanguageCode, string>> = {
+    spring: { IT: 'Primavera', EN: 'Spring', FR: 'Printemps', DE: 'Frühling', ES: 'Primavera', PT: 'Primavera' },
+    summer: { IT: 'Estate', EN: 'Summer', FR: 'Été', DE: 'Sommer', ES: 'Verano', PT: 'Verão' },
+    autumn: { IT: 'Autunno', EN: 'Autumn', FR: 'Automne', DE: 'Herbst', ES: 'Otoño', PT: 'Outono' },
+    winter: { IT: 'Inverno', EN: 'Winter', FR: 'Hiver', DE: 'Winter', ES: 'Invierno', PT: 'Inverno' },
   };
   const label = seasonLabels[season][lingua];
   const dateLabel = formatBookmarkDate(dataIso, lingua);
   const ticketSerial = dataIso.slice(2).replaceAll('-', '');
   const bookmarkMonth = getBookmarkMonth(dataIso);
   const moon = getMoonPhase(dataIso);
-  const moonLabels: Record<MoonPhaseId, { IT: string; EN: string }> = {
-    new: { IT: 'Luna nuova', EN: 'New moon' },
-    'waxing-crescent': { IT: 'Luna crescente', EN: 'Waxing crescent' },
-    'first-quarter': { IT: 'Primo quarto', EN: 'First quarter' },
-    'waxing-gibbous': { IT: 'Gibbosa crescente', EN: 'Waxing gibbous' },
-    full: { IT: 'Luna piena', EN: 'Full moon' },
-    'waning-gibbous': { IT: 'Gibbosa calante', EN: 'Waning gibbous' },
-    'last-quarter': { IT: 'Ultimo quarto', EN: 'Last quarter' },
-    'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent' },
+  const moonLabels: Record<MoonPhaseId, Record<LanguageCode, string>> = {
+    new: { IT: 'Luna nuova', EN: 'New moon', FR: 'Nouvelle lune', DE: 'Neumond', ES: 'Luna nueva', PT: 'Lua nova' },
+    'waxing-crescent': { IT: 'Luna crescente', EN: 'Waxing crescent', FR: 'Premier croissant', DE: 'Zunehmende Sichel', ES: 'Luna crescente', PT: 'Lua crescente' },
+    'first-quarter': { IT: 'Primo quarto', EN: 'First quarter', FR: 'Premier quartier', DE: 'Erstes Viertel', ES: 'Cuarto creciente', PT: 'Quarto crescente' },
+    'waxing-gibbous': { IT: 'Gibbosa crescente', EN: 'Waxing gibbous', FR: 'Lune gibbeuse croissante', DE: 'Zunehmender Dreiviertelmond', ES: 'Gibosa creciente', PT: 'Gibosa crescente' },
+    full: { IT: 'Luna piena', EN: 'Full moon', FR: 'Pleine lune', DE: 'Vollmond', ES: 'Luna llena', PT: 'Lua cheia' },
+    'waning-gibbous': { IT: 'Gibbosa calante', EN: 'Waning gibbous', FR: 'Lune gibbeuse décroissante', DE: 'Abnehmender Dreiviertelmond', ES: 'Gibosa menguante', PT: 'Gibosa minguante' },
+    'last-quarter': { IT: 'Ultimo quarto', EN: 'Last quarter', FR: 'Dernier quartier', DE: 'Letztes Viertel', ES: 'Cuarto menguante', PT: 'Quarto minguante' },
+    'waning-crescent': { IT: 'Luna calante', EN: 'Waning crescent', FR: 'Dernier croissant', DE: 'Abnehmende Sichel', ES: 'Luna menguante', PT: 'Lua minguante' },
   };
   const moonLabel = moonLabels[moon.phase][lingua];
   const nextFullMoonLabel = formatUtcDate(getNextFullMoonDate(dataIso), lingua);
-  const fullMoonAriaLabel = lingua === 'IT' ? 'Prossima luna piena' : 'Next full moon';
-  const almanacLabel = lingua === 'IT' ? 'Effemeridi' : 'Almanac';
-  const moonRowLabel = lingua === 'IT' ? 'Luna:' : 'Moon:';
-  const fullMoonRowLabel = lingua === 'IT' ? 'Luna piena:' : 'Full moon:';
-  const daylightRowLabel = lingua === 'IT' ? 'Luce del giorno:' : 'Daylight:';
-  const planetsLabel = lingua === 'IT' ? 'Pianeti osservabili' : 'Observable planets';
+  const fullMoonAriaLabel = t('fullMoon', lingua).replace(':', '');
+  const almanacLabel = t('almanac', lingua);
+  const moonRowLabel = t('moon', lingua);
+  const fullMoonRowLabel = t('fullMoon', lingua);
+  const daylightRowLabel = t('daylight', lingua);
+  const planetsLabel = t('planets', lingua);
   const selectedRegion = SKY_REGION_OPTIONS.find((region) => region.id === skyRegion) ?? SKY_REGION_OPTIONS[1];
   const dayOfYear = getDayOfYearInfo(dataIso);
   const rawSeasonalArtwork = getSeasonalArtwork(season, dataIso);
@@ -830,7 +1203,7 @@ function SeasonalBookmark({
   const daylightValue = planetResult?.key === planetResultKey ? planetResult.daylight : null;
   const planetSummary = visiblePlanets?.length
     ? visiblePlanets.map((planet) => `${planet.name}, ${planet.direction}, ${planet.bestTime}`).join('. ')
-    : lingua === 'IT' ? 'Nessun pianeta ben osservabile' : 'No planet clearly observable';
+    : t('noPlanets', lingua);
 
   useEffect(() => {
     const savedRegion = window.localStorage.getItem(SKY_REGION_STORAGE_KEY);
@@ -1067,7 +1440,7 @@ function SeasonalBookmark({
             </span>
             <span className="seasonal-bookmark-planet-list" aria-live="polite">
               {visiblePlanets === null ? (
-                <em>{lingua === 'IT' ? 'Calcolo del cielo…' : 'Reading the sky…'}</em>
+                <em>{t('readingSky', lingua)}</em>
               ) : visiblePlanets.length > 0 ? visiblePlanets.map((planet) => (
                 <span key={planet.body} className="seasonal-bookmark-planet-row">
                   <strong>{planet.name}</strong>
@@ -1075,7 +1448,7 @@ function SeasonalBookmark({
                   <span>{planet.bestTime}</span>
                 </span>
               )) : (
-                <em>{lingua === 'IT' ? 'Nessuno ben osservabile stanotte' : 'None clearly observable tonight'}</em>
+                <em>{t('noPlanets', lingua)}</em>
               )}
             </span>
           </span>
@@ -1084,14 +1457,14 @@ function SeasonalBookmark({
             className="seasonal-bookmark-download"
             data-ticket-export-ignore="true"
             disabled={exportingTicket}
-            aria-label={lingua === 'IT' ? 'Scarica il biglietto in PNG ad alta risoluzione' : 'Download the ticket as a high-resolution PNG'}
-            title={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
+            aria-label={t('downloadTicketAria', lingua)}
+            title={t('downloadTicket', lingua)}
             onClick={() => void downloadTicket()}
           >
             {exportingTicket
               ? <Loader2 aria-hidden="true" className="animate-spin" strokeWidth={1.7} />
               : <FileDown aria-hidden="true" strokeWidth={1.7} />}
-            <span>{lingua === 'IT' ? 'Scarica' : 'Download'}</span>
+            <span>{t('download', lingua)}</span>
           </button>
         </span>
         <span className="seasonal-bookmark-stitch is-trailing" aria-hidden="true" />
@@ -1198,34 +1571,32 @@ function DailyPassport({
 }: {
   data: DatiTaccuino;
   opera: OperaGiorno | null;
-  lingua: 'IT' | 'EN';
+  lingua: LanguageCode;
   isDark: boolean;
   dataIso: string;
   initials: string;
   onClose: () => void;
 }) {
   const label = {
-    title: lingua === 'IT' ? 'Passaporto del Giorno' : 'Passport of the Day',
-    subtitle: lingua === 'IT'
-      ? 'Una mappa pieghevole da scaricare, stampare e conservare.'
-      : 'A foldable map to download, print, and keep.',
-    download: lingua === 'IT' ? 'Scarica PDF' : 'Download PDF',
-    print: lingua === 'IT' ? 'Apri stampa' : 'Open print',
-    close: lingua === 'IT' ? 'Chiudi' : 'Close',
-    author: lingua === 'IT' ? 'Autore del Giorno' : 'Author of the Day',
-    quote: lingua === 'IT' ? 'Citazione' : 'Quote',
-    word: lingua === 'IT' ? 'Parola del Giorno' : 'Word of the Day',
-    saints: lingua === 'IT' ? 'I Santi di Oggi' : "Today's Saints",
-    events: lingua === 'IT' ? 'Accadde Oggi' : 'This Day in History',
-    poem: lingua === 'IT' ? 'Poesia del giorno' : 'Poem of the Day',
-    bible: lingua === 'IT' ? 'Passaggio biblico' : 'Biblical passage',
-    music: lingua === 'IT' ? 'Consiglio Musicale' : 'Musical Recommendation',
-    artwork: lingua === 'IT' ? 'Opera del Giorno' : 'Artwork of the Day',
-    stamp: lingua === 'IT' ? 'Visitato' : 'Visited',
-    number: lingua === 'IT' ? 'N.' : 'No.',
-    foldHint: lingua === 'IT' ? 'Piega lungo i tratteggi' : 'Fold on dashed lines',
-    authorPhoto: lingua === 'IT' ? 'Ritratto dell’autore' : 'Author portrait',
-    artworkImage: lingua === 'IT' ? 'Immagine dell’opera' : 'Artwork image',
+    title: t('passportTitle', lingua),
+    subtitle: t('passportSubtitle', lingua),
+    download: t('downloadPdf', lingua),
+    print: t('openPrint', lingua),
+    close: t('close', lingua),
+    author: t('authorOfTheDay', lingua),
+    quote: t('quote', lingua),
+    word: t('word', lingua),
+    saints: t('saintsTitle', lingua),
+    events: t('eventsTitle', lingua),
+    poem: t('poemTitle', lingua),
+    bible: t('bibleTitle', lingua),
+    music: t('musicTitle', lingua),
+    artwork: t('artworkTitle', lingua),
+    stamp: t('visitedStamp', lingua),
+    number: t('number', lingua),
+    foldHint: t('foldHint', lingua),
+    authorPhoto: t('authorPhoto', lingua),
+    artworkImage: t('artworkImage', lingua),
   };
   const passportCode = getPassportCode(dataIso, initials);
 
@@ -1362,8 +1733,8 @@ function DailyPassport({
             )}
 
             <footer className="daily-passport-signature">
-              <strong className={`${masterSignature.className} notebook-wordmark`}>{lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}</strong>
-              <span>{lingua === 'IT' ? 'Realizzato con amore da Antonello.' : 'Made with love by Antonello.'}</span>
+              <strong className={`${masterSignature.className} notebook-wordmark`}>{t('dayTitle', lingua)}</strong>
+              <span>{t('madeWithLove', lingua)}</span>
             </footer>
           </aside>
         </article>
@@ -1434,7 +1805,7 @@ function NotebookQuickNav({
   readingComplete,
 }: {
   isDark: boolean;
-  lingua: 'IT' | 'EN';
+  lingua: LanguageCode;
   hasOpera: boolean;
   hasApod: boolean;
   activeSection: string;
@@ -1478,7 +1849,7 @@ function MobileReadingThread({
   onNavigate,
 }: {
   isDark: boolean;
-  lingua: 'IT' | 'EN';
+  lingua: LanguageCode;
   hasOpera: boolean;
   hasApod: boolean;
   activeSection: string;
@@ -1598,10 +1969,180 @@ function ScrollRevealBadge({
   );
 }
 
+interface LanguageConfig {
+  code: LanguageCode;
+  name: string;
+  flag: React.ReactNode;
+}
+
+const LANGUAGES: LanguageConfig[] = [
+  {
+    code: 'IT',
+    name: 'Italiano',
+    flag: (
+      <svg viewBox="0 0 30 20" className="w-5 h-3.5 select-none opacity-85 saturate-[0.75] contrast-[0.9] rounded-[2px] inline-block shrink-0">
+        <rect width="10" height="20" fill="#4B634E" />
+        <rect x="10" width="10" height="20" fill="#FBF8F2" />
+        <rect x="20" width="10" height="20" fill="#AD4A3F" />
+      </svg>
+    ),
+  },
+  {
+    code: 'EN',
+    name: 'English',
+    flag: (
+      <svg viewBox="0 0 30 20" className="w-5 h-3.5 select-none opacity-85 saturate-[0.75] contrast-[0.9] rounded-[2px] inline-block shrink-0">
+        <rect width="30" height="20" fill="#2B3A54" />
+        <path d="M0,0 L30,20 M30,0 L0,20" stroke="#FBF8F2" strokeWidth="3" />
+        <path d="M0,0 L30,20 M30,0 L0,20" stroke="#AD4A3F" strokeWidth="1" />
+        <path d="M15,0 L15,20 M0,10 L30,10" stroke="#FBF8F2" strokeWidth="5" />
+        <path d="M15,0 L15,20 M0,10 L30,10" stroke="#AD4A3F" strokeWidth="3" />
+      </svg>
+    ),
+  },
+  {
+    code: 'FR',
+    name: 'Français',
+    flag: (
+      <svg viewBox="0 0 30 20" className="w-5 h-3.5 select-none opacity-85 saturate-[0.75] contrast-[0.9] rounded-[2px] inline-block shrink-0">
+        <rect width="10" height="20" fill="#2B3A54" />
+        <rect x="10" width="10" height="20" fill="#FBF8F2" />
+        <rect x="20" width="10" height="20" fill="#AD4A3F" />
+      </svg>
+    ),
+  },
+  {
+    code: 'DE',
+    name: 'Deutsch',
+    flag: (
+      <svg viewBox="0 0 30 20" className="w-5 h-3.5 select-none opacity-85 saturate-[0.75] contrast-[0.9] rounded-[2px] inline-block shrink-0">
+        <rect width="30" height="6.6" fill="#2A2A2A" />
+        <rect y="6.6" width="30" height="6.8" fill="#AD4A3F" />
+        <rect y="13.4" width="30" height="6.6" fill="#C99B49" />
+      </svg>
+    ),
+  },
+  {
+    code: 'ES',
+    name: 'Español',
+    flag: (
+      <svg viewBox="0 0 30 20" className="w-5 h-3.5 select-none opacity-85 saturate-[0.75] contrast-[0.9] rounded-[2px] inline-block shrink-0">
+        <rect width="30" height="5" fill="#AD4A3F" />
+        <rect y="5" width="30" height="10" fill="#C99B49" />
+        <rect y="15" width="30" height="5" fill="#AD4A3F" />
+        <circle cx="8" cy="10" r="1.8" fill="#AD4A3F" />
+      </svg>
+    ),
+  },
+  {
+    code: 'PT',
+    name: 'Português',
+    flag: (
+      <svg viewBox="0 0 30 20" className="w-5 h-3.5 select-none opacity-85 saturate-[0.75] contrast-[0.9] rounded-[2px] inline-block shrink-0">
+        <rect width="12" height="20" fill="#4B634E" />
+        <rect x="12" width="18" height="20" fill="#AD4A3F" />
+        <circle cx="12" cy="10" r="2" fill="#C99B49" />
+      </svg>
+    ),
+  },
+];
+
+function LanguageSelector({
+  lingua,
+  onChange,
+  disabled,
+  isDark,
+}: {
+  lingua: LanguageCode;
+  onChange: (code: LanguageCode) => void;
+  disabled: boolean;
+  isDark: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('click', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [isOpen]);
+
+  const activeLang = LANGUAGES.find((l) => l.code === lingua) || LANGUAGES[0];
+
+  return (
+    <div ref={containerRef} className="relative inline-block text-left select-none">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`top-control-button flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
+          isOpen
+            ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
+            : isDark
+              ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
+              : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+        } disabled:opacity-50 disabled:cursor-not-allowed`}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-label="Seleziona lingua / Select language"
+      >
+        {activeLang.flag}
+        <span>{activeLang.code}</span>
+      </button>
+
+      {isOpen && (
+        <div
+          className={`absolute right-0 mt-2 w-44 rounded-xl border shadow-lg z-50 overflow-hidden backdrop-blur-md transition-all animate-fadeIn ${
+            isDark
+              ? 'bg-[#1A1A1A]/95 border-white/10 text-[#D4D4D4]'
+              : 'bg-[#FAF6EE]/95 border-[#EBE5DB] text-[#4A433F]'
+          }`}
+          role="listbox"
+        >
+          <div className="py-1">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => {
+                  onChange(lang.code);
+                  setIsOpen(false);
+                }}
+                className={`flex items-center gap-2.5 w-full px-4 py-2.5 text-xs font-medium transition-colors text-left ${
+                  lingua === lang.code
+                    ? isDark
+                      ? 'bg-white/5 text-[#DE6B58] font-semibold'
+                      : 'bg-black/5 text-[#DE6B58] font-semibold'
+                    : isDark
+                      ? 'hover:bg-white/5 hover:text-white'
+                      : 'hover:bg-black/5 hover:text-black'
+                }`}
+                role="option"
+                aria-selected={lingua === lang.code}
+              >
+                {lang.flag}
+                <span>{lang.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
-  const [dataTradotta, setDataTradotta] = useState<DatiTaccuino | null>(null);
+  const [translationsCache, setTranslationsCache] = useState<Record<string, DatiTaccuino>>({});
   const [opera, setOpera] = useState<OperaGiorno | null>(null);
   const [apod, setApod] = useState<ApodData | null>(null);
   const [apodLoading, setApodLoading] = useState(false);
@@ -1621,7 +2162,7 @@ export default function Home() {
   const [visitedArchiveDates, setVisitedArchiveDates] = useState<Set<string>>(getSavedVisitedDates);
   const [archivioQuery, setArchivioQuery] = useState('');
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
-  const [lingua, setLingua] = useState<'IT' | 'EN'>('IT');
+  const [lingua, setLingua] = useState<LanguageCode>('IT');
   const [traducendo, setTraducendo] = useState(false);
   const [erroreTraduzioni, setErroreTraduzioni] = useState<string | null>(null);
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
@@ -1886,7 +2427,7 @@ export default function Home() {
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setDataTradotta(null); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false); setDailyAccent({ color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' });
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1967,22 +2508,36 @@ export default function Home() {
       });
   };
 
-  const toggleLingua = useCallback(async () => {
-    if (lingua === 'EN') { setLingua('IT'); setData(dataOriginale); return; }
-    if (dataTradotta) { setLingua('EN'); setData(dataTradotta); return; }
+  const cambiaLingua = useCallback(async (targetLang: LanguageCode) => {
+    if (targetLang === 'IT') {
+      setLingua('IT');
+      setData(dataOriginale);
+      return;
+    }
     if (!dataOriginale) return;
-    setTraducendo(true); setErroreTraduzioni(null);
+    const dateKey = dataOriginale.data || dataSelezionata || 'oggi';
+    const cacheKey = `${targetLang}:${dateKey}`;
+    const cached = translationsCache[cacheKey];
+    if (cached) {
+      setLingua(targetLang);
+      setData(cached);
+      return;
+    }
+    setTraducendo(true);
+    setErroreTraduzioni(null);
     try {
       const testi = estraiTesti(dataOriginale);
-      const res = await fetch('/api/traduci', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testi, targetLang: 'EN' }) });
+      const res = await fetch('/api/traduci', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testi, targetLang }) });
       if (!res.ok) throw new Error('Errore nella traduzione.');
       const { traduzioni } = await res.json();
       const tradotta = ricostruisciDati(dataOriginale, traduzioni);
-      setDataTradotta(tradotta); setData(tradotta); setLingua('EN');
+      setTranslationsCache(prev => ({ ...prev, [cacheKey]: tradotta }));
+      setData(tradotta);
+      setLingua(targetLang);
     } catch (e: unknown) {
       setErroreTraduzioni(e instanceof Error ? e.message : 'Traduzione non disponibile.');
     } finally { setTraducendo(false); }
-  }, [lingua, dataOriginale, dataTradotta]);
+  }, [dataOriginale, dataSelezionata, translationsCache]);
 
   useEffect(() => {
     let mountedTimer: number | undefined;
@@ -2065,7 +2620,7 @@ export default function Home() {
       return haystack.includes(archivioQueryPulita);
     })
     : archivio;
-  const groupedArchivio = groupByMonth(archivioFiltrato);
+  const groupedArchivio = groupByMonth(archivioFiltrato, lingua);
   const dataExLibris = dataSelezionata ?? oggi;
   const operaSourceUrl = opera?.source_url || opera?.met_url || '';
   const operaImageUrl = opera?.immagine_url || opera?.immagine_url_hd || '';
@@ -2361,22 +2916,12 @@ export default function Home() {
           isDark={isDark}
         />
         <div className={`top-control-panel ${controlsHidden && !popoverOpen && !savedDrawerOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
-          <button
-            onClick={toggleLingua}
+          <LanguageSelector
+            lingua={lingua}
+            onChange={cambiaLingua}
             disabled={traducendo}
-            title={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-            className={`top-control-button top-language-toggle flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
-              lingua === 'EN'
-                ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
-                : isDark
-                  ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
-                  : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-            aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-          >
-            {traducendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Languages className="w-3.5 h-3.5" />}
-            <span>{lingua === 'IT' ? 'EN' : 'IT'}</span>
-          </button>
+            isDark={isDark}
+          />
 
           {archivio.length > 0 && (
             <button
@@ -2440,18 +2985,21 @@ export default function Home() {
             aria-hidden={!mobileToolsOpen}
             inert={!mobileToolsOpen}
           >
-            <button
-              type="button"
-              onClick={() => {
-                setMobileToolsOpen(false);
-                void toggleLingua();
-              }}
-              disabled={traducendo}
-              aria-label={lingua === 'IT' ? 'Traduci in inglese' : 'Torna in italiano'}
-            >
-              {traducendo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
-              <span>{lingua === 'IT' ? 'English' : 'Italiano'}</span>
-            </button>
+            <div className="mobile-tools-lang flex items-center justify-between gap-2 px-2.5 py-1 select-none border-b border-stone-200 dark:border-white/5 pb-2.5 mb-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#8A817C] dark:text-[#A0A0A0] flex items-center gap-1.5">
+                <Languages className="w-3.5 h-3.5 text-[#DE6B58]" />
+                {lingua === 'IT' ? 'Lingua' : 'Language'}
+              </span>
+              <LanguageSelector
+                lingua={lingua}
+                onChange={(code) => {
+                  setMobileToolsOpen(false);
+                  void cambiaLingua(code);
+                }}
+                disabled={traducendo}
+                isDark={isDark}
+              />
+            </div>
             {archivio.length > 0 && (
               <button
                 ref={mobileArchiveTriggerRef}
@@ -2551,7 +3099,7 @@ export default function Home() {
                 }}
               >
                 <span className={`${masterSignature.className} notebook-wordmark hero-ink-title journal-wordmark-reserve animate-handwrite`}>
-                  {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
+                  {t('dayTitle', lingua)}
                 </span>
               </h1>
               <p
@@ -2562,9 +3110,7 @@ export default function Home() {
                     : '0 1px 1px rgba(255,252,242,0.75)',
                 }}
               >
-                {lingua === 'IT'
-                  ? 'Ogni giorno porta con sé qualcosa da non perdere: una frase, una poesia, un’immagine, una parola, una memoria, un passaggio di fede. Uno spazio per raccoglierli, leggerli con calma e custodirli sulla carta o nel cuore.'
-                  : 'Every day carries something worth keeping: a line, a poem, an image, a word, a memory, a passage of faith. A quiet space to gather them, read slowly, and keep them on paper or in the heart.'}
+                {t('daySubtitle', lingua)}
               </p>
               {erroreTraduzioni && <p className="text-xs text-[#DE6B58] italic mt-2">{erroreTraduzioni}</p>}
               <WatercolorDivider isDark={isDark} accentColor={dailyAccent.color} />
@@ -3157,36 +3703,26 @@ export default function Home() {
           {/* ── FOOTER ── */}
           <footer ref={footerRef} className={`journal-footer ${isDark ? 'is-dark' : ''} ${themeClasses.textMuted}`}>
             <div className="journal-footer-inner" data-reveal-readability>
-              <div className={`daily-wax-seal seal-${currentSealColor}`} aria-label={`${lingua === 'IT' ? 'Sigillo di ceralacca del giorno' : 'Daily wax seal'}: ${data.autore_giorno}`}>
+              <div className={`daily-wax-seal seal-${currentSealColor}`} aria-label={`${t('waxSealAria', lingua)}: ${data.autore_giorno}`}>
                 <div className="daily-wax-seal-inner">
                   <span className="seal-initials">{inizialiExLibris}</span>
                   <span className="seal-date">{formatExLibrisDate(dataExLibris)}</span>
                   <span className="seal-edition">
-                    {lingua === 'IT' ? 'edizione' : 'edition'}
+                    {t('edition', lingua)}
                     <br />
-                    {lingua === 'IT' ? `n. ${dayOfYear} di ${totalDays}` : `no. ${dayOfYear} of ${totalDays}`}
+                    {`${t('number', lingua)} ${dayOfYear} ${t('of', lingua)} ${totalDays}`}
                   </span>
                 </div>
               </div>
               <p className={`journal-footer-title ${masterSignature.className} notebook-wordmark`}>
-                {lingua === 'IT' ? 'Il giorno da custodire' : 'A day to keep'}
+                {t('dayTitle', lingua)}
               </p>
               <p className="journal-footer-note">
-              {lingua === 'IT' ? (
-                <>
-                  Un foglio quotidiano di cultura, memoria e ascolto.
-                  <br />
-                  Realizzato con amore da Antonello.
-                </>
-              ) : (
-                <>
-                  A daily page of culture, memory, and listening.
-                  <br />
-                  Made with love by Antonello.
-                </>
-              )}
+                {t('footerText', lingua)}
+                <br />
+                {t('madeWithLove', lingua)}
               </p>
-              <nav className="journal-footer-socials" aria-label={lingua === 'IT' ? 'Collegamenti social' : 'Social links'}>
+              <nav className="journal-footer-socials" aria-label={t('socialLinks', lingua)}>
                 <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="X (Twitter)">
                   <XIcon className="w-4 h-4" />
                   <span>X</span>
@@ -3197,7 +3733,7 @@ export default function Home() {
                 </a>
                 <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="Buy Me a Coffee">
                   <CoffeeIcon className="w-4 h-4" />
-                  <span>{lingua === 'IT' ? 'Supporta' : 'Support'}</span>
+                  <span>{t('support', lingua)}</span>
                 </a>
               </nav>
               <button
@@ -3206,7 +3742,7 @@ export default function Home() {
                 onClick={() => window.open(`/passaporto?data=${dataExLibris}`, '_blank', 'noopener,noreferrer')}
               >
                 <FileDown className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
-                <span>{lingua === 'IT' ? 'Crea il passaporto del giorno' : 'Create today’s passport'}</span>
+                <span>{t('createPassport', lingua)}</span>
               </button>
             </div>
           </footer>
