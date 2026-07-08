@@ -2142,7 +2142,7 @@ function LanguageSelector({
                 onChange(lang.code);
                 setIsOpen(false);
               }}
-              className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 text-left rounded-lg ${
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold transition-all duration-200 text-left rounded-lg ${
                 lingua === lang.code
                   ? 'text-[#DE6B58] font-bold bg-[#DE6B58]/5'
                   : isDark
