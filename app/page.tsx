@@ -13,7 +13,7 @@ import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import type { Artwork } from '@/lib/artwork';
 import type { SaintArtwork } from '@/lib/saint-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
-import { getSeasonalArtwork } from '@/lib/seasonal-artwork';
+import { getSeasonalArtwork, getLocalizedSeasonalArtwork } from '@/lib/seasonal-artwork';
 
 const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: string; cityEN: string }[] = [
   { id: 'north', IT: 'Nord', EN: 'North', cityIT: 'Milano', cityEN: 'Milan' },
@@ -538,12 +538,29 @@ function getAmbientLightStyle(now: Date, isDark: boolean): CSSProperties {
 }
 
 function formatBookmarkDate(dataIso: string, lingua: 'IT' | 'EN'): string {
-  const [anno, mese, giorno] = dataIso.split('-').map(Number);
-  return new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(anno, mese - 1, giorno));
+  if (lingua === 'IT') {
+    const [anno, mese, giorno] = dataIso.split('-').map(Number);
+    return new Intl.DateTimeFormat('it-IT', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(anno, mese - 1, giorno));
+  } else {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const [anno, mese, giorno] = dataIso.split('-').map(Number);
+    let suffix = 'th';
+    if (giorno < 11 || giorno > 13) {
+      switch (giorno % 10) {
+        case 1: suffix = 'st'; break;
+        case 2: suffix = 'nd'; break;
+        case 3: suffix = 'rd'; break;
+      }
+    }
+    return `${months[mese - 1]} ${giorno}${suffix}, ${anno}`;
+  }
 }
 
 function getBookmarkMonth(dataIso: string): number {
@@ -804,7 +821,8 @@ function SeasonalBookmark({
   const planetsLabel = lingua === 'IT' ? 'Pianeti osservabili' : 'Observable planets';
   const selectedRegion = SKY_REGION_OPTIONS.find((region) => region.id === skyRegion) ?? SKY_REGION_OPTIONS[1];
   const dayOfYear = getDayOfYearInfo(dataIso);
-  const seasonalArtwork = getSeasonalArtwork(season, dataIso);
+  const rawSeasonalArtwork = getSeasonalArtwork(season, dataIso);
+  const seasonalArtwork = getLocalizedSeasonalArtwork(rawSeasonalArtwork, lingua);
   const artworkSourceUrl = seasonalArtwork?.sourceUrl || dayPermalink;
   const ticketArtworkImageUrl = seasonalArtwork?.imageUrl || '';
   const planetResultKey = `${dataIso}:${skyRegion}:${lingua}`;
