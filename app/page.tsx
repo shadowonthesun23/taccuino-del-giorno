@@ -2083,9 +2083,9 @@ function LanguageSelector({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`top-control-button flex items-center gap-1.5 px-3 py-2 rounded-full border text-xs font-bold tracking-widest uppercase transition-all backdrop-blur-sm ${
+        className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
           isOpen
-            ? 'border-[#DE6B58] text-[#DE6B58] bg-[#DE6B58]/10'
+            ? 'border-[#DE6B58] text-[#DE6B58]'
             : isDark
               ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
               : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
@@ -2094,47 +2094,43 @@ function LanguageSelector({
         aria-haspopup="listbox"
         aria-label="Seleziona lingua / Select language"
       >
-        {activeLang.flag}
-        <span>{activeLang.code}</span>
+        <Languages className="w-5 h-5" />
       </button>
 
-      {isOpen && (
-        <div
-          className={`absolute right-0 mt-2 w-44 rounded-xl border shadow-lg z-50 overflow-hidden backdrop-blur-md transition-all animate-fadeIn ${
-            isDark
-              ? 'bg-[#1A1A1A]/95 border-white/10 text-[#D4D4D4]'
-              : 'bg-[#FAF6EE]/95 border-[#EBE5DB] text-[#4A433F]'
-          }`}
-          role="listbox"
-        >
-          <div className="py-1">
-            {LANGUAGES.map((lang) => (
-              <button
-                key={lang.code}
-                type="button"
-                onClick={() => {
-                  onChange(lang.code);
-                  setIsOpen(false);
-                }}
-                className={`flex items-center gap-2.5 w-full px-4 py-2.5 text-xs font-medium transition-colors text-left ${
-                  lingua === lang.code
-                    ? isDark
-                      ? 'bg-white/5 text-[#DE6B58] font-semibold'
-                      : 'bg-black/5 text-[#DE6B58] font-semibold'
-                    : isDark
-                      ? 'hover:bg-white/5 hover:text-white'
-                      : 'hover:bg-black/5 hover:text-black'
-                }`}
-                role="option"
-                aria-selected={lingua === lang.code}
-              >
-                {lang.flag}
-                <span>{lang.name}</span>
-              </button>
-            ))}
-          </div>
+      <div
+        className={`archive-popover ${isOpen ? 'is-open' : ''} ${
+          isDark ? 'is-dark' : ''
+        } absolute right-0 mt-2 w-44 z-50 overflow-hidden flex flex-col`}
+        style={{
+          transformOrigin: 'top right',
+        }}
+        role="listbox"
+      >
+        <div className="p-2 flex flex-col gap-1">
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => {
+                onChange(lang.code);
+                setIsOpen(false);
+              }}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 text-left rounded-lg ${
+                lingua === lang.code
+                  ? 'text-[#DE6B58] font-bold bg-[#DE6B58]/5'
+                  : isDark
+                    ? 'text-[#bbb2ad] hover:bg-white/5 hover:text-white hover:translate-x-0.5'
+                    : 'text-[#746b66] hover:bg-black/5 hover:text-black hover:translate-x-0.5'
+              }`}
+              role="option"
+              aria-selected={lingua === lang.code}
+            >
+              {lang.flag}
+              <span>{lang.name}</span>
+            </button>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
