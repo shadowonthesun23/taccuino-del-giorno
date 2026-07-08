@@ -24,6 +24,41 @@ const SEAL_HEX_CODES: Record<string, string> = {
   ottanio: '#196066',
 };
 
+const CAPTION_TRANSLATIONS = {
+  badge: {
+    IT: 'Opera stagionale',
+    EN: 'Seasonal artwork',
+    FR: 'Œuvre saisonnière',
+    DE: 'Saisonales Kunstwerk',
+    ES: 'Obra estacional',
+    PT: 'Obra sazonal',
+  },
+  hint: {
+    IT: 'Opera stagionale nello sfondo · muovi il cursore',
+    EN: 'Seasonal artwork in background · move cursor',
+    FR: 'Œuvre saisonnière en arrière-plan · bougez le curseur',
+    DE: 'Saisonales Kunstwerk im Hintergrund · Maus bewegen',
+    ES: 'Obra estacional en el fondo · mueve el cursor',
+    PT: 'Obra sazonal no fundo · mova o cursor',
+  },
+  clickToShowText: {
+    IT: 'Clicca per mostrare il testo',
+    EN: 'Click to show text',
+    FR: 'Cliquer pour afficher le texte',
+    DE: 'Klicken, um Text anzuzeigen',
+    ES: 'Haz clic para mostrar el texto',
+    PT: 'Clique para mostrar o texto',
+  },
+  accessibilityLabel: {
+    IT: 'Opera stagionale in trasparenza',
+    EN: 'Seasonal artwork revealed in the background',
+    FR: 'Œuvre saisonnière révélée en arrière-plan',
+    DE: 'Saisonales Kunstwerk im Hintergrund enthüllt',
+    ES: 'Obra estacional revelada en el fondo',
+    PT: 'Obra sazonal revelada no fundo',
+  }
+};
+
 export default function ParallaxBackground({
   children,
   season,
@@ -58,12 +93,12 @@ export default function ParallaxBackground({
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
   const rawArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
   const seasonalArtwork = getLocalizedSeasonalArtwork(rawArtwork, language);
-  const seasonalCaptionLabel = language === 'IT'
-    ? 'Opera stagionale in trasparenza'
-    : 'Seasonal artwork revealed in the background';
-  const seasonalCaptionHint = language === 'IT'
-    ? 'Opera nello sfondo · muovi il cursore'
-    : 'Background artwork · move the cursor';
+
+  const langKey = (language as 'IT' | 'EN' | 'FR' | 'DE' | 'ES' | 'PT') || 'EN';
+  const seasonalCaptionLabel = CAPTION_TRANSLATIONS.accessibilityLabel[langKey] || CAPTION_TRANSLATIONS.accessibilityLabel.EN;
+  const seasonalCaptionHint = CAPTION_TRANSLATIONS.hint[langKey] || CAPTION_TRANSLATIONS.hint.EN;
+  const seasonalBadgeText = CAPTION_TRANSLATIONS.badge[langKey] || CAPTION_TRANSLATIONS.badge.EN;
+  const clickToShowText = CAPTION_TRANSLATIONS.clickToShowText[langKey] || CAPTION_TRANSLATIONS.clickToShowText.EN;
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -445,9 +480,12 @@ export default function ParallaxBackground({
           data-reveal-readability
           onClick={() => setIsArtworkSolo(prev => !prev)}
         >
+          {!isArtworkSolo && (
+            <span className="seasonal-artwork-badge">{seasonalBadgeText}</span>
+          )}
           <span className="seasonal-artwork-hint" style={isArtworkSolo ? { margin: 0 } : undefined}>
             {isArtworkSolo
-              ? (language === 'IT' ? 'Clicca per mostrare il testo' : 'Click to show text')
+              ? clickToShowText
               : seasonalCaptionHint}
           </span>
           {!isArtworkSolo && (

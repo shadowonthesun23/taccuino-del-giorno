@@ -725,6 +725,26 @@ a.museum-brass-label:hover::before {
     font-weight: 700;
   }
 
+  .seasonal-artwork-caption .seasonal-artwork-badge {
+    display: inline-block !important;
+    font-size: 0.58rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: #de6b58 !important;
+    margin-bottom: 5px !important;
+    margin-top: 0 !important;
+    padding-bottom: 2px !important;
+    border-bottom: 1px solid rgba(222, 107, 88, 0.25) !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+  }
+
+  .seasonal-artwork-caption.is-dark .seasonal-artwork-badge {
+    color: #e59e90 !important;
+    border-bottom-color: rgba(229, 158, 144, 0.25) !important;
+  }
+
   .seasonal-artwork-caption .seasonal-artwork-hint {
     font-size: 0.62rem;
     font-style: italic;
@@ -738,7 +758,7 @@ a.museum-brass-label:hover::before {
     background: rgba(24, 23, 22, 0.48);
   }
 
-  .seasonal-artwork-caption.is-dark span {
+  .seasonal-artwork-caption.is-dark span:not(.seasonal-artwork-badge) {
     color: rgba(220, 210, 193, 0.7);
   }
 
