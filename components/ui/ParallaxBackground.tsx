@@ -4,9 +4,77 @@ import React, { useEffect, useRef, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
+const renderRopeStrands = (
+  p0: [number, number],
+  p1: [number, number],
+  p2: [number, number],
+  steps: number,
+  strandHeight: number,
+  strandWidth: number,
+  twistAngle: number
+) => {
+  const elements = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = (1 - t) * (1 - t) * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0];
+    const y = (1 - t) * (1 - t) * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1];
+    
+    const dx = 2 * (1 - t) * (p1[0] - p0[0]) + 2 * t * (p2[0] - p1[0]);
+    const dy = 2 * (1 - t) * (p1[1] - p0[1]) + 2 * t * (p2[1] - p1[1]);
+    
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    
+    elements.push(
+      <ellipse
+        key={i}
+        cx={0}
+        cy={0}
+        rx={strandWidth}
+        ry={strandHeight}
+        transform={`translate(${x}, ${y}) rotate(${angle + twistAngle})`}
+        fill="url(#strand-grad)"
+        stroke="#120002"
+        strokeWidth="0.45"
+      />
+    );
+  }
+  return elements;
+};
+
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
 const darkNotebookBackground = '/images/sfondo-taccuino-dark-paper.webp';
+
+const getRelativeDateIso = (dateStr: string | undefined, offset: number): string | undefined => {
+  if (!dateStr) return undefined;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) return undefined;
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  date.setUTCDate(date.getUTCDate() + offset);
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const getFrameStyleClass = (dateStr: string | undefined): string => {
+  if (!dateStr) return 'frame-style-walnut';
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) return 'frame-style-walnut';
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  const utcDay = Math.floor(date.getTime() / 86_400_000);
+  const index = ((utcDay + 2) % 5 + 5) % 5;
+  const styles = [
+    'frame-style-walnut',
+    'frame-style-gold',
+    'frame-style-ebony',
+    'frame-style-ivory',
+    'frame-style-oak'
+  ];
+  return styles[index];
+};
 
 const SEAL_HEX_CODES: Record<string, string> = {
   blu: '#11304e',
@@ -42,12 +110,12 @@ const CAPTION_TRANSLATIONS = {
     PT: 'Obra sazonal no fundo · mova o cursor',
   },
   clickToShowText: {
-    IT: 'Clicca per mostrare il testo',
-    EN: 'Click to show text',
-    FR: 'Cliquer pour afficher le texte',
-    DE: 'Klicken, um Text anzuzeigen',
-    ES: 'Haz clic para mostrar el texto',
-    PT: 'Clique para mostrar o texto',
+    IT: '← Torna alla Home',
+    EN: '← Back to Home',
+    FR: '← Retour à l’accueil',
+    DE: '← Zurück zur Startseite',
+    ES: '← Volver al inicio',
+    PT: '← Voltar ao início',
   },
   accessibilityLabel: {
     IT: 'Opera stagionale in trasparenza',
@@ -93,6 +161,13 @@ export default function ParallaxBackground({
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
   const rawArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
   const seasonalArtwork = getLocalizedSeasonalArtwork(rawArtwork, language);
+
+  const yesterdayIso = getRelativeDateIso(dataIso, -1);
+  const tomorrowIso = getRelativeDateIso(dataIso, 1);
+  const rawYesterdayArtwork = season && yesterdayIso ? getSeasonalArtwork(season, yesterdayIso) : undefined;
+  const yesterdayArtwork = getLocalizedSeasonalArtwork(rawYesterdayArtwork, language);
+  const rawTomorrowArtwork = season && tomorrowIso ? getSeasonalArtwork(season, tomorrowIso) : undefined;
+  const tomorrowArtwork = getLocalizedSeasonalArtwork(rawTomorrowArtwork, language);
 
   const langKey = (language as 'IT' | 'EN' | 'FR' | 'DE' | 'ES' | 'PT') || 'EN';
   const seasonalCaptionLabel = CAPTION_TRANSLATIONS.accessibilityLabel[langKey] || CAPTION_TRANSLATIONS.accessibilityLabel.EN;
@@ -422,24 +497,194 @@ export default function ParallaxBackground({
             className={`museum-frame-container ${isArtworkSolo ? 'is-visible' : ''}`}
             onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
           >
-            <div className="museum-artwork-wrapper" onClick={(e) => e.stopPropagation()}>
-              <div className="museum-frame-inner">
-                <div className="museum-spotlight left" />
-                <div className="museum-spotlight right" />
-                <img
-                  src={seasonalArtwork.imageUrl}
-                  alt={seasonalArtwork.title}
-                  className="museum-frame-image"
-                  draggable={false}
-                />
-                <div className="museum-light-beams" />
+            <div className="museum-artwork-wrapper relative" onClick={(e) => e.stopPropagation()}>
+              {/* Paintings row to align side paintings to the exact vertical center of the main painting */}
+              <div className="museum-paintings-row relative w-full flex items-center justify-center z-10">
+                {/* Yesterday's Artwork (Left, flat on wall, blurred) */}
+                {yesterdayArtwork && (
+                  <div className="museum-side-painting left-side">
+                    <div className={`museum-frame-inner ${getFrameStyleClass(yesterdayIso)}`}>
+                      <img
+                        src={yesterdayArtwork.imageUrl}
+                        alt={yesterdayArtwork.title}
+                        className="museum-frame-image"
+                        draggable={false}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Today's Main Artwork */}
+                {seasonalArtwork.sourceUrl ? (
+                  <a
+                    href={seasonalArtwork.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="z-10 cursor-pointer"
+                  >
+                    <div className={`museum-frame-inner relative ${getFrameStyleClass(dataIso)}`}>
+                      <div className="museum-spotlight left" />
+                      <div className="museum-spotlight right" />
+                      <img
+                        src={seasonalArtwork.imageUrl}
+                        alt={seasonalArtwork.title}
+                        className="museum-frame-image"
+                        draggable={false}
+                      />
+                      <div className="museum-light-beams" />
+                    </div>
+                  </a>
+                ) : (
+                  <div className={`museum-frame-inner relative z-10 ${getFrameStyleClass(dataIso)}`}>
+                    <div className="museum-spotlight left" />
+                    <div className="museum-spotlight right" />
+                    <img
+                      src={seasonalArtwork.imageUrl}
+                      alt={seasonalArtwork.title}
+                      className="museum-frame-image"
+                      draggable={false}
+                    />
+                    <div className="museum-light-beams" />
+                  </div>
+                )}
+
+                {/* Tomorrow's Artwork (Right, flat on wall, blurred) */}
+                {tomorrowArtwork && (
+                  <div className="museum-side-painting right-side">
+                    <div className={`museum-frame-inner ${getFrameStyleClass(tomorrowIso)}`}>
+                      <img
+                        src={tomorrowArtwork.imageUrl}
+                        alt={tomorrowArtwork.title}
+                        className="museum-frame-image"
+                        draggable={false}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
+              
+              <div className="museum-stanchions" aria-hidden="true">
+                <svg className="museum-stanchions-svg" viewBox="0 0 1000 80" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="gold-pole-museum" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#3b2b07" />
+                      <stop offset="25%" stopColor="#5c430e" />
+                      <stop offset="50%" stopColor="#7a5c1b" />
+                      <stop offset="75%" stopColor="#4d3708" />
+                      <stop offset="100%" stopColor="#261a03" />
+                    </linearGradient>
+                    <linearGradient id="gold-base-museum" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#261a03" />
+                      <stop offset="30%" stopColor="#5c430e" />
+                      <stop offset="60%" stopColor="#7a5c1b" />
+                      <stop offset="85%" stopColor="#4d3708" />
+                      <stop offset="100%" stopColor="#1a1002" />
+                    </linearGradient>
+                    <radialGradient id="gold-ball-museum" cx="35%" cy="35%" r="65%">
+                      <stop offset="0%" stopColor="#fff2bc" stopOpacity="0.4" />
+                      <stop offset="40%" stopColor="#73561a" />
+                      <stop offset="80%" stopColor="#423009" />
+                      <stop offset="100%" stopColor="#211702" />
+                    </radialGradient>
+
+                    {/* Rich velvet burgundy strand gradient with warm 3D cylinder rendering (dimmed for ambient lighting) */}
+                    <linearGradient id="strand-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#1c0003" />
+                      <stop offset="25%" stopColor="#4a030c" />
+                      <stop offset="50%" stopColor="#7a0b18" />
+                      <stop offset="75%" stopColor="#4a030c" />
+                      <stop offset="100%" stopColor="#1c0003" />
+                    </linearGradient>
+
+                    {/* Cylindrical 3D Shading for the entire rope curve (darkened for shadowed foreground look) */}
+                    <linearGradient id="rope-3d-shading" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#000000" stopOpacity="0.85" />
+                      <stop offset="25%" stopColor="#000000" stopOpacity="0.3" />
+                      <stop offset="50%" stopColor="#ffffff" stopOpacity="0.08" />
+                      <stop offset="75%" stopColor="#000000" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#000000" stopOpacity="0.95" />
+                    </linearGradient>
+
+                    {/* Depth of Field Gaussian Blur Filters (very light variations) */}
+                    {/* Center Rope: Sharp focus (lightly softened for lens look) */}
+                    <filter id="blur-sharp-museum" x="-10%" y="-10%" width="120%" height="120%">
+                      <feGaussianBlur stdDeviation="0.4" />
+                    </filter>
+                    {/* Columns: Medium focus */}
+                    <filter id="blur-medium-museum" x="-10%" y="-10%" width="120%" height="120%">
+                      <feGaussianBlur stdDeviation="0.8" />
+                    </filter>
+                    {/* Side Ropes: Out of focus (subtle blur) */}
+                    <filter id="blur-defocused-museum" x="-10%" y="-10%" width="120%" height="120%">
+                      <feGaussianBlur stdDeviation="1.2" />
+                    </filter>
+                    {/* Gold Cap and Hook Loop for Rope Ends */}
+                    <g id="rope-cap-gold">
+                      {/* The hook link loop */}
+                      <path d="M -1.2,0 C 0.8,-2.4 4.5,-2.4 6.5,0 C 4.5,2.4 1,2.4 -1.2,0" fill="none" stroke="url(#gold-pole-museum)" strokeWidth="1.2" />
+                      {/* The collar */}
+                      <rect x="5.5" y="-3.8" width="1.5" height="7.6" rx="0.8" fill="url(#gold-base-museum)" stroke="#3a2a07" strokeWidth="0.3" />
+                      {/* The cylinder cap wrapping the rope end */}
+                      <path d="M 7.0,-3.4 L 14.0,-3.4 A 3.4,3.4 0 0,1 17.4,0 A 3.4,3.4 0 0,1 14.0,3.4 L 7.0,3.4 Z" fill="url(#gold-pole-museum)" stroke="#3a2a07" strokeWidth="0.3" />
+                    </g>
+                  </defs>
+
+                  {/* 1. Shadows Layer */}
+                  <path d="M -50,26 Q 85,55 220,15" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="6.5" strokeLinecap="round" transform="translate(0, 2)" filter="url(#blur-defocused-museum)" />
+                  <path d="M 220,15 Q 500,72 780,15" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="6.5" strokeLinecap="round" transform="translate(0, 2)" filter="url(#blur-sharp-museum)" />
+                  <path d="M 780,15 Q 915,55 1050,26" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="6.5" strokeLinecap="round" transform="translate(0, 2)" filter="url(#blur-defocused-museum)" />
+
+                  {/* 2. Rope Strands (Braided Structure via dynamic rendering) */}
+                  <g filter="url(#blur-defocused-museum)">
+                    {renderRopeStrands([-50, 26], [85, 55], [220, 15], 80, 3.2, 1.8, 38)}
+                  </g>
+                  <g filter="url(#blur-sharp-museum)">
+                    {renderRopeStrands([220, 15], [500, 72], [780, 15], 160, 3.2, 1.8, 38)}
+                  </g>
+                  <g filter="url(#blur-defocused-museum)">
+                    {renderRopeStrands([780, 15], [915, 55], [1050, 26], 80, 3.2, 1.8, 38)}
+                  </g>
+
+                  {/* 3. 3D Cylindrical Shading Overlay */}
+                  <path d="M -50,26 Q 85,55 220,15" fill="none" stroke="url(#rope-3d-shading)" strokeWidth="6.0" strokeLinecap="round" filter="url(#blur-defocused-museum)" opacity="0.22" />
+                  <path d="M 220,15 Q 500,72 780,15" fill="none" stroke="url(#rope-3d-shading)" strokeWidth="6.0" strokeLinecap="round" filter="url(#blur-sharp-museum)" opacity="0.22" />
+                  <path d="M 780,15 Q 915,55 1050,26" fill="none" stroke="url(#rope-3d-shading)" strokeWidth="6.0" strokeLinecap="round" filter="url(#blur-defocused-museum)" opacity="0.22" />
+
+                  {/* 3.5. Gold Rope Caps & Hooks */}
+                  <g filter="url(#blur-defocused-museum)">
+                    <use href="#rope-cap-gold" transform="translate(220, 15) rotate(163.5)" />
+                    <use href="#rope-cap-gold" transform="translate(780, 15) rotate(16.5)" />
+                  </g>
+                  <g filter="url(#blur-sharp-museum)">
+                    <use href="#rope-cap-gold" transform="translate(220, 15) rotate(11.5)" />
+                    <use href="#rope-cap-gold" transform="translate(780, 15) rotate(168.5)" />
+                  </g>
+
+                  {/* 4. Columns & Rings (Medium Blur) */}
+                  <g filter="url(#blur-medium-museum)">
+                    {/* Attachment rings */}
+                    <circle cx="220" cy="15" r="1.5" fill="#3a2a07" />
+                    <circle cx="780" cy="15" r="1.5" fill="#3a2a07" />
+
+                    {/* Left Column (No base, goes straight down off-screen) */}
+                    <rect x="218" y="15" width="4" height="65" fill="url(#gold-pole-museum)" />
+                    <rect x="217" y="14" width="6" height="1" fill="url(#gold-base-museum)" />
+                    <circle cx="220" cy="11.5" r="3.2" fill="url(#gold-ball-museum)" />
+
+                    {/* Right Column (No base, goes straight down off-screen) */}
+                    <rect x="778" y="15" width="4" height="65" fill="url(#gold-pole-museum)" />
+                    <rect x="777" y="14" width="6" height="1" fill="url(#gold-base-museum)" />
+                    <circle cx="780" cy="11.5" r="3.2" fill="url(#gold-ball-museum)" />
+                  </g>
+                </svg>
+              </div>
+
               {seasonalArtwork.sourceUrl ? (
                 <a
                   href={seasonalArtwork.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="museum-brass-label"
+                  className="museum-brass-label relative z-20"
                   title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
                 >
                   <span className="museum-label-screw left" />
@@ -454,7 +699,7 @@ export default function ParallaxBackground({
                   <p className="museum-label-collection">{seasonalArtwork.collection}</p>
                 </a>
               ) : (
-                <div className="museum-brass-label">
+                <div className="museum-brass-label relative z-20">
                   <span className="museum-label-screw left" />
                   <span className="museum-label-screw right" />
                   <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
@@ -475,7 +720,7 @@ export default function ParallaxBackground({
       {hasSeasonalReveal && seasonalArtwork ? (
         <aside
           ref={seasonalCaptionRef}
-          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''} ${isArtworkSolo ? 'is-visible' : ''}`}
+          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''} ${isArtworkSolo ? 'is-visible is-solo-mode' : ''}`}
           aria-label={seasonalCaptionLabel}
           data-reveal-readability
           onClick={() => setIsArtworkSolo(prev => !prev)}
