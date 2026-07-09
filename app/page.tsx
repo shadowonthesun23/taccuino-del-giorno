@@ -3235,18 +3235,43 @@ export default function Home() {
             </strong>
             <span className="daily-thread-line is-ending" aria-hidden="true" />
           </div>
-          {!showExportCard && (
-            <button
-              onClick={() => setShowExportCard(true)}
-              className={`author-share-trigger ${isDark ? 'is-dark' : ''}`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              {lingua === 'IT' ? 'Esporta come immagine' : 'Export as image'}
-            </button>
-          )}
         </div>
       </div>
     </div> {/* chiude mx-auto flex */}
+
+    <div className="mt-8 animate-fadeInUp stagger-3">
+      <Card
+        key={`${dataExLibris}:citazione`}
+        id="citazione"
+        title={t('quoteCard', lingua)}
+        icon={Quote}
+        isDark={isDark}
+        className="scroll-mt-28"
+        filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
+        isSaved={isCardSaved('citazione')}
+        onToggleSaved={() => saveCard('citazione', `${lingua === 'IT' ? 'Citazione di' : 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
+      >
+        <blockquote className="quote-editorial md:px-8">
+          <EditorialQuoteText text={data.citazione.testo} />
+          <footer className="quote-editorial-footer text-right text-lg clear-both pt-2">
+            <span className="font-bold">{data.citazione.autore}</span>
+            <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
+          </footer>
+        </blockquote>
+      </Card>
+    </div>
+
+    <div className="flex justify-center mt-6">
+      {!showExportCard && (
+        <button
+          onClick={() => setShowExportCard(true)}
+          className={`author-share-trigger ${isDark ? 'is-dark' : ''}`}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          {lingua === 'IT' ? 'Esporta come immagine' : 'Export as image'}
+        </button>
+      )}
+    </div>
 
     <div
       className={`overflow-hidden transition-all duration-500 ease-in-out ${
@@ -3283,26 +3308,6 @@ export default function Home() {
 </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-            <Card
-              key={`${dataExLibris}:citazione`}
-              id="citazione"
-              title={t('quoteCard', lingua)}
-              icon={Quote}
-              isDark={isDark}
-              className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-3"
-              filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
-              isSaved={isCardSaved('citazione')}
-              onToggleSaved={() => saveCard('citazione', `${lingua === 'IT' ? 'Citazione di' : 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
-            >
-              <blockquote className="quote-editorial md:px-8">
-                <EditorialQuoteText text={data.citazione.testo} />
-                <footer className="quote-editorial-footer text-right text-lg clear-both pt-2">
-                  <span className="font-bold">{data.citazione.autore}</span>
-                  <span className={`${themeClasses.textMuted} italic font-medium`}> — {data.citazione.fonte}</span>
-                </footer>
-              </blockquote>
-            </Card>
 
             <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
