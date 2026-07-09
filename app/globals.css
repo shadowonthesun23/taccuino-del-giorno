@@ -4658,9 +4658,9 @@ body {
 .saved-cards-drawer {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.4), transparent 90px),
-    rgba(248,244,235,0.82);
-  backdrop-filter: blur(16px) saturate(110%);
-  -webkit-backdrop-filter: blur(16px) saturate(110%);
+    rgba(248,244,235,0.91);
+  backdrop-filter: blur(28px) saturate(120%);
+  -webkit-backdrop-filter: blur(28px) saturate(120%);
   border: 1px solid rgba(181,149,106,0.32);
   border-radius: 7px 9px 8px 6px;
   box-shadow:
@@ -4855,7 +4855,7 @@ body {
 .saved-cards-drawer.is-dark {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.02), transparent 90px),
-    rgba(23, 22, 20, 0.8);
+    rgba(23, 22, 20, 0.91);
   border-color: rgba(255,255,255,0.09);
   box-shadow: 0 28px 70px -34px rgba(0,0,0,0.86);
 }
@@ -5063,9 +5063,9 @@ body {
 .archive-popover {
   background:
     linear-gradient(145deg, rgba(255,255,255,0.48), transparent 34%),
-    rgba(249, 246, 238, 0.82);
-  backdrop-filter: blur(16px) saturate(110%);
-  -webkit-backdrop-filter: blur(16px) saturate(110%);
+    rgba(249, 246, 238, 0.91);
+  backdrop-filter: blur(28px) saturate(120%);
+  -webkit-backdrop-filter: blur(28px) saturate(120%);
   border: 1px solid rgba(117, 91, 57, 0.22);
   border-radius: 22px 13px 20px 15px;
   box-shadow:
@@ -5085,7 +5085,7 @@ body {
 .archive-popover.is-dark {
   background:
     linear-gradient(145deg, rgba(255,255,255,0.03), transparent 34%),
-    rgba(23, 22, 20, 0.8);
+    rgba(23, 22, 20, 0.91);
   border-color: rgba(255,255,255,0.1);
   box-shadow:
     0 30px 76px -30px rgba(0,0,0,0.9),
@@ -7081,7 +7081,8 @@ body {
   }
 
   .mobile-tools-menu {
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(28px) saturate(120%);
+    -webkit-backdrop-filter: blur(28px) saturate(120%);
     background:
       linear-gradient(180deg, rgba(255,255,255,0.42), transparent),
       rgba(244,240,230,0.96);
@@ -7139,7 +7140,7 @@ body {
   .mobile-tools.is-dark .mobile-tools-menu {
     background:
       linear-gradient(180deg, rgba(255,255,255,0.045), transparent),
-      rgba(35,34,32,0.94);
+      rgba(35,34,32,0.96);
     border-color: rgba(255,255,255,0.09);
     color: #b8afaa;
   }
