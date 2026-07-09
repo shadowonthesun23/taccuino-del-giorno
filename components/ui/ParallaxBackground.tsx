@@ -94,20 +94,20 @@ const SEAL_HEX_CODES: Record<string, string> = {
 
 const CAPTION_TRANSLATIONS = {
   badge: {
-    IT: 'Opera stagionale',
-    EN: 'Seasonal artwork',
-    FR: 'Œuvre saisonnière',
-    DE: 'Saisonales Kunstwerk',
-    ES: 'Obra estacional',
-    PT: 'Obra sazonal',
+    IT: 'OPERA STAGIONALE sullo sfondo',
+    EN: 'SEASONAL ARTWORK in background',
+    FR: 'ŒUVRE SAISONNIÈRE en arrière-plan',
+    DE: 'SAISONALES KUNSTWERK im Hintergrund',
+    ES: 'OBRA ESTACIONAL en el fondo',
+    PT: 'OBRA SAZONAL no fundo',
   },
   hint: {
-    IT: 'Opera stagionale nello sfondo · muovi il cursore',
-    EN: 'Seasonal artwork in background · move cursor',
-    FR: 'Œuvre saisonnière en arrière-plan · bougez le curseur',
-    DE: 'Saisonales Kunstwerk im Hintergrund · Maus bewegen',
-    ES: 'Obra estacional en el fondo · mueve el cursor',
-    PT: 'Obra sazonal no fundo · mova o cursor',
+    IT: '(Muovi il cursore)',
+    EN: '(Move cursor)',
+    FR: '(Bougez le curseur)',
+    DE: '(Maus bewegen)',
+    ES: '(Mueve el cursor)',
+    PT: '(Mova o cursor)',
   },
   clickToShowText: {
     IT: '← Torna alla Home',
