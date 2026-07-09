@@ -81,6 +81,22 @@ const THEME_SURFACE = {
   dark: '#171614',
 } as const;
 
+const SEAL_COLOR_MAP: Record<string, { color: string; rgb: string }> = {
+  blu: { color: '#11304e', rgb: '17, 48, 78' },
+  rosso: { color: '#7e0814', rgb: '126, 8, 20' },
+  oro: { color: '#86683a', rgb: '134, 104, 58' },
+  'verde-scuro': { color: '#3c6146', rgb: '60, 97, 70' },
+  salvia: { color: '#6c7d60', rgb: '108, 125, 96' },
+  'verde-chiaro': { color: '#7d8e75', rgb: '125, 142, 117' },
+  borgogna: { color: '#54191f', rgb: '84, 25, 31' },
+  rame: { color: '#bb7652', rgb: '187, 118, 82' },
+  terracotta: { color: '#a8480e', rgb: '168, 72, 14' },
+  argento: { color: '#9fa3a6', rgb: '159, 163, 166' },
+  ocra: { color: '#ca8e2d', rgb: '202, 142, 45' },
+  antracite: { color: '#424143', rgb: '66, 65, 67' },
+  ottanio: { color: '#196066', rgb: '25, 96, 102' },
+};
+
 function applyBrowserTheme(nextDark: boolean) {
   if (typeof document === 'undefined') return;
 
@@ -2428,23 +2444,6 @@ export default function Home() {
     };
   }, [isDark]);
 
-  useEffect(() => {
-    const artworkUrl = opera?.immagine_url || opera?.immagine_url_hd;
-    if (!artworkUrl) return;
-    let cancelled = false;
-    const sampler = new Image();
-    sampler.crossOrigin = 'anonymous';
-    sampler.onload = () => {
-      if (cancelled) return;
-      const sampled = sampleArtworkAccent(sampler);
-      if (sampled) setDailyAccent(sampled);
-    };
-    sampler.src = artworkUrl;
-    return () => {
-      cancelled = true;
-      sampler.onload = null;
-    };
-  }, [opera]);
   
   const caricaGiorno = (dataIso: string | null, usePageTurn = false, targetSection = 'autore') => {
     if (usePageTurn) {
@@ -2691,6 +2690,11 @@ export default function Home() {
       document.documentElement.style.setProperty('--tape-filter', currentTapeFilter);
     }
   }, [currentTapeFilter]);
+
+  useEffect(() => {
+    const sealColorData = SEAL_COLOR_MAP[currentSealColor] || { color: DEFAULT_DAILY_ACCENT, rgb: '181, 149, 106' };
+    setDailyAccent(sealColorData);
+  }, [currentSealColor]);
 
 
 
