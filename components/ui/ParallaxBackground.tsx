@@ -608,15 +608,15 @@ export default function ParallaxBackground({
                     {/* Depth of Field Gaussian Blur Filters (very light variations) */}
                     {/* Center Rope: Sharp focus (lightly softened for lens look) */}
                     <filter id="blur-sharp-museum" x="-10%" y="-10%" width="120%" height="120%">
-                      <feGaussianBlur stdDeviation="0.4" />
+                      <feGaussianBlur stdDeviation="0.55" />
                     </filter>
                     {/* Columns: Medium focus */}
                     <filter id="blur-medium-museum" x="-10%" y="-10%" width="120%" height="120%">
-                      <feGaussianBlur stdDeviation="0.8" />
+                      <feGaussianBlur stdDeviation="0.75" />
                     </filter>
                     {/* Side Ropes: Out of focus (subtle blur) */}
                     <filter id="blur-defocused-museum" x="-10%" y="-10%" width="120%" height="120%">
-                      <feGaussianBlur stdDeviation="1.2" />
+                      <feGaussianBlur stdDeviation="0.95" />
                     </filter>
                     {/* Gold Cap and Hook Loop for Rope Ends */}
                     <g id="rope-cap-gold">

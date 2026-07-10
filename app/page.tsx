@@ -3373,64 +3373,6 @@ export default function Home() {
               </div>
             </Card>
 
-            {opera && (
-              <Card
-                key={`${dataExLibris}:opera`}
-                id="opera"
-                title={t('artworkCard', lingua)}
-                icon={Palette}
-                isDark={isDark}
-                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-5"
-                filename={`opera-${dataExLibris}`}
-                isSaved={isCardSaved('opera')}
-                onToggleSaved={() => saveCard('opera', opera.titolo, [operaMedium, operaDepartment].filter(Boolean).join(' · '), opera.artista)}
-              >
-                <div className="opera-postcard grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
-                  <div className="opera-postcard-copy space-y-5 order-2 md:order-1">
-                    <div>
-                      <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
-                      <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
-                    </div>
-                    {(operaMedium || operaDepartment) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[operaMedium, operaDepartment].filter(Boolean).join(' · ')}</p>}
-                    {operaSourceUrl && (
-                      <div className="flex flex-wrap items-center gap-4 pt-1">
-                        <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
-                          <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
-                          <span>{lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}</span>
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                  <div className="opera-postcard-media order-1 md:order-2">
-                    <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      {operaImageCandidates.length > 0 ? (
-                        <img
-                          draggable={false}
-                          src={operaImageCandidates[0]}
-                          alt={`${opera.titolo} by ${opera.artista}`}
-                          className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
-                          onError={(event) => {
-                            const currentIndex = Number(event.currentTarget.dataset.fallbackIndex ?? '0');
-                            const nextIndex = currentIndex + 1;
-                            const fallback = operaImageCandidates[nextIndex];
-                            if (fallback) {
-                              event.currentTarget.dataset.fallbackIndex = String(nextIndex);
-                              event.currentTarget.src = fallback;
-                            }
-                          }}
-                          {...lowPriorityImageProps}
-                        />
-                      ) : null}
-                      <span className="opera-postcard-source-label">
-                        {lingua === 'IT' ? 'Fonte' : 'Source'}: {opera.museo}
-                        {opera.rights ? ` · ${opera.rights}` : ''}
-                      </span>
-                    </a>
-                  </div>
-                </div>
-              </Card>
-            )}
-
             <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
               filename="avvenimenti"
               isSaved={isCardSaved('avvenimenti')}
@@ -3488,13 +3430,71 @@ export default function Home() {
               )}
             </Card>
 
+            {opera && (
+              <Card
+                key={`${dataExLibris}:opera`}
+                id="opera"
+                title={t('artworkCard', lingua)}
+                icon={Palette}
+                isDark={isDark}
+                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
+                filename={`opera-${dataExLibris}`}
+                isSaved={isCardSaved('opera')}
+                onToggleSaved={() => saveCard('opera', opera.titolo, [operaMedium, operaDepartment].filter(Boolean).join(' · '), opera.artista)}
+              >
+                <div className="opera-postcard grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                  <div className="opera-postcard-copy space-y-5 order-2 md:order-1">
+                    <div>
+                      <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
+                      <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
+                    </div>
+                    {(operaMedium || operaDepartment) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[operaMedium, operaDepartment].filter(Boolean).join(' · ')}</p>}
+                    {operaSourceUrl && (
+                      <div className="flex flex-wrap items-center gap-4 pt-1">
+                        <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
+                          <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                          <span>{lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  <div className="opera-postcard-media order-1 md:order-2">
+                    <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
+                      {operaImageCandidates.length > 0 ? (
+                        <img
+                          draggable={false}
+                          src={operaImageCandidates[0]}
+                          alt={`${opera.titolo} by ${opera.artista}`}
+                          className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
+                          onError={(event) => {
+                            const currentIndex = Number(event.currentTarget.dataset.fallbackIndex ?? '0');
+                            const nextIndex = currentIndex + 1;
+                            const fallback = operaImageCandidates[nextIndex];
+                            if (fallback) {
+                              event.currentTarget.dataset.fallbackIndex = String(nextIndex);
+                              event.currentTarget.src = fallback;
+                            }
+                          }}
+                          {...lowPriorityImageProps}
+                        />
+                      ) : null}
+                      <span className="opera-postcard-source-label">
+                        {lingua === 'IT' ? 'Fonte' : 'Source'}: {opera.museo}
+                        {opera.rights ? ` · ${opera.rights}` : ''}
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* ── IMMAGINE ASTRONOMICA ── */}
             {(apod || apodLoading) && (
               <Card
                 key={`${dataExLibris}:apod`}
                 id="apod"
                 isDark={isDark}
-                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
+                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
                 filename={apod ? `apod-${dataExLibris}` : undefined}
                 isSaved={isCardSaved('apod')}
                 onToggleSaved={
