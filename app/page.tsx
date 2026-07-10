@@ -3487,6 +3487,100 @@ export default function Home() {
                 </div>
               </Card>
             )}
+            {/* ── CONSIGLIO MUSICALE ── */}
+            <Card
+              key={`${dataExLibris}:musica`}
+              id="musica"
+              isDark={isDark}
+              className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
+              filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
+              isSaved={isCardSaved('musica')}
+              onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
+            >
+              <div className="music-card-layout">
+
+                {/* Mobile-only tape (first element at the top on mobile) */}
+                <div className="flex md:hidden items-center justify-center mb-1 select-none w-full">
+                  <ScrollRevealBadge 
+                    as="h3"
+                    className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
+                    resetTrigger={dataExLibris}
+                  >
+                    <span className="badge-tape-bg" aria-hidden="true" />
+                    <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
+                    <span>{t('musicCard', lingua)}</span>
+                  </ScrollRevealBadge>
+                </div>
+
+                <div className="music-media-cell select-none">
+                  <div className="music-vinyl-wrapper">
+                    <div className="music-vinyl-disc" aria-hidden="true">
+                      <div
+                        className="music-vinyl-label"
+                        style={{ backgroundImage: musicCover ? `url('${musicCover}')` : 'none' }}
+                      />
+                    </div>
+                    <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
+                      {musicCover ? (
+                        <img
+                          draggable={false}
+                          src={musicCover}
+                          alt={`${data.musica.brano} cover`}
+                          onError={() => setMusicCover(null)}
+                          {...lazyImageProps}
+                        />
+                      ) : (
+                        <div className="music-cover-placeholder" aria-hidden="true">
+                          <Music className="h-10 w-10" strokeWidth={1.4} />
+                        </div>
+                      )}
+                    </figure>
+                  </div>
+                </div>
+
+                <div className="music-copy-cell">
+                  {/* Desktop-only tape */}
+                  <div className="hidden md:flex items-center justify-start mb-5 select-none">
+                    <ScrollRevealBadge 
+                      as="h3"
+                      className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
+                      resetTrigger={dataExLibris}
+                    >
+                      <span className="badge-tape-bg" aria-hidden="true" />
+                      <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
+                      <span>{t('musicCard', lingua)}</span>
+                    </ScrollRevealBadge>
+                  </div>
+
+                  <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
+                  <p className="card-byline text-xl font-medium mb-2">
+                    {lingua === 'IT' ? 'di' : 'by'}{' '}
+                    <span className="font-bold">{data.musica.autore}</span>
+                  </p>
+                  <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
+                  <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
+                  <div className="music-link-actions">
+                    <a
+                      href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                      <span>{lingua === 'IT' ? 'Spotify' : 'Spotify'}</span>
+                    </a>
+                    <a
+                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                      <span>{lingua === 'IT' ? 'YouTube' : 'YouTube'}</span>
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+            </Card>
 
             {/* ── IMMAGINE ASTRONOMICA ── */}
             {(apod || apodLoading) && (
@@ -3494,7 +3588,7 @@ export default function Home() {
                 key={`${dataExLibris}:apod`}
                 id="apod"
                 isDark={isDark}
-                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
+                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-10"
                 filename={apod ? `apod-${dataExLibris}` : undefined}
                 isSaved={isCardSaved('apod')}
                 onToggleSaved={
@@ -3637,101 +3731,6 @@ export default function Home() {
                 )}
               </Card>
             )}
-
-            {/* ── CONSIGLIO MUSICALE ── */}
-            <Card
-              key={`${dataExLibris}:musica`}
-              id="musica"
-              isDark={isDark}
-              className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
-              filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
-              isSaved={isCardSaved('musica')}
-              onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
-            >
-              <div className="music-card-layout">
-
-                {/* Mobile-only tape (first element at the top on mobile) */}
-                <div className="flex md:hidden items-center justify-center mb-1 select-none w-full">
-                  <ScrollRevealBadge 
-                    as="h3"
-                    className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
-                    resetTrigger={dataExLibris}
-                  >
-                    <span className="badge-tape-bg" aria-hidden="true" />
-                    <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
-                    <span>{t('musicCard', lingua)}</span>
-                  </ScrollRevealBadge>
-                </div>
-
-                <div className="music-media-cell select-none">
-                  <div className="music-vinyl-wrapper">
-                    <div className="music-vinyl-disc" aria-hidden="true">
-                      <div
-                        className="music-vinyl-label"
-                        style={{ backgroundImage: musicCover ? `url('${musicCover}')` : 'none' }}
-                      />
-                    </div>
-                    <figure className={`music-cover-frame ${isDark ? 'is-dark' : ''}`}>
-                      {musicCover ? (
-                        <img
-                          draggable={false}
-                          src={musicCover}
-                          alt={`${data.musica.brano} cover`}
-                          onError={() => setMusicCover(null)}
-                          {...lazyImageProps}
-                        />
-                      ) : (
-                        <div className="music-cover-placeholder" aria-hidden="true">
-                          <Music className="h-10 w-10" strokeWidth={1.4} />
-                        </div>
-                      )}
-                    </figure>
-                  </div>
-                </div>
-
-                <div className="music-copy-cell">
-                  {/* Desktop-only tape */}
-                  <div className="hidden md:flex items-center justify-start mb-5 select-none">
-                    <ScrollRevealBadge 
-                      as="h3"
-                      className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
-                      resetTrigger={dataExLibris}
-                    >
-                      <span className="badge-tape-bg" aria-hidden="true" />
-                      <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
-                      <span>{t('musicCard', lingua)}</span>
-                    </ScrollRevealBadge>
-                  </div>
-
-                  <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
-                  <p className="card-byline text-xl font-medium mb-2">
-                    {lingua === 'IT' ? 'di' : 'by'}{' '}
-                    <span className="font-bold">{data.musica.autore}</span>
-                  </p>
-                  <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
-                  <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
-                  <div className="music-link-actions">
-                    <a
-                      href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
-                      <span>{lingua === 'IT' ? 'Spotify' : 'Spotify'}</span>
-                    </a>
-                    <a
-                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
-                      <span>{lingua === 'IT' ? 'YouTube' : 'YouTube'}</span>
-                    </a>
-                  </div>
-                </div>
-
-              </div>
-            </Card>
 
           </div>
 
