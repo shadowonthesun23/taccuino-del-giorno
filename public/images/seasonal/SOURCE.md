@@ -64,6 +64,30 @@ Il file `adie-floral-garden-steps.webp` deriva dalla fotografia frontale pubblic
 
 Il file `bruegel-harvesters.webp` e una copia locale ottimizzata a 2400 px.
 
+# Risacca di Edward Hopper
+
+- Opera: Edward Hopper, *Risacca* (*Ground Swell*), 1939
+- Collezione: National Gallery of Art, Washington
+- Scheda dell'opera: https://www.nga.gov/artworks/131206-ground-swell
+- Fonte digitale: Wikimedia Commons
+- File originale: https://commons.wikimedia.org/wiki/File:Ground_swell_2014.79.23.jpg
+- Licenza: pubblico dominio (CC0 1.0 Universal Public Domain Dedication)
+
+Il file `edward-hopper-risacca.webp` è una copia locale ottimizzata a 1920 px.
+
+# Un giorno d'estate a Skagen Sønderstrand di Laurits Tuxen
+
+- Opera: Laurits Tuxen, *Un giorno d'estate a Skagen Sønderstrand* (*A Summer's Day at Skagen Sønderstrand*), 1909
+- Collezione: Collezione privata
+- Tecnica: olio su tela
+- Fonte digitale: Wikimedia Commons
+- File originale: https://commons.wikimedia.org/wiki/File:Laurits_Tuxen_-_Sommerdag_p%C3%A5_Skagen_S%C3%B8nderstrand_-_1909.png
+- Licenza: pubblico dominio (Public Domain Mark)
+
+Il file `tuxen-sommerdag-skagen.webp` è fornito localmente per la visualizzazione dell'opera.
+
 # Rotazione giornaliera
 
 Le opere estive vengono ordinate ogni anno in modo pseudo-casuale e percorse in rotazione giornaliera: l'opera resta identica per tutti durante la stessa giornata, cambia ogni giorno e ciascun ciclo mostra tutte le opere una volta, senza dipendere dal refresh o dal dispositivo.
+
+

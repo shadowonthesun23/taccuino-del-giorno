@@ -338,6 +338,21 @@ export const SEASONAL_ARTWORKS: Partial<Record<SeasonId, readonly SeasonalArtwor
       ticketAlignment: 'xMidYMid',
       tone: 'dense',
     },
+    {
+      id: 'tuxen-sommerdag-skagen',
+      title: 'Un giorno d\'estate a Skagen Sønderstrand',
+      ticketTitle: 'un giorno d\'estate a skagen sønderstrand',
+      year: '1909',
+      artist: 'Laurits Tuxen',
+      collection: 'Collezione privata',
+      medium: 'Olio su tela',
+      imageUrl: '/images/seasonal/tuxen-sommerdag-skagen.webp',
+      sourceUrl: '',
+      linkKind: 'source',
+      revealPosition: '56% center',
+      ticketAlignment: 'xMidYMid',
+      tone: 'balanced',
+    },
   ],
 };
 
@@ -455,6 +470,10 @@ const ARTWORK_TRANSLATIONS: Record<string, { title?: string; collection?: string
   'sohlberg-notte-destate': {
     title: 'Summer Night',
     collection: 'National Museum, Oslo',
+  },
+  'tuxen-sommerdag-skagen': {
+    title: 'A Summer\'s Day at Skagen Sønderstrand',
+    collection: 'Private collection',
   },
 };
 

@@ -168,6 +168,7 @@ export default function ParallaxBackground({
   const yesterdayArtwork = getLocalizedSeasonalArtwork(rawYesterdayArtwork, language);
   const rawTomorrowArtwork = season && tomorrowIso ? getSeasonalArtwork(season, tomorrowIso) : undefined;
   const tomorrowArtwork = getLocalizedSeasonalArtwork(rawTomorrowArtwork, language);
+  const sealColorHex = sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143';
 
   const langKey = (language as 'IT' | 'EN' | 'FR' | 'DE' | 'ES' | 'PT') || 'EN';
   const seasonalCaptionLabel = CAPTION_TRANSLATIONS.accessibilityLabel[langKey] || CAPTION_TRANSLATIONS.accessibilityLabel.EN;
@@ -484,7 +485,12 @@ export default function ParallaxBackground({
             }`}
             style={{
               backgroundImage: `
-                radial-gradient(circle at 50% 50%, color-mix(in srgb, ${sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143'} 38%, #161513 62%) 0%, color-mix(in srgb, ${sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143'} 10%, #060605 90%) 100%),
+                radial-gradient(circle at 50% 48%, 
+                  color-mix(in srgb, ${sealColorHex} 65%, #fffbe6) 0%, 
+                  color-mix(in srgb, ${sealColorHex} 45%, #111) 28%, 
+                  color-mix(in srgb, ${sealColorHex} 8%, #000) 50%, 
+                  #000000 72%
+                ),
                 url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.045'/%3E%3C/svg%3E")
               `,
               backgroundSize: 'cover, 150px 150px',
@@ -523,28 +529,26 @@ export default function ParallaxBackground({
                     className="z-10 cursor-pointer"
                   >
                     <div className={`museum-frame-inner relative ${getFrameStyleClass(dataIso)}`}>
-                      <div className="museum-spotlight left" />
-                      <div className="museum-spotlight right" />
+                      <div className="museum-hanging-chain left-chain" />
+                      <div className="museum-hanging-chain right-chain" />
                       <img
                         src={seasonalArtwork.imageUrl}
                         alt={seasonalArtwork.title}
                         className="museum-frame-image"
                         draggable={false}
                       />
-                      <div className="museum-light-beams" />
                     </div>
                   </a>
                 ) : (
                   <div className={`museum-frame-inner relative z-10 ${getFrameStyleClass(dataIso)}`}>
-                    <div className="museum-spotlight left" />
-                    <div className="museum-spotlight right" />
+                    <div className="museum-hanging-chain left-chain" />
+                    <div className="museum-hanging-chain right-chain" />
                     <img
                       src={seasonalArtwork.imageUrl}
                       alt={seasonalArtwork.title}
                       className="museum-frame-image"
                       draggable={false}
                     />
-                    <div className="museum-light-beams" />
                   </div>
                 )}
 
