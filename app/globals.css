@@ -2884,7 +2884,7 @@ body {
   -webkit-text-stroke: 0 !important;
   color: #f4f0e6 !important;
   font-size: 19px !important;
-  font-weight: 500 !important;
+  font-weight: 700 !important;
   line-height: 1 !important;
   text-transform: none !important;
   letter-spacing: normal !important;
@@ -8102,7 +8102,12 @@ body {
 }
 
 /* No shadow/effects on dynamic text and icon inside tape */
-.author-tape-title-wrapper span:not(.badge-tape-bg),
+.author-tape-title-wrapper span:not(.badge-tape-bg) {
+  text-shadow: none !important;
+  filter: none !important;
+  font-weight: 700 !important;
+}
+
 .author-tape-title-wrapper svg {
   text-shadow: none !important;
   filter: none !important;
