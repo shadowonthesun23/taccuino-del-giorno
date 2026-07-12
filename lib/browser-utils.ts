@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { THEME_SURFACE } from './constants';
 
 export function isMobileChromiumBrowser(): boolean {
   if (typeof window === 'undefined') return false;
@@ -25,15 +26,36 @@ export function uniqueImageCandidates(...urls: Array<string | null | undefined>)
 }
 
 export function applyBrowserTheme(nextDark: boolean) {
-  if (typeof window === 'undefined') return;
+  if (typeof document === 'undefined') return;
+
+  const scheme = nextDark ? 'dark' : 'light';
+  const color = THEME_SURFACE[scheme];
   const root = document.documentElement;
-  const theme = nextDark ? 'dark' : 'light';
-  root.setAttribute('data-theme', theme);
-  if (nextDark) {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
+
+  root.classList.toggle('dark', nextDark);
+  root.dataset.theme = scheme;
+  root.style.backgroundColor = color;
+  root.style.colorScheme = scheme;
+
+  if (document.body) {
+    document.body.style.backgroundColor = color;
+    document.body.style.colorScheme = scheme;
   }
+
+  document
+    .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+    .forEach((meta) => {
+      meta.content = color;
+    });
+
+  let appThemeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-app-theme="true"]');
+  if (!appThemeMeta) {
+    appThemeMeta = document.createElement('meta');
+    appThemeMeta.name = 'theme-color';
+    appThemeMeta.dataset.appTheme = 'true';
+    document.head.appendChild(appThemeMeta);
+  }
+  appThemeMeta.content = color;
 }
 
 export function runWhenIdle(callback: () => void) {
