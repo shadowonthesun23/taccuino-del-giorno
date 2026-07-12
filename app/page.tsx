@@ -198,7 +198,7 @@ function LanguageSelector({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
+        className={`top-control-button tab-language p-2 rounded-full border backdrop-blur-sm transition-colors ${
           isOpen
             ? 'border-[#DE6B58] text-[#DE6B58]'
             : isDark
@@ -208,6 +208,7 @@ function LanguageSelector({
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label="Seleziona lingua / Select language"
+        data-tooltip={lingua === 'IT' ? 'Lingua' : 'Language'}
       >
         <Languages className="w-5 h-5" />
       </button>
@@ -1066,7 +1067,7 @@ export default function Home() {
             <button
               ref={desktopArchiveTriggerRef}
               onClick={(event) => toggleArchive(event.currentTarget)}
-              className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
+              className={`top-control-button tab-archive p-2 rounded-full border backdrop-blur-sm transition-colors ${
                 popoverOpen
                   ? 'border-[#DE6B58] text-[#DE6B58]'
                   : isDark
@@ -1074,6 +1075,7 @@ export default function Home() {
                     : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
               }`}
               aria-label="Archivio"
+              data-tooltip={lingua === 'IT' ? 'Archivio' : 'Archive'}
               aria-expanded={popoverOpen}
               aria-haspopup="true"
             >
@@ -1087,7 +1089,7 @@ export default function Home() {
             onClick={(event) => {
               toggleSavedDrawer(event.currentTarget);
             }}
-            className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
+            className={`top-control-button tab-saved p-2 rounded-full border backdrop-blur-sm transition-colors ${
               savedDrawerOpen
                 ? 'border-[#DE6B58] text-[#DE6B58]'
                 : isDark
@@ -1095,21 +1097,22 @@ export default function Home() {
                   : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
             }`}
             aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
+            data-tooltip={lingua === 'IT' ? 'Cose custodite' : 'Saved'}
             aria-expanded={savedDrawerOpen}
             aria-haspopup="dialog"
-            title={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
           >
             {savedCards.length > 0 ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
           </button>
 
           <button
             onClick={toggleTheme}
-            className={`top-control-button p-2 rounded-full border backdrop-blur-sm transition-colors ${
+            className={`top-control-button tab-theme p-2 rounded-full border backdrop-blur-sm transition-colors ${
               isDark
                 ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                 : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
             }`}
             aria-label="Cambia tema"
+            data-tooltip={lingua === 'IT' ? 'Tema' : 'Theme'}
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
