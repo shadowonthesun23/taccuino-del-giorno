@@ -8307,23 +8307,36 @@ body {
     pointer-events: auto;
   }
 
-  /* Increased specificity to override generic .seasonal-reveal-content rules */
+  /* Utterly destroy any inherited backgrounds, borders, or shadows for ALL states (normal, hover, dark mode, etc.) */
   .seasonal-reveal-content .top-control-panel .top-control-button,
   .seasonal-reveal-content .top-control-panel .top-control-button:hover,
   .seasonal-reveal-content .top-control-panel .top-control-button:focus-visible,
+  .seasonal-reveal-content .top-control-panel .top-control-button:active,
   .seasonal-reveal-content .top-control-panel .top-control-button[aria-expanded="true"],
   .dark .seasonal-reveal-content .top-control-panel .top-control-button,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button {
-    position: relative;
-    width: 44px;
-    height: 180px; /* match full height of the ribbon images */
+  .dark .seasonal-reveal-content .top-control-panel .top-control-button:hover,
+  .dark .seasonal-reveal-content .top-control-panel .top-control-button:focus-visible,
+  .dark .seasonal-reveal-content .top-control-panel .top-control-button:active,
+  .dark .seasonal-reveal-content .top-control-panel .top-control-button[aria-expanded="true"],
+  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button,
+  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button:hover,
+  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button:focus-visible,
+  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button:active,
+  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button[aria-expanded="true"] {
+    position: relative !important;
+    width: 44px !important;
+    height: 180px !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
     background: transparent !important;
     background-color: transparent !important;
+    background-image: none !important;
     border: none !important;
     border-width: 0 !important;
     border-style: none !important;
     border-color: transparent !important;
-    border-radius: 0 !important;
+    outline: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
