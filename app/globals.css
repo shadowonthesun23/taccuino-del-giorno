@@ -8297,7 +8297,7 @@ body {
     top: 0 !important;
     right: 48px !important;
     align-items: flex-start !important;
-    gap: 16px !important;
+    gap: 8px !important; /* reduced from 16px to bring tabs closer */
     height: 180px;
     pointer-events: none; /* Let clicks pass through container gaps */
   }
