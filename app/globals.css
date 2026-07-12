@@ -8307,22 +8307,22 @@ body {
     pointer-events: auto;
   }
 
-  /* Utterly destroy any inherited backgrounds, borders, or shadows for ALL states (normal, hover, dark mode, etc.) */
-  .seasonal-reveal-content .top-control-panel .top-control-button,
-  .seasonal-reveal-content .top-control-panel .top-control-button:hover,
-  .seasonal-reveal-content .top-control-panel .top-control-button:focus-visible,
-  .seasonal-reveal-content .top-control-panel .top-control-button:active,
-  .seasonal-reveal-content .top-control-panel .top-control-button[aria-expanded="true"],
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button,
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button:hover,
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button:focus-visible,
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button:active,
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button[aria-expanded="true"],
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button:hover,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button:focus-visible,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button:active,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button[aria-expanded="true"] {
+  /* Unconditional overrides to completely destroy circular background, border, and backdrop blur for all states */
+  .top-control-panel .top-control-button,
+  .top-control-panel .top-control-button:hover,
+  .top-control-panel .top-control-button:focus-visible,
+  .top-control-panel .top-control-button:active,
+  .top-control-panel .top-control-button[aria-expanded="true"],
+  .dark .top-control-panel .top-control-button,
+  .dark .top-control-panel .top-control-button:hover,
+  .dark .top-control-panel .top-control-button:focus-visible,
+  .dark .top-control-panel .top-control-button:active,
+  .dark .top-control-panel .top-control-button[aria-expanded="true"],
+  [data-theme="dark"] .top-control-panel .top-control-button,
+  [data-theme="dark"] .top-control-panel .top-control-button:hover,
+  [data-theme="dark"] .top-control-panel .top-control-button:focus-visible,
+  [data-theme="dark"] .top-control-panel .top-control-button:active,
+  [data-theme="dark"] .top-control-panel .top-control-button[aria-expanded="true"] {
     position: relative !important;
     width: 44px !important;
     height: 180px !important;
@@ -8343,36 +8343,86 @@ body {
     clip-path: none !important;
     contain: none !important;
     isolation: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    outline: none !important;
     overflow: visible !important;
     cursor: pointer;
-    transform: translateY(-98px) !important; /* Keep it static at the lowered position */
-    transition: none !important; /* No hover animations */
-    filter: none !important; /* No drop shadows */
+    
+    /* Hover animation setup */
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    /* Use translate3d to avoid WebKit subpixel rendering border artifacts */
+    transform: translate3d(0, -114px, 0) !important;
     appearance: none !important;
     -webkit-appearance: none !important;
+    filter: drop-shadow(0px 6px 16px rgba(40, 30, 20, 0.12)) !important; /* soft shadow on the button */
+    
+    /* Hardware acceleration hints */
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
-  /* No tooltips (ALT) */
-  .seasonal-reveal-content .top-control-panel .top-control-button::after {
-    display: none !important;
+  /* Hover, Focus, or Active state (e.g. popover open) pulls tab down gently */
+  .top-control-panel .top-control-button:hover,
+  .top-control-panel .top-control-button:focus-visible,
+  .top-control-panel .top-control-button[aria-expanded="true"] {
+    transform: translate3d(0, -98px, 0) !important; /* reduced drop distance */
+  }
+
+  /* Elegant Tooltip (ALT) */
+  .top-control-panel .top-control-button::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -16px; /* starts hidden slightly behind/above */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(249, 246, 238, 0.98); /* Beige color matching the menu below */
+    color: #3A3430; /* Dark text for contrast */
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, bottom 0.3s ease;
+    box-shadow: 0px 6px 16px rgba(0,0,0,0.08); /* Replaced drop-shadow with soft box-shadow to avoid shadowing text */
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  /* Anthracite tooltip for dark mode */
+  .dark .top-control-panel .top-control-button::after,
+  [data-theme="dark"] .top-control-panel .top-control-button::after {
+    background: rgba(50, 42, 35, 0.95);
+    color: #fff;
+    box-shadow: 0px 6px 16px rgba(0,0,0,0.3);
+  }
+
+  /* Show tooltip on hover or focus */
+  .top-control-panel .top-control-button:hover::after,
+  .top-control-panel .top-control-button:focus-visible::after {
+    opacity: 1;
+    bottom: -32px; /* drops down below the ribbon */
+  }
+
+  /* HIDE tooltip when clicked (menu is open) */
+  .top-control-panel .top-control-button[aria-expanded="true"]::after {
+    opacity: 0 !important;
   }
 
   /* Hide default Lucide svg icon on desktop */
-  .seasonal-reveal-content .top-control-panel .top-control-button svg {
+  .top-control-panel .top-control-button svg {
     display: none !important;
   }
 
   /* Fix position of the dropdown menus (Archive & Language popovers) */
-  .seasonal-reveal-content .top-control-panel .archive-popover {
-    top: 90px !important; /* position right below the static ribbon */
+  .top-control-panel .archive-popover {
+    top: 90px !important; /* position right below the visually dropped ribbon */
     margin-top: 0 !important;
   }
 
   /* Use a pseudo-element for the realistic ribbon tab */
-  .seasonal-reveal-content .top-control-panel .top-control-button::before {
+  .top-control-panel .top-control-button::before {
     content: '';
     position: absolute;
     top: 0;
@@ -8381,49 +8431,47 @@ body {
     height: 100%;
     background-repeat: no-repeat;
     pointer-events: none;
-    filter: none !important; /* No drop-shadows */
-    clip-path: none !important;
   }
 
   /* Specific background images, scaling, and positioning to align ribbons & icons near the bottom */
   
   /* 1. Language selector tab (Cream linen) */
-  .seasonal-reveal-content .top-control-panel .top-control-button.tab-language::before {
+  .top-control-panel .top-control-button.tab-language::before {
     background-image: url('/images/tab-language-bottom.png');
     background-size: 100% auto;
     background-position: center bottom;
   }
   
   /* 2. Archive tab (Terracotta) */
-  .seasonal-reveal-content .top-control-panel .top-control-button.tab-archive::before {
+  .top-control-panel .top-control-button.tab-archive::before {
     background-image: url('/images/tab-archive-bottom.png');
     background-size: 100% auto;
     background-position: center bottom;
   }
   
   /* 3. Saved pages tab (Indigo-blue) */
-  .seasonal-reveal-content .top-control-panel .top-control-button.tab-saved::before {
+  .top-control-panel .top-control-button.tab-saved::before {
     background-image: url('/images/tab-saved-bottom.png');
     background-size: 100% auto;
     background-position: center bottom;
   }
   
   /* 4. Theme toggle tab (Charcoal grey) */
-  .seasonal-reveal-content .top-control-panel .top-control-button.tab-theme::before {
+  .top-control-panel .top-control-button.tab-theme::before {
     background-image: url('/images/tab-theme-bottom.png');
     background-size: 100% auto;
     background-position: center bottom;
   }
 
   /* Atmospheric overrides for dark mode: dim tabs slightly */
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button::before,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button::before {
+  .dark .top-control-panel .top-control-button::before,
+  [data-theme="dark"] .top-control-panel .top-control-button::before {
     filter: brightness(0.65) contrast(1.12) !important;
   }
 
-  .dark .seasonal-reveal-content .top-control-panel .top-control-button,
-  [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button {
-    filter: none !important; /* No shadow in dark mode */
+  .dark .top-control-panel .top-control-button,
+  [data-theme="dark"] .top-control-panel .top-control-button {
+    filter: drop-shadow(0px 8px 24px rgba(0, 0, 0, 0.35)) !important; /* soft shadow on the button in dark mode */
   }
 }
 
