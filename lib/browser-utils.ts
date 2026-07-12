@@ -130,21 +130,15 @@ export function getAmbientLightStyle(now: Date, isDark: boolean): CSSProperties 
   const upper = stops[Math.max(1, upperIndex)];
   const lower = stops[Math.max(0, upperIndex - 1)];
   const progress = Math.max(0, Math.min(1, (minute - lower.minute) / (upper.minute - lower.minute)));
-
-  const x = Math.round(lower.x + (upper.x - lower.x) * progress);
-  const y = Math.round(lower.y + (upper.y - lower.y) * progress);
-  const [r, g, b] = lower.color.map((channel, i) => Math.round(channel + (upper.color[i] - channel) * progress));
-  const alpha = lower.alpha + (upper.alpha - lower.alpha) * progress;
-
-  const radialGradient = isDark
-    ? `radial-gradient(circle at ${x}% ${y}%, rgba(26,24,22,0.92) 0%, rgba(20,19,17,0.98) 60%, rgba(13,12,11,1) 100%)`
-    : `radial-gradient(circle at ${x}% ${y}%, rgba(${r},${g},${b},${alpha}) 0%, rgba(248,246,240,0) 80%)`;
+  const interpolate = (from: number, to: number) => from + (to - from) * progress;
+  const color = lower.color.map((channel, index) => Math.round(interpolate(channel, upper.color[index])));
+  const alpha = interpolate(lower.alpha, upper.alpha) * (isDark ? 0.48 : 1);
 
   return {
-    backgroundImage: radialGradient,
-    '--ambient-indicator-x': `${x}%`,
-    '--ambient-indicator-y': `${y}%`,
-    '--ambient-indicator-color': `rgb(${r}, ${g}, ${b})`,
+    '--journal-light-x': `${interpolate(lower.x, upper.x).toFixed(2)}%`,
+    '--journal-light-y': `${interpolate(lower.y, upper.y).toFixed(2)}%`,
+    '--journal-light-color': isDark ? 'transparent' : `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha.toFixed(3)})`,
+    '--journal-material-blend': isDark ? 'screen' : 'multiply',
     '--journal-material-opacity': isDark ? 0.56 : 0.9,
   } as CSSProperties;
 }
