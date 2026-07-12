@@ -308,19 +308,6 @@ export default function SeasonalBookmark({
             <span className="seasonal-bookmark-planets">
               <span className="seasonal-bookmark-planets-heading">
                 <strong>{planetsLabel}</strong>
-                <span className="sky-region-buttons" data-ticket-export-ignore="true">
-                  {SKY_REGION_OPTIONS.map((region) => (
-                    <button
-                      key={region.id}
-                      type="button"
-                      className={skyRegion === region.id ? 'is-active' : ''}
-                      title={lingua === 'IT' ? `Cielo di ${region.cityIT}` : `${region.cityEN} sky`}
-                      onClick={() => selectSkyRegion(region.id)}
-                    >
-                      {lingua === 'IT' ? region.IT : region.EN}
-                    </button>
-                  ))}
-                </span>
               </span>
               <span className="seasonal-bookmark-planet-list" aria-live="polite">
                 {visiblePlanets === null ? (

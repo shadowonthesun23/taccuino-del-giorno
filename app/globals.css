@@ -946,11 +946,11 @@ body {
   }
 
   .espresso-corner.is-dark .espresso-corner-image {
-    filter: brightness(1.2) contrast(1.05) drop-shadow(5px 8px 10px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(5px 8px 10px rgba(0, 0, 0, 0.12));
   }
 
   .espresso-corner.is-dark.is-ready .espresso-corner-image {
-    filter: brightness(1.45) contrast(1.05) drop-shadow(14px 20px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 15px rgba(244, 240, 230, 0.09));
+    filter: drop-shadow(14px 20px 20px rgba(0, 0, 0, 0.4));
   }
 
   .espresso-corner-smoke {
