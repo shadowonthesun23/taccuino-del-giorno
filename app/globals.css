@@ -8340,7 +8340,8 @@ body {
   .seasonal-reveal-content .top-control-panel .top-control-button {
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     transform: translateY(-114px) !important; /* lowered by 10px from -124px */
-    filter: drop-shadow(0px 6px 16px rgba(40, 30, 20, 0.12)); /* lighter, blurred shadow */
+    appearance: none !important;
+    -webkit-appearance: none !important;
   }
 
   /* Hover, Focus, or Active state (e.g. popover open) pulls tab down gently */
@@ -8415,6 +8416,7 @@ body {
     background-repeat: no-repeat;
     transition: filter 0.3s ease;
     pointer-events: none;
+    filter: drop-shadow(0px 6px 16px rgba(40, 30, 20, 0.12)); /* Moved shadow here */
   }
 
   /* Specific background images, scaling, and positioning to align ribbons & icons near the bottom */
@@ -8450,12 +8452,12 @@ body {
   /* Atmospheric overrides for dark mode: dim tabs and increase contrast */
   .dark .seasonal-reveal-content .top-control-panel .top-control-button::before,
   [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button::before {
-    filter: brightness(0.65) contrast(1.12);
+    filter: brightness(0.65) contrast(1.12) drop-shadow(0px 8px 24px rgba(0, 0, 0, 0.35)) !important; /* Move shadow to ::before */
   }
 
   .dark .seasonal-reveal-content .top-control-panel .top-control-button,
   [data-theme="dark"] .seasonal-reveal-content .top-control-panel .top-control-button {
-    filter: drop-shadow(0px 8px 24px rgba(0, 0, 0, 0.35)) !important; /* very soft, blurred organic shadow for dark mode */
+    /* Removed drop shadow from here */
   }
 }
 
