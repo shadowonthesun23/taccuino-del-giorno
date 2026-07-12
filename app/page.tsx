@@ -485,11 +485,23 @@ export default function Home() {
         return current === nextVisible ? current : nextVisible;
       });
       if (window.scrollY < 120 || scrollDelta < -8) {
-        setControlsHidden(false);
+        setControlsHidden((prev) => {
+          if (!prev) return prev;
+          return false;
+        });
       } else if (scrollDelta > 8) {
-        setControlsHidden(true);
-        setMobileNavOpen(false);
-        setMobileToolsOpen(false);
+        setControlsHidden((prev) => {
+          if (prev) return prev;
+          return true;
+        });
+        setMobileNavOpen((prev) => {
+          if (!prev) return prev;
+          return false;
+        });
+        setMobileToolsOpen((prev) => {
+          if (!prev) return prev;
+          return false;
+        });
       }
       lastScrollY = window.scrollY;
       frame = null;

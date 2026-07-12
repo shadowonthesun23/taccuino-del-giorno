@@ -769,6 +769,7 @@ export default function ParallaxBackground({
             backfaceVisibility: 'hidden',
             contain: 'layout paint style',
             transform: 'translate3d(0, 0, 0)',
+            willChange: 'transform',
           }}
         />
       </div>
@@ -784,6 +785,7 @@ export default function ParallaxBackground({
             transform: isArtworkSolo ? 'translate3d(-300px, -300px, 0)' : 'translate3d(0, 0, 0)',
             opacity: isArtworkSolo ? 0 : 1,
             transition: 'transform 800ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease',
+            willChange: 'transform',
           }}
         >
           <EspressoCorner isDark={dark} />
