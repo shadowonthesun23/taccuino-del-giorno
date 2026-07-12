@@ -72,7 +72,7 @@ export function runWhenIdle(callback: () => void) {
 
 export function getImageLoadingProps(priority = false) {
   return priority
-    ? { priority: true, fetchPriority: 'high' as const }
+    ? { fetchPriority: 'high' as const }
     : { loading: 'lazy' as const, fetchPriority: 'low' as const };
 }
 

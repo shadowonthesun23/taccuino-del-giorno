@@ -151,7 +151,20 @@ export default function ParallaxBackground({
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const [dark, setDark] = useState(false);
   const [isArtworkSolo, setIsArtworkSolo] = useState(false);
+  const [isExitingSolo, setIsExitingSolo] = useState(false);
   const prevSolo = useRef(isArtworkSolo);
+  const prevSoloForTransition = useRef(isArtworkSolo);
+
+  useEffect(() => {
+    if (!isArtworkSolo && prevSoloForTransition.current) {
+      setIsExitingSolo(true);
+      const timer = setTimeout(() => {
+        setIsExitingSolo(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+    prevSoloForTransition.current = isArtworkSolo;
+  }, [isArtworkSolo]);
 
   const bgColor = dark ? '#171614' : '#F8F6F0';
   const imageOpacity = dark ? 0.102 : 0.13;
@@ -475,35 +488,71 @@ export default function ParallaxBackground({
           style={{
             backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
             backgroundPosition: seasonalArtwork.revealPosition,
+            transition: isArtworkSolo 
+              ? 'opacity 360ms ease-out' 
+              : 'opacity 550ms ease-out',
+            opacity: isArtworkSolo ? 1 : 0,
+            maskImage: (isArtworkSolo || isExitingSolo) ? 'none' : undefined,
+            WebkitMaskImage: (isArtworkSolo || isExitingSolo) ? 'none' : undefined,
+            zIndex: (isArtworkSolo || isExitingSolo) ? 8 : undefined,
           }}
           onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
         >
-          {/* Fading museum wall backdrop */}
+          {/* Base dark museum wall backdrop (lights off room) */}
           <div
-            className={`museum-wall-backdrop absolute inset-0 transition-opacity duration-700 ease-out z-0 ${
+            className={`museum-wall-base absolute inset-0 z-0 ${
               isArtworkSolo ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             style={{
+              transition: isArtworkSolo ? 'opacity 500ms ease-out' : 'opacity 300ms ease-out 250ms',
+              backgroundColor: '#050505',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
+              backgroundSize: '150px 150px',
+              backgroundRepeat: 'repeat',
+            }}
+          />
+
+          {/* Spotlight overlay on the wall (lights turning on) */}
+          <div
+            className={`museum-wall-spotlight absolute inset-0 z-0 ${
+              isArtworkSolo ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            style={{
+              transition: isArtworkSolo 
+                ? 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1) 600ms' 
+                : 'opacity 300ms ease-out',
               backgroundImage: `
                 radial-gradient(circle at 50% 48%, 
                   color-mix(in srgb, ${sealColorHex} 65%, #fffbe6) 0%, 
-                  color-mix(in srgb, ${sealColorHex} 45%, #111) 28%, 
-                  color-mix(in srgb, ${sealColorHex} 8%, #000) 50%, 
-                  #000000 72%
-                ),
-                url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.045'/%3E%3C/svg%3E")
+                  color-mix(in srgb, ${sealColorHex} 45%, #111) 36%, 
+                  color-mix(in srgb, ${sealColorHex} 8%, #000) 58%, 
+                  transparent 80%
+                )
               `,
-              backgroundSize: 'cover, 150px 150px',
-              backgroundRepeat: 'no-repeat, repeat',
-              backgroundBlendMode: 'overlay',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
             }}
           />
 
           <div
             className={`museum-frame-container ${isArtworkSolo ? 'is-visible' : ''}`}
             onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
+            style={{
+              transition: isArtworkSolo 
+                ? 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), visibility 600ms'
+                : 'opacity 300ms ease-out 250ms, transform 300ms ease-out 250ms, visibility 300ms 250ms',
+            }}
           >
-            <div className="museum-artwork-wrapper relative" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="museum-artwork-wrapper relative"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                transition: isArtworkSolo 
+                  ? 'filter 1200ms cubic-bezier(0.4, 0, 0.2, 1) 600ms' 
+                  : 'filter 300ms ease-out',
+                filter: isArtworkSolo ? 'brightness(1)' : 'brightness(0.35)',
+              }}
+            >
               {/* Paintings row to align side paintings to the exact vertical center of the main painting */}
               <div className="museum-paintings-row relative w-full flex items-center justify-center z-10">
                 {/* Yesterday's Artwork (Left, flat on wall, blurred) */}
@@ -793,7 +842,16 @@ export default function ParallaxBackground({
       ) : null}
 
       {/* Contenuto */}
-      <div className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''} ${isArtworkSolo ? 'is-artwork-solo' : ''}`}>
+      <div 
+        className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''} ${isArtworkSolo ? 'is-artwork-solo' : ''}`}
+        style={{
+          opacity: isArtworkSolo ? 0 : 1,
+          pointerEvents: isArtworkSolo ? 'none' : 'auto',
+          transition: isArtworkSolo 
+            ? 'opacity 400ms ease-out' 
+            : 'opacity 500ms ease-out 200ms',
+        }}
+      >
         {children}
       </div>
     </>
