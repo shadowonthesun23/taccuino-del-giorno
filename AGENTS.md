@@ -24,20 +24,23 @@ The product direction is not “generic dashboard”. It should feel like a refi
 
 ## Key files and areas
 
-- `app/page.tsx`: main home page, daily data loading, cards, ticket/passport UI, image fallbacks, theme handling.
-- `app/globals.css`: most visual styling for home cards, backgrounds, ticket, seasonal artwork reveal, dark mode, export visuals.
-- `app/components/Card.tsx`: reusable card wrapper and card export behavior.
-- `app/components/AuthorExportCard.tsx`: author export card.
-- `app/passaporto/page.tsx`: daily passport/zine page and server-side data/image fetching.
-- `app/passaporto/passaporto.module.css`: passport/zine print/export layout.
-- `app/passaporto/PrintableZineButton.tsx`: printable/export behavior for the zine.
-- `app/api/oggi/route.ts`: daily content API.
-- `app/api/opera/route.ts`: artwork of the day API.
-- `app/api/music-cover/route.ts`: music cover lookup.
-- `app/api/image-proxy/route.ts`: image proxy used to stabilize external images and exports.
-- `lib/artwork.ts`: artwork lookup/localization logic.
-- `lib/seasonal-artwork.ts`: rotating seasonal background artworks.
-- `components/ui/ParallaxBackground.tsx`: background drawings and seasonal reveal behavior.
+- `app/page.tsx`: Main home entry page. Handles hydration, mount synchronization, active section states, and scroll navigation hooks. Keep it lightweight (~800 lines).
+- `lib/`: Contains utility modules extracted during refactoring:
+  - [types.ts](file:///Users/antonello/taccuino-del-giorno/lib/types.ts): Shared TypeScript interfaces.
+  - [constants.ts](file:///Users/antonello/taccuino-del-giorno/lib/constants.ts): Theme constants, navigation lists, and configuration arrays.
+  - [translation.ts](file:///Users/antonello/taccuino-del-giorno/lib/translation.ts): Comprehensive dictionaries and localized label lookup (`t()`).
+  - [browser-utils.ts](file:///Users/antonello/taccuino-del-giorno/lib/browser-utils.ts): Browser-specific settings, theme applier, and scroll metric helpers.
+  - [date-utils.ts](file:///Users/antonello/taccuino-del-giorno/lib/date-utils.ts), [astronomy.ts](file:///Users/antonello/taccuino-del-giorno/lib/astronomy.ts), [archive-utils.ts](file:///Users/antonello/taccuino-del-giorno/lib/archive-utils.ts): Specialized logic folders.
+- `app/components/`: Modularized home-page components:
+  - [SeasonalBookmark.tsx](file:///Users/antonello/taccuino-del-giorno/app/components/SeasonalBookmark.tsx): Ephemeris/almanac bookmark ticket.
+  - [DailyPassport.tsx](file:///Users/antonello/taccuino-del-giorno/app/components/DailyPassport.tsx): Interactive daily passport drawer.
+  - [LoadingNotebook.tsx](file:///Users/antonello/taccuino-del-giorno/app/components/LoadingNotebook.tsx): Initial loading screen paper animation.
+  - [NotebookQuickNav.tsx](file:///Users/antonello/taccuino-del-giorno/app/components/NotebookQuickNav.tsx) & [MobileReadingThread.tsx](file:///Users/antonello/taccuino-del-giorno/app/components/MobileReadingThread.tsx): Progress trackers.
+- `components/ui/`: Extracted layout elements:
+  - [Typography.tsx](file:///Users/antonello/taccuino-del-giorno/components/ui/Typography.tsx), [Doodles.tsx](file:///Users/antonello/taccuino-del-giorno/components/ui/Doodles.tsx), [Icons.tsx](file:///Users/antonello/taccuino-del-giorno/components/ui/Icons.tsx).
+- `app/globals.css`: Visual styling, theme setups, seasonal backgrounds, dark mode overrides.
+- `app/components/Card.tsx`: Reusable content card wrapper and social/standard image export routine.
+- `app/passaporto/`: Zine display and print layouts.
 
 ## Visual language
 
@@ -71,6 +74,11 @@ The footer features a realistic daily alternating 3D wax seal (13 colors, cyclin
   - A highly opaque black shadow (`rgba(0, 0, 0, 0.98)`) is centered (`0 0 [blur]`) behind the text to guarantee contrast and stacco.
   - Typographic scaling: shadows are wider on `.seal-initials` (`1.8px`/`2.2px` blur) and extremely tight/close on `.seal-date` and `.seal-edition` (`1.2px`/`1.4px` blur) to keep the tiny text perfectly legible.
   - Bold weight: `.seal-date` uses `font-weight: 800` and `.seal-edition` uses `font-weight: 700`.
+
+## Scroll Performance Guidelines
+
+- **Avoid layout-thrashing on scroll**: Do NOT write CSS variables to the `:root` or `document.documentElement` style object inside scroll listeners (such as the daily reading progress). Instead, fetch the specific target progress elements and modify their inline `style.transform` directly.
+- **Hardware acceleration on Parallax**: Parallax translation containers and background assets must use hardware acceleration by specifying `willChange: 'transform'` inline. Keep interpolation easing values soft (e.g. `0.085`) to preserve fluid inertia and avoid scrolling stutter ("jank").
 
 ## Working rules
 
