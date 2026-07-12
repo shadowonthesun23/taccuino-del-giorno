@@ -478,7 +478,11 @@ export default function Home() {
       const scrollDelta = window.scrollY - lastScrollY;
       const mobileReadingThreshold = Math.max(220, window.innerHeight * 0.3);
 
-      document.documentElement.style.setProperty('--reading-progress-scale', `${nextProgress / 100}`);
+      const scale = nextProgress / 100;
+      const progressEl1 = document.querySelector<HTMLElement>('.notebook-quick-nav-progress');
+      const progressEl2 = document.querySelector<HTMLElement>('.mobile-reading-thread-progress > span');
+      if (progressEl1) progressEl1.style.transform = `translateX(-50%) scaleY(${scale})`;
+      if (progressEl2) progressEl2.style.transform = `scaleX(${scale})`;
       setReadingComplete((current) => current === nextComplete ? current : nextComplete);
       setMobileReadingVisible((current) => {
         const nextVisible = window.scrollY > mobileReadingThreshold;
@@ -517,7 +521,6 @@ export default function Home() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
       if (frame !== null) window.cancelAnimationFrame(frame);
-      document.documentElement.style.removeProperty('--reading-progress-scale');
     };
   }, [data, contentKey]);
 

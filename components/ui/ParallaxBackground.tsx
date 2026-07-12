@@ -204,9 +204,9 @@ export default function ParallaxBackground({
       if (reducedMotion.matches) {
         currentY = targetY;
       } else {
-        currentY += (targetY - currentY) * 0.24;
+        currentY += (targetY - currentY) * 0.085;
       }
-      if (Math.abs(targetY - currentY) < 0.12) currentY = targetY;
+      if (Math.abs(targetY - currentY) < 0.05) currentY = targetY;
 
       const transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
       image.style.transform = transform;
