@@ -73,6 +73,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to write message into register.' }, { status: 500 });
     }
 
+    // 8. (Optional) Send notification to Telegram
+    const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
+    const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (telegramToken && telegramChatId) {
+      try {
+        const text = `📬 *Nuovo messaggio sul Taccuino!*\n\n*Da:* ${cleanSignature || 'Un viandante'} (${cleanLanguage})\n*Messaggio:*\n${trimmedMessage}`;
+        
+        await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: telegramChatId,
+            text: text,
+            parse_mode: 'Markdown',
+          }),
+        });
+      } catch (tgError) {
+        console.error('Telegram notification error:', tgError);
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error('Guestbook endpoint exception:', err);

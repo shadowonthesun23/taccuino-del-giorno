@@ -294,12 +294,12 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     PT: 'Livro de visitas'
   },
   guestbookSubtitle: {
-    IT: 'Scrivi un pensiero anonimo o firmato per custodirlo nel taccuino.',
-    EN: 'Write an anonymous or signed note to keep it in the notebook.',
-    FR: "Écrivez un mot anonyme ou signé pour le conserver dans le carnet.",
-    DE: 'Schreibe einen anonymen oder signierten Gedanken, um ihn im Notizbuch aufzubewahren.',
-    ES: 'Escribe una nota anónima o firmada para guardarla en el cuaderno.',
-    PT: 'Escreva uma nota anônima ou assinada para guardá-la no caderno.'
+    IT: 'Scrivi un pensiero, una nota o un suggerimento ad Antonello. Il tuo messaggio rimarrà privato.',
+    EN: 'Write a thought, a note, or a suggestion to Antonello. Your message will remain private.',
+    FR: "Écrivez un mot, une note ou une suggestion à Antonello. Votre message restera privé.",
+    DE: 'Schreibe einen Gedanken, eine Notiz oder einen Vorschlag an Antonello. Deine Nachricht bleibt privat.',
+    ES: 'Escribe un pensamiento, una nota o una sugerencia a Antonello. Tu messaggio seguirá siendo privado.',
+    PT: 'Escreva um pensamento, uma nota ou uma sugestão para o Antonello. Sua mensagem permanecerá privada.'
   },
   yourMessage: {
     IT: 'Il tuo messaggio',
