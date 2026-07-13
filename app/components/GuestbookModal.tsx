@@ -154,7 +154,7 @@ export default function GuestbookModal({
 
         {!isSuccess ? (
           <form onSubmit={handleSubmit} className="guestbook-form">
-            <h2 id="guestbook-title" className="guestbook-headline font-bold text-3xl mb-1 text-[#4A433F] dark:text-[#EAE6DF]">
+            <h2 id="guestbook-title" className="guestbook-headline font-bold text-3xl mb-1 text-[#DE6B58]">
               {t('guestbookTitle', lingua)}
             </h2>
             <p className="guestbook-subtitle italic text-sm text-[#8A817C] dark:text-[#A0A0A0] mb-5">
@@ -225,7 +225,7 @@ export default function GuestbookModal({
                 <Check className="h-8 w-8 text-[#DE6B58] stroke-[2.5]" />
               </div>
             </div>
-            <h2 className="guestbook-headline font-bold text-3xl mb-2 text-[#4A433F] dark:text-[#EAE6DF]">
+            <h2 className="guestbook-headline font-bold text-3xl mb-2 text-[#DE6B58]">
               {t('thankYouTitle', lingua)}
             </h2>
             <p className="guestbook-subtitle italic text-base text-[#8A817C] dark:text-[#A0A0A0] max-w-[280px] mx-auto">
