@@ -4220,23 +4220,30 @@ body {
 
 .seasonal-bookmark-artwork-caption strong {
   display: -webkit-box;
-  font-size: 0.58rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   letter-spacing: 0.01em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-.seasonal-bookmark-artwork-caption span,
-.seasonal-bookmark-artwork-caption em {
-  font-size: 0.47rem;
-  opacity: 0.8;
+.seasonal-bookmark-artwork-caption .artwork-artist {
+  font-size: 0.58rem;
+  font-style: italic;
+  font-weight: 700;
+  margin-top: 1px;
+  opacity: 0.95;
 }
 
-.seasonal-bookmark-artwork-caption span {
-  font-size: 0.52rem;
-  font-style: italic;
-  margin-top: -1px;
+.seasonal-bookmark-artwork-caption .artwork-year,
+.seasonal-bookmark-artwork-caption em {
+  font-size: 0.46rem;
+  opacity: 0.7;
+}
+
+.seasonal-bookmark-artwork-caption .artwork-year {
+  font-style: normal;
+  margin-top: 0px;
 }
 
 .seasonal-bookmark-artwork-caption b {

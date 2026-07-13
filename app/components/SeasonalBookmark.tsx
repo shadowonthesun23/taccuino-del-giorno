@@ -426,7 +426,8 @@ export default function SeasonalBookmark({
             {seasonalArtwork ? (
               <span className="seasonal-bookmark-artwork-caption">
                 <strong title={seasonalArtwork.title}>{seasonalArtwork.title}</strong>
-                <span>{seasonalArtwork.artist} · {seasonalArtwork.year}</span>
+                <span className="artwork-artist">{seasonalArtwork.artist}</span>
+                <span className="artwork-year">{seasonalArtwork.year}</span>
                 <b>{
                   {
                     IT: `Opera ${season === 'spring' ? 'di primavera' : `d’${label.toLocaleLowerCase('it-IT')}`} · selezione del giorno`,
