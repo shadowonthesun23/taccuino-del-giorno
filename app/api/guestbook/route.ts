@@ -79,17 +79,27 @@ export async function POST(request: Request) {
 
     if (telegramToken && telegramChatId) {
       try {
-        const text = `📬 *Nuovo messaggio sul Taccuino!*\n\n*Da:* ${cleanSignature || 'Un viandante'} (${cleanLanguage})\n*Messaggio:*\n${trimmedMessage}`;
+        const escapeHtml = (str: string) =>
+          str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeSignature = escapeHtml(cleanSignature || 'Un viandante');
+        const safeMessage = escapeHtml(trimmedMessage);
         
-        await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        const text = `📬 <b>Nuovo messaggio sul Taccuino!</b>\n\n<b>Da:</b> ${safeSignature} (${cleanLanguage})\n<b>Messaggio:</b>\n${safeMessage}`;
+        
+        const res = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: telegramChatId,
             text: text,
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
           }),
         });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('Telegram API returned error status:', res.status, errText);
+        }
       } catch (tgError) {
         console.error('Telegram notification error:', tgError);
       }
