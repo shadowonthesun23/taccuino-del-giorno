@@ -284,7 +284,7 @@ function ricostruisciDati(originale: DatiTaccuino, traduzioni: string[]): DatiTa
   };
 }
 
-export default function Home() {
+export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCode }) {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
   const [translationsCache, setTranslationsCache] = useState<Record<string, DatiTaccuino>>({});
@@ -306,7 +306,7 @@ export default function Home() {
   const [visitedArchiveDates, setVisitedArchiveDates] = useState<Set<string>>(getSavedVisitedDates);
   const [archivioQuery, setArchivioQuery] = useState('');
   const [dataSelezionata, setDataSelezionata] = useState<string | null>(null);
-  const [lingua, setLingua] = useState<LanguageCode>('IT');
+  const [lingua, setLingua] = useState<LanguageCode>(initialLang);
   const [traducendo, setTraducendo] = useState(false);
   const [erroreTraduzioni, setErroreTraduzioni] = useState<string | null>(null);
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
