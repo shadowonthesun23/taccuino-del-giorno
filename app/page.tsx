@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHorizontal, ChevronLeft, X, Search, Feather, Quote, Type, Church, Palette, Music, Telescope, ExternalLink, FileDown, Loader2, ChevronDown, Sparkles, BookOpen } from 'lucide-react';
+import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHorizontal, ChevronLeft, ChevronRight, X, Search, Feather, Quote, Type, Church, Palette, Music, Telescope, ExternalLink, FileDown, Loader2, ChevronDown, Sparkles, BookOpen } from 'lucide-react';
 
 // Custom components
 import AuthorExportCard from './components/AuthorExportCard';
@@ -323,6 +323,7 @@ export default function Home() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mobileReadingVisible, setMobileReadingVisible] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [mobileMenuTab, setMobileMenuTab] = useState<'main' | 'lang'>('main');
   const [footerInView, setFooterInView] = useState(false);
   const [ambientLightStyle, setAmbientLightStyle] = useState<CSSProperties>(() => getAmbientLightStyle(new Date(), false));
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -415,6 +416,15 @@ export default function Home() {
     if (popoverOpen || savedDrawerOpen || mobileToolsOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen, savedDrawerOpen, mobileToolsOpen]);
+
+  useEffect(() => {
+    if (!mobileToolsOpen) {
+      const timer = setTimeout(() => {
+        setMobileMenuTab('main');
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [mobileToolsOpen]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -1127,70 +1137,110 @@ export default function Home() {
             aria-hidden={!mobileToolsOpen}
             inert={!mobileToolsOpen ? true : undefined}
           >
-            <div className="mobile-tools-lang flex items-center justify-between gap-2 px-2.5 py-1 select-none border-b border-stone-200 dark:border-white/5 pb-2.5 mb-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#8A817C] dark:text-[#A0A0A0] flex items-center gap-1.5">
-                <Languages className="w-3.5 h-3.5 text-[#DE6B58]" />
-                {lingua === 'IT' ? 'Lingua' : 'Language'}
-              </span>
-              <LanguageSelector
-                lingua={lingua}
-                onChange={(code) => {
-                  setMobileToolsOpen(false);
-                  void cambiaLingua(code);
-                }}
-                disabled={traducendo}
-                isDark={isDark}
-              />
-            </div>
-            {archivio.length > 0 && (
-              <button
-                ref={mobileArchiveTriggerRef}
-                type="button"
-                onClick={(event) => {
-                  setMobileToolsOpen(false);
-                  toggleArchive(event.currentTarget, mobileToolsTriggerRef.current ?? event.currentTarget);
-                }}
-                aria-expanded={popoverOpen}
-                aria-haspopup="dialog"
-              >
-                <CalendarDays className="h-4 w-4" />
-                <span>{lingua === 'IT' ? 'Archivio' : 'Archive'}</span>
-              </button>
+            {mobileMenuTab === 'main' ? (
+              <div className="flex flex-col gap-[3px] animate-menu-fade">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuTab('lang')}
+                  className="w-full"
+                >
+                  <Languages className="h-4 w-4" />
+                  <div className="flex items-center justify-between w-full pr-1">
+                    <span>{lingua === 'IT' ? 'Lingua' : 'Language'}</span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
+                      {lingua}
+                      <ChevronRight className="w-3 h-3 text-[#DE6B58]" />
+                    </span>
+                  </div>
+                </button>
+                {archivio.length > 0 && (
+                  <button
+                    ref={mobileArchiveTriggerRef}
+                    type="button"
+                    onClick={(event) => {
+                      setMobileToolsOpen(false);
+                      toggleArchive(event.currentTarget, mobileToolsTriggerRef.current ?? event.currentTarget);
+                    }}
+                    aria-expanded={popoverOpen}
+                    aria-haspopup="dialog"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    <span>{lingua === 'IT' ? 'Archivio' : 'Archive'}</span>
+                  </button>
+                )}
+                <button
+                  ref={mobileSavedTriggerRef}
+                  type="button"
+                  onClick={(event) => {
+                    setMobileToolsOpen(false);
+                    toggleSavedDrawer(event.currentTarget, mobileToolsTriggerRef.current ?? event.currentTarget);
+                  }}
+                  aria-expanded={savedDrawerOpen}
+                  aria-haspopup="dialog"
+                >
+                  {savedCards.length > 0 ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                  <span>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileToolsOpen(false);
+                    window.dispatchEvent(new Event(TICKET_DOWNLOAD_EVENT));
+                  }}
+                  aria-label={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
+                >
+                  <FileDown className="h-4 w-4" />
+                  <span>{lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileToolsOpen(false);
+                    toggleTheme();
+                  }}
+                >
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  <span>{lingua === 'IT' ? (isDark ? 'Tema chiaro' : 'Tema scuro') : (isDark ? 'Light theme' : 'Dark theme')}</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-[3px] animate-menu-fade">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuTab('main')}
+                  className="mobile-tools-back-btn w-full flex items-center justify-between text-left border-b border-stone-200 dark:border-white/5 pb-2.5 mb-1.5 rounded-none"
+                >
+                  <ChevronLeft className="h-4 w-4 text-[#DE6B58]" />
+                  <div className="flex items-center justify-between w-full pr-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A817C] dark:text-[#A0A0A0] not-italic font-sans">
+                      {lingua === 'IT' ? 'Lingua' : 'Language'}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
+                      {lingua === 'IT' ? 'Indietro' : 'Back'}
+                    </span>
+                  </div>
+                </button>
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    disabled={traducendo}
+                    onClick={() => {
+                      setMobileToolsOpen(false);
+                      void cambiaLingua(lang.code);
+                    }}
+                    className={
+                      lingua === lang.code
+                        ? 'mobile-tools-lang-active'
+                        : 'hover:translate-x-0.5'
+                    }
+                  >
+                    {lang.flag}
+                    <span>{lang.name}</span>
+                  </button>
+                ))}
+              </div>
             )}
-            <button
-              ref={mobileSavedTriggerRef}
-              type="button"
-              onClick={(event) => {
-                setMobileToolsOpen(false);
-                toggleSavedDrawer(event.currentTarget, mobileToolsTriggerRef.current ?? event.currentTarget);
-              }}
-              aria-expanded={savedDrawerOpen}
-              aria-haspopup="dialog"
-            >
-              {savedCards.length > 0 ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-              <span>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileToolsOpen(false);
-                window.dispatchEvent(new Event(TICKET_DOWNLOAD_EVENT));
-              }}
-              aria-label={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
-            >
-              <FileDown className="h-4 w-4" />
-              <span>{lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileToolsOpen(false);
-                toggleTheme();
-              }}
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              <span>{lingua === 'IT' ? (isDark ? 'Tema chiaro' : 'Tema scuro') : (isDark ? 'Light theme' : 'Dark theme')}</span>
-            </button>
           </div>
           <button
             ref={mobileToolsTriggerRef}

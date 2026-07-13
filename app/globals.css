@@ -7114,14 +7114,34 @@ body {
 }
 
 @media screen and (max-width: 760px) {
+  .archive-popover,
   .saved-cards-drawer {
-    border-bottom: 0;
-    border-radius: 10px 10px 0 0;
-    bottom: 0;
-    max-height: min(72vh, 620px);
-    right: 0;
-    top: auto;
-    width: 100%;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-radius: 12px 12px 0 0 !important;
+    bottom: 0 !important;
+    max-height: min(72vh, 620px) !important;
+    right: 0 !important;
+    left: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    position: fixed !important;
+    transform: translateY(100%) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: transform 280ms cubic-bezier(0.32, 0.94, 0.6, 1),
+                opacity 280ms ease,
+                visibility 280ms !important;
+  }
+
+  .archive-popover.is-open,
+  .saved-cards-drawer.is-open {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
   }
 
   .saved-cards-header {
@@ -7269,6 +7289,44 @@ body {
 
   .mobile-tools.is-dark .mobile-tools-menu button {
     color: #bbb2ad;
+  }
+
+  @keyframes menuFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-menu-fade {
+    animation: menuFadeIn 150ms ease-out forwards;
+  }
+
+  .mobile-tools-menu button.mobile-tools-back-btn {
+    min-height: auto;
+    padding: 5px 6px;
+    cursor: pointer;
+  }
+
+  .mobile-tools-menu button.mobile-tools-back-btn:hover,
+  .mobile-tools-menu button.mobile-tools-back-btn:focus-visible {
+    background: transparent;
+    color: #DE6B58;
+  }
+
+  .mobile-tools-menu button.mobile-tools-lang-active {
+    color: #DE6B58 !important;
+    font-weight: 700;
+    background: rgba(222, 107, 88, 0.08) !important;
+  }
+
+  .mobile-tools.is-dark .mobile-tools-menu button.mobile-tools-lang-active {
+    color: #DE6B58 !important;
+    background: rgba(222, 107, 88, 0.12) !important;
   }
 
   .daily-passport-overlay {
