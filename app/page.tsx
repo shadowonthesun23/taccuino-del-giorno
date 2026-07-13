@@ -1012,7 +1012,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
   if (loading) return (
     <>
-      <LoadingNotebook isDark={isDark} />
+      <LoadingNotebook isDark={isDark} lingua={lingua} />
       {archivioPopover}
       {savedCardsDrawer}
     </>

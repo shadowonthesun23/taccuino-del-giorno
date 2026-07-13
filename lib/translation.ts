@@ -244,6 +244,38 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   },
   archiveTitle: {
     IT: 'Archivio', EN: 'Archive', FR: 'Archives', DE: 'Archiv', ES: 'Archivo', PT: 'Arquivo'
+  },
+  preparingPageStep1: {
+    IT: 'Sfogliando le pagine...',
+    EN: 'Turning the pages...',
+    FR: 'Feuilletant le carnet...',
+    DE: 'Seiten werden umgeblättert...',
+    ES: 'Hojando las páginas...',
+    PT: 'Folheando as páginas...'
+  },
+  preparingPageStep2: {
+    IT: 'Cercando i pensieri di oggi...',
+    EN: "Searching for today's thoughts...",
+    FR: 'Recherche des pensées du jour...',
+    DE: 'Suche nach den Gedanken von heute...',
+    ES: 'Buscando los pensamientos de hoy...',
+    PT: 'Buscando os pensamentos de hoje...'
+  },
+  preparingPageStep3: {
+    IT: 'Inchiostrando la carta...',
+    EN: 'Inking the paper...',
+    FR: 'Encres sur le papier...',
+    DE: 'Papier wird beschriftet...',
+    ES: 'Entintando el papel...',
+    PT: 'Entintando o papel...'
+  },
+  preparingNotebookAria: {
+    IT: 'Il taccuino si sta preparando',
+    EN: 'The notebook is being prepared',
+    FR: 'Le carnet se prépare',
+    DE: 'Das Notizbuch wird vorbereitet',
+    ES: 'El cuaderno se está preparando',
+    PT: 'O caderno está a ser preparado'
   }
 };
 
