@@ -7126,6 +7126,8 @@ body {
     left: 0 !important;
     top: auto !important;
     width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     position: fixed !important;
     transform: translateY(100%) !important;
     opacity: 0 !important;
@@ -7142,6 +7144,10 @@ body {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+  }
+
+  .archive-popover .archive-scroll {
+    max-height: none !important;
   }
 
   .saved-cards-header {
