@@ -577,7 +577,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setLingua('IT'); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -714,6 +714,24 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       window.clearTimeout(loadTimer);
     };
   }, []);
+
+  // Sincronizza le traduzioni all'avvio o al cambio data dell'archivio se la lingua non è IT
+  useEffect(() => {
+    if (dataOriginale && lingua !== 'IT') {
+      const dateKey = dataOriginale.data || dataSelezionata || 'oggi';
+      const cacheKey = `${lingua}:${dateKey}`;
+      const cached = translationsCache[cacheKey];
+      if (cached) {
+        window.setTimeout(() => {
+          setData(cached);
+        }, 0);
+      } else {
+        window.setTimeout(() => {
+          void cambiaLingua(lingua);
+        }, 0);
+      }
+    }
+  }, [dataOriginale, lingua, cambiaLingua, translationsCache, dataSelezionata]);
 
   const toggleTheme = () => {
     const next = !isDark;
