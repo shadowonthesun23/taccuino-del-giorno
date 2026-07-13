@@ -8401,5 +8401,199 @@ body {
   transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease !important;
 }
 
+/* ── GUESTBOOK REGISTRO VISITATORI ── */
+.guestbook-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(40, 38, 35, 0.55);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: guestbookFadeIn 0.3s ease-out;
+}
+
+@keyframes guestbookFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.guestbook-modal-card {
+  background-color: #FDFCF8;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 0), radial-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 0);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+  border: 1px solid #EBE5DB;
+  border-radius: 12px;
+  box-shadow: 
+    0 15px 40px -10px rgba(42, 40, 37, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  position: relative;
+  color: #4A433F;
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: guestbookSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes guestbookSlideUp {
+  from { transform: translateY(15px); }
+  to { transform: translateY(0); }
+}
+
+.guestbook-modal-card.is-dark {
+  background-color: #242220;
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 
+    0 15px 40px -10px rgba(0, 0, 0, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+  color: #EAE6DF;
+}
+
+.guestbook-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.2s, transform 0.2s;
+  color: inherit;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guestbook-close:hover {
+  opacity: 0.95;
+  transform: scale(1.05);
+}
+
+.guestbook-headline {
+  font-family: inherit;
+}
+
+.guestbook-textarea {
+  background: #F5F2EA;
+  border: 1px solid #DFD9CE;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.5;
+  color: inherit;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+  resize: none;
+}
+
+.guestbook-modal-card.is-dark .guestbook-textarea {
+  background: #2D2A28;
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.guestbook-textarea:focus {
+  border-color: #DE6B58;
+  background: #FAF8F3;
+}
+
+.guestbook-modal-card.is-dark .guestbook-textarea:focus {
+  border-color: #DE6B58;
+  background: #33302E;
+}
+
+.guestbook-input {
+  background: #F5F2EA;
+  border: 1px solid #DFD9CE;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+  color: inherit;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.guestbook-modal-card.is-dark .guestbook-input {
+  background: #2D2A28;
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.guestbook-input:focus {
+  border-color: #DE6B58;
+  background: #FAF8F3;
+}
+
+.guestbook-modal-card.is-dark .guestbook-input:focus {
+  border-color: #DE6B58;
+  background: #33302E;
+}
+
+.guestbook-submit-btn {
+  background-color: #DE6B58;
+  color: #FFF;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(222, 107, 88, 0.2);
+}
+
+.guestbook-submit-btn:hover {
+  background-color: #c55b4a;
+  box-shadow: 0 3px 6px rgba(222, 107, 88, 0.3);
+}
+
+.guestbook-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Success layout stamp */
+.guestbook-postage-stamp-wrapper {
+  width: 86px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FAF8F3;
+  border: 3px double #DE6B58;
+  border-radius: 4px;
+  padding: 6px;
+  position: relative;
+  transform: rotate(-3deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.guestbook-modal-card.is-dark .guestbook-postage-stamp-wrapper {
+  background: #2D2A28;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.guestbook-postage-stamp {
+  border: 1px dashed #DE6B58;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.guestbook-postage-stamp::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 2px dotted #DE6B58;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0.15;
+}
+
 
 

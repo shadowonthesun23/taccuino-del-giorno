@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHorizontal, ChevronLeft, ChevronRight, X, Search, Feather, Quote, Type, Church, Palette, Music, Telescope, ExternalLink, FileDown, Loader2, ChevronDown, Sparkles, BookOpen } from 'lucide-react';
+import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHorizontal, ChevronLeft, ChevronRight, X, Search, Feather, Quote, Type, Church, Palette, Music, Telescope, ExternalLink, FileDown, Loader2, ChevronDown, Sparkles, BookOpen, Mail } from 'lucide-react';
 
 // Custom components
 import AuthorExportCard from './components/AuthorExportCard';
@@ -14,6 +14,7 @@ import SeasonalBookmark from './components/SeasonalBookmark';
 import LoadingNotebook from './components/LoadingNotebook';
 import NotebookQuickNav from './components/NotebookQuickNav';
 import MobileReadingThread from './components/MobileReadingThread';
+import GuestbookModal from './components/GuestbookModal';
 import { TypewriterText, DecorativeInitialText, EditorialQuoteText } from '@/components/ui/Typography';
 import { DoodleArrow } from '@/components/ui/Doodles';
 import { XIcon, InstagramIcon, CoffeeIcon } from '@/components/ui/Icons';
@@ -313,6 +314,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const [showExportCard, setShowExportCard] = useState(false);
   const [showDailyPassport, setShowDailyPassport] = useState(false);
+  const [guestbookOpen, setGuestbookOpen] = useState(false);
   const [isTurningPage, setIsTurningPage] = useState(false);
   const [pageTurnPhase, setPageTurnPhase] = useState<'idle' | 'covering' | 'revealing'>('idle');
   const [contentKey, setContentKey] = useState(0);
@@ -433,6 +435,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         setSavedDrawerOpen(false);
         setMobileToolsOpen(false);
         setShowDailyPassport(false);
+        setGuestbookOpen(false);
       }
     }
     document.addEventListener('keydown', handleKeyDown);
@@ -1972,6 +1975,15 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   <CoffeeIcon className="w-4 h-4" />
                   <span>{t('support', lingua)}</span>
                 </a>
+                <button
+                  type="button"
+                  onClick={() => setGuestbookOpen(true)}
+                  className="journal-footer-link"
+                  aria-label={t('leaveAPenny', lingua)}
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>{t('leaveAPenny', lingua)}</span>
+                </button>
               </nav>
               <button
                 type="button"
@@ -2000,6 +2012,13 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           />,
           document.body
         )}
+
+        <GuestbookModal
+          isOpen={guestbookOpen}
+          onClose={() => setGuestbookOpen(false)}
+          isDark={isDark}
+          lingua={lingua}
+        />
 
       </div>
     </ParallaxBackground>

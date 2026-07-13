@@ -276,6 +276,86 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     DE: 'Das Notizbuch wird vorbereitet',
     ES: 'El cuaderno se está preparando',
     PT: 'O caderno está a ser preparado'
+  },
+  leaveAPenny: {
+    IT: 'Lascia un pensiero',
+    EN: 'Leave a thought',
+    FR: 'Laisser un mot',
+    DE: 'Hinterlasse einen Gedanken',
+    ES: 'Deja un pensamiento',
+    PT: 'Deixe um pensiero'
+  },
+  guestbookTitle: {
+    IT: 'Registro dei visitatori',
+    EN: 'Guestbook',
+    FR: "Livre d'or",
+    DE: 'Gästebuch',
+    ES: 'Libro de visitas',
+    PT: 'Livro de visitas'
+  },
+  guestbookSubtitle: {
+    IT: 'Scrivi un pensiero anonimo o firmato per custodirlo nel taccuino.',
+    EN: 'Write an anonymous or signed note to keep it in the notebook.',
+    FR: "Écrivez un mot anonyme ou signé pour le conserver dans le carnet.",
+    DE: 'Schreibe einen anonymen oder signierten Gedanken, um ihn im Notizbuch aufzubewahren.',
+    ES: 'Escribe una nota anónima o firmada para guardarla en el cuaderno.',
+    PT: 'Escreva uma nota anônima ou assinada para guardá-la no caderno.'
+  },
+  yourMessage: {
+    IT: 'Il tuo messaggio',
+    EN: 'Your message',
+    FR: 'Votre message',
+    DE: 'Deine Nachricht',
+    ES: 'Tu mensaje',
+    PT: 'Sua mensagem'
+  },
+  yourSignature: {
+    IT: 'La tua firma (opzionale)',
+    EN: 'Your signature (optional)',
+    FR: 'Votre signature (optionnelle)',
+    DE: 'Deine Unterschrift (optional)',
+    ES: 'Tu firma (opcional)',
+    PT: 'Sua assinatura (opcional)'
+  },
+  signaturePlaceholder: {
+    IT: 'es. Un viandante',
+    EN: 'e.g. A wanderer',
+    FR: 'ex. Un voyageur',
+    DE: 'z.B. Ein Wanderer',
+    ES: 'ej. Un caminante',
+    PT: 'ex. Um viajante'
+  },
+  sendButton: {
+    IT: 'Spedisci',
+    EN: 'Send',
+    FR: 'Envoyer',
+    DE: 'Senden',
+    ES: 'Enviar',
+    PT: 'Enviar'
+  },
+  sendingButton: {
+    IT: 'Spedizione in corso...',
+    EN: 'Sending...',
+    FR: 'Envoi en cours...',
+    DE: 'Senden...',
+    ES: 'Enviando...',
+    PT: 'Enviando...'
+  },
+  thankYouTitle: {
+    IT: 'Messaggio spedito',
+    EN: 'Message sent',
+    FR: 'Message envoyé',
+    DE: 'Nachricht gesendet',
+    ES: 'Mensaje enviado',
+    PT: 'Mensagem enviada'
+  },
+  thankYouSubtitle: {
+    IT: 'Il tuo pensiero è stato custodito nel registro.',
+    EN: 'Your thought has been kept in the register.',
+    FR: 'Votre pensée a été conservée dans le registre.',
+    DE: 'Dein Gedanke wurde im Register festgehalten.',
+    ES: 'Tu pensamiento ha sido guardado en el registro.',
+    PT: 'Seu pensamento foi guardado no registro.'
   }
 };
 
