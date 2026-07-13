@@ -248,8 +248,8 @@ export default function SeasonalBookmark({
   }, [downloadTicket]);
 
   const artworkQrLabel = seasonalArtwork?.linkKind === 'source'
-    ? (lingua === 'IT' ? 'Apri la fonte' : 'View source')
-    : (lingua === 'IT' ? 'Apri al museo' : 'View at museum');
+    ? ({ IT: 'Apri la fonte', EN: 'View source', FR: 'Ouvrir la source', DE: 'Quelle öffnen', ES: 'Abrir la fuente', PT: 'Abrir a fonte' }[lingua] || 'View source')
+    : ({ IT: 'Apri al museo', EN: 'View at museum', FR: 'Voir au musée', DE: 'Im Museum ansehen', ES: 'Ver en el museo', PT: 'Ver no museu' }[lingua] || 'View at museum');
 
   return (
     <>
@@ -303,7 +303,7 @@ export default function SeasonalBookmark({
             <span className="seasonal-bookmark-astronomy">
               <span><em>{moonRowLabel}</em><strong>{moonLabel} · {moon.illumination}%</strong></span>
               <span><em>{fullMoonRowLabel}</em><strong>{nextFullMoonLabel}</strong></span>
-              <span><em>{daylightRowLabel}</em><strong>{daylightValue || (lingua === 'IT' ? 'Calcolo…' : 'Calculating…')}</strong></span>
+              <span><em>{daylightRowLabel}</em><strong>{daylightValue || ({ IT: 'Calcolo…', EN: 'Calculating…', FR: 'Calcul...', DE: 'Berechnung...', ES: 'Calculando...', PT: 'Calculando...' }[lingua] || 'Calculating…')}</strong></span>
             </span>
             <span className="seasonal-bookmark-planets">
               <span className="seasonal-bookmark-planets-heading">
@@ -348,10 +348,38 @@ export default function SeasonalBookmark({
                 rel={seasonalArtwork ? 'noopener noreferrer' : undefined}
                 aria-label={seasonalArtwork
                   ? seasonalArtwork.linkKind === 'museum'
-                    ? (lingua === 'IT' ? `Apri ${seasonalArtwork.title} sul sito del museo` : `Open ${seasonalArtwork.title} on the museum website`)
-                    : (lingua === 'IT' ? `Apri la fonte di ${seasonalArtwork.title}` : `Open the source for ${seasonalArtwork.title}`)
-                  : (lingua === 'IT' ? `Apri il giorno ${dateLabel}` : `Open ${dateLabel}`)}
-                title={seasonalArtwork ? artworkQrLabel : (lingua === 'IT' ? 'Apri il permalink di questo giorno' : 'Open this day’s permalink')}
+                    ? ({
+                        IT: `Apri ${seasonalArtwork.title} sul sito del museo`,
+                        EN: `Open ${seasonalArtwork.title} on the museum website`,
+                        FR: `Ouvrir ${seasonalArtwork.title} sur le site du musée`,
+                        DE: `Öffne ${seasonalArtwork.title} auf der Website des Museums`,
+                        ES: `Abrir ${seasonalArtwork.title} en el sitio web del museo`,
+                        PT: `Abrir ${seasonalArtwork.title} no site do museu`
+                      }[lingua] || `Open ${seasonalArtwork.title} on the museum website`)
+                    : ({
+                        IT: `Apri la fonte di ${seasonalArtwork.title}`,
+                        EN: `Open the source for ${seasonalArtwork.title}`,
+                        FR: `Ouvrir la source de ${seasonalArtwork.title}`,
+                        DE: `Öffne die Quelle für ${seasonalArtwork.title}`,
+                        ES: `Abrir la fuente de ${seasonalArtwork.title}`,
+                        PT: `Abrir a fonte de ${seasonalArtwork.title}`
+                      }[lingua] || `Open the source for ${seasonalArtwork.title}`)
+                  : ({
+                      IT: `Apri il giorno ${dateLabel}`,
+                      EN: `Open ${dateLabel}`,
+                      FR: `Ouvrir le ${dateLabel}`,
+                      DE: `Öffne ${dateLabel}`,
+                      ES: `Abrir el día ${dateLabel}`,
+                      PT: `Abrir o dia ${dateLabel}`
+                    }[lingua] || `Open ${dateLabel}`)}
+                title={seasonalArtwork ? artworkQrLabel : ({
+                  IT: 'Apri il permalink di questo giorno',
+                  EN: 'Open this day’s permalink',
+                  FR: 'Ouvrir le lien permanent de ce jour',
+                  DE: 'Öffne den Permalink für diesen Tag',
+                  ES: 'Abrir el enlace permanente de este día',
+                  PT: 'Abrir o link permanente deste dia'
+                }[lingua] || 'Open this day’s permalink')}
               >
                 <span className="seasonal-bookmark-qr">
                   <QRCodeSVG
@@ -363,32 +391,60 @@ export default function SeasonalBookmark({
                     fgColor="currentColor"
                     title={seasonalArtwork
                       ? seasonalArtwork.linkKind === 'museum'
-                        ? (lingua === 'IT' ? `QR della scheda museale di ${seasonalArtwork.title}` : `Museum page QR for ${seasonalArtwork.title}`)
-                        : (lingua === 'IT' ? `QR della fonte di ${seasonalArtwork.title}` : `Source QR for ${seasonalArtwork.title}`)
-                      : (lingua === 'IT' ? `QR del ${dateLabel}` : `${dateLabel} QR code`)}
+                        ? ({
+                            IT: `QR della scheda museale di ${seasonalArtwork.title}`,
+                            EN: `Museum page QR for ${seasonalArtwork.title}`,
+                            FR: `QR de la page de musée pour ${seasonalArtwork.title}`,
+                            DE: `Museums-QR für ${seasonalArtwork.title}`,
+                            ES: `QR de la página del museo para ${seasonalArtwork.title}`,
+                            PT: `QR da página do museu para ${seasonalArtwork.title}`
+                          }[lingua] || `Museum page QR for ${seasonalArtwork.title}`)
+                        : ({
+                            IT: `QR della fonte di ${seasonalArtwork.title}`,
+                            EN: `Source QR for ${seasonalArtwork.title}`,
+                            FR: `QR de la source pour ${seasonalArtwork.title}`,
+                            DE: `Quellen-QR für ${seasonalArtwork.title}`,
+                            ES: `QR de la fonte para ${seasonalArtwork.title}`,
+                            PT: `QR da fonte para ${seasonalArtwork.title}`
+                          }[lingua] || `Source QR for ${seasonalArtwork.title}`)
+                      : ({
+                          IT: `QR del ${dateLabel}`,
+                          EN: `${dateLabel} QR code`,
+                          FR: `Code QR du ${dateLabel}`,
+                          DE: `QR-Code für ${dateLabel}`,
+                          ES: `QR del ${dateLabel}`,
+                          PT: `Código QR do ${dateLabel}`
+                        }[lingua] || `${dateLabel} QR code`)}
                   />
                   <span className="seasonal-bookmark-qr-mark" aria-hidden="true">
                     <MoonDoodle phase={moon.phase} />
                   </span>
                 </span>
-                <small>{seasonalArtwork ? artworkQrLabel : (lingua === 'IT' ? 'Apri il giorno' : 'Open the day')}</small>
+                <small>{seasonalArtwork ? artworkQrLabel : t('openDay', lingua)}</small>
               </a>
             ) : null}
             {seasonalArtwork ? (
               <span className="seasonal-bookmark-artwork-caption">
                 <strong title={seasonalArtwork.title}>{seasonalArtwork.title}</strong>
                 <span>{seasonalArtwork.artist} · {seasonalArtwork.year}</span>
-                <b>{lingua === 'IT'
-                  ? `Opera ${season === 'spring' ? 'di primavera' : `d’${label.toLocaleLowerCase('it-IT')}`} · selezione del giorno`
-                  : `${label} artwork · daily selection`}</b>
+                <b>{
+                  {
+                    IT: `Opera ${season === 'spring' ? 'di primavera' : `d’${label.toLocaleLowerCase('it-IT')}`} · selezione del giorno`,
+                    EN: `${label} artwork · daily selection`,
+                    FR: `Œuvre de ${season === 'spring' ? 'printemps' : label.toLocaleLowerCase('fr-FR')} · sélection du jour`,
+                    DE: `${label}-Kunstwerk · tägliche Auswahl`,
+                    ES: `Obra de ${season === 'spring' ? 'primavera' : label.toLocaleLowerCase('es-ES')} · selección del día`,
+                    PT: `Obra de ${season === 'spring' ? 'primavera' : label.toLocaleLowerCase('pt-PT')} · seleção do dia`
+                  }[lingua] || `${label} artwork · daily selection`
+                }</b>
                 <em>{seasonalArtwork.medium} · {seasonalArtwork.collection}</em>
-                <small>{lingua === 'IT' ? 'Edizione' : 'Edition'} {dayOfYear.day}/{dayOfYear.total}</small>
+                <small>{{ IT: 'Edizione', EN: 'Edition', FR: 'Édition', DE: 'Edition', ES: 'Edición', PT: 'Edição' }[lingua] || 'Edition'} {dayOfYear.day}/{dayOfYear.total}</small>
               </span>
             ) : null}
             {!seasonalArtwork ? (
               <span className="seasonal-bookmark-tail-ledger" aria-hidden="true">
-                <span><em>{lingua === 'IT' ? 'Foglio' : 'Sheet'}</em><strong>{dayOfYear.day}/{dayOfYear.total}</strong></span>
-                <span><em>{lingua === 'IT' ? 'Valido' : 'Valid'}</em><strong>{lingua === 'IT' ? '1 giorno' : '1 day'}</strong></span>
+                <span><em>{{ IT: 'Foglio', EN: 'Sheet', FR: 'Feuille', DE: 'Blatt', ES: 'Hoja', PT: 'Folha' }[lingua] || 'Sheet'}</em><strong>{dayOfYear.day}/{dayOfYear.total}</strong></span>
+                <span><em>{{ IT: 'Valido', EN: 'Valid', FR: 'Valide', DE: 'Gültig', ES: 'Válido', PT: 'Válido' }[lingua] || 'Valid'}</em><strong>{{ IT: '1 giorno', EN: '1 day', FR: '1 jour', DE: '1 Tag', ES: '1 día', PT: '1 dia' }[lingua] || '1 day'}</strong></span>
               </span>
             ) : null}
           </span>
@@ -401,23 +457,23 @@ export default function SeasonalBookmark({
               type="button"
               className="ticket-download-ready-close"
               onClick={dismissPreparedTicket}
-              aria-label={lingua === 'IT' ? 'Chiudi' : 'Close'}
+              aria-label={t('close', lingua)}
             >
               <X aria-hidden="true" />
             </button>
             <FileDown className="ticket-download-ready-icon" aria-hidden="true" />
             <strong id="ticket-download-ready-title">
-              {lingua === 'IT' ? 'Il biglietto è pronto' : 'Your ticket is ready'}
+              {t('ticketReadyTitle', lingua)}
             </strong>
             <span>
-              {lingua === 'IT' ? 'Tocca qui sotto per salvarlo in alta risoluzione.' : 'Tap below to save it in high resolution.'}
+              {t('ticketReadySubtitle', lingua)}
             </span>
             <a
               href={preparedTicketDownload.url}
               download={preparedTicketDownload.filename}
               onClick={() => window.setTimeout(dismissPreparedTicket, 2_000)}
             >
-              {lingua === 'IT' ? 'Salva il biglietto' : 'Save ticket'}
+              {t('saveTicket', lingua)}
             </a>
           </div>
         </div>,

@@ -208,7 +208,7 @@ function LanguageSelector({
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label="Seleziona lingua / Select language"
-        data-tooltip={lingua === 'IT' ? 'Lingua' : 'Language'}
+        data-tooltip={{ IT: 'Lingua', EN: 'Language', FR: 'Langue', DE: 'Sprache', ES: 'Idioma', PT: 'Idioma' }[lingua] || 'Language'}
       >
         <Languages className="w-5 h-5" />
       </button>
@@ -892,8 +892,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             ref={archiveSearchRef}
             value={archivioQuery}
             onChange={(event) => setArchivioQuery(event.target.value)}
-            placeholder={lingua === 'IT' ? 'Cerca autore o data' : 'Search author or date'}
-            aria-label={lingua === 'IT' ? 'Cerca nell’archivio' : 'Search archive'}
+            placeholder={{ IT: 'Cerca autore o data', EN: 'Search author or date', FR: 'Rechercher un auteur ou une date', DE: 'Suche nach Autor oder Datum', ES: 'Buscar autor o fecha', PT: 'Buscar autor ou data' }[lingua] || 'Search author or date'}
+            aria-label={{ IT: 'Cerca nell’archivio', EN: 'Search archive', FR: 'Rechercher dans les archives', DE: 'Im Archiv suchen', ES: 'Buscar en el archivo', PT: 'Pesquisar no arquivo' }[lingua] || 'Search archive'}
           />
         </label>
       </div>
@@ -902,7 +902,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           {archivio.length === 0 ? (
             <p className={`text-xs italic ${themeClasses.textMuted} text-center mt-6`}>Nessun giorno in archivio.</p>
           ) : archivioFiltrato.length === 0 ? (
-            <p className={`archive-empty text-xs italic ${themeClasses.textMuted}`}>{lingua === 'IT' ? 'Nessun risultato trovato.' : 'No results found.'}</p>
+            <p className={`archive-empty text-xs italic ${themeClasses.textMuted}`}>{({ IT: 'Nessun risultato trovato.', EN: 'No results found.', FR: 'Aucun résultat trouvé.', DE: 'Keine Ergebnisse gefunden.', ES: 'No se encontraron resultados.', PT: 'Nenhum risultato encontrado.' }[lingua] || 'No results found.')}</p>
           ) : (
             Object.entries(groupedArchivio).map(([mese, items]) => {
               const firstItem = items[0];
@@ -961,7 +961,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       ref={savedDrawerRef}
       role="dialog"
       aria-modal="false"
-      aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
+      aria-label={{ IT: 'Cose custodite', EN: 'Saved pages', FR: 'Pages sauvegardées', DE: 'Gespeicherte Seiten', ES: 'Páginas guardadas', PT: 'Páginas salvas' }[lingua] || 'Saved pages'}
       className={`saved-cards-drawer ${savedDrawerOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} ${garamond.className}`}
       style={{
         top: `${savedDrawerPos.top}px`,
@@ -970,17 +970,17 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     >
       <header className="saved-cards-header">
         <div>
-          <span className="saved-cards-kicker">{lingua === 'IT' ? 'Il tuo cassetto' : 'Your drawer'}</span>
+          <span className="saved-cards-kicker">{{ IT: 'Il tuo cassetto', EN: 'Your drawer', FR: 'Votre tiroir', DE: 'Deine Schublade', ES: 'Tu cajón', PT: 'Sua gaveta' }[lingua] || 'Your drawer'}</span>
           <h2 className={`${garamond.className} italic font-bold`}>{t('savedPages', lingua)}</h2>
         </div>
-        <button type="button" onClick={() => setSavedDrawerOpen(false)} aria-label={lingua === 'IT' ? 'Chiudi' : 'Close'}>
+        <button type="button" onClick={() => setSavedDrawerOpen(false)} aria-label={t('close', lingua)}>
           <X aria-hidden="true" />
         </button>
       </header>
       {savedCards.length === 0 ? (
         <div className="saved-cards-empty">
           <Bookmark className="h-5 w-5" strokeWidth={1.45} aria-hidden="true" />
-          <p>{lingua === 'IT' ? 'Qui ritroverai le schede che vorrai tenere con te.' : 'The pages you choose to keep will appear here.'}</p>
+          <p>{({ IT: 'Qui ritroverai le schede che vorrai tenere con te.', EN: 'The pages you choose to keep will appear here.', FR: 'Ici vous trouverez les fiches que vous souhaitez conserver.', DE: 'Hier finden Sie die Seiten, die Sie aufbewahren möchten.', ES: 'Aquí encontrarás las fichas que quieras conservar.', PT: 'Aqui você encontrará as páginas que deseja manter.' }[lingua] || 'The pages you choose to keep will appear here.')}</p>
         </div>
       ) : (
         <ol className="saved-cards-list">
@@ -996,8 +996,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 type="button"
                 className="saved-card-remove"
                 onClick={() => removeSavedCard(item.id)}
-                aria-label={`${lingua === 'IT' ? 'Rimuovi' : 'Remove'} ${item.title}`}
-                title={lingua === 'IT' ? 'Rimuovi' : 'Remove'}
+                aria-label={`${{ IT: 'Rimuovi', EN: 'Remove', FR: 'Supprimer', DE: 'Entfernen', ES: 'Eliminar', PT: 'Remover' }[lingua] || 'Remove'} ${item.title}`}
+                title={{ IT: 'Rimuovi', EN: 'Remove', FR: 'Supprimer', DE: 'Entfernen', ES: 'Eliminar', PT: 'Remover' }[lingua] || 'Remove'}
               >
                 <X aria-hidden="true" />
               </button>
@@ -1005,7 +1005,16 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           ))}
         </ol>
       )}
-      <footer>{lingua === 'IT' ? `${savedCards.length} ${savedCards.length === 1 ? 'scheda custodita' : 'schede custodite'}` : `${savedCards.length} saved`}</footer>
+      <footer>{
+        {
+          IT: `${savedCards.length} ${savedCards.length === 1 ? 'scheda custodita' : 'schede custodite'}`,
+          EN: `${savedCards.length} saved ${savedCards.length === 1 ? 'item' : 'items'}`,
+          FR: `${savedCards.length} ${savedCards.length === 1 ? 'fiche gardée' : 'fiches gardées'}`,
+          DE: `${savedCards.length} ${savedCards.length === 1 ? 'gespeicherte Seite' : 'gespeicherte Seiten'}`,
+          ES: `${savedCards.length} ${savedCards.length === 1 ? 'ficha guardada' : 'fichas guardadas'}`,
+          PT: `${savedCards.length} ${savedCards.length === 1 ? 'página salva' : 'páginas salvas'}`
+        }[lingua] || `${savedCards.length} saved`
+      }</footer>
     </aside>,
     document.body
   ) : null;
@@ -1103,7 +1112,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
               }`}
               aria-label="Archivio"
-              data-tooltip={lingua === 'IT' ? 'Archivio' : 'Archive'}
+              data-tooltip={{ IT: 'Archivio', EN: 'Archive', FR: 'Archives', DE: 'Archiv', ES: 'Archivo', PT: 'Arquivo' }[lingua] || 'Archive'}
               aria-expanded={popoverOpen}
               aria-haspopup="true"
             >
@@ -1124,8 +1133,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                   : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
             }`}
-            aria-label={lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}
-            data-tooltip={lingua === 'IT' ? 'Cose custodite' : 'Saved'}
+            aria-label={{ IT: 'Cose custodite', EN: 'Saved pages', FR: 'Pages sauvegardées', DE: 'Gespeicherte Seiten', ES: 'Páginas guardadas', PT: 'Páginas salvas' }[lingua] || 'Saved pages'}
+            data-tooltip={{ IT: 'Cose custodite', EN: 'Saved', FR: 'Pages sauvegardées', DE: 'Gespeichert', ES: 'Guardado', PT: 'Salvo' }[lingua] || 'Saved'}
             aria-expanded={savedDrawerOpen}
             aria-haspopup="dialog"
           >
@@ -1140,7 +1149,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
             }`}
             aria-label="Cambia tema"
-            data-tooltip={lingua === 'IT' ? 'Tema' : 'Theme'}
+            data-tooltip={{ IT: 'Tema', EN: 'Theme', FR: 'Thème', DE: 'Thema', ES: 'Tema', PT: 'Tema' }[lingua] || 'Theme'}
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
@@ -1164,7 +1173,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 >
                   <Languages className="h-4 w-4" />
                   <div className="flex items-center justify-between w-full pr-1">
-                    <span>{lingua === 'IT' ? 'Lingua' : 'Language'}</span>
+                    <span>{{ IT: 'Lingua', EN: 'Language', FR: 'Langue', DE: 'Sprache', ES: 'Idioma', PT: 'Idioma' }[lingua] || 'Language'}</span>
                     <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
                       {lingua}
                       <ChevronRight className="w-3 h-3 text-[#DE6B58]" />
@@ -1183,7 +1192,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     aria-haspopup="dialog"
                   >
                     <CalendarDays className="h-4 w-4" />
-                    <span>{lingua === 'IT' ? 'Archivio' : 'Archive'}</span>
+                    <span>{{ IT: 'Archivio', EN: 'Archive', FR: 'Archives', DE: 'Archiv', ES: 'Archivo', PT: 'Arquivo' }[lingua] || 'Archive'}</span>
                   </button>
                 )}
                 <button
@@ -1197,7 +1206,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   aria-haspopup="dialog"
                 >
                   {savedCards.length > 0 ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-                  <span>{lingua === 'IT' ? 'Cose custodite' : 'Saved pages'}</span>
+                  <span>{{ IT: 'Cose custodite', EN: 'Saved pages', FR: 'Pages sauvegardées', DE: 'Gespeicherte Seiten', ES: 'Páginas guardadas', PT: 'Páginas salvas' }[lingua] || 'Saved pages'}</span>
                 </button>
                 <button
                   type="button"
@@ -1205,10 +1214,10 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     setMobileToolsOpen(false);
                     window.dispatchEvent(new Event(TICKET_DOWNLOAD_EVENT));
                   }}
-                  aria-label={lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}
+                  aria-label={{ IT: 'Scarica il biglietto', EN: 'Download ticket', FR: 'Télécharger le billet', DE: 'Ticket herunterladen', ES: 'Descargar billete', PT: 'Descarregar bilhete' }[lingua] || 'Download ticket'}
                 >
                   <FileDown className="h-4 w-4" />
-                  <span>{lingua === 'IT' ? 'Scarica il biglietto' : 'Download ticket'}</span>
+                  <span>{{ IT: 'Scarica il biglietto', EN: 'Download ticket', FR: 'Télécharger le billet', DE: 'Ticket herunterladen', ES: 'Descargar billete', PT: 'Descarregar bilhete' }[lingua] || 'Download ticket'}</span>
                 </button>
                 <button
                   type="button"
@@ -1218,7 +1227,16 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   }}
                 >
                   {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                  <span>{lingua === 'IT' ? (isDark ? 'Tema chiaro' : 'Tema scuro') : (isDark ? 'Light theme' : 'Dark theme')}</span>
+                  <span>{
+                    {
+                      IT: isDark ? 'Tema chiaro' : 'Tema scuro',
+                      EN: isDark ? 'Light theme' : 'Dark theme',
+                      FR: isDark ? 'Thème clair' : 'Thème sombre',
+                      DE: isDark ? 'Helles Thema' : 'Dunkles Thema',
+                      ES: isDark ? 'Tema claro' : 'Tema oscuro',
+                      PT: isDark ? 'Tema claro' : 'Tema escuro'
+                    }[lingua] || (isDark ? 'Light theme' : 'Dark theme')
+                  }</span>
                 </button>
               </div>
             ) : (
@@ -1231,10 +1249,10 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   <ChevronLeft className="h-4 w-4 text-[#DE6B58]" />
                   <div className="flex items-center justify-between w-full pr-1">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A817C] dark:text-[#A0A0A0] not-italic font-sans">
-                      {lingua === 'IT' ? 'Lingua' : 'Language'}
+                      {{ IT: 'Lingua', EN: 'Language', FR: 'Langue', DE: 'Sprache', ES: 'Idioma', PT: 'Idioma' }[lingua] || 'Language'}
                     </span>
                     <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
-                      {lingua === 'IT' ? 'Indietro' : 'Back'}
+                      {{ IT: 'Indietro', EN: 'Back', FR: 'Retour', DE: 'Zurück', ES: 'Atrás', PT: 'Voltar' }[lingua] || 'Back'}
                     </span>
                   </div>
                 </button>
@@ -1264,7 +1282,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             ref={mobileToolsTriggerRef}
             type="button"
             className="mobile-tools-trigger"
-            aria-label={lingua === 'IT' ? 'Apri strumenti' : 'Open tools'}
+            aria-label={{ IT: 'Apri strumenti', EN: 'Open tools', FR: 'Ouvrir les outils', DE: 'Werkzeuge öffnen', ES: 'Abrir herramientas', PT: 'Abrir ferramentas' }[lingua] || 'Open tools'}
             aria-expanded={mobileToolsOpen}
             aria-controls="mobile-tools-menu"
             onClick={() => {
@@ -1277,7 +1295,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           </button>
         </div>
         <span className="sr-only" role="status" aria-live="polite">
-          {isTurningPage ? (lingua === 'IT' ? 'Cambio giorno in corso' : 'Changing day') : ''}
+          {isTurningPage ? ({ IT: 'Cambio giorno in corso', EN: 'Changing day', FR: 'Changement de jour...', DE: 'Tag wird gewechselt...', ES: 'Cambiando de día...', PT: 'Alterando o dia...' }[lingua] || 'Changing day') : ''}
         </span>
         {isTurningPage && (
           <div
@@ -1407,9 +1425,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           >
             {data.breve_descrizione}
           </p>
-          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={lingua === 'IT' ? 'Il filo del giorno' : 'The thread of the day'}>
+          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={{ IT: 'Il filo del giorno', EN: 'The thread of the day', FR: 'Le fil du jour', DE: 'Der Faden des Tages', ES: 'El hilo del día', PT: 'O fio do dia' }[lingua] || 'The thread of the day'}>
             <span className="daily-thread-line" aria-hidden="true" />
-            <span className="daily-thread-label">{lingua === 'IT' ? 'Il filo di oggi:' : "Today's thread:"}</span>
+            <span className="daily-thread-label">{{ IT: 'Il filo di oggi:', EN: "Today's thread:", FR: 'Le fil d’aujourd’hui :', DE: 'Der Faden von heute:', ES: 'El hilo de hoy:', PT: 'O fio de hoje:' }[lingua] || "Today's thread:"}</span>
             <strong className={`${caveat.className} daily-thread-theme`}>
               <span>{data.parola_giorno.parola}</span>
             </strong>
@@ -1429,7 +1447,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         className="scroll-mt-28"
         filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
         isSaved={isCardSaved('citazione')}
-        onToggleSaved={() => saveCard('citazione', `${lingua === 'IT' ? 'Citazione di' : 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
+        onToggleSaved={() => saveCard('citazione', `${{ IT: 'Citazione di', EN: 'Quote by', FR: 'Citation de', DE: 'Zitat von', ES: 'Cita de', PT: 'Citação de' }[lingua] || 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
       >
         <blockquote className="quote-editorial md:px-8">
           <EditorialQuoteText text={data.citazione.testo} />
@@ -1448,7 +1466,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           className={`author-share-trigger ${isDark ? 'is-dark' : ''}`}
         >
           <Sparkles className="h-3.5 w-3.5" />
-          {lingua === 'IT' ? 'Esporta come immagine' : 'Export as image'}
+          {{ IT: 'Esporta come immagine', EN: 'Export as image', FR: 'Exporter comme image', DE: 'Als Bild exportieren', ES: 'Exportar como imagen', PT: 'Exportar como imagem' }[lingua] || 'Export as image'}
         </button>
       )}
     </div>
@@ -1463,9 +1481,14 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     >
       <div className="pt-1 pb-1">
         <p className={`author-export-note ${themeClasses.textMuted} ${showExportCard ? 'opacity-100' : 'opacity-0'}`}>
-          {lingua === 'IT'
-            ? 'Anteprima della card da condividere (formato 9:16)'
-            : 'Preview of the shareable card (9:16 format)'}
+          {{
+            IT: 'Anteprima della card da condividere (formato 9:16)',
+            EN: 'Preview of the shareable card (9:16 format)',
+            FR: 'Aperçu de la carte à partager (format 9:16)',
+            DE: 'Vorschau der teilbaren Karte (Format 9:16)',
+            ES: 'Vista previa de la tarjeta para compartir (formato 9:16)',
+            PT: 'Visualização do cartão a partilhar (formato 9:16)'
+          }[lingua] || 'Preview of the shareable card (9:16 format)'}
         </p>
         <div className={`author-export-shell ${isDark ? 'is-dark' : ''}`}>
           <AuthorExportCard
@@ -1477,8 +1500,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             dataIso={dataExLibris}
             isDark={isDark}
             onHidePreview={() => setShowExportCard(false)}
-            hidePreviewLabel={lingua === 'IT' ? 'Nascondi' : 'Hide'}
-            saveImageLabel={lingua === 'IT' ? 'Salva' : 'Save'}
+            hidePreviewLabel={t('hide', lingua)}
+            saveImageLabel={t('save', lingua)}
             lingua={lingua}
           />
         </div>
@@ -1497,7 +1520,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
                 <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
-              <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{lingua === 'IT' ? 'Definizione' : 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
+              <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{{ IT: 'Definizione', EN: 'Definition', FR: 'Définition', DE: 'Definition', ES: 'Definición', PT: 'Definição' }[lingua] || 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
               {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
                 <p className={`text-lg font-medium italic quote-example-note ${isDark ? 'is-dark' : ''}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
               )}
@@ -1541,13 +1564,13 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     rel="noopener noreferrer"
                     className="saint-card-credit"
                     aria-label={[
-                      lingua === 'IT' ? 'Fonte iconografica' : 'Artwork source',
+                      { IT: 'Fonte iconografica', EN: 'Artwork source', FR: 'Source de l’œuvre', DE: 'Quelle des Kunstwerks', ES: 'Fuente de la obra', PT: 'Fonte da obra' }[lingua] || 'Artwork source',
                       visibleSaintArtwork.title,
                       visibleSaintArtwork.author,
                       visibleSaintArtwork.license,
                     ].filter(Boolean).join(': ')}
                   >
-                    {lingua === 'IT' ? 'Iconografia' : 'Artwork'}: {visibleSaintArtwork.source === 'met' ? 'The Met' : 'Wikimedia Commons'} · {visibleSaintArtwork.license}
+                    {{ IT: 'Iconografia', EN: 'Artwork', FR: 'Iconographie', DE: 'Kunstwerk', ES: 'Iconografía', PT: 'Obra de arte' }[lingua] || 'Artwork'}: {visibleSaintArtwork.source === 'met' ? 'The Met' : 'Wikimedia Commons'} · {visibleSaintArtwork.license}
                   </a>
                 ) : null}
               </div>
@@ -1585,7 +1608,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               </div>
               {data.poesia.nota && (
                 <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
-                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Perché questa scelta' : 'Why this choice'}</span>
+                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Perché questa scelta', EN: 'Why this choice', FR: 'Pourquoi ce choix', DE: 'Warum diese Wahl', ES: '¿Por qué esta elección?', PT: 'Por que esta escolha' }[lingua] || 'Why this choice'}</span>
                   {data.poesia.nota}
                 </div>
               )}
@@ -1604,7 +1627,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               </div>
               {data.bibbia.nota && (
                 <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
-                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{lingua === 'IT' ? 'Il senso del passaggio' : 'The meaning of the passage'}</span>
+                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Il senso del passaggio', EN: 'The meaning of the passage', FR: 'Le sens du passage', DE: 'Die Bedeutung der Passage', ES: 'El sentido del pasaje', PT: 'O sentido da passagem' }[lingua] || 'The meaning of the passage'}</span>
                   {data.bibbia.nota}
                 </div>
               )}
@@ -1626,14 +1649,14 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   <div className="opera-postcard-copy space-y-5 order-2 md:order-1">
                     <div>
                       <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
-                      <p className="card-byline text-xl font-medium">{lingua === 'IT' ? 'di' : 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
+                      <p className="card-byline text-xl font-medium">{{ IT: 'di', EN: 'by', FR: 'par', DE: 'von', ES: 'de', PT: 'de' }[lingua] || 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
                     {(operaMedium || operaDepartment) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[operaMedium, operaDepartment].filter(Boolean).join(' · ')}</p>}
                     {operaSourceUrl && (
                       <div className="flex flex-wrap items-center gap-4 pt-1">
                         <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
                           <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
-                          <span>{lingua === 'IT' ? 'Vedi al museo' : 'View at the museum'}</span>
+                          <span>{{ IT: 'Vedi al museo', EN: 'View at the museum', FR: 'Voir au musée', DE: 'Im Museum ansehen', ES: 'Ver en el museo', PT: 'Ver no museu' }[lingua] || 'View at the museum'}</span>
                         </a>
                       </div>
                     )}
@@ -1659,7 +1682,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                         />
                       ) : null}
                       <span className="opera-postcard-source-label">
-                        {lingua === 'IT' ? 'Fonte' : 'Source'}: {opera.museo}
+                        {{ IT: 'Fonte', EN: 'Source', FR: 'Source', DE: 'Quelle', ES: 'Fuente', PT: 'Fonte' }[lingua] || 'Source'}: {opera.museo}
                         {opera.rights ? ` · ${opera.rights}` : ''}
                       </span>
                     </a>
@@ -1734,7 +1757,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
                   <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
                   <p className="card-byline text-xl font-medium mb-2">
-                    {lingua === 'IT' ? 'di' : 'by'}{' '}
+                    {{ IT: 'di', EN: 'by', FR: 'par', DE: 'von', ES: 'de', PT: 'de' }[lingua] || 'by'}{' '}
                     <span className="font-bold">{data.musica.autore}</span>
                   </p>
                   <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
@@ -1804,7 +1827,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                       />
                     </div>
                     <p className={`text-xl font-medium italic ${isDark ? 'text-[#A0A0A0]' : 'text-[#7D7571]'} animate-pulse`}>
-                      {lingua === 'IT' ? 'Osservo le stelle...' : 'Observing the stars...'}
+                      {{ IT: 'Osservo le stelle...', EN: 'Observing the stars...', FR: 'J’observe les étoiles...', DE: 'Sterne beobachten...', ES: 'Observando las estrellas...', PT: 'Observando as estrelas...' }[lingua] || 'Observing the stars...'}
                     </p>
                   </div>
                 ) : (
@@ -1824,7 +1847,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-sm text-neutral-400 italic">
-                                  {lingua === 'IT' ? 'Anteprima video non disponibile' : 'Video preview not available'}
+                                  {{ IT: 'Anteprima video non disponibile', EN: 'Video preview not available', FR: 'Aperçu vidéo non disponible', DE: 'Videovorschau nicht verfügbar', ES: 'Vista previa de video no disponible', PT: 'Visualização do vídeo não disponível' }[lingua] || 'Video preview not available'}
                                 </div>
                               )}
                               <div className="absolute inset-0 flex items-center justify-center bg-black/25">
@@ -1855,7 +1878,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                           </h4>
                           {apod.copyright && (
                             <p className="card-byline text-lg font-medium mb-4">
-                              {lingua === 'IT' ? 'Crediti:' : 'Credit:'}{' '}
+                              {{ IT: 'Crediti:', EN: 'Credit:', FR: 'Crédit :', DE: 'Bildnachweis:', ES: 'Crédito:', PT: 'Créditos:' }[lingua] || 'Credit:'}{' '}
                               <span className="font-bold">{apod.copyright}</span>
                             </p>
                           )}
@@ -1883,8 +1906,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                           >
                             <span>
                               {isApodExpanded 
-                                ? (lingua === 'IT' ? 'Mostra meno' : 'Show less') 
-                                : (lingua === 'IT' ? 'Leggi tutto' : 'Read more')}
+                                ? ({ IT: 'Mostra meno', EN: 'Show less', FR: 'Voir moins', DE: 'Weniger anzeigen', ES: 'Mostrar menos', PT: 'Mostrar menos' }[lingua] || 'Show less') 
+                                : ({ IT: 'Leggi tutto', EN: 'Read more', FR: 'Lire la suite', DE: 'Mehr lesen', ES: 'Leer más', PT: 'Ler mais' }[lingua] || 'Read more')}
                             </span>
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isApodExpanded ? 'rotate-180' : ''}`} />
                           </button>

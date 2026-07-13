@@ -59,9 +59,9 @@ export default function DailyPassport({
         <div>
           <span className="daily-passport-kicker">
             <Stamp className="h-4 w-4" strokeWidth={1.6} aria-hidden="true" />
-            {lingua === 'IT' ? 'Da conservare' : 'Keepsake'}
+            {t('keepsake', lingua)}
           </span>
-          <h2 id="daily-passport-title">{lingua === 'IT' ? 'Anteprima del passaporto' : 'Passport preview'}</h2>
+          <h2 id="daily-passport-title">{t('passportPreview', lingua)}</h2>
           <p>{label.subtitle}</p>
         </div>
         <div className="daily-passport-actions">

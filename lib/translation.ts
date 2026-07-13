@@ -282,3 +282,25 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
 export function t(key: keyof typeof UI_TRANSLATIONS, lingua: LanguageCode): string {
   return UI_TRANSLATIONS[key]?.[lingua] ?? UI_TRANSLATIONS[key]?.['EN'] ?? '';
 }
+
+const SECTION_KEY_MAP: Record<string, keyof typeof UI_TRANSLATIONS> = {
+  autore: 'author',
+  citazione: 'quote',
+  parola: 'word',
+  santi: 'saintsTitle',
+  opera: 'artworkTitle',
+  avvenimenti: 'eventsTitle',
+  poesia: 'poemTitle',
+  bibbia: 'bibleTitle',
+  apod: 'apodCard',
+  musica: 'musicTitle'
+};
+
+export function getSectionLabel(id: string, lingua: LanguageCode, fallbackIT: string, fallbackEN: string): string {
+  const key = SECTION_KEY_MAP[id];
+  if (key) {
+    const translation = t(key, lingua);
+    if (translation) return translation;
+  }
+  return lingua === 'IT' ? fallbackIT : fallbackEN;
+}
