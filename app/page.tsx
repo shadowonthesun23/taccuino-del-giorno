@@ -769,8 +769,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
   const themeClasses = {
     bg: isDark ? 'bg-[#171614]' : 'bg-[#F8F6F0]',
-    text: isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]',
-    textMuted: isDark ? 'text-[#A0A0A0]' : 'text-[#8A817C]',
+    text: isDark ? 'text-[#D2C9B9]' : 'text-[#2A2522]',
+    textMuted: isDark ? 'text-[#9B9285]' : 'text-[#8A817C]',
     border: isDark ? 'border-white/10' : 'border-[#EBE5DB]',
     highlightBg: isDark ? 'bg-[#2A2A2A]/80' : 'bg-[#F4F0E6]/60',
     selection: isDark ? 'selection:bg-[#DE6B58] selection:text-[#1E1E1E]' : 'selection:bg-[#DE6B58] selection:text-[#FDFCF8]',
@@ -929,7 +929,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                         <button onClick={() => { if (!isSelezionato) caricaGiorno(item.data, Boolean(data)); else setPopoverOpen(false); }}
                           aria-label={`${item.autore_giorno}, ${formatDataItaliana(item.data)}${isVisited ? ', già consultato' : ''}`}
                           className={`archive-entry ${
-                            isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#E0E0E0]' : 'text-[#2A2522]'
+                            isSelezionato ? 'is-selected text-[#DE6B58]' : isDark ? 'text-[#D2C9B9]' : 'text-[#2A2522]'
                           } ${isOggi ? 'is-today' : ''} ${isVisited ? 'is-visited' : ''}`}
                           style={{ '--archive-entry-delay': `${80 + Math.min(index, 7) * 34}ms` } as CSSProperties}>
                           <span className="archive-entry-mark" aria-hidden="true">
@@ -1886,21 +1886,17 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                             </p>
                           )}
                           <div className="relative">
-                            <p className={`card-body-copy text-xl font-medium leading-relaxed mb-1 whitespace-pre-line transition-all duration-300 ${
-                              !isApodExpanded ? 'max-h-[220px] overflow-hidden' : ''
-                            }`}>
+                            <p 
+                              className={`card-body-copy text-xl font-medium leading-relaxed mb-1 whitespace-pre-line transition-all duration-300 ${
+                                !isApodExpanded ? 'max-h-[220px] overflow-hidden' : ''
+                              }`}
+                              style={!isApodExpanded ? {
+                                WebkitMaskImage: 'linear-gradient(to bottom, black 120px, transparent 220px)',
+                                maskImage: 'linear-gradient(to bottom, black 120px, transparent 220px)'
+                              } : undefined}
+                            >
                               {lingua === 'IT' ? apod.explanation_it : apod.explanation_en}
                             </p>
-                            {!isApodExpanded && (
-                              <div 
-                                className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"
-                                style={{
-                                  backgroundImage: isDark
-                                    ? 'linear-gradient(to top, #2A2A2A 0%, rgba(42, 42, 42, 0) 100%)'
-                                    : 'linear-gradient(to top, #FDFCF8 0%, rgba(253, 252, 248, 0) 100%)'
-                                }}
-                              />
-                            )}
                           </div>
                           
                           <button

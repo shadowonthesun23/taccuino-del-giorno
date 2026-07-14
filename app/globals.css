@@ -117,7 +117,7 @@
 :root.dark,
 :root[data-theme="dark"] {
   --background: #171614;
-  --foreground: #E0E0E0;
+  --foreground: #D2C9B9;
   --browser-surface: #171614;
   --badge-shadow-color: rgba(0, 0, 0, 0.5);
   --badge-ambient-shadow: rgba(0, 0, 0, 0.35);
@@ -1145,7 +1145,7 @@ body {
 
 .dark .decorative-initial,
 [data-theme="dark"] .decorative-initial {
-  color: #f7f4ed;
+  color: #D2C9B9;
 }
 
 .decorative-initial-copy {
@@ -1159,7 +1159,7 @@ body {
   background-image:
     radial-gradient(circle at 16% 13%, rgba(122, 94, 62, 0.036), transparent 25%),
     radial-gradient(circle at 84% 78%, rgba(122, 94, 62, 0.028), transparent 22%),
-    linear-gradient(176deg, rgba(255,255,255,0.42), transparent 42%);
+    linear-gradient(135deg, #FFFDF6 0%, #EFE9D9 100%);
   border-color: rgba(181, 149, 106, 0.16) !important;
   border-radius: 13px 10px 17px 11px !important;
   isolation: isolate;
@@ -1184,17 +1184,29 @@ body {
   --card-hover-edge: rgba(222,107,88,0.62);
   --card-hover-edge-soft: rgba(231,203,172,0.06);
   --card-hover-wash: rgba(255,231,200,0.04);
-  background-color: rgba(40, 35, 30, 0.97) !important;
+  background-color: #0E0D0C !important;
   background-image:
-    radial-gradient(circle at 14% 12%, rgba(255, 214, 166, 0.052), transparent 25%),
-    radial-gradient(circle at 82% 76%, rgba(255, 214, 166, 0.03), transparent 22%),
-    linear-gradient(176deg, rgba(255,255,255,0.06), transparent 42%);
-  border-color: rgba(231, 203, 172, 0.13) !important;
+    radial-gradient(circle at 14% 12%, rgba(255, 214, 166, 0.02), transparent 25%),
+    radial-gradient(circle at 82% 76%, rgba(255, 214, 166, 0.012), transparent 22%),
+    linear-gradient(135deg, #0E0D0C 0%, #24201D 100%);
+  border-color: transparent !important;
   box-shadow:
-    0 20px 46px -34px rgba(0,0,0,0.62),
-    0 5px 14px -12px rgba(0,0,0,0.42),
-    inset 0 1px 0 rgba(255,255,255,0.055),
-    inset 0 -1px 0 rgba(0,0,0,0.18);
+    0 20px 46px -34px rgba(0,0,0,0.85),
+    0 5px 14px -12px rgba(0,0,0,0.65),
+    inset 0 1px 0 rgba(0,0,0,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.4);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dark .card-paper-shadow:hover,
+  [data-theme="dark"] .card-paper-shadow:hover {
+    border-color: transparent !important;
+    box-shadow:
+      0 25px 52px -34px rgba(0,0,0,0.9),
+      0 8px 18px -13px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(0,0,0,0.25),
+      inset 0 -1px 0 rgba(0,0,0,0.4) !important;
+  }
 }
 
 .card-paper-shadow > * {
@@ -2938,6 +2950,11 @@ body {
 
 .section-typewriter-badge svg {
   color: #E5B869 !important;
+}
+
+.dark .section-typewriter-badge span:not(.badge-tape-bg),
+[data-theme="dark"] .section-typewriter-badge span:not(.badge-tape-bg) {
+  color: #D2C9B9 !important;
 }
 
 .section-typewriter-badge.badge-tilt-left {
@@ -6315,7 +6332,7 @@ body {
 }
 
 .journal-footer.is-dark .journal-footer-title {
-  color: #e0e0e0;
+  color: #D2C9B9;
   text-shadow: 0 2px 8px rgba(0,0,0,0.48);
 }
 
@@ -6331,7 +6348,7 @@ body {
 }
 
 .journal-footer.is-dark .journal-footer-note {
-  color: #c8c8c8;
+  color: #9B9285;
   text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
@@ -8675,6 +8692,16 @@ body {
   pointer-events: none !important;
   transform: translateY(20px) !important;
   transition: opacity 400ms ease, transform 400ms ease !important;
+}
+
+/* Paper Shader Canvas fallback styling */
+[data-paper-shader] canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1 !important;
+  display: block !important;
 }
 
 
