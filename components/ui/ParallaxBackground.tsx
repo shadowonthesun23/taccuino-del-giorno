@@ -149,9 +149,18 @@ export default function ParallaxBackground({
   const lineArtRef = useRef<HTMLDivElement>(null);
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const seasonalCaptionRef = useRef<HTMLElement>(null);
+  const mainArtworkRef = useRef<HTMLDivElement>(null);
+  const mainArtworkImgRef = useRef<HTMLImageElement>(null);
   const [dark, setDark] = useState(false);
   const [isArtworkSolo, setIsArtworkSolo] = useState(false);
   const [isExitingSolo, setIsExitingSolo] = useState(false);
+  const [isArtworkZoomed, setIsArtworkZoomed] = useState(false);
+  const [isPanningReady, setIsPanningReady] = useState(false);
+  const [zoomStyles, setZoomStyles] = useState<React.CSSProperties>({});
+  const zoomScaleRef = useRef(1);
+  const zoomTranslateRef = useRef({ x: 0, y: 0 });
+  const overflowRef = useRef({ w: 0, h: 0 });
+  const panningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevSolo = useRef(isArtworkSolo);
   const prevSoloForTransition = useRef(isArtworkSolo);
 
@@ -160,11 +169,170 @@ export default function ParallaxBackground({
       setIsExitingSolo(true);
       const timer = setTimeout(() => {
         setIsExitingSolo(false);
-      }, 600);
+      }, 900);
       return () => clearTimeout(timer);
     }
     prevSoloForTransition.current = isArtworkSolo;
   }, [isArtworkSolo]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (panningTimeoutRef.current) {
+        clearTimeout(panningTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Escape key close zoom
+  useEffect(() => {
+    if (!isArtworkZoomed) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (panningTimeoutRef.current) {
+          clearTimeout(panningTimeoutRef.current);
+          panningTimeoutRef.current = null;
+        }
+        setIsArtworkZoomed(false);
+        setIsPanningReady(false);
+        setZoomStyles({});
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isArtworkZoomed]);
+
+  // Resize close zoom
+  useEffect(() => {
+    if (!isArtworkZoomed) return;
+
+    const handleResize = () => {
+      if (panningTimeoutRef.current) {
+        clearTimeout(panningTimeoutRef.current);
+        panningTimeoutRef.current = null;
+      }
+      setIsArtworkZoomed(false);
+      setIsPanningReady(false);
+      setZoomStyles({});
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isArtworkZoomed]);
+
+  // Reset zoom if exiting solo mode
+  useEffect(() => {
+    if (!isArtworkSolo && isArtworkZoomed) {
+      if (panningTimeoutRef.current) {
+        clearTimeout(panningTimeoutRef.current);
+        panningTimeoutRef.current = null;
+      }
+      setIsArtworkZoomed(false);
+      setIsPanningReady(false);
+      setZoomStyles({});
+    }
+  }, [isArtworkSolo, isArtworkZoomed]);
+
+  // PointerMove Listener (Mouse Panning details)
+  useEffect(() => {
+    if (!isArtworkZoomed || !isPanningReady) return;
+
+    const handlePointerMove = (e: PointerEvent) => {
+      const row = document.querySelector('.museum-paintings-row') as HTMLElement;
+      if (!row) return;
+
+      const viewportHalfW = window.innerWidth / 2;
+      const viewportHalfH = window.innerHeight / 2;
+
+      // Relative position from center (-1 to 1)
+      const relX = (e.clientX - viewportHalfW) / viewportHalfW;
+      const relY = (e.clientY - viewportHalfH) / viewportHalfH;
+
+      // Clamp coordinates to [-1, 1]
+      const clampedX = Math.max(-1, Math.min(1, relX));
+      const clampedY = Math.max(-1, Math.min(1, relY));
+
+      // Calculate pan offsets based on image overflow
+      const panX = -clampedX * (overflowRef.current.w / 2);
+      const panY = -clampedY * (overflowRef.current.h / 2);
+
+      // Combine base translation and pan offset
+      const tx = zoomTranslateRef.current.x + panX;
+      const ty = zoomTranslateRef.current.y + panY;
+      const s = zoomScaleRef.current;
+
+      row.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${s})`;
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    return () => window.removeEventListener('pointermove', handlePointerMove);
+  }, [isArtworkZoomed, isPanningReady]);
+
+  const toggleZoom = () => {
+    if (!isArtworkSolo) return;
+
+    if (panningTimeoutRef.current) {
+      clearTimeout(panningTimeoutRef.current);
+      panningTimeoutRef.current = null;
+    }
+
+    if (!isArtworkZoomed) {
+      const img = mainArtworkImgRef.current;
+      const frame = mainArtworkRef.current;
+      if (img && frame) {
+        const imgRect = img.getBoundingClientRect();
+        const frameRect = frame.getBoundingClientRect();
+
+        const computedStyle = window.getComputedStyle(img);
+        const pt = parseFloat(computedStyle.paddingTop) || 0;
+        const pb = parseFloat(computedStyle.paddingBottom) || 0;
+        const pl = parseFloat(computedStyle.paddingLeft) || 0;
+        const pr = parseFloat(computedStyle.paddingRight) || 0;
+
+        const canvasWidth = imgRect.width - (pl + pr);
+        const canvasHeight = imgRect.height - (pt + pb);
+
+        const scaleX = window.innerWidth / canvasWidth;
+        const scaleY = window.innerHeight / canvasHeight;
+        
+        // Fit screen (Math.min) and add 15% extra for panning details
+        const scale = Math.min(scaleX, scaleY) * 1.15;
+        zoomScaleRef.current = scale;
+
+        // Calculate overflow
+        const overflowW = (canvasWidth * scale) - window.innerWidth;
+        const overflowH = (canvasHeight * scale) - window.innerHeight;
+        overflowRef.current = {
+          w: Math.max(0, overflowW),
+          h: Math.max(0, overflowH),
+        };
+
+        const viewportCenterX = window.innerWidth / 2;
+        const viewportCenterY = window.innerHeight / 2;
+
+        const frameCenterX = frameRect.left + frameRect.width / 2;
+        const frameCenterY = frameRect.top + frameRect.height / 2;
+
+        const translateX = viewportCenterX - frameCenterX;
+        const translateY = viewportCenterY - frameCenterY;
+        zoomTranslateRef.current = { x: translateX, y: translateY };
+
+        setZoomStyles({
+          transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+        });
+
+        // Set timeout to enable panning after the transition is complete
+        panningTimeoutRef.current = setTimeout(() => {
+          setIsPanningReady(true);
+        }, 1200);
+      }
+      setIsArtworkZoomed(true);
+    } else {
+      setIsPanningReady(false);
+      setZoomStyles({});
+      setIsArtworkZoomed(false);
+    }
+  };
 
   const bgColor = dark ? '#171614' : '#F8F6F0';
   const imageOpacity = dark ? 0.102 : 0.13;
@@ -444,17 +612,23 @@ export default function ParallaxBackground({
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
 
-      targets.forEach(el => {
-        el.classList.remove('solo-go-up', 'solo-go-down');
-      });
+      // Delay the return of the home page elements until the museum room has faded out (350ms)
+      const timer1 = setTimeout(() => {
+        targets.forEach(el => {
+          el.classList.remove('solo-go-up', 'solo-go-down');
+        });
+      }, 350);
 
-      const timer = setTimeout(() => {
+      const timer2 = setTimeout(() => {
         targets.forEach(el => {
           el.classList.remove('solo-transition');
         });
-      }, 800);
+      }, 1150);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
 
     return () => {
@@ -490,7 +664,7 @@ export default function ParallaxBackground({
             backgroundPosition: seasonalArtwork.revealPosition,
             transition: isArtworkSolo 
               ? 'opacity 360ms ease-out' 
-              : 'opacity 550ms ease-out',
+              : 'opacity 400ms ease-in-out 350ms',
             opacity: isArtworkSolo ? 1 : 0,
             maskImage: (isArtworkSolo || isExitingSolo) ? 'none' : undefined,
             WebkitMaskImage: (isArtworkSolo || isExitingSolo) ? 'none' : undefined,
@@ -504,7 +678,10 @@ export default function ParallaxBackground({
               isArtworkSolo ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             style={{
-              transition: isArtworkSolo ? 'opacity 500ms ease-out' : 'opacity 300ms ease-out 250ms',
+              transition: isArtworkSolo 
+                ? 'opacity 500ms ease-out, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)' 
+                : 'opacity 400ms ease-out 350ms, transform 400ms ease-out 350ms',
+              transform: isArtworkZoomed ? 'scale(1.08)' : 'scale(1)',
               backgroundColor: '#050505',
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
               backgroundSize: '150px 150px',
@@ -519,8 +696,10 @@ export default function ParallaxBackground({
             }`}
             style={{
               transition: isArtworkSolo 
-                ? 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1) 600ms' 
-                : 'opacity 300ms ease-out',
+                ? 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1) 600ms, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 1200ms ease' 
+                : 'opacity 350ms ease-in, transform 350ms ease-in',
+              transform: isArtworkZoomed ? 'scale(1.15)' : 'scale(1)',
+              opacity: isArtworkZoomed ? 0.25 : undefined,
               backgroundImage: `
                 radial-gradient(circle at 50% 48%, 
                   color-mix(in srgb, ${sealColorHex} 65%, #fffbe6) 0%, 
@@ -535,14 +714,29 @@ export default function ParallaxBackground({
           />
 
           <div
-            className={`museum-frame-container ${isArtworkSolo ? 'is-visible' : ''}`}
-            onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
+            className={`museum-frame-container ${isArtworkSolo ? 'is-visible' : ''} ${isArtworkZoomed ? 'is-zoomed' : ''} ${isPanningReady ? 'is-panning-ready' : ''}`}
+            onClick={isArtworkSolo ? () => {
+              if (isArtworkZoomed) {
+                if (panningTimeoutRef.current) {
+                  clearTimeout(panningTimeoutRef.current);
+                  panningTimeoutRef.current = null;
+                }
+                setIsArtworkZoomed(false);
+                setIsPanningReady(false);
+                setZoomStyles({});
+              } else {
+                setIsArtworkSolo(false);
+              }
+            } : undefined}
             style={{
               transition: isArtworkSolo 
                 ? 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), visibility 600ms'
-                : 'opacity 300ms ease-out 250ms, transform 300ms ease-out 250ms, visibility 300ms 250ms',
+                : 'opacity 400ms ease-out 350ms, transform 400ms ease-out 350ms, visibility 400ms 350ms',
             }}
           >
+            {/* Immersive zoom backdrop */}
+            <div className="museum-zoom-backdrop" />
+
             <div
               className="museum-artwork-wrapper relative"
               onClick={(e) => e.stopPropagation()}
@@ -554,7 +748,10 @@ export default function ParallaxBackground({
               }}
             >
               {/* Paintings row to align side paintings to the exact vertical center of the main painting */}
-              <div className="museum-paintings-row relative w-full flex items-center justify-center z-10">
+              <div 
+                className="museum-paintings-row relative w-full flex items-center justify-center z-10"
+                style={zoomStyles}
+              >
                 {/* Yesterday's Artwork (Left, flat on wall, blurred) */}
                 {yesterdayArtwork && (
                   <div className="museum-side-painting left-side">
@@ -569,37 +766,68 @@ export default function ParallaxBackground({
                   </div>
                 )}
 
-                {/* Today's Main Artwork */}
-                {seasonalArtwork.sourceUrl ? (
-                  <a
-                    href={seasonalArtwork.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="z-10 cursor-pointer"
+                {/* Middle Column Wrapper: main painting + label */}
+                <div className="flex flex-col items-center gap-4 relative z-10">
+                  {/* Today's Main Artwork */}
+                  <div
+                    ref={mainArtworkRef}
+                    onClick={toggleZoom}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleZoom();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    className={`museum-frame-inner relative outline-none focus-visible:ring-2 focus-visible:ring-[#DE6B58] ${getFrameStyleClass(dataIso)}`}
                   >
-                    <div className={`museum-frame-inner relative ${getFrameStyleClass(dataIso)}`}>
-                      <div className="museum-hanging-chain left-chain" />
-                      <div className="museum-hanging-chain right-chain" />
-                      <img
-                        src={seasonalArtwork.imageUrl}
-                        alt={seasonalArtwork.title}
-                        className="museum-frame-image"
-                        draggable={false}
-                      />
-                    </div>
-                  </a>
-                ) : (
-                  <div className={`museum-frame-inner relative z-10 ${getFrameStyleClass(dataIso)}`}>
                     <div className="museum-hanging-chain left-chain" />
                     <div className="museum-hanging-chain right-chain" />
                     <img
+                      ref={mainArtworkImgRef}
                       src={seasonalArtwork.imageUrl}
                       alt={seasonalArtwork.title}
                       className="museum-frame-image"
                       draggable={false}
                     />
                   </div>
-                )}
+
+                  {/* Brass Label is inside here! */}
+                  {seasonalArtwork.sourceUrl ? (
+                    <a
+                      href={seasonalArtwork.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="museum-brass-label relative z-20"
+                      title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
+                    >
+                      <span className="museum-label-screw left" />
+                      <span className="museum-label-screw right" />
+                      <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                      <p className="museum-label-meta">
+                        <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                        {seasonalArtwork.year && (
+                          <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                        )}
+                      </p>
+                      <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                    </a>
+                  ) : (
+                    <div className="museum-brass-label relative z-20">
+                      <span className="museum-label-screw left" />
+                      <span className="museum-label-screw right" />
+                      <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
+                      <p className="museum-label-meta">
+                        <span className="museum-label-artist">{seasonalArtwork.artist}</span>
+                        {seasonalArtwork.year && (
+                          <span className="museum-label-year"> · {seasonalArtwork.year}</span>
+                        )}
+                      </p>
+                      <p className="museum-label-collection">{seasonalArtwork.collection}</p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Tomorrow's Artwork (Right, flat on wall, blurred) */}
                 {tomorrowArtwork && (
@@ -732,39 +960,6 @@ export default function ParallaxBackground({
                 </svg>
               </div>
 
-              {seasonalArtwork.sourceUrl ? (
-                <a
-                  href={seasonalArtwork.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="museum-brass-label relative z-20"
-                  title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
-                >
-                  <span className="museum-label-screw left" />
-                  <span className="museum-label-screw right" />
-                  <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
-                  <p className="museum-label-meta">
-                    <span className="museum-label-artist">{seasonalArtwork.artist}</span>
-                    {seasonalArtwork.year && (
-                      <span className="museum-label-year"> · {seasonalArtwork.year}</span>
-                    )}
-                  </p>
-                  <p className="museum-label-collection">{seasonalArtwork.collection}</p>
-                </a>
-              ) : (
-                <div className="museum-brass-label relative z-20">
-                  <span className="museum-label-screw left" />
-                  <span className="museum-label-screw right" />
-                  <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
-                  <p className="museum-label-meta">
-                    <span className="museum-label-artist">{seasonalArtwork.artist}</span>
-                    {seasonalArtwork.year && (
-                      <span className="museum-label-year"> · {seasonalArtwork.year}</span>
-                    )}
-                  </p>
-                  <p className="museum-label-collection">{seasonalArtwork.collection}</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -773,7 +968,7 @@ export default function ParallaxBackground({
       {hasSeasonalReveal && seasonalArtwork ? (
         <aside
           ref={seasonalCaptionRef}
-          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''} ${isArtworkSolo ? 'is-visible is-solo-mode' : ''}`}
+          className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''} ${isArtworkSolo ? 'is-visible is-solo-mode' : ''} ${isArtworkZoomed ? 'is-zoomed-hidden' : ''}`}
           aria-label={seasonalCaptionLabel}
           data-reveal-readability
           onClick={() => setIsArtworkSolo(prev => !prev)}
@@ -849,7 +1044,7 @@ export default function ParallaxBackground({
           pointerEvents: isArtworkSolo ? 'none' : 'auto',
           transition: isArtworkSolo 
             ? 'opacity 400ms ease-out' 
-            : 'opacity 500ms ease-out 200ms',
+            : 'opacity 500ms ease-out 350ms',
         }}
       >
         {children}

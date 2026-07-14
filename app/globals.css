@@ -417,6 +417,7 @@ img {
   pointer-events: none;
   /* Cast a realistic shadow on the wall */
   filter: drop-shadow(4px 4px 6px rgba(0, 0, 0, 0.7));
+  transition: opacity 500ms ease;
 }
 
 .museum-hanging-chain.left-chain {
@@ -447,6 +448,7 @@ img {
   cursor: default;
   font-family: "IM Fell Double Pica", Georgia, serif !important;
   overflow: hidden;
+  transition: opacity 1200ms ease, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 a.museum-brass-label {
@@ -1328,6 +1330,7 @@ body {
   pointer-events: none;
   z-index: 30; /* Foreground: in front of the label and frame */
   overflow: visible; /* Prevent clipping of blurred edges and extended cords */
+  transition: opacity 1200ms ease, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .museum-stanchions-svg {
@@ -8601,6 +8604,79 @@ body {
   pointer-events: none;
   opacity: 0.15;
 }
+
+/* ── MUSEUM ARTWORK ZOOM EFFECT ── */
+.museum-zoom-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: #080807;
+  transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+}
+
+.museum-frame-container.is-zoomed .museum-zoom-backdrop {
+  opacity: 1 !important;
+}
+
+/* Paintings row transition for approach zoom */
+.museum-paintings-row {
+  transition: transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.museum-frame-container.is-zoomed.is-panning-ready .museum-paintings-row {
+  /* Soft inertia transition for responsive mouse panning */
+  transition: transform 250ms cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+/* Base cursor transition for the main painting wrapper */
+.museum-frame-container .museum-frame-inner {
+  transition: box-shadow 300ms ease;
+}
+
+.museum-frame-container .museum-frame-inner[role="button"] {
+  cursor: zoom-in;
+}
+
+.museum-frame-container.is-zoomed .museum-frame-inner[role="button"] {
+  cursor: zoom-out !important;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.95) !important;
+}
+
+/* Fade out side elements */
+.museum-frame-container.is-zoomed .museum-hanging-chain {
+  opacity: 0 !important;
+  transition: opacity 400ms ease !important;
+}
+
+.museum-frame-container.is-zoomed .museum-side-painting {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 500ms ease !important;
+}
+
+.museum-frame-container.is-zoomed .museum-stanchions {
+  opacity: 0 !important;
+  transform: scale(1.4) translateY(180px) !important;
+  pointer-events: none !important;
+  transition: opacity 500ms ease-out, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.museum-frame-container.is-zoomed .museum-brass-label {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 400ms ease-out !important;
+}
+
+/* Hide caption when zoomed in */
+.seasonal-artwork-caption.is-zoomed-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(20px) !important;
+  transition: opacity 400ms ease, transform 400ms ease !important;
+}
+
 
 
 
