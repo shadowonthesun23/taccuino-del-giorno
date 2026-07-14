@@ -4,12 +4,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import localFont from 'next/font/local';
 import { IM_Fell_Double_Pica } from 'next/font/google';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
-import dynamic from 'next/dynamic';
 
-const PaperTexture = dynamic(
-  () => import('@paper-design/shaders-react').then((m) => m.PaperTexture),
-  { ssr: false }
-);
 
 const stampwriter = localFont({
   src: '../../public/fonts/STAMPWRITER-KIT.ttf',
@@ -293,25 +288,6 @@ export default function Card({
           isDark ? 'bg-[#2A2A2A]/90 border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'
         } border rounded-2xl p-6 md:p-8 card-paper-shadow relative group h-full ${id ? `card-section-${id}` : ''}`}
       >
-        <PaperTexture
-          colorBack={isDark ? '#0E0D0C' : '#FFFDF6'}
-          colorFront={isDark ? '#3A342F' : '#d8d8c0'}
-          contrast={isDark ? 0.12 : 0.21}
-          roughness={isDark ? 0.42 : 0.76}
-          fiber={isDark ? 0.08 : 0.16}
-          fiberSize={0.21}
-          crumples={0}
-          crumpleSize={0.01}
-          folds={0}
-          foldCount={10}
-          drops={0}
-          fade={0}
-          seed={0}
-          scale={0.84}
-          fit="cover"
-          className="absolute pointer-events-none overflow-hidden z-0"
-          style={{ display: 'block', position: 'absolute', top: '1px', left: '1px', right: '1px', bottom: '1px', borderRadius: 'inherit', opacity: isDark ? 0.82 : 0.85 }}
-        />
 
         {filename && (
           <button
