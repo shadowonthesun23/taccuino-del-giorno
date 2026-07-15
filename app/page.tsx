@@ -817,7 +817,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
 
   const tapeFilters = [
-    'hue-rotate(242deg) saturate(1.4) brightness(0.9)', // 1. blu (deep royal/navy blue matching #11304e)
+    'hue-rotate(240deg) saturate(1.0) brightness(0.8)', // 1. blu (elegant deep navy blue matching #11304e)
     'hue-rotate(350deg) saturate(0.95) brightness(1.35)', // 2. rosso (softer crimson red matching #7e0814)
     'hue-rotate(41deg) saturate(0.8) brightness(1.5)', // 3. oro (bright warm gold matching #86683a)
     'hue-rotate(140deg) saturate(0.55) brightness(1.2)', // 4. verde-scuro (forest green matching #3c6146)
