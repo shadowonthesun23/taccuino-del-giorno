@@ -817,7 +817,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
 
   const tapeFilters = [
-    'hue-rotate(228deg) saturate(0.75) brightness(1.2)', // 1. blu (true classic blue)
+    'hue-rotate(242deg) saturate(1.4) brightness(0.9)', // 1. blu (deep royal/navy blue)
     'hue-rotate(350deg) saturate(0.95) brightness(1.35)', // 2. rosso (softer coral red)
     'hue-rotate(45deg) saturate(0.8) brightness(1.5)', // 3. oro (bright gold sheen)
     'hue-rotate(120deg) saturate(0.45) brightness(1.25)', // 4. verde-scuro (soft foliage green)
