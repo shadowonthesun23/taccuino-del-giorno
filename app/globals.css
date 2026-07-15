@@ -6174,7 +6174,22 @@ body {
   line-height: 1.05;
   pointer-events: none;
   opacity: 1;
-  color: var(--seal-text-color);
+}
+
+.daily-wax-seal .seal-initials,
+.daily-wax-seal .seal-date,
+.daily-wax-seal .seal-edition {
+  /* Gradiente metallico con riflessi di luce */
+  background: linear-gradient(135deg, #fff0cc 0%, #dfb76c 40%, #ffd880 60%, #a37c37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #dfb76c; /* Fallback */
+  
+  /* Effetto rilievo 3D e contorno tramite filtri drop-shadow combinati */
+  filter: 
+    drop-shadow(-0.5px -0.5px 0.1px rgba(0, 0, 0, 0.98)) 
+    drop-shadow(0.6px 0.6px 0.15px rgba(0, 0, 0, 0.98)) 
+    drop-shadow(0px 1.2px 1.8px rgba(0, 0, 0, 0.95));
 }
 
 .daily-wax-seal .seal-initials {
@@ -6185,10 +6200,6 @@ body {
   margin-bottom: 0px;
   line-height: 0.95;
   display: block;
-  text-shadow: 
-    -0.5px -0.5px 0.2px rgba(0, 0, 0, 0.85), 
-    0.6px 0.6px 0.3px var(--seal-highlight), 
-    0 0 1.8px rgba(0, 0, 0, 0.98);
 }
 
 .daily-wax-seal .seal-date {
@@ -6199,10 +6210,6 @@ body {
   margin-bottom: 4px;
   display: block;
   white-space: nowrap;
-  text-shadow: 
-    -0.3px -0.3px 0.1px rgba(0, 0, 0, 0.85), 
-    0.4px 0.4px 0.2px var(--seal-highlight), 
-    0 0 1.2px rgba(0, 0, 0, 0.98);
 }
 
 .daily-wax-seal .seal-edition {
@@ -6212,10 +6219,6 @@ body {
   line-height: 1.15;
   text-transform: uppercase;
   display: block;
-  text-shadow: 
-    -0.3px -0.3px 0.1px rgba(0, 0, 0, 0.85), 
-    0.4px 0.4px 0.2px var(--seal-highlight), 
-    0 0 1.2px rgba(0, 0, 0, 0.98);
 }
 
 /* 1. RED SEAL */
