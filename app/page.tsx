@@ -817,19 +817,19 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
 
   const tapeFilters = [
-    'hue-rotate(205deg) saturate(0.8) brightness(0.8)', // 1. blu
-    'hue-rotate(350deg) saturate(1.1) brightness(1.1)', // 2. rosso
-    'hue-rotate(45deg) saturate(0.9) brightness(1.3)', // 3. oro
-    'hue-rotate(120deg) saturate(0.55) brightness(0.8)', // 4. verde-scuro
-    'hue-rotate(95deg) saturate(0.4) brightness(1.1)', // 5. salvia
-    'hue-rotate(90deg) saturate(0.45) brightness(1.3)', // 6. verde-chiaro
-    'none', // 7. borgogna (original burgundy matches base washi tape)
-    'hue-rotate(20deg) saturate(0.8) brightness(1.1)', // 8. rame
-    'hue-rotate(15deg) saturate(0.9) brightness(0.9)', // 9. terracotta
-    'saturate(0) brightness(1.35) contrast(0.95)', // 10. argento
-    'hue-rotate(45deg) saturate(0.7) brightness(1.1)', // 11. ocra
-    'saturate(0.08) brightness(0.65)', // 12. antracite
-    'hue-rotate(170deg) saturate(0.6) brightness(0.85)', // 13. ottanio
+    'hue-rotate(228deg) saturate(0.75) brightness(1.2)', // 1. blu (true classic blue)
+    'hue-rotate(350deg) saturate(0.95) brightness(1.35)', // 2. rosso (softer coral red)
+    'hue-rotate(45deg) saturate(0.8) brightness(1.5)', // 3. oro (bright gold sheen)
+    'hue-rotate(120deg) saturate(0.45) brightness(1.25)', // 4. verde-scuro (soft foliage green)
+    'hue-rotate(95deg) saturate(0.35) brightness(1.35)', // 5. salvia (lighter sage)
+    'hue-rotate(90deg) saturate(0.4) brightness(1.55)', // 6. verde-chiaro (brighter spring green)
+    'brightness(1.35) saturate(0.95)', // 7. borgogna (lighter burgundy-rose)
+    'hue-rotate(20deg) saturate(0.7) brightness(1.35)', // 8. rame (soft copper)
+    'hue-rotate(15deg) saturate(0.8) brightness(1.25)', // 9. terracotta (brighter brick red)
+    'saturate(0) brightness(1.55) contrast(0.9)', // 10. argento (bright paper silver)
+    'hue-rotate(45deg) saturate(0.65) brightness(1.4)', // 11. ocra (warm sunny ochre)
+    'saturate(0.05) brightness(1.15)', // 12. antracite (softer stone grey)
+    'hue-rotate(170deg) saturate(0.5) brightness(1.25)', // 13. ottanio (delicate teal-blue)
   ];
   const currentTapeFilter = tapeFilters[(dayOfYear - 1) % tapeFilters.length];
 
