@@ -562,8 +562,8 @@ a.museum-brass-label:hover::before {
 @media (max-width: 1360px) {
   .dark .notebook-line-art,
   [data-theme="dark"] .notebook-line-art {
-    filter: brightness(0.38) saturate(0.3) contrast(0.64) !important;
-    opacity: 0.045 !important;
+    filter: brightness(0.50) saturate(0.40) contrast(0.70) !important;
+    opacity: 0.12 !important;
   }
 
   .seasonal-paint-reveal.is-dark {
