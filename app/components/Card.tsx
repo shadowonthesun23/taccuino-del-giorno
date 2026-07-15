@@ -98,7 +98,9 @@ export default function Card({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsRevealed(true);
+          setTimeout(() => {
+            setIsRevealed(true);
+          }, 60);
           observer.unobserve(el);
         }
       },

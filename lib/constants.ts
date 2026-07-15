@@ -39,10 +39,10 @@ export const notebookNavItems = [
   { id: 'citazione', icon: Quote, labelIT: 'Citazione', labelEN: 'Quote' },
   { id: 'parola', icon: Type, labelIT: 'Parola del giorno', labelEN: 'Word of the day' },
   { id: 'santi', icon: Church, labelIT: 'Santi', labelEN: 'Saints' },
-  { id: 'opera', icon: Palette, labelIT: 'Opera del giorno', labelEN: 'Artwork of the day', optional: true },
   { id: 'avvenimenti', icon: CalendarDays, labelIT: 'Accadde oggi', labelEN: 'This day in history' },
   { id: 'poesia', icon: Feather, labelIT: 'Poesia', labelEN: 'Poem' },
   { id: 'bibbia', icon: BookOpen, labelIT: 'Passaggio biblico', labelEN: 'Biblical passage' },
-  { id: 'apod', icon: Telescope, labelIT: 'Foto astronomica', labelEN: 'Astronomy picture', optional: true },
+  { id: 'opera', icon: Palette, labelIT: 'Opera del giorno', labelEN: 'Artwork of the day', optional: true },
   { id: 'musica', icon: Music, labelIT: 'Musica', labelEN: 'Music' },
+  { id: 'apod', icon: Telescope, labelIT: 'Foto astronomica', labelEN: 'Astronomy picture', optional: true },
 ];

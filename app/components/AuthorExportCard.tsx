@@ -318,6 +318,8 @@ export default function AuthorExportCard({
                     height: `${layout.photoHeight}px`,
                     objectFit: 'cover',
                     filter: 'grayscale(100%) contrast(92%) brightness(1.04)',
+                    outline: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                    outlineOffset: '-1px',
                   }}
                 />
               ) : (

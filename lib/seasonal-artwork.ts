@@ -15,7 +15,7 @@ export interface SeasonalArtwork {
   sourceUrl: string;
   linkKind: SeasonalArtworkLinkKind;
   revealPosition: string;
-  ticketAlignment: 'xMinYMid' | 'xMidYMid' | 'xMaxYMid' | 'xMinYMax' | 'xMidYMax' | 'xMaxYMax';
+  ticketAlignment: 'xMinYMin' | 'xMidYMin' | 'xMaxYMin' | 'xMinYMid' | 'xMidYMid' | 'xMaxYMid' | 'xMinYMax' | 'xMidYMax' | 'xMaxYMax';
   tone: SeasonalArtworkTone;
 }
 
@@ -79,8 +79,8 @@ export const SEASONAL_ARTWORKS: Partial<Record<SeasonId, readonly SeasonalArtwor
       imageUrl: '/images/seasonal/renoir-woman-parasol-garden.webp',
       sourceUrl: 'https://www.museothyssen.org/en/collection/artists/renoir-pierre-auguste/woman-parasol-garden',
       linkKind: 'museum',
-      revealPosition: '48% 46%',
-      ticketAlignment: 'xMidYMid',
+      revealPosition: '48% 15%',
+      ticketAlignment: 'xMidYMin',
       tone: 'bright',
     },
     {
