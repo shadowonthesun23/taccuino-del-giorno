@@ -817,19 +817,19 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
 
   const tapeFilters = [
-    'hue-rotate(242deg) saturate(1.4) brightness(0.9)', // 1. blu (deep royal/navy blue)
-    'hue-rotate(350deg) saturate(0.95) brightness(1.35)', // 2. rosso (softer coral red)
-    'hue-rotate(45deg) saturate(0.8) brightness(1.5)', // 3. oro (bright gold sheen)
-    'hue-rotate(120deg) saturate(0.45) brightness(1.25)', // 4. verde-scuro (soft foliage green)
-    'hue-rotate(95deg) saturate(0.35) brightness(1.35)', // 5. salvia (lighter sage)
-    'hue-rotate(90deg) saturate(0.4) brightness(1.55)', // 6. verde-chiaro (brighter spring green)
-    'brightness(1.35) saturate(0.95)', // 7. borgogna (lighter burgundy-rose)
-    'hue-rotate(20deg) saturate(0.7) brightness(1.35)', // 8. rame (soft copper)
-    'hue-rotate(15deg) saturate(0.8) brightness(1.25)', // 9. terracotta (brighter brick red)
-    'saturate(0) brightness(1.55) contrast(0.9)', // 10. argento (bright paper silver)
-    'hue-rotate(45deg) saturate(0.65) brightness(1.4)', // 11. ocra (warm sunny ochre)
-    'saturate(0.05) brightness(1.15)', // 12. antracite (softer stone grey)
-    'hue-rotate(170deg) saturate(0.5) brightness(1.25)', // 13. ottanio (delicate teal-blue)
+    'hue-rotate(242deg) saturate(1.4) brightness(0.9)', // 1. blu (deep royal/navy blue matching #11304e)
+    'hue-rotate(350deg) saturate(0.95) brightness(1.35)', // 2. rosso (softer crimson red matching #7e0814)
+    'hue-rotate(41deg) saturate(0.8) brightness(1.5)', // 3. oro (bright warm gold matching #86683a)
+    'hue-rotate(140deg) saturate(0.55) brightness(1.2)', // 4. verde-scuro (forest green matching #3c6146)
+    'hue-rotate(102deg) saturate(0.4) brightness(1.3)', // 5. salvia (sage green matching #6c7d60)
+    'hue-rotate(108deg) saturate(0.45) brightness(1.5)', // 6. verde-chiaro (light olive green matching #7d8e75)
+    'brightness(1.35) saturate(0.95)', // 7. borgogna (rose-burgundy matching #54191f)
+    'hue-rotate(26deg) saturate(0.75) brightness(1.35)', // 8. rame (soft copper matching #bb7652)
+    'hue-rotate(28deg) saturate(1.1) brightness(1.2)', // 9. terracotta (rich brick-red matching #a8480e)
+    'saturate(0) brightness(1.55) contrast(0.9)', // 10. argento (silver grey matching #9fa3a6)
+    'hue-rotate(43deg) saturate(0.65) brightness(1.4)', // 11. ocra (warm ochre yellow matching #ca8e2d)
+    'saturate(0.05) brightness(1.15)', // 12. antracite (stone charcoal matching #424143)
+    'hue-rotate(191deg) saturate(0.65) brightness(1.2)', // 13. ottanio (deep teal-blue matching #196066)
   ];
   const currentTapeFilter = tapeFilters[(dayOfYear - 1) % tapeFilters.length];
 
