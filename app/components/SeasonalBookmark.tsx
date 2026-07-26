@@ -424,7 +424,20 @@ export default function SeasonalBookmark({
               </a>
             ) : null}
             {seasonalArtwork ? (
-              <span className="seasonal-bookmark-artwork-caption">
+              <span
+                className="seasonal-bookmark-artwork-caption"
+                onClick={() => window.dispatchEvent(new Event('toggle-artwork-solo'))}
+                title={
+                  {
+                    IT: 'Clicca per accedere alla sala museale',
+                    EN: 'Click to access the museum room',
+                    FR: 'Cliquer pour accéder à la salle del musée',
+                    DE: 'Klicken Sie, um den Museumsraum zu betreten',
+                    ES: 'Haz clic para acceder a la sala del museo',
+                    PT: 'Clique para aceder à sala do museu'
+                  }[lingua] || 'Click to access the museum room'
+                }
+              >
                 <strong title={seasonalArtwork.title}>{seasonalArtwork.title}</strong>
                 <span className="artwork-artist">{seasonalArtwork.artist}</span>
                 <span className="artwork-year">{seasonalArtwork.year}</span>

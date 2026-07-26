@@ -367,6 +367,22 @@ export default function ParallaxBackground({
   }, []);
 
   useEffect(() => {
+    const handleToggle = () => setIsArtworkSolo(prev => !prev);
+    const handleOpen = () => setIsArtworkSolo(true);
+    const handleClose = () => setIsArtworkSolo(false);
+
+    window.addEventListener('toggle-artwork-solo', handleToggle);
+    window.addEventListener('open-artwork-solo', handleOpen);
+    window.addEventListener('close-artwork-solo', handleClose);
+
+    return () => {
+      window.removeEventListener('toggle-artwork-solo', handleToggle);
+      window.removeEventListener('open-artwork-solo', handleOpen);
+      window.removeEventListener('close-artwork-solo', handleClose);
+    };
+  }, []);
+
+  useEffect(() => {
     let frame: number | null = null;
     let maxScroll = 1;
     let travel = window.innerHeight * 0.5;
@@ -650,25 +666,35 @@ export default function ParallaxBackground({
       {hasSeasonalReveal && seasonalArtwork && (
         <div
           ref={seasonalRevealRef}
-          aria-hidden={!isArtworkSolo}
+          aria-hidden={true}
           className={[
             'seasonal-paint-reveal',
             `season-${season}`,
             `artwork-${seasonalArtwork.id}`,
-            'safe-viewport-backdrop fixed z-0',
-            isArtworkSolo ? 'is-solo' : 'pointer-events-none',
+            'safe-viewport-backdrop fixed z-0 pointer-events-none',
             dark ? 'is-dark' : '',
           ].join(' ')}
           style={{
             backgroundImage: `url('${seasonalArtwork.imageUrl}')`,
             backgroundPosition: seasonalArtwork.revealPosition,
-            transition: isArtworkSolo 
-              ? 'opacity 360ms ease-out' 
-              : 'opacity 400ms ease-in-out 350ms',
+            opacity: isArtworkSolo ? 0 : undefined,
+            transition: 'opacity 400ms ease-in-out',
+          }}
+        />
+      )}
+
+      {hasSeasonalReveal && seasonalArtwork && (
+        <div
+          aria-hidden={!isArtworkSolo}
+          className={`museum-gallery-room safe-viewport-backdrop fixed inset-0 z-20 overflow-hidden ${
+            isArtworkSolo ? 'is-open pointer-events-auto' : 'pointer-events-none'
+          }`}
+          style={{
             opacity: isArtworkSolo ? 1 : 0,
-            maskImage: (isArtworkSolo || isExitingSolo) ? 'none' : undefined,
-            WebkitMaskImage: (isArtworkSolo || isExitingSolo) ? 'none' : undefined,
-            zIndex: (isArtworkSolo || isExitingSolo) ? 8 : undefined,
+            visibility: (isArtworkSolo || isExitingSolo) ? 'visible' : 'hidden',
+            transition: isArtworkSolo 
+              ? 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), visibility 600ms' 
+              : 'opacity 400ms ease-in 200ms, visibility 400ms 600ms',
           }}
           onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
         >
@@ -679,8 +705,8 @@ export default function ParallaxBackground({
             }`}
             style={{
               transition: isArtworkSolo 
-                ? 'opacity 500ms ease-out, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)' 
-                : 'opacity 400ms ease-out 350ms, transform 400ms ease-out 350ms',
+                ? 'opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)' 
+                : 'opacity 350ms ease-in 150ms, transform 350ms ease-in',
               transform: isArtworkZoomed ? 'scale(1.08)' : 'scale(1)',
               backgroundColor: '#050505',
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
@@ -696,9 +722,9 @@ export default function ParallaxBackground({
             }`}
             style={{
               transition: isArtworkSolo 
-                ? 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1) 600ms, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 1200ms ease' 
-                : 'opacity 350ms ease-in, transform 350ms ease-in',
-              transform: isArtworkZoomed ? 'scale(1.15)' : 'scale(1)',
+                ? 'opacity 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms, transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms' 
+                : 'opacity 300ms ease-in, transform 300ms ease-in',
+              transform: isArtworkZoomed ? 'scale(1.15)' : (isArtworkSolo ? 'scale(1)' : 'scale(0.95)'),
               opacity: isArtworkZoomed ? 0.25 : undefined,
               backgroundImage: `
                 radial-gradient(circle at 50% 48%, 
@@ -730,8 +756,8 @@ export default function ParallaxBackground({
             } : undefined}
             style={{
               transition: isArtworkSolo 
-                ? 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), visibility 600ms'
-                : 'opacity 400ms ease-out 350ms, transform 400ms ease-out 350ms, visibility 400ms 350ms',
+                ? 'opacity 800ms cubic-bezier(0.16, 1, 0.3, 1) 150ms, transform 800ms cubic-bezier(0.16, 1, 0.3, 1) 150ms, visibility 800ms 150ms'
+                : 'opacity 350ms ease-in, transform 350ms ease-in, visibility 350ms 350ms',
             }}
           >
             {/* Immersive zoom backdrop */}
