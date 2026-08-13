@@ -98,15 +98,13 @@ export default function Card({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setTimeout(() => {
-            setIsRevealed(true);
-          }, 60);
+          setIsRevealed(true);
           observer.unobserve(el);
         }
       },
       {
-        rootMargin: '0px 0px -40px 0px',
-        threshold: 0,
+        rootMargin: '60px 0px -10px 0px',
+        threshold: 0.05,
       }
     );
 
