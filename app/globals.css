@@ -206,22 +206,9 @@ img {
   height: 100% !important;
   padding: 24px 48px !important; /* Optimized 24px margin from top and bottom to maximize space */
   box-sizing: border-box !important;
-  opacity: 0;
-  visibility: hidden;
-  transform: scale(0.92) translateY(24px);
-  transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 800ms cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 800ms;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 9;
   position: relative;
-}
-
-.museum-frame-container.is-visible {
-  opacity: 1;
-  visibility: visible;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
 }
 
 .museum-artwork-wrapper {
@@ -8443,20 +8430,7 @@ body {
 .stagger-8 .apod-card-tape-wrapper { --reveal-delay: 640ms; }
 .stagger-9 .section-typewriter-badge { --reveal-delay: 720ms; }
 
-/* Isolated Artwork View (Solo Mode) */
-.solo-go-up {
-  transform: translate3d(0, -120vh, 0) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-.solo-go-down {
-  transform: translate3d(0, 120vh, 0) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-.solo-transition {
-  transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease !important;
-}
+
 
 /* ── GUESTBOOK REGISTRO VISITATORI ── */
 .guestbook-overlay {

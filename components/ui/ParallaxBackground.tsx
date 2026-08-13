@@ -605,46 +605,12 @@ export default function ParallaxBackground({
     }
     prevSolo.current = isArtworkSolo;
 
-    const cards = Array.from(document.querySelectorAll('.card-paper-shadow')).map(el => el.parentElement).filter(Boolean) as HTMLElement[];
-    const others = Array.from(document.querySelectorAll(
-      'header.journal-hero, section.author-feature, footer.journal-footer, .seasonal-bookmark, .top-control-panel, .notebook-quick-nav, .mobile-reading-thread, .mobile-tools'
-    )) as HTMLElement[];
-    const targets = [...cards, ...others];
-
     if (isArtworkSolo) {
-      const viewportMid = window.innerHeight / 2;
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
-
-      targets.forEach(el => {
-        const rect = el.getBoundingClientRect();
-        const elCenter = rect.top + rect.height / 2;
-        const goUp = elCenter < viewportMid;
-        
-        el.classList.add('solo-transition');
-        el.classList.add(goUp ? 'solo-go-up' : 'solo-go-down');
-      });
     } else {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
-
-      // Delay the return of the home page elements until the museum room has faded out (350ms)
-      const timer1 = setTimeout(() => {
-        targets.forEach(el => {
-          el.classList.remove('solo-go-up', 'solo-go-down');
-        });
-      }, 350);
-
-      const timer2 = setTimeout(() => {
-        targets.forEach(el => {
-          el.classList.remove('solo-transition');
-        });
-      }, 1150);
-
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
     }
 
     return () => {
@@ -691,56 +657,37 @@ export default function ParallaxBackground({
           }`}
           style={{
             opacity: isArtworkSolo ? 1 : 0,
+            transform: isArtworkSolo ? 'scale(1)' : 'scale(0.97)',
             visibility: (isArtworkSolo || isExitingSolo) ? 'visible' : 'hidden',
             transition: isArtworkSolo 
-              ? 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), visibility 600ms' 
-              : 'opacity 400ms ease-in 200ms, visibility 400ms 600ms',
+              ? 'opacity 550ms cubic-bezier(0.16, 1, 0.3, 1), transform 550ms cubic-bezier(0.16, 1, 0.3, 1), visibility 550ms' 
+              : 'opacity 400ms ease-out, transform 400ms ease-out, visibility 400ms 400ms',
           }}
           onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
         >
-          {/* Base dark museum wall backdrop (lights off room) */}
+          {/* Unified dark museum wall with embedded spotlight & fine noise texture */}
           <div
-            className={`museum-wall-base absolute inset-0 z-0 ${
-              isArtworkSolo ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            className="museum-wall-backdrop absolute inset-0 z-0 pointer-events-none"
             style={{
-              transition: isArtworkSolo 
-                ? 'opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)' 
-                : 'opacity 350ms ease-in 150ms, transform 350ms ease-in',
-              transform: isArtworkZoomed ? 'scale(1.08)' : 'scale(1)',
               backgroundColor: '#050505',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")`,
-              backgroundSize: '150px 150px',
-              backgroundRepeat: 'repeat',
-            }}
-          />
-
-          {/* Spotlight overlay on the wall (lights turning on) */}
-          <div
-            className={`museum-wall-spotlight absolute inset-0 z-0 ${
-              isArtworkSolo ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-            style={{
-              transition: isArtworkSolo 
-                ? 'opacity 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms, transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms' 
-                : 'opacity 300ms ease-in, transform 300ms ease-in',
-              transform: isArtworkZoomed ? 'scale(1.15)' : (isArtworkSolo ? 'scale(1)' : 'scale(0.95)'),
-              opacity: isArtworkZoomed ? 0.25 : undefined,
               backgroundImage: `
                 radial-gradient(circle at 50% 48%, 
                   color-mix(in srgb, ${sealColorHex} 65%, #fffbe6) 0%, 
                   color-mix(in srgb, ${sealColorHex} 45%, #111) 36%, 
                   color-mix(in srgb, ${sealColorHex} 8%, #000) 58%, 
                   transparent 80%
-                )
+                ),
+                url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")
               `,
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'cover, 150px 150px',
+              backgroundRepeat: 'no-repeat, repeat',
+              transform: isArtworkZoomed ? 'scale(1.1)' : 'scale(1)',
+              transition: 'transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
 
           <div
-            className={`museum-frame-container ${isArtworkSolo ? 'is-visible' : ''} ${isArtworkZoomed ? 'is-zoomed' : ''} ${isPanningReady ? 'is-panning-ready' : ''}`}
+            className={`museum-frame-container ${isArtworkZoomed ? 'is-zoomed' : ''} ${isPanningReady ? 'is-panning-ready' : ''}`}
             onClick={isArtworkSolo ? () => {
               if (isArtworkZoomed) {
                 if (panningTimeoutRef.current) {
@@ -754,11 +701,6 @@ export default function ParallaxBackground({
                 setIsArtworkSolo(false);
               }
             } : undefined}
-            style={{
-              transition: isArtworkSolo 
-                ? 'opacity 800ms cubic-bezier(0.16, 1, 0.3, 1) 150ms, transform 800ms cubic-bezier(0.16, 1, 0.3, 1) 150ms, visibility 800ms 150ms'
-                : 'opacity 350ms ease-in, transform 350ms ease-in, visibility 350ms 350ms',
-            }}
           >
             {/* Immersive zoom backdrop */}
             <div className="museum-zoom-backdrop" />
@@ -766,12 +708,6 @@ export default function ParallaxBackground({
             <div
               className="museum-artwork-wrapper relative"
               onClick={(e) => e.stopPropagation()}
-              style={{
-                transition: isArtworkSolo 
-                  ? 'filter 1200ms cubic-bezier(0.4, 0, 0.2, 1) 600ms' 
-                  : 'filter 300ms ease-out',
-                filter: isArtworkSolo ? 'brightness(1)' : 'brightness(0.35)',
-              }}
             >
               {/* Paintings row to align side paintings to the exact vertical center of the main painting */}
               <div 
