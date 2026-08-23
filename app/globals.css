@@ -8048,7 +8048,7 @@ body {
 
 /* ── NASA APOD CARD STYLES ── */
 .apod-card-tape {
-  width: 400px;
+  width: 280px;
   height: auto;
   max-width: 100%;
   transform: rotate(-1.5deg);
