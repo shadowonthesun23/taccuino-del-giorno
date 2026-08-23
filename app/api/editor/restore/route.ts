@@ -39,7 +39,9 @@ export async function POST(request: Request) {
     return new Response('Contenuto da ripristinare non valido', { status: 400 });
   }
 
-  const { data: _ignoredData, foto_autore_url: _ignoredPhoto, ...content } = payload.contenuto;
+  const content = Object.fromEntries(
+    Object.entries(payload.contenuto).filter(([key]) => key !== 'data' && key !== 'foto_autore_url')
+  );
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   const { error } = await supabase
     .from('contenuti_giornalieri')

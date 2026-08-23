@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/request-guard';
 
 export async function POST(request: Request) {
   try {
+    const limited = rateLimit(request, 'guestbook', { limit: 5, windowMs: 60_000 });
+    if (limited) return limited;
+
     const body = await request.json();
     const { message, signature, language, website, clientTime } = body;
 

@@ -1,4 +1,4 @@
-import Home from '../page';
+import NotebookHome from '../components/NotebookHome';
 import { Metadata } from 'next';
 
 const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -29,5 +29,5 @@ export const metadata: Metadata = {
 };
 
 export default function PortuguesePage() {
-  return <Home initialLang="PT" />;
+  return <NotebookHome initialLang="PT" />;
 }

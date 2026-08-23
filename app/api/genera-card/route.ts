@@ -4,6 +4,8 @@ import sharp from 'sharp';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
+import { MAX_REMOTE_IMAGE_BYTES, isImageContentType, trustedImageUrl } from '@/lib/remote-images';
+import { rateLimit } from '@/lib/request-guard';
 import {
   clampText,
   formatAuthorCardDate,
@@ -19,15 +21,31 @@ export const runtime = 'nodejs';
 
 const W = 1080;
 const H = 1920;
+type CitationPayload = { testo: string; autore?: string; fonte?: string };
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const limited = rateLimit(req, 'genera-card', { limit: 12, windowMs: 60_000 });
+    if (limited) return limited;
+
+    const body = await req.json() as Record<string, unknown>;
     const { autoreGiorno, breveDescrizione, fotoAutoreUrl, citazione, dataOdierna, dataIso, isDark = false } = body;
 
+    if (
+      typeof autoreGiorno !== 'string'
+      || typeof breveDescrizione !== 'string'
+      || typeof dataOdierna !== 'string'
+      || typeof dataIso !== 'string'
+      || !citazione
+      || typeof (citazione as Record<string, unknown>).testo !== 'string'
+    ) {
+      return NextResponse.json({ error: 'Payload non valido' }, { status: 400 });
+    }
+    const citation = citazione as CitationPayload;
+
     const palette = getAuthorCardPalette(Boolean(isDark));
-    const layout = getAuthorCardLayout(citazione.testo, breveDescrizione, autoreGiorno);
-    const citTesto = clampText(citazione.testo, layout.maxCitationChars);
+    const layout = getAuthorCardLayout(citation.testo, breveDescrizione, autoreGiorno);
+    const citTesto = clampText(citation.testo, layout.maxCitationChars);
     const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
     const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
     const dateTapeWidth = getAuthorDateTapeWidth(dataOdierna);
@@ -60,9 +78,15 @@ export async function POST(req: NextRequest) {
     const backgroundB64 = `data:image/png;base64,${backgroundPng.toString('base64')}`;
 
     let fotoB64: string | null = null;
-    if (fotoAutoreUrl) {
+    const photoUrl = typeof fotoAutoreUrl === 'string' ? trustedImageUrl(fotoAutoreUrl) : null;
+    if (photoUrl) {
       try {
-        const res = await fetch(fotoAutoreUrl);
+        const res = await fetch(photoUrl, { redirect: 'error', signal: AbortSignal.timeout(10_000) });
+        if (!res.ok) throw new Error('Foto autore non disponibile');
+        const contentLength = Number(res.headers.get('content-length') || 0);
+        if (!isImageContentType(res.headers.get('content-type')) || contentLength > MAX_REMOTE_IMAGE_BYTES) {
+          throw new Error('Foto autore fuori limite');
+        }
         const buf = await res.arrayBuffer();
         const photoPng = await sharp(Buffer.from(buf))
           .resize(layout.photoWidth * 2, layout.photoHeight * 2, { fit: 'cover' })
@@ -510,7 +534,7 @@ export async function POST(req: NextRequest) {
                 fontFamily: 'IM Fell Double Pica',
               },
             },
-            `\u2014 ${citazione.autore}${citazione.fonte ? `, ${citazione.fonte}` : ''}`
+            `\u2014 ${citation.autore}${citation.fonte ? `, ${citation.fonte}` : ''}`
           )
         )
       ),
