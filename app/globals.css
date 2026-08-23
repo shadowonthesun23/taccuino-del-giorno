@@ -8400,47 +8400,12 @@ body {
   display: inline-block !important;
 }
 
-/* Keyframe-driven rollout animation for washi tapes: guaranteed visibility and fluid GPU acceleration */
-@keyframes tapeRollout {
-  0% {
-    clip-path: inset(0 100% 0 0);
-    opacity: 0.4;
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-  }
-}
-
-@keyframes tapeRolloutMirrored {
-  0% {
-    clip-path: inset(0 0 0 100%);
-    opacity: 0.4;
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-  }
-}
-
 .section-typewriter-badge,
 .author-tape-title-wrapper,
 .apod-card-tape-wrapper {
   clip-path: inset(0 0 0 0);
-  will-change: clip-path, opacity;
   backface-visibility: hidden;
-}
-
-.section-typewriter-badge.is-revealed,
-.author-tape-title-wrapper.is-revealed,
-.apod-card-tape-wrapper.is-revealed {
-  animation: tapeRollout 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: var(--reveal-delay, 0ms);
-}
-
-.section-typewriter-badge.badge-mirrored.is-revealed {
-  animation: tapeRolloutMirrored 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: var(--reveal-delay, 0ms);
+  opacity: 1;
 }
 
 .apod-card-tape-wrapper {
@@ -8455,34 +8420,6 @@ body {
   clip-path: inset(0 0 0 0) !important;
   animation: none !important;
 }
-
-/* Accessibility: respect users' prefers-reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .section-typewriter-badge,
-  .author-tape-title-wrapper,
-  .apod-card-tape-wrapper {
-    clip-path: inset(0 0 0 0) !important;
-    animation: none !important;
-  }
-}
-
-/* Staggered delay for washi tape rollout animations (tightened for fluid scroll experience) */
-.author-tape-title-wrapper {
-  --reveal-delay: 50ms;
-}
-
-.stagger-1 .section-typewriter-badge { --reveal-delay: 30ms; }
-.stagger-2 .section-typewriter-badge { --reveal-delay: 60ms; }
-.stagger-3 .section-typewriter-badge { --reveal-delay: 90ms; }
-.stagger-4 .section-typewriter-badge { --reveal-delay: 120ms; }
-.stagger-5 .section-typewriter-badge { --reveal-delay: 150ms; }
-.stagger-6 .section-typewriter-badge { --reveal-delay: 180ms; }
-.stagger-7 .section-typewriter-badge { --reveal-delay: 210ms; }
-.stagger-8 .section-typewriter-badge,
-.stagger-8 .apod-card-tape-wrapper { --reveal-delay: 240ms; }
-.stagger-9 .section-typewriter-badge { --reveal-delay: 270ms; }
-
-
 
 /* ── GUESTBOOK REGISTRO VISITATORI ── */
 .guestbook-overlay {
@@ -8896,4 +8833,3 @@ body {
 .daily-passport-document {
   animation: passportSlideUp 380ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both !important;
 }
-

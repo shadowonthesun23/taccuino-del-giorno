@@ -45,42 +45,10 @@ interface ScrollRevealBadgeProps {
 function ScrollRevealBadge({
   className,
   children,
-  resetTrigger,
   as: Component = 'div',
 }: ScrollRevealBadgeProps) {
-  const [prevTrigger, setPrevTrigger] = useState(resetTrigger);
-  const [isRevealed, setIsRevealed] = useState(false);
-
-  if (resetTrigger !== prevTrigger) {
-    setPrevTrigger(resetTrigger);
-    setIsRevealed(false);
-  }
-
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsRevealed(true);
-          observer.disconnect();
-        }
-      },
-      {
-        rootMargin: '100px 0px 0px 0px',
-        threshold: 0,
-      }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [resetTrigger]);
-
   return (
-    <Component ref={ref as unknown as React.RefObject<HTMLDivElement>} className={`${className} ${isRevealed ? 'is-revealed' : ''}`}>
+    <Component className={className}>
       {children}
     </Component>
   );
