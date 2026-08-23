@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Errore inatteso' }, { status: 500 });
   }
 }

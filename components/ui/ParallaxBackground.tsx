@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
@@ -164,6 +164,16 @@ export default function ParallaxBackground({
   const prevSolo = useRef(isArtworkSolo);
   const prevSoloForTransition = useRef(isArtworkSolo);
 
+  const closeArtworkZoom = useCallback(() => {
+    if (panningTimeoutRef.current) {
+      clearTimeout(panningTimeoutRef.current);
+      panningTimeoutRef.current = null;
+    }
+    setIsArtworkZoomed(false);
+    setIsPanningReady(false);
+    setZoomStyles({});
+  }, []);
+
   useEffect(() => {
     if (!isArtworkSolo && prevSoloForTransition.current) {
       setIsExitingSolo(true);
@@ -190,48 +200,21 @@ export default function ParallaxBackground({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (panningTimeoutRef.current) {
-          clearTimeout(panningTimeoutRef.current);
-          panningTimeoutRef.current = null;
-        }
-        setIsArtworkZoomed(false);
-        setIsPanningReady(false);
-        setZoomStyles({});
+        closeArtworkZoom();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isArtworkZoomed]);
+  }, [closeArtworkZoom, isArtworkZoomed]);
 
   // Resize close zoom
   useEffect(() => {
     if (!isArtworkZoomed) return;
 
-    const handleResize = () => {
-      if (panningTimeoutRef.current) {
-        clearTimeout(panningTimeoutRef.current);
-        panningTimeoutRef.current = null;
-      }
-      setIsArtworkZoomed(false);
-      setIsPanningReady(false);
-      setZoomStyles({});
-    };
+    const handleResize = () => closeArtworkZoom();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isArtworkZoomed]);
-
-  // Reset zoom if exiting solo mode
-  useEffect(() => {
-    if (!isArtworkSolo && isArtworkZoomed) {
-      if (panningTimeoutRef.current) {
-        clearTimeout(panningTimeoutRef.current);
-        panningTimeoutRef.current = null;
-      }
-      setIsArtworkZoomed(false);
-      setIsPanningReady(false);
-      setZoomStyles({});
-    }
-  }, [isArtworkSolo, isArtworkZoomed]);
+  }, [closeArtworkZoom, isArtworkZoomed]);
 
   // PointerMove Listener (Mouse Panning details)
   useEffect(() => {
@@ -359,17 +342,26 @@ export default function ParallaxBackground({
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
-    const update = () => setDark(document.documentElement.classList.contains('dark'));
+    const update = () => {
+      const root = document.documentElement;
+      setDark(root.classList.contains('dark') || root.dataset.theme === 'dark');
+    };
     update();
     const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
     return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    const handleToggle = () => setIsArtworkSolo(prev => !prev);
+    const handleToggle = () => setIsArtworkSolo((previous) => {
+      if (previous) closeArtworkZoom();
+      return !previous;
+    });
     const handleOpen = () => setIsArtworkSolo(true);
-    const handleClose = () => setIsArtworkSolo(false);
+    const handleClose = () => {
+      closeArtworkZoom();
+      setIsArtworkSolo(false);
+    };
 
     window.addEventListener('toggle-artwork-solo', handleToggle);
     window.addEventListener('open-artwork-solo', handleOpen);
@@ -380,7 +372,7 @@ export default function ParallaxBackground({
       window.removeEventListener('open-artwork-solo', handleOpen);
       window.removeEventListener('close-artwork-solo', handleClose);
     };
-  }, []);
+  }, [closeArtworkZoom]);
 
   useEffect(() => {
     let frame: number | null = null;
@@ -663,7 +655,10 @@ export default function ParallaxBackground({
               ? 'opacity 550ms cubic-bezier(0.16, 1, 0.3, 1), transform 550ms cubic-bezier(0.16, 1, 0.3, 1), visibility 550ms' 
               : 'opacity 400ms ease-out, transform 400ms ease-out, visibility 400ms 400ms',
           }}
-          onClick={isArtworkSolo ? () => setIsArtworkSolo(false) : undefined}
+          onClick={isArtworkSolo ? () => {
+            closeArtworkZoom();
+            setIsArtworkSolo(false);
+          } : undefined}
         >
           {/* Unified dark museum wall with embedded spotlight & fine noise texture */}
           <div
@@ -698,6 +693,7 @@ export default function ParallaxBackground({
                 setIsPanningReady(false);
                 setZoomStyles({});
               } else {
+                closeArtworkZoom();
                 setIsArtworkSolo(false);
               }
             } : undefined}
@@ -933,7 +929,10 @@ export default function ParallaxBackground({
           className={`seasonal-artwork-caption ${captionClassName} ${dark ? 'is-dark' : ''} ${isArtworkSolo ? 'is-visible is-solo-mode' : ''} ${isArtworkZoomed ? 'is-zoomed-hidden' : ''}`}
           aria-label={seasonalCaptionLabel}
           data-reveal-readability
-          onClick={() => setIsArtworkSolo(prev => !prev)}
+          onClick={() => setIsArtworkSolo((previous) => {
+            if (previous) closeArtworkZoom();
+            return !previous;
+          })}
         >
           {!isArtworkSolo && (
             <span className="seasonal-artwork-badge">{seasonalBadgeText}</span>

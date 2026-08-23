@@ -1028,6 +1028,7 @@ body {
 .typewriter-text {
   display: inline-grid;
   line-height: inherit;
+  max-width: 100%;
   min-width: 0;
   position: relative;
   vertical-align: baseline;
@@ -1036,6 +1037,9 @@ body {
 .typewriter-measure,
 .typewriter-live {
   grid-area: 1 / 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .typewriter-measure {
@@ -1276,6 +1280,19 @@ body {
 
 .card-content {
   position: relative;
+}
+
+@supports (content-visibility: auto) {
+  /* The notebook can contain several long editorial sections. Browsers can
+     defer painting the ones outside the viewport without changing reading order. */
+  .card-paper-shadow {
+    contain-intrinsic-size: auto 620px;
+    content-visibility: auto;
+  }
+
+  .card-paper-shadow:focus-within {
+    content-visibility: visible;
+  }
 }
 
 .opera-postcard-media {
@@ -7520,6 +7537,9 @@ body {
   .journal-hero-subtitle {
     font-size: 0.97rem;
     line-height: 1.55;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 342px;
   }
 
   .author-feature {
@@ -7528,6 +7548,14 @@ body {
 
   .author-feature-layout {
     gap: 24px;
+  }
+
+  .author-feature h2,
+  .author-feature p {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 342px;
+    overflow-wrap: break-word;
   }
 
   .daily-thread {
@@ -8868,8 +8896,4 @@ body {
 .daily-passport-document {
   animation: passportSlideUp 380ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both !important;
 }
-
-
-
-
 

@@ -23,7 +23,9 @@ export async function GET(request: Request) {
     headers: {
       'User-Agent': 'TaccuinoDelGiorno/1.0',
     },
-    next: { revalidate: 86400 },
+    // Let the CDN cache the streamed response. The Next.js Data Cache rejects
+    // source images over 2 MB, which otherwise produces a noisy runtime error.
+    cache: 'no-store',
   });
 
   if (!upstream.ok || !upstream.body) {

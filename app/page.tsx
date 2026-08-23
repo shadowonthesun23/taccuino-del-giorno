@@ -9,7 +9,6 @@ import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHor
 import AuthorExportCard from './components/AuthorExportCard';
 import Card from './components/Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
-import DailyPassport from './components/DailyPassport';
 import SeasonalBookmark from './components/SeasonalBookmark';
 import LoadingNotebook from './components/LoadingNotebook';
 import NotebookQuickNav from './components/NotebookQuickNav';
@@ -313,7 +312,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const [showExportCard, setShowExportCard] = useState(false);
-  const [showDailyPassport, setShowDailyPassport] = useState(false);
   const [guestbookOpen, setGuestbookOpen] = useState(false);
   const [isTurningPage, setIsTurningPage] = useState(false);
   const [pageTurnPhase, setPageTurnPhase] = useState<'idle' | 'covering' | 'revealing'>('idle');
@@ -434,22 +432,12 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         setPopoverOpen(false);
         setSavedDrawerOpen(false);
         setMobileToolsOpen(false);
-        setShowDailyPassport(false);
         setGuestbookOpen(false);
       }
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  useEffect(() => {
-    if (!showDailyPassport) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [showDailyPassport]);
 
   useEffect(() => {
     if (!data) return;
@@ -580,7 +568,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setShowDailyPassport(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -1409,7 +1397,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             </ScrollRevealBadge>
           </div>
           <h2
-            className="text-4xl md:text-5xl font-bold mb-4"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4"
             style={{
               textShadow: isDark
                 ? '0 2px 8px rgba(0,0,0,0.5)'
@@ -1981,14 +1969,15 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   <span>{t('leaveAPenny', lingua)}</span>
                 </button>
               </nav>
-              <button
-                type="button"
+              <a
                 className={`daily-passport-open-button ${isDark ? 'is-dark' : ''}`}
-                onClick={() => window.open(`/passaporto?data=${dataExLibris}`, '_blank', 'noopener,noreferrer')}
+                href={`/passaporto?data=${encodeURIComponent(dataExLibris)}`}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <FileDown className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
                 <span>{t('createPassport', lingua)}</span>
-              </button>
+              </a>
             </div>
           </footer>
 
@@ -1996,19 +1985,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
         {archivioPopover}
         {savedCardsDrawer}
-        {isMounted && showDailyPassport && createPortal(
-          <DailyPassport
-            data={data}
-            opera={opera}
-            lingua={lingua}
-            isDark={isDark}
-            dataIso={dataExLibris}
-            initials={inizialiExLibris}
-            onClose={() => setShowDailyPassport(false)}
-          />,
-          document.body
-        )}
-
         <GuestbookModal
           isOpen={guestbookOpen}
           onClose={() => setGuestbookOpen(false)}

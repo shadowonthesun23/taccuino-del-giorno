@@ -1,6 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+type NasaApod = {
+  date?: string;
+  media_type?: string;
+  url?: string;
+  hdurl?: string;
+  thumbnail_url?: string;
+  copyright?: string;
+  title?: string;
+  explanation?: string;
+};
+
+type ApodResponse = {
+  date: string;
+  media_type: string;
+  url: string;
+  hdurl?: string;
+  thumbnail_url?: string;
+  copyright?: string;
+  title_en: string;
+  explanation_en: string;
+  title_it: string;
+  explanation_it: string;
+};
+
+type DeepLResponse = { translations?: Array<{ text?: string }> };
+type GeminiTranslation = { title_it?: string; explanation_it?: string };
+
+class TranslationTimeoutError extends Error {
+  constructor() {
+    super('Translation timed out');
+    this.name = 'TranslationTimeoutError';
+  }
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Errore inatteso';
+}
+
+function withTimeout<T>(task: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new TranslationTimeoutError()), timeoutMs);
+    task.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+}
+
 function getRomeDateIso(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Rome',
@@ -30,14 +84,15 @@ async function translateTexts(texts: string[], apiKey: string): Promise<string[]
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: body.toString(),
+    signal: AbortSignal.timeout(4_000),
   });
 
   if (!res.ok) {
     throw new Error('DeepL translation failed');
   }
 
-  const json = await res.json();
-  return json.translations.map((t: any) => t.text);
+  const json = await res.json() as DeepLResponse;
+  return (json.translations ?? []).map((translation) => translation.text ?? '');
 }
 
 async function translateWithGemini(title: string, explanation: string, apiKey: string): Promise<string[]> {
@@ -61,13 +116,13 @@ Respond with a JSON object of this structure:
   "explanation_it": "descrizione tradotta"
 }`;
 
-  const res = await model.generateContent(prompt);
+  const res = await withTimeout(model.generateContent(prompt), 4_500);
   const text = res.response.text();
-  const json = JSON.parse(text);
+  const json = JSON.parse(text) as GeminiTranslation;
   return [json.title_it || '', json.explanation_it || ''];
 }
 
-async function processApod(apodJson: any) {
+async function processApod(apodJson: NasaApod): Promise<ApodResponse> {
   const title_en = apodJson.title || '';
   const explanation_en = apodJson.explanation || '';
   let title_it = title_en;
@@ -81,16 +136,21 @@ async function processApod(apodJson: any) {
       const translated = await translateWithGemini(title_en, explanation_en, geminiKey);
       if (translated[0]) title_it = translated[0];
       if (translated[1]) explanation_it = translated[1];
-    } catch (e) {
-      console.error('Errore traduzione APOD con Gemini:', e);
-      // Fallback a DeepL se configurato
-      if (deeplKey) {
+    } catch (error: unknown) {
+      if (error instanceof TranslationTimeoutError) {
+        console.warn('Traduzione APOD saltata: Gemini non ha risposto entro il limite.');
+      } else {
+        console.error('Errore traduzione APOD con Gemini:', error);
+      }
+      // A timeout should not keep this optional card in a loading state. A
+      // quick Gemini failure can still use DeepL when it is configured.
+      if (deeplKey && !(error instanceof TranslationTimeoutError)) {
         try {
           const translated = await translateTexts([title_en, explanation_en], deeplKey);
           if (translated[0]) title_it = translated[0];
           if (translated[1]) explanation_it = translated[1];
-        } catch (deepLe) {
-          console.error('Errore traduzione APOD con DeepL dopo fallimento Gemini:', deepLe);
+        } catch (deepLError: unknown) {
+          console.error('Errore traduzione APOD con DeepL dopo fallimento Gemini:', deepLError);
         }
       }
     }
@@ -99,15 +159,15 @@ async function processApod(apodJson: any) {
       const translated = await translateTexts([title_en, explanation_en], deeplKey);
       if (translated[0]) title_it = translated[0];
       if (translated[1]) explanation_it = translated[1];
-    } catch (e) {
-      console.error('Errore traduzione APOD con DeepL:', e);
+    } catch (error: unknown) {
+      console.error('Errore traduzione APOD con DeepL:', error);
     }
   }
 
   return {
-    date: apodJson.date,
-    media_type: apodJson.media_type,
-    url: apodJson.url,
+    date: apodJson.date ?? '',
+    media_type: apodJson.media_type ?? 'image',
+    url: apodJson.url ?? '',
     hdurl: apodJson.hdurl,
     thumbnail_url: apodJson.thumbnail_url,
     copyright: apodJson.copyright,
@@ -118,7 +178,7 @@ async function processApod(apodJson: any) {
   };
 }
 
-const memoryCache = new Map<string, any>();
+const memoryCache = new Map<string, ApodResponse>();
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,6 +206,7 @@ export async function GET(request: NextRequest) {
 
     const nasaRes = await fetch(nasaUrl, {
       next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(6_000),
     });
 
     if (!nasaRes.ok) {
@@ -158,8 +219,8 @@ export async function GET(request: NextRequest) {
         const yesterdayIso = getRomeDateIso(yesterday);
 
         // Verifica cache in memoria per ieri prima di fare fetch
-        if (memoryCache.has(yesterdayIso)) {
-          const cachedResult = memoryCache.get(yesterdayIso);
+        const cachedResult = memoryCache.get(yesterdayIso);
+        if (cachedResult) {
           memoryCache.set(dataIso, cachedResult);
           return NextResponse.json(cachedResult, {
             headers: {
@@ -171,10 +232,11 @@ export async function GET(request: NextRequest) {
         const fallbackUrl = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&date=${yesterdayIso}&thumbs=true`;
         const fallbackRes = await fetch(fallbackUrl, {
           next: { revalidate: 86400 },
+          signal: AbortSignal.timeout(6_000),
         });
 
         if (fallbackRes.ok) {
-          const apodJson = await fallbackRes.json();
+          const apodJson = await fallbackRes.json() as NasaApod;
           const result = await processApod(apodJson);
           memoryCache.set(dataIso, result);
           memoryCache.set(yesterdayIso, result);
@@ -192,7 +254,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apodJson = await nasaRes.json();
+    const apodJson = await nasaRes.json() as NasaApod;
     const result = await processApod(apodJson);
     memoryCache.set(dataIso, result);
 
@@ -201,7 +263,7 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, max-age=86400, s-maxage=86400',
       },
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: errorMessage(error) }, { status: 500 });
   }
 }

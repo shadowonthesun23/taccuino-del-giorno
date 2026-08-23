@@ -60,7 +60,7 @@ export async function GET(request: Request) {
     const fotoUrl = await getFotoAutore(data.autore_giorno);
 
     return NextResponse.json({ ...data, foto_autore_url: fotoUrl });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Errore inatteso' }, { status: 500 });
   }
 }

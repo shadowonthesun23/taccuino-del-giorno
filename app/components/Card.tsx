@@ -81,18 +81,17 @@ export default function Card({
   const badgeRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    setIsRevealed(false);
     const el = badgeRef.current;
     if (!el) return;
 
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setIsRevealed(true);
-      return;
+      const frame = window.requestAnimationFrame(() => setIsRevealed(true));
+      return () => window.cancelAnimationFrame(frame);
     }
 
-    if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) {
-      setIsRevealed(true);
-      return;
+    if (typeof IntersectionObserver === 'undefined') {
+      const frame = window.requestAnimationFrame(() => setIsRevealed(true));
+      return () => window.cancelAnimationFrame(frame);
     }
 
     const observer = new IntersectionObserver(
@@ -110,7 +109,7 @@ export default function Card({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [title]);
+  }, [id]);
 
   const handleExport = useCallback(async () => {
     if (!sectionRef.current || exporting) return;
