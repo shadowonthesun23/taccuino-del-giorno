@@ -261,7 +261,7 @@ export default function Card({
             onClick={handleExport}
             disabled={exporting}
             aria-label="Scarica come immagine"
-            title="Scarica come immagine"
+            data-label="Scarica come immagine"
             className={`card-export-button ${isDark ? 'is-dark' : ''}`}
           >
             {exporting ? (
@@ -280,7 +280,7 @@ export default function Card({
             data-export-ignore
             onClick={onToggleSaved}
             aria-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
-            title={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
+            data-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
             className={`card-save-button ${filename ? 'has-export' : ''} ${isDark ? 'is-dark' : ''} ${isSaved ? 'is-saved' : ''}`}
           >
             {isSaved ? (
