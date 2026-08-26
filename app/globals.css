@@ -603,7 +603,6 @@ a.museum-brass-label:hover::before {
     .journal-hero-subtitle,
     .author-feature h2,
     .author-feature p,
-    .daily-thread,
     .journal-footer-title,
     .journal-footer-note,
     .daily-ex-libris
@@ -620,7 +619,6 @@ a.museum-brass-label:hover::before {
     .journal-hero-subtitle,
     .author-feature h2,
     .author-feature p,
-    .daily-thread,
     .journal-footer-title,
     .journal-footer-note,
     .daily-ex-libris
@@ -630,7 +628,6 @@ a.museum-brass-label:hover::before {
     .journal-hero-subtitle,
     .author-feature h2,
     .author-feature p,
-    .daily-thread,
     .journal-footer-title,
     .journal-footer-note,
     .daily-ex-libris
@@ -2697,96 +2694,6 @@ body {
     opacity: 0.8;
     transform: translate(0, 0) rotate(-32deg);
   }
-}
-
-.daily-thread {
-  align-items: center;
-  color: #7b6f68;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-start;
-  margin-top: 20px;
-  max-width: 620px;
-  white-space: nowrap;
-}
-
-.daily-thread-line {
-  background:
-    radial-gradient(circle at 2px 50%, var(--daily-accent, #de6b58) 0 1.5px, transparent 1.8px),
-    linear-gradient(90deg, rgba(var(--daily-accent-rgb, 222,107,88),0.08), rgba(var(--daily-accent-rgb, 222,107,88),0.66));
-  height: 1px;
-  max-width: 72px;
-  position: relative;
-  transform: rotate(-0.8deg);
-  width: clamp(22px, 6vw, 72px);
-}
-
-.daily-thread-line.is-ending {
-  background:
-    radial-gradient(circle at calc(100% - 2px) 50%, var(--daily-accent, #de6b58) 0 1.5px, transparent 1.8px),
-    linear-gradient(90deg, rgba(var(--daily-accent-rgb, 222,107,88),0.66), rgba(var(--daily-accent-rgb, 222,107,88),0.08));
-  transform: rotate(0.65deg);
-}
-
-.daily-thread-label {
-  font-size: 0.82rem;
-  font-style: italic;
-  font-weight: 600;
-  letter-spacing: 0.055em;
-}
-
-.daily-thread-theme {
-  color: var(--daily-accent, #de6b58);
-  display: inline-block;
-  font-size: 1.45rem;
-  font-weight: 700;
-  line-height: 1;
-  position: relative;
-  transform: rotate(-1.2deg);
-}
-
-.daily-thread-theme::after {
-  animation: threadUnderlineDraw 780ms cubic-bezier(0.22, 1, 0.36, 1) 1450ms both;
-  background:
-    linear-gradient(90deg, transparent, rgba(var(--daily-accent-rgb, 222,107,88),0.18) 6%, rgba(var(--daily-accent-rgb, 222,107,88),0.88) 42%, rgba(181,149,106,0.46) 82%, transparent);
-  border-radius: 999px;
-  bottom: -0.22em;
-  content: "";
-  height: 0.12em;
-  left: -0.08em;
-  position: absolute;
-  transform: scaleX(0) rotate(-1.8deg);
-  transform-origin: left center;
-  width: calc(100% + 0.18em);
-}
-
-.daily-thread-theme span {
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes threadUnderlineDraw {
-  from {
-    opacity: 0;
-    transform: scaleX(0.08) rotate(-1.8deg);
-  }
-  35% {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-    transform: scaleX(1) rotate(-1.8deg);
-  }
-}
-
-.daily-thread.is-dark {
-  color: #a9a09b;
-}
-
-.daily-thread.is-dark .daily-thread-theme {
-  color: #e8dcc6;
-  color: color-mix(in srgb, var(--daily-accent, #de6b58) 54%, #fff8e8);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.54);
 }
 
 .margin-note {
@@ -7614,23 +7521,6 @@ body {
     overflow-wrap: break-word;
   }
 
-  .daily-thread {
-    flex-wrap: wrap;
-    gap: 7px 9px;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-    white-space: normal;
-  }
-
-  .daily-thread-line {
-    width: 34px;
-  }
-
-  .daily-thread-theme {
-    font-size: 1.35rem;
-  }
-
   .margin-note {
     color: #765f54;
     font-size: 1.08rem;
@@ -8245,7 +8135,6 @@ body {
   .author-photo-wrap,
   .author-photo-paper,
   .author-photo-tape,
-  .daily-thread-theme::after,
   .margin-note,
   .margin-note-doodle,
   .margin-note-doodle-line,
@@ -8272,11 +8161,6 @@ body {
   .mobile-tools-trigger,
   .top-control-panel {
     transition: none !important;
-  }
-
-  .daily-thread-theme::after {
-    opacity: 1;
-    transform: scaleX(1) rotate(-1.8deg);
   }
 
   .margin-note,
@@ -8918,11 +8802,11 @@ body {
 .daily-correspondences-sheet::before {
   background-image: url('/beige-paper.png');
   background-repeat: repeat;
-  background-size: 220px;
+  background-size: 160px;
   content: '';
   filter: saturate(0.72) contrast(0.92);
   inset: 0;
-  opacity: 0.18;
+  opacity: 0.29;
   pointer-events: none;
   position: absolute;
   z-index: 0;
@@ -8947,7 +8831,7 @@ body {
 
 .daily-correspondences-sheet.is-dark::before {
   filter: grayscale(1) contrast(0.86);
-  opacity: 0.08;
+  opacity: 0.14;
 }
 
 .daily-correspondences-header {
@@ -8960,9 +8844,14 @@ body {
   justify-content: space-between;
   letter-spacing: 0.15em;
   padding-bottom: 12px;
+  padding-right: clamp(32px, 4vw, 46px);
   position: relative;
   text-transform: uppercase;
   z-index: 1;
+}
+
+.daily-correspondences-export-title {
+  display: none;
 }
 
 .daily-correspondences-header::after,
@@ -9029,7 +8918,7 @@ body {
   font-style: italic;
   line-height: 1.45;
   margin: 16px auto 0;
-  max-width: 480px;
+  max-width: 600px;
 }
 
 .daily-correspondences-sheet.is-dark .daily-correspondences-intro h2 {
@@ -9045,8 +8934,8 @@ body {
   gap: clamp(16px, 3vw, 30px);
   grid-template-areas:
     'word author music'
-    'sky author artwork'
-    'apod author artwork';
+    'saint author artwork'
+    'sky author apod';
   grid-template-columns: minmax(0, 0.9fr) minmax(240px, 1.34fr) minmax(0, 0.9fr);
   position: relative;
   z-index: 1;
@@ -9084,6 +8973,7 @@ body {
 
 .correspondence-author { grid-area: author; }
 .correspondence-word { grid-area: word; }
+.correspondence-saint { grid-area: saint; }
 .correspondence-music { grid-area: music; }
 .correspondence-sky { grid-area: sky; }
 .correspondence-apod { grid-area: apod; }
@@ -9116,14 +9006,24 @@ body {
 }
 
 .correspondence-entry-content > img,
-.correspondence-moon,
 .correspondence-fallback-icon {
   background: #eee4d3;
-  border-radius: 999px;
+  border-radius: 8px 6px 9px 7px;
   box-shadow: 0 6px 16px -14px rgba(42, 37, 34, 0.55);
   flex: 0 0 auto;
   height: 54px;
   object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  width: 54px;
+}
+
+.correspondence-moon {
+  background: #eee4d3;
+  border-radius: 8px 6px 9px 7px;
+  box-shadow: 0 6px 16px -14px rgba(42, 37, 34, 0.55);
+  flex: 0 0 auto;
+  height: 54px;
   outline: 1px solid oklch(0 0 0 / 0.1);
   outline-offset: -1px;
   width: 54px;
@@ -9289,6 +9189,24 @@ body {
   width: 29px;
 }
 
+.correspondence-saint-mark {
+  align-items: center;
+  background: rgba(181, 149, 106, 0.11);
+  border-radius: 8px 6px 9px 7px;
+  box-shadow: inset 0 0 0 1px oklch(0 0 0 / 0.1);
+  color: #8f7158;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 54px;
+  justify-content: center;
+  width: 54px;
+}
+
+.correspondence-saint-mark svg {
+  height: 24px;
+  width: 24px;
+}
+
 .correspondence-sky .correspondence-entry-content {
   align-items: flex-start;
 }
@@ -9298,6 +9216,26 @@ body {
   flex-wrap: wrap;
   gap: 7px 9px;
   margin-top: 12px;
+}
+
+.correspondence-planets-heading {
+  align-items: center;
+  color: #7c6555;
+  display: inline-flex;
+  flex-basis: 100%;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.1em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.correspondence-planets-heading svg {
+  color: #aa6655;
+  height: 14px;
+  width: 14px;
 }
 
 .correspondence-planet-chip {
@@ -9313,6 +9251,19 @@ body {
 .correspondence-planet-chip > span:last-child {
   display: grid;
   gap: 2px;
+}
+
+.correspondence-planet-aid {
+  align-items: center;
+  color: #9a735b;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.correspondence-planet-aid svg {
+  height: 13px;
+  width: 13px;
 }
 
 .correspondence-planet-chip strong {
@@ -9373,9 +9324,8 @@ body {
 
 .correspondence-apod .correspondence-entry-content > img,
 .correspondence-apod .correspondence-missing-media {
-  border-radius: 7px 5px 8px 6px;
-  height: 48px;
-  width: 70px;
+  height: 54px;
+  width: 54px;
 }
 
 .correspondence-apod .correspondence-missing-media svg {
@@ -9414,41 +9364,57 @@ body {
 
 .daily-correspondences-footer {
   align-items: center;
-  color: #79685d;
   display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: clamp(26px, 5vw, 42px);
-  padding-top: 14px;
+  justify-content: flex-end;
+  margin-top: 0;
+  min-height: 136px;
   position: relative;
+  order: 2;
   z-index: 1;
 }
 
 .daily-correspondences-footer::before {
-  left: 3px;
-  right: -2px;
-  top: 0;
-  transform: rotate(0.16deg);
+  display: none;
 }
 
-.daily-correspondences-seal {
-  height: 33px;
-  object-fit: contain;
-  width: 33px;
-}
-
-.daily-correspondences-footer p {
-  font-size: 1.05rem;
+.daily-correspondences-wax-seal.daily-wax-seal {
+  flex: 0 0 auto;
+  height: 136px;
   margin: 0;
-  transform: rotate(-1.4deg);
+  transform: rotate(3deg);
+  width: 136px;
 }
 
-.daily-correspondences-footer > span {
-  font-family: var(--font-geist-mono), 'Courier New', monospace;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.daily-correspondences-wax-seal.daily-wax-seal:hover {
+  transform: rotate(1deg) scale(1.03);
+}
+
+.daily-correspondences-wax-seal .daily-wax-seal-inner {
+  height: 88px;
+  width: 88px;
+}
+
+.daily-correspondences-wax-seal .seal-initials {
+  font-size: 1.78rem;
+  margin-top: 3px;
+}
+
+.daily-correspondences-wax-seal .seal-date {
+  font-size: 0.68rem;
+  margin-bottom: 2px;
+}
+
+.daily-correspondences-wax-seal .seal-edition {
+  font-size: 0.54rem;
+}
+
+.daily-correspondences-closure {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  margin-top: clamp(20px, 4vw, 34px);
+  position: relative;
+  z-index: 1;
 }
 
 .daily-correspondences-actions {
@@ -9456,8 +9422,10 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  justify-content: center;
-  margin-top: 22px;
+  flex: 1;
+  justify-content: flex-start;
+  margin-top: 0;
+  order: 1;
   position: relative;
   z-index: 1;
 }
@@ -9466,27 +9434,34 @@ body {
 .daily-correspondences-download {
   align-items: center;
   appearance: none;
-  background: transparent;
   border: 0;
-  color: #a24f40;
+  border-radius: 999px;
+  box-shadow:
+    0 9px 18px -16px rgba(42, 37, 34, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.95rem;
-  font-style: italic;
+  font-size: 0.88rem;
+  font-style: normal;
   font-weight: 700;
   gap: 8px;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 14px;
-  transition: color 180ms ease, opacity 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  letter-spacing: 0.01em;
+  min-height: 46px;
+  padding: 0 17px;
+  transition: background-color 180ms ease, box-shadow 180ms ease, color 180ms ease, opacity 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
 }
 
 .daily-correspondences-follow {
-  border-bottom: 1px solid currentColor;
+  background: #a24f40;
+  color: #fff8ed;
+  text-shadow: 0 1px 0 rgba(70, 25, 18, 0.2);
 }
 
 .daily-correspondences-download {
+  background: rgba(255, 252, 245, 0.72);
   color: #76675f;
 }
 
@@ -9494,26 +9469,83 @@ body {
 .daily-correspondences-follow:focus-visible,
 .daily-correspondences-download:hover,
 .daily-correspondences-download:focus-visible {
-  color: #de6b58;
+  background: #fffaf0;
+  box-shadow:
+    0 12px 22px -16px rgba(42, 37, 34, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  color: #a24f40;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.daily-correspondences-follow:hover,
+.daily-correspondences-follow:focus-visible {
+  background: #8f4539;
+  box-shadow:
+    0 12px 22px -16px rgba(91, 38, 29, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: #fff8ed;
   outline: none;
   transform: translateY(-1px);
 }
 
 .daily-correspondences-download:disabled {
   cursor: wait;
-  opacity: 0.56;
+  opacity: 0.76;
+}
+
+.daily-correspondences-download-icon {
+  display: inline-grid;
+  height: 18px;
+  place-items: center;
+  position: relative;
+  width: 18px;
+}
+
+.daily-correspondences-download-icon svg {
+  grid-area: 1 / 1;
+  height: 18px;
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1), opacity 220ms cubic-bezier(0.2, 0, 0, 1), transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  width: 18px;
+}
+
+.daily-correspondences-download-preparing {
+  filter: blur(4px);
+  opacity: 0;
+  transform: scale(0.25);
+}
+
+.daily-correspondences-download-icon.is-preparing .daily-correspondences-download-default {
+  filter: blur(4px);
+  opacity: 0;
+  transform: scale(0.25);
+}
+
+.daily-correspondences-download-icon.is-preparing .daily-correspondences-download-preparing {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1);
 }
 
 .daily-correspondences-sheet.is-dark :is(.correspondence-entry-content strong, .correspondence-word > strong, .correspondence-artwork-caption strong) {
   color: #efe3d0;
 }
 
-.daily-correspondences-sheet.is-dark :is(.correspondence-entry-content em, .correspondence-word > em, .correspondence-artwork-caption em, .daily-correspondences-footer) {
+.daily-correspondences-sheet.is-dark :is(.correspondence-entry-content em, .correspondence-word > em, .correspondence-artwork-caption em) {
   color: #b7a997;
 }
 
 .daily-correspondences-sheet.is-dark .correspondence-planet-chip {
   color: #dfcfb9;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-planets-heading {
+  color: #c5b49f;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-planets-heading svg,
+.daily-correspondences-sheet.is-dark .correspondence-planet-aid {
+  color: #d5b58e;
 }
 
 .daily-correspondences-sheet.is-dark .correspondence-planet-chip em {
@@ -9538,8 +9570,36 @@ body {
   color: #cfb393;
 }
 
+.daily-correspondences-sheet.is-dark .correspondence-saint-mark {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
+  color: #cfb393;
+}
+
 .daily-correspondences-sheet.is-dark .daily-correspondences-download {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 9px 18px -16px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   color: #cfc1af;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-follow {
+  background: #c69762;
+  color: #281e17;
+  text-shadow: none;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-download:hover,
+.daily-correspondences-sheet.is-dark .daily-correspondences-download:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f3e6d2;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-follow:hover,
+.daily-correspondences-sheet.is-dark .daily-correspondences-follow:focus-visible {
+  background: #d7ac74;
+  color: #281e17;
 }
 
 /* L'autore è la diapositiva centrale; l'opera torna a essere un richiamo laterale. */
@@ -9651,8 +9711,9 @@ body {
 .correspondence-missing-media {
   align-items: center;
   background: rgba(181, 149, 106, 0.09);
-  border-radius: 8px;
+  border-radius: 8px 6px 9px 7px;
   box-sizing: border-box;
+  box-shadow: 0 6px 16px -14px rgba(42, 37, 34, 0.55);
   color: #8f7158;
   display: inline-flex;
   flex: 0 0 auto;
@@ -9859,14 +9920,13 @@ body {
   }
 }
 
-.daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-footer, .daily-correspondences-actions) {
+.daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-closure) {
   animation: correspondencesEntryIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .daily-correspondences-sheet > .daily-correspondences-intro { animation-delay: 70ms; }
 .daily-correspondences-sheet > .daily-correspondences-grid { animation-delay: 140ms; }
-.daily-correspondences-sheet > .daily-correspondences-footer { animation-delay: 210ms; }
-.daily-correspondences-sheet > .daily-correspondences-actions { animation-delay: 280ms; }
+.daily-correspondences-sheet > .daily-correspondences-closure { animation-delay: 210ms; }
 
 @media (max-width: 680px) {
   .daily-correspondences {
@@ -9892,6 +9952,7 @@ body {
     gap: 17px;
     grid-template-areas:
       'author'
+      'saint'
       'word'
       'artwork'
       'music'
@@ -9916,10 +9977,18 @@ body {
     aspect-ratio: 16 / 10;
   }
 
-  .daily-correspondences-actions {
+  .daily-correspondences-closure {
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
     margin-top: 16px;
+  }
+
+  .daily-correspondences-actions {
+    align-items: stretch;
+    flex: initial;
+    flex-direction: column;
+    margin-top: 0;
   }
 
   .daily-correspondences-follow,
@@ -9940,10 +10009,37 @@ body {
   .daily-correspondences-seasonal-preview {
     grid-row: 1 / 4;
   }
+
+  .daily-correspondences-footer {
+    justify-content: center;
+    min-height: 112px;
+  }
+
+  .daily-correspondences-wax-seal.daily-wax-seal {
+    height: 112px;
+    width: 112px;
+  }
+
+  .daily-correspondences-wax-seal .daily-wax-seal-inner {
+    height: 74px;
+    width: 74px;
+  }
+
+  .daily-correspondences-wax-seal .seal-initials {
+    font-size: 1.45rem;
+  }
+
+  .daily-correspondences-wax-seal .seal-date {
+    font-size: 0.58rem;
+  }
+
+  .daily-correspondences-wax-seal .seal-edition {
+    font-size: 0.46rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-footer, .daily-correspondences-actions) {
+  .daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-closure) {
     animation: none;
   }
 
@@ -9975,53 +10071,60 @@ body {
 
 .correspondence-export-frame .daily-correspondences-sheet.daily-correspondences-export {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   min-height: 1776px;
-  padding: 68px 70px 58px;
+  padding: 52px 52px 32px 76px;
   transform: none;
   width: 960px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-intro {
-  margin: 48px auto 42px;
-  max-width: 780px;
+  display: none;
 }
 
-.correspondence-export-frame .daily-correspondences-export .daily-correspondences-intro h2 {
-  font-size: 76px;
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-kicker {
+  display: none;
 }
 
-.correspondence-export-frame .daily-correspondences-export .daily-correspondences-copy {
-  font-size: 22px;
-  line-height: 1.45;
-  max-width: 590px;
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-export-title {
+  display: inline;
+  font-family: masterSignature, 'masterSignature Fallback', serif;
+  font-size: 48px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  text-transform: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-grid {
   align-items: stretch;
-  column-gap: 38px;
-  row-gap: 30px;
+  gap: 22px;
   grid-template-areas:
-    'word word'
-    'author author'
-    'artwork music'
-    'artwork sky'
-    'artwork apod';
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    'word'
+    'author'
+    'saint'
+    'artwork'
+    'music'
+    'sky'
+    'apod';
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-author {
   align-items: center;
   column-gap: 30px;
   display: grid;
-  grid-template-columns: 238px minmax(0, 1fr);
-  max-width: 760px;
-  padding: 22px;
+  grid-template-columns: 250px minmax(0, 1fr);
+  max-width: none;
+  padding: 20px;
   width: 100%;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-author-label {
   grid-column: 1 / -1;
-  margin-bottom: 13px;
+  font-size: 18px;
+  margin-bottom: 12px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-author > img,
@@ -10029,14 +10132,14 @@ body {
   aspect-ratio: 4 / 5;
   grid-column: 1;
   grid-row: 2;
-  height: 298px;
+  height: 312px;
   max-height: none;
-  width: 238px;
+  width: 250px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-author-caption {
   align-self: center;
-  gap: 12px;
+  gap: 11px;
   grid-column: 2;
   grid-row: 2;
   padding: 0;
@@ -10044,25 +10147,33 @@ body {
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-author-caption strong {
-  font-size: 40px;
+  font-size: 72px;
   line-height: 1;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-author-caption em {
+  color: #74675f;
+  display: block;
   font-size: 22px;
-  line-height: 1.42;
+  line-height: 1.35;
+  max-width: 30ch;
+  overflow-wrap: break-word;
   text-wrap: pretty;
+}
+
+.correspondence-export-frame .daily-correspondences-export.is-dark .correspondence-author-caption em {
+  color: #b7a997;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry {
   align-self: stretch;
-  min-height: 154px;
-  padding-top: 18px;
+  min-height: 126px;
+  padding-top: 16px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry-label {
-  font-size: 15px;
-  margin-bottom: 14px;
+  font-size: 18px;
+  margin-bottom: 12px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry-content {
@@ -10071,78 +10182,91 @@ body {
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry-content > img,
 .correspondence-export-frame .daily-correspondences-export .correspondence-missing-media,
-.correspondence-export-frame .daily-correspondences-export .correspondence-moon {
-  height: 72px;
-  width: 72px;
+.correspondence-export-frame .daily-correspondences-export .correspondence-moon,
+.correspondence-export-frame .daily-correspondences-export .correspondence-saint-mark {
+  height: 76px;
+  width: 76px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-missing-media svg,
-.correspondence-export-frame .daily-correspondences-export .correspondence-moon svg {
-  height: 30px;
-  width: 30px;
+.correspondence-export-frame .daily-correspondences-export .correspondence-moon svg,
+.correspondence-export-frame .daily-correspondences-export .correspondence-saint-mark svg {
+  height: 31px;
+  width: 31px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry-content strong {
-  font-size: 24px;
-  line-height: 1.1;
+  font-size: 34px;
+  line-height: 1.06;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry-content em,
 .correspondence-export-frame .daily-correspondences-export .correspondence-word > em {
-  font-size: 18px;
-  line-height: 1.32;
+  font-size: 21px;
+  line-height: 1.3;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-planets {
-  gap: 10px 13px;
-  margin-top: 16px;
+  gap: 9px 14px;
+  margin-top: 14px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planets-heading {
+  font-size: 16px;
+  gap: 8px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planets-heading svg,
+.correspondence-export-frame .daily-correspondences-export .correspondence-planet-aid svg {
+  height: 18px;
+  width: 18px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-planet-chip {
-  font-size: 15px;
+  font-size: 18px;
   gap: 7px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-planet-chip em {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-planet-icon {
-  height: 21px;
-  width: 21px;
+  height: 24px;
+  width: 24px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-planet-icon.planet-saturn::after {
-  height: 7px;
-  left: -5px;
-  top: 6px;
-  width: 28px;
+  height: 8px;
+  left: -6px;
+  top: 7px;
+  width: 32px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-apod .correspondence-entry-content > img,
 .correspondence-export-frame .daily-correspondences-export .correspondence-apod .correspondence-missing-media {
-  height: 70px;
-  width: 104px;
+  height: 76px;
+  width: 76px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-word > strong {
-  font-size: 66px;
-  margin-bottom: 12px;
+  font-size: 68px;
+  margin-bottom: 10px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal {
-  margin-top: 42px;
-  padding-block: 20px 19px;
+  margin-top: 20px;
+  padding-block: 14px 13px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-preview {
-  height: 84px;
-  width: 66px;
+  height: 78px;
+  width: 62px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-label,
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal > small {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-copy strong {
@@ -10154,28 +10278,44 @@ body {
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer {
-  gap: 12px;
-  padding-top: 18px;
+  min-height: 204px;
 }
 
-.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seal {
-  height: 46px;
-  width: 46px;
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-wax-seal.daily-wax-seal {
+  height: 204px;
+  width: 204px;
 }
 
-.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer p {
-  font-size: 26px;
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-wax-seal .daily-wax-seal-inner {
+  height: 132px;
+  width: 132px;
 }
 
-.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer > span {
-  font-size: 14px;
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-wax-seal .seal-initials {
+  font-size: 2.56rem;
 }
 
-.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer {
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-wax-seal .seal-date {
+  font-size: .95rem;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-wax-seal .seal-edition {
+  font-size: .74rem;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-closure {
+  align-self: flex-end;
+  justify-content: flex-end;
+  margin-bottom: -6px;
+  margin-right: -8px;
   margin-top: auto;
 }
 
 .correspondence-export-frame .daily-correspondences-export .daily-correspondences-actions {
+  display: none;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal > small {
   display: none;
 }
 

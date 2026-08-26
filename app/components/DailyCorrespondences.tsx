@@ -1,16 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, Download, Feather, Moon, Music, Palette, Telescope, Type } from 'lucide-react';
+import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Moon, Music, Palette, Sparkles, Telescope, Type } from 'lucide-react';
 import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno } from '@/lib/types';
 import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 import { getMoonPhase } from '@/lib/astronomy';
-import { formatExLibrisDate, getDayOfYearInfo } from '@/lib/date-utils';
+import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-utils';
 import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
 import { SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
-import { caveat, garamond } from '@/lib/fonts';
+import { garamond, masterSignature } from '@/lib/fonts';
 
 const eagerImageProps = getImageLoadingProps(true);
 
@@ -68,6 +68,7 @@ export default function DailyCorrespondences({
   const apodImageUrl = proxiedImageUrl(apod?.thumbnail_url || apod?.url);
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
   const authorDescription = getFirstSentence(data.breve_descrizione);
+  const saintOfTheDay = data.santi[0];
 
   useEffect(() => {
     let cancelled = false;
@@ -152,6 +153,7 @@ export default function DailyCorrespondences({
       <article ref={sheetRef} className={`daily-correspondences-sheet ${isDark ? 'is-dark' : ''}`}>
         <header className="daily-correspondences-header">
           <span className="daily-correspondences-kicker">{t('correspondencesTitle', lingua)}</span>
+          <span className={`${masterSignature.className} daily-correspondences-export-title`}>{t('dayTitle', lingua)}</span>
           <span className="daily-correspondences-edition">{t('edition', lingua)} {dayOfYear}/{totalDays}</span>
         </header>
 
@@ -178,6 +180,16 @@ export default function DailyCorrespondences({
             <strong>{data.parola_giorno.parola}</strong>
             <em>{data.parola_giorno.etimologia}</em>
           </button>
+
+          {saintOfTheDay ? (
+            <button type="button" className="correspondence-entry correspondence-saint" onClick={() => scrollTo('santi')}>
+              <span className="correspondence-entry-label"><Church aria-hidden="true" />{t('correspondenceSaint', lingua)}</span>
+              <span className="correspondence-entry-content">
+                <span className="correspondence-saint-mark" aria-hidden="true"><Church /></span>
+                <span><strong>{saintOfTheDay.nome}</strong><em>{saintOfTheDay.ruolo}</em></span>
+              </span>
+            </button>
+          ) : null}
 
           <button type="button" className="correspondence-entry correspondence-artwork" onClick={() => scrollTo('opera')}>
             <span className="correspondence-entry-label"><Palette aria-hidden="true" />{t('correspondenceArtwork', lingua)}</span>
@@ -209,9 +221,13 @@ export default function DailyCorrespondences({
             </span>
             {visiblePlanets?.length ? (
               <span className="correspondence-planets" aria-label={t('planets', lingua)}>
+                <span className="correspondence-planets-heading"><Eye aria-hidden="true" />{t('visiblePlanetsInSky', lingua)}</span>
                 {visiblePlanets.map((planet) => (
-                  <span key={planet.body} className="correspondence-planet-chip" title={`${planet.name} · ${planet.direction} · ${planet.bestTime}`}>
+                  <span key={planet.body} className="correspondence-planet-chip" title={`${planet.name} · ${planet.direction} · ${planet.bestTime} · ${t(planet.viewingAid === 'binoculars-recommended' ? 'binocularsRecommended' : 'nakedEye', lingua)}`}>
                     <span className={`correspondence-planet-icon planet-${planet.body.toLowerCase()}`} aria-hidden="true" />
+                    <span className="correspondence-planet-aid" aria-label={t(planet.viewingAid === 'binoculars-recommended' ? 'binocularsRecommended' : 'nakedEye', lingua)}>
+                      {planet.viewingAid === 'binoculars-recommended' ? <Binoculars aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                    </span>
                     <span><strong>{planet.name}</strong><em>{planet.direction} · {planet.bestTime}</em></span>
                   </span>
                 ))}
@@ -247,22 +263,29 @@ export default function DailyCorrespondences({
           </button>
         ) : null}
 
-        <footer className="daily-correspondences-footer">
-          {/* eslint-disable-next-line @next/next/no-img-element -- the actual seal asset is required in the exported plate */}
-          <img draggable={false} src={`/images/sigillo-${sealColor}.png`} alt="" aria-hidden="true" className="daily-correspondences-seal" />
-          <p className={caveat.className}>{formatExLibrisDate(dataIso)}</p>
-          <span>{t('dayTitle', lingua)}</span>
-        </footer>
-
-        <div className="daily-correspondences-actions" data-export-ignore>
-          <button type="button" className="daily-correspondences-follow" onClick={() => scrollTo('autore')}>
-            <span>{t('correspondencesFollow', lingua)}</span>
-            <ArrowDown aria-hidden="true" strokeWidth={1.7} />
-          </button>
-          <button type="button" className="daily-correspondences-download" onClick={() => void downloadPlate()} disabled={isExporting} aria-label={t('correspondencesDownloadAria', lingua)}>
-            <Download aria-hidden="true" strokeWidth={1.7} className={isExporting ? 'animate-spin' : ''} />
-            <span>{t('correspondencesDownload', lingua)}</span>
-          </button>
+        <div className="daily-correspondences-closure">
+          <footer className="daily-correspondences-footer">
+            <div className={`daily-wax-seal daily-correspondences-wax-seal seal-${sealColor}`} aria-label={`${t('waxSealAria', lingua)}: ${data.autore_giorno}`}>
+              <div className="daily-wax-seal-inner">
+                <span className="seal-initials">{getInitials(data.autore_giorno)}</span>
+                <span className="seal-date">{formatExLibrisDate(dataIso)}</span>
+                <span className="seal-edition">{t('edition', lingua)}<br />{`${t('number', lingua)} ${dayOfYear} ${t('of', lingua)} ${totalDays}`}</span>
+              </div>
+            </div>
+          </footer>
+          <div className="daily-correspondences-actions" data-export-ignore>
+            <button type="button" className="daily-correspondences-follow" onClick={() => scrollTo('autore')}>
+              <span>{t('correspondencesFollow', lingua)}</span>
+              <BookOpen aria-hidden="true" strokeWidth={1.7} />
+            </button>
+            <button type="button" className="daily-correspondences-download" onClick={() => void downloadPlate()} disabled={isExporting} aria-label={t('correspondencesDownloadAria', lingua)}>
+              <span className={`daily-correspondences-download-icon ${isExporting ? 'is-preparing' : ''}`} aria-hidden="true">
+                <Download className="daily-correspondences-download-default" strokeWidth={1.7} />
+                <Sparkles className="daily-correspondences-download-preparing" strokeWidth={1.7} />
+              </span>
+              <span aria-live="polite">{isExporting ? t('correspondencesPreparing', lingua) : t('correspondencesDownload', lingua)}</span>
+            </button>
+          </div>
         </div>
       </article>
     </section>

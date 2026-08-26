@@ -1384,14 +1384,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           >
             {data.breve_descrizione}
           </p>
-          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={t('wordCard', lingua)}>
-            <span className="daily-thread-line" aria-hidden="true" />
-            <span className="daily-thread-label">{t('wordCard', lingua)}:</span>
-            <strong className={`${caveat.className} daily-thread-theme`}>
-              <span>{data.parola_giorno.parola}</span>
-            </strong>
-            <span className="daily-thread-line is-ending" aria-hidden="true" />
-          </div>
         </div>
       </div>
     </div> {/* chiude mx-auto flex */}

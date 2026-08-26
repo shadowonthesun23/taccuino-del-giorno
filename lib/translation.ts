@@ -37,7 +37,7 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     IT: 'Per iniziare', EN: 'A place to begin', FR: 'Pour commencer', DE: 'Zum Einstieg', ES: 'Para empezar', PT: 'Para começar'
   },
   correspondencesKicker: {
-    IT: 'Cinque punti per entrare nel giorno', EN: 'Five ways into today', FR: 'Cinq entrées dans la journée', DE: 'Fünf Zugänge zum Tag', ES: 'Cinco maneras de entrar en el día', PT: 'Cinco caminhos para entrar no dia'
+    IT: 'Punti per entrare nel giorno', EN: 'Ways into today', FR: 'Entrées dans la journée', DE: 'Zugänge zum Tag', ES: 'Maneras de entrar en el día', PT: 'Caminhos para entrar no dia'
   },
   correspondencesLead: {
     IT: 'La parola di oggi è', EN: 'Today’s word is', FR: 'Le mot du jour est', DE: 'Das Wort des Tages ist', ES: 'La palabra de hoy es', PT: 'A palavra de hoje é'
@@ -51,6 +51,9 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   correspondencesDownload: {
     IT: 'Scarica la tavola', EN: 'Download the plate', FR: 'Télécharger la planche', DE: 'Tafel herunterladen', ES: 'Descargar la lámina', PT: 'Descarregar a prancha'
   },
+  correspondencesPreparing: {
+    IT: 'Preparo la tavola', EN: 'Preparing the plate', FR: 'Préparation de la planche', DE: 'Tafel wird vorbereitet', ES: 'Preparando la lámina', PT: 'A preparar a prancha'
+  },
   correspondencesDownloadAria: {
     IT: 'Scarica la tavola delle corrispondenze in formato verticale', EN: 'Download the correspondences plate in vertical format', FR: 'Télécharger la planche des correspondances au format vertical', DE: 'Die Korrespondenztafel im Hochformat herunterladen', ES: 'Descargar la lámina de correspondencias en formato vertical', PT: 'Descarregar a prancha de correspondências em formato vertical'
   },
@@ -59,6 +62,18 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   },
   correspondenceWord: {
     IT: 'Parola di oggi', EN: 'Today’s word', FR: 'Mot du jour', DE: 'Wort des Tages', ES: 'Palabra de hoy', PT: 'Palavra do dia'
+  },
+  correspondenceSaint: {
+    IT: 'Santo del giorno', EN: 'Saint of the day', FR: 'Saint du jour', DE: 'Heiliger des Tages', ES: 'Santo del día', PT: 'Santo do dia'
+  },
+  visiblePlanetsInSky: {
+    IT: 'Pianeti visibili nel cielo', EN: 'Visible planets in the sky', FR: 'Planètes visibles dans le ciel', DE: 'Sichtbare Planeten am Himmel', ES: 'Planetas visibles en el cielo', PT: 'Planetas visíveis no céu'
+  },
+  nakedEye: {
+    IT: 'A occhio nudo', EN: 'Naked eye', FR: 'À l’œil nu', DE: 'Mit bloßem Auge', ES: 'A simple vista', PT: 'A olho nu'
+  },
+  binocularsRecommended: {
+    IT: 'Meglio con binocolo', EN: 'Binoculars recommended', FR: 'Jumelles conseillées', DE: 'Fernglas empfohlen', ES: 'Mejor con prismáticos', PT: 'Binóculos recomendados'
   },
   correspondenceArtwork: {
     IT: 'Opera del giorno', EN: 'Artwork of the day', FR: 'Œuvre du jour', DE: 'Kunstwerk des Tages', ES: 'Obra del día', PT: 'Obra do dia'

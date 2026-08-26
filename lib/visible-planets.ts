@@ -9,6 +9,7 @@ export interface VisiblePlanet {
   bestTime: string;
   altitude: number;
   magnitude: number;
+  viewingAid: 'naked-eye' | 'binoculars-recommended';
 }
 
 interface SkyLocation {
@@ -21,6 +22,8 @@ const ROME_TIME_ZONE = 'Europe/Rome';
 const SAMPLE_MINUTES = 15;
 const MINIMUM_ALTITUDE = 8;
 const MAXIMUM_MAGNITUDE = 2.5;
+const COMFORTABLE_NAKED_EYE_MAGNITUDE = 1.5;
+const COMFORTABLE_NAKED_EYE_ALTITUDE = 15;
 
 const LOCATIONS: Record<SkyRegion, SkyLocation> = {
   north: { latitude: 45.4642, longitude: 9.19, height: 120 },
@@ -140,6 +143,9 @@ export function getVisiblePlanets(
     const best = visibleSamples.reduce((current, sample) => (
       sample.horizontal.altitude > current.horizontal.altitude ? sample : current
     ));
+    const viewingAid: VisiblePlanet['viewingAid'] = magnitude > COMFORTABLE_NAKED_EYE_MAGNITUDE || best.horizontal.altitude < COMFORTABLE_NAKED_EYE_ALTITUDE
+      ? 'binoculars-recommended'
+      : 'naked-eye';
 
     return [{
       body: planet.body,
@@ -148,6 +154,7 @@ export function getVisiblePlanets(
       bestTime: formatTime(best.date, lingua),
       altitude: Math.round(best.horizontal.altitude),
       magnitude,
+      viewingAid,
     }];
   })
     .sort((first, second) => (
