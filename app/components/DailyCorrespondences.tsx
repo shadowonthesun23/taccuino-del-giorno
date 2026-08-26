@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Moon, Music, Palette, Sparkles, Telescope, Type } from 'lucide-react';
-import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno } from '@/lib/types';
+import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno, SaintArtworkResult } from '@/lib/types';
 import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 import { getMoonPhase } from '@/lib/astronomy';
@@ -40,6 +40,7 @@ export default function DailyCorrespondences({
   skyTargetId,
   seasonalArtwork,
   apod,
+  saintArtwork,
 }: {
   data: DatiTaccuino;
   opera: OperaGiorno | null;
@@ -51,6 +52,7 @@ export default function DailyCorrespondences({
   skyTargetId: string;
   seasonalArtwork: SeasonalArtwork | null;
   apod: ApodData | null;
+  saintArtwork: SaintArtworkResult | null;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -66,7 +68,9 @@ export default function DailyCorrespondences({
   const musicCoverAvailable = musicCover !== null && !failedMedia.has(musicCover);
   const seasonalArtworkImageAvailable = Boolean(seasonalArtwork?.imageUrl && !failedMedia.has(seasonalArtwork.imageUrl));
   const apodImageUrl = proxiedImageUrl(apod?.thumbnail_url || apod?.url);
+  const saintArtworkImageUrl = proxiedImageUrl(saintArtwork?.imageUrl);
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
+  const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
   const authorDescription = getFirstSentence(data.breve_descrizione);
   const saintOfTheDay = data.santi[0];
 
@@ -185,7 +189,10 @@ export default function DailyCorrespondences({
             <button type="button" className="correspondence-entry correspondence-saint" onClick={() => scrollTo('santi')}>
               <span className="correspondence-entry-label"><Church aria-hidden="true" />{t('correspondenceSaint', lingua)}</span>
               <span className="correspondence-entry-content">
-                <span className="correspondence-saint-mark" aria-hidden="true"><Church /></span>
+                {saintArtworkImageAvailable ? (
+                  /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
+                  <img draggable={false} src={saintArtworkImageUrl} alt="" onError={() => markMediaUnavailable(saintArtworkImageUrl)} {...eagerImageProps} />
+                ) : <span className="correspondence-saint-mark" aria-hidden="true"><Church /></span>}
                 <span><strong>{saintOfTheDay.nome}</strong><em>{saintOfTheDay.ruolo}</em></span>
               </span>
             </button>

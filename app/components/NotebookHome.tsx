@@ -1302,6 +1302,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           skyTargetId={apod ? 'apod' : 'effemeridi'}
           seasonalArtwork={seasonalArtwork}
           apod={apod}
+          saintArtwork={visibleSaintArtwork}
         />
 
         <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
