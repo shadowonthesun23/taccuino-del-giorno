@@ -10,6 +10,7 @@ import AuthorExportCard from './AuthorExportCard';
 import Card from './Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import SeasonalBookmark from './SeasonalBookmark';
+import DailyCorrespondences from './DailyCorrespondences';
 import LoadingNotebook from './LoadingNotebook';
 import NotebookQuickNav from './NotebookQuickNav';
 import MobileReadingThread from './MobileReadingThread';
@@ -29,6 +30,7 @@ import { getAmbientLightStyle, applyBrowserTheme, runWhenIdle, getImageLoadingPr
 import { getSavedCards, persistSavedCards, groupByMonth, getArchiveMonthMood, getArchiveEntryMark } from '@/lib/archive-utils';
 import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-translation';
 import { garamond, caveat, masterSignature } from '@/lib/fonts';
+import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
 
 const eagerImageProps = getImageLoadingProps(true);
 const lazyImageProps = getImageLoadingProps();
@@ -996,6 +998,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     ? new URLSearchParams(window.location.search).get('season')
     : null;
   const season = isSeasonId(localSeasonPreview) ? localSeasonPreview : getSeason(dataExLibris);
+  const seasonalArtwork = getLocalizedSeasonalArtwork(getSeasonalArtwork(season, dataExLibris), lingua) ?? null;
 
   return (
     <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className} language={lingua} sealColor={currentSealColor}>
@@ -1288,6 +1291,19 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             </div>
           </header>
 
+        <DailyCorrespondences
+            data={data}
+            opera={opera}
+            dataIso={dataExLibris}
+            lingua={lingua}
+            isDark={isDark}
+            musicCover={musicCover}
+          sealColor={currentSealColor}
+          skyTargetId={apod ? 'apod' : 'effemeridi'}
+          seasonalArtwork={seasonalArtwork}
+          apod={apod}
+        />
+
         <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
   <div className="relative z-10">
     <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
@@ -1368,9 +1384,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           >
             {data.breve_descrizione}
           </p>
-          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={{ IT: 'Il filo del giorno', EN: 'The thread of the day', FR: 'Le fil du jour', DE: 'Der Faden des Tages', ES: 'El hilo del día', PT: 'O fio do dia' }[lingua] || 'The thread of the day'}>
+          <div className={`daily-thread ${isDark ? 'is-dark' : ''}`} aria-label={t('wordCard', lingua)}>
             <span className="daily-thread-line" aria-hidden="true" />
-            <span className="daily-thread-label">{{ IT: 'Il filo di oggi:', EN: "Today's thread:", FR: 'Le fil d’aujourd’hui :', DE: 'Der Faden von heute:', ES: 'El hilo de hoy:', PT: 'O fio de hoje:' }[lingua] || "Today's thread:"}</span>
+            <span className="daily-thread-label">{t('wordCard', lingua)}:</span>
             <strong className={`${caveat.className} daily-thread-theme`}>
               <span>{data.parola_giorno.parola}</span>
             </strong>
@@ -1389,6 +1405,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         isDark={isDark}
         className="scroll-mt-28"
         filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
+        exportDate={formatExLibrisDate(dataExLibris)}
         isSaved={isCardSaved('citazione')}
         onToggleSaved={() => saveCard('citazione', `${{ IT: 'Citazione di', EN: 'Quote by', FR: 'Citation de', DE: 'Zitat von', ES: 'Cita de', PT: 'Citação de' }[lingua] || 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
       >
@@ -1457,6 +1474,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
             <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
+              exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('parola')}
               onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
               <div className="text-center mb-6">
@@ -1477,6 +1495,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
             <Card key={`${dataExLibris}:santi`} id="santi" title={t('saintsCard', lingua)} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename="santi"
+              exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('santi')}
               onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
               <div className="saints-card-layout">
@@ -1521,6 +1540,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
             <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
               filename="avvenimenti"
+              exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('avvenimenti')}
               onToggleSaved={() => saveCard('avvenimenti', t('eventsCard', lingua), data.avvenimenti[0] ?? '')}>
               <ul className="space-y-4">
@@ -1538,6 +1558,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
             <Card key={`${dataExLibris}:poesia`} id="poesia" title={t('poemCard', lingua)} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}
+              exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('poesia')}
               onToggleSaved={() => saveCard('poesia', data.poesia.fonte || t('poemCard', lingua), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
               <DecorativeInitialText
@@ -1559,6 +1580,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
             <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={t('bibleCard', lingua)} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
               filename="bibbia"
+              exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
               <DecorativeInitialText
@@ -1585,6 +1607,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
                 filename={`opera-${dataExLibris}`}
+                exportDate={formatExLibrisDate(dataExLibris)}
                 isSaved={isCardSaved('opera')}
                 onToggleSaved={() => saveCard('opera', opera.titolo, [operaMedium, operaDepartment].filter(Boolean).join(' · '), opera.artista)}
               >
@@ -1640,6 +1663,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               isDark={isDark}
               className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
               filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
+              exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('musica')}
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
             >
@@ -1736,6 +1760,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-10"
                 filename={apod ? `apod-${dataExLibris}` : undefined}
+                exportDate={formatExLibrisDate(dataExLibris)}
                 isSaved={isCardSaved('apod')}
                 onToggleSaved={
                   apod

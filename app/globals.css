@@ -2783,6 +2783,12 @@ body {
   color: #a9a09b;
 }
 
+.daily-thread.is-dark .daily-thread-theme {
+  color: #e8dcc6;
+  color: color-mix(in srgb, var(--daily-accent, #de6b58) 54%, #fff8e8);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.54);
+}
+
 .margin-note {
   align-items: flex-start;
   animation: marginaliaNoteSettle 720ms cubic-bezier(0.22, 1, 0.36, 1) 260ms both;
@@ -8882,4 +8888,1298 @@ body {
 
 .daily-passport-document {
   animation: passportSlideUp 380ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both !important;
+}
+
+/* ── Tavola delle corrispondenze ── */
+.daily-correspondences {
+  padding: 2px 4px;
+  scroll-margin-top: 7rem;
+}
+
+.daily-correspondences-sheet {
+  --correspondence-pencil: oklch(0.47 0.052 64 / 0.32);
+  background-color: oklch(0.97 0.018 85 / 0.9);
+  backdrop-filter: blur(1.5px) saturate(0.88);
+  -webkit-backdrop-filter: blur(1.5px) saturate(0.88);
+  border: 1px solid rgba(117, 88, 57, 0.15);
+  border-radius: 22px 15px 24px 17px;
+  box-shadow:
+    0 26px 64px -50px rgba(42, 37, 34, 0.72),
+    0 8px 20px -18px rgba(42, 37, 34, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.64),
+    inset 0 -1px 0 rgba(117, 88, 57, 0.06);
+  box-sizing: border-box;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(24px, 5vw, 54px);
+  position: relative;
+}
+
+.daily-correspondences-sheet::before {
+  background-image: url('/beige-paper.png');
+  background-repeat: repeat;
+  background-size: 220px;
+  content: '';
+  filter: saturate(0.72) contrast(0.92);
+  inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.daily-correspondences-sheet > * {
+  position: relative;
+  z-index: 1;
+}
+
+.daily-correspondences-sheet.is-dark {
+  --correspondence-pencil: oklch(0.84 0.045 70 / 0.28);
+  background-color: oklch(0.22 0.012 70 / 0.92);
+  background-image: linear-gradient(165deg, oklch(1 0 0 / 0.026), transparent 42%);
+  border: 1px solid rgba(231, 203, 172, 0.14);
+  border-radius: 8px 6px 10px 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34);
+  padding-inline: clamp(24px, 5vw, 54px);
+}
+
+.daily-correspondences-sheet.is-dark::before {
+  filter: grayscale(1) contrast(0.86);
+  opacity: 0.08;
+}
+
+.daily-correspondences-header {
+  align-items: center;
+  color: #8b604c;
+  display: flex;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.15em;
+  padding-bottom: 12px;
+  position: relative;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.daily-correspondences-header::after,
+.correspondence-entry::before,
+.daily-correspondences-footer::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 42%, transparent) 7%, var(--correspondence-pencil) 29%, color-mix(in srgb, var(--correspondence-pencil) 74%, transparent) 74%, transparent 100%);
+  content: '';
+  height: 2px;
+  opacity: 0.72;
+  pointer-events: none;
+  position: absolute;
+}
+
+.daily-correspondences-header::after {
+  bottom: 0;
+  left: -1px;
+  right: 5px;
+  transform: rotate(-0.18deg);
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-header {
+  color: #d8b18c;
+}
+
+.daily-correspondences-intro {
+  margin: clamp(26px, 5vw, 46px) auto clamp(26px, 5vw, 46px);
+  max-width: 680px;
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+
+.daily-correspondences-intro > p:first-child {
+  color: #ad6555;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  margin: 0 0 11px;
+  text-transform: uppercase;
+}
+
+.daily-correspondences-intro h2 {
+  color: #2d2723;
+  font-family: 'IM Fell Double Pica', Georgia, serif;
+  font-size: clamp(2rem, 5.3vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.daily-correspondences-intro h2 span {
+  color: var(--daily-accent, #b85045);
+  display: inline-block;
+  font-style: italic;
+  margin-left: 0.12em;
+}
+
+.daily-correspondences-copy {
+  color: #6d6159;
+  font-size: clamp(0.98rem, 1.8vw, 1.1rem);
+  font-style: italic;
+  line-height: 1.45;
+  margin: 16px auto 0;
+  max-width: 480px;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-intro h2 {
+  color: #ebe1d0;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-copy {
+  color: #b8ac9a;
+}
+
+.daily-correspondences-grid {
+  display: grid;
+  gap: clamp(16px, 3vw, 30px);
+  grid-template-areas:
+    'word author music'
+    'sky author artwork'
+    'apod author artwork';
+  grid-template-columns: minmax(0, 0.9fr) minmax(240px, 1.34fr) minmax(0, 0.9fr);
+  position: relative;
+  z-index: 1;
+}
+
+.correspondence-entry,
+.correspondence-artwork {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.correspondence-entry {
+  align-self: center;
+  display: block;
+  min-height: 112px;
+  padding: 13px 0 9px;
+  position: relative;
+  transition: color 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.correspondence-entry::before {
+  left: -2px;
+  right: 7px;
+  top: 0;
+  transform: rotate(0.2deg);
+  transition: opacity 220ms ease;
+}
+
+.correspondence-author { grid-area: author; }
+.correspondence-word { grid-area: word; }
+.correspondence-music { grid-area: music; }
+.correspondence-sky { grid-area: sky; }
+.correspondence-apod { grid-area: apod; }
+
+.correspondence-entry-label,
+.correspondence-artwork-label {
+  align-items: center;
+  color: #aa6655;
+  display: flex;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.correspondence-entry-label svg,
+.correspondence-artwork-label svg {
+  height: 14px;
+  width: 14px;
+}
+
+.correspondence-entry-content {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.correspondence-entry-content > img,
+.correspondence-moon,
+.correspondence-fallback-icon {
+  background: #eee4d3;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px -14px rgba(42, 37, 34, 0.55);
+  flex: 0 0 auto;
+  height: 54px;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  width: 54px;
+}
+
+.correspondence-fallback-icon {
+  box-sizing: border-box;
+  color: #9a735b;
+  padding: 16px;
+}
+
+.correspondence-entry-content > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.correspondence-author {
+  align-self: stretch;
+  border-bottom: 1px solid rgba(117, 88, 57, 0.18);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 22px 14px 20px;
+  text-align: center;
+}
+
+.correspondence-author .correspondence-entry-label,
+.correspondence-author .correspondence-entry-content {
+  justify-content: center;
+}
+
+.correspondence-author .correspondence-entry-content {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.correspondence-author .correspondence-entry-content > img,
+.correspondence-author .correspondence-fallback-icon {
+  height: 94px;
+  width: 94px;
+}
+
+.correspondence-author .correspondence-fallback-icon {
+  padding: 27px;
+}
+
+.correspondence-author .correspondence-entry-content > span:last-child {
+  gap: 5px;
+}
+
+.correspondence-author .correspondence-entry-content strong {
+  font-size: clamp(1.45rem, 3.1vw, 2.25rem);
+  line-height: 0.98;
+}
+
+.correspondence-author .correspondence-entry-content em {
+  margin-inline: auto;
+  max-width: 28ch;
+  text-align: center;
+}
+
+.correspondence-entry-content strong,
+.correspondence-word > strong {
+  color: #302923;
+  font-size: clamp(1rem, 1.8vw, 1.26rem);
+  font-weight: 700;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.correspondence-entry-content em,
+.correspondence-word > em {
+  color: #74675f;
+  display: -webkit-box;
+  font-size: 0.88rem;
+  font-style: italic;
+  line-height: 1.25;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.correspondence-word > strong {
+  color: var(--daily-accent, #b85045);
+  display: block;
+  font-size: clamp(1.85rem, 4vw, 3.45rem);
+  font-style: italic;
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+  margin: 2px 0 8px;
+}
+
+.correspondence-artwork {
+  background: rgba(255, 252, 245, 0.52);
+  border-radius: 12px 9px 14px 10px;
+  box-shadow:
+    0 22px 46px -42px rgba(42, 37, 34, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  grid-area: artwork;
+  overflow: hidden;
+  padding: 13px 13px 16px;
+  position: relative;
+  transition: box-shadow 260ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.correspondence-artwork > img {
+  aspect-ratio: 4 / 5;
+  display: block;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  width: 100%;
+}
+
+.correspondence-artwork-empty {
+  align-items: center;
+  aspect-ratio: 4 / 5;
+  background: rgba(181, 149, 106, 0.09);
+  color: #8f7158;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92rem;
+  gap: 9px;
+  justify-content: center;
+  text-align: center;
+}
+
+.correspondence-artwork-empty svg {
+  height: 32px;
+  width: 32px;
+}
+
+.correspondence-artwork-caption {
+  display: grid;
+  gap: 3px;
+  padding: 11px 3px 0;
+}
+
+.correspondence-artwork-caption strong {
+  color: #302923;
+  font-size: 1.08rem;
+  line-height: 1.1;
+}
+
+.correspondence-artwork-caption em {
+  color: #74675f;
+  font-size: 0.84rem;
+  font-style: italic;
+}
+
+.correspondence-moon {
+  align-items: center;
+  background: #302e2a;
+  color: #f0e6d2;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.correspondence-moon svg {
+  filter: drop-shadow(0 0 4px rgba(255, 246, 220, 0.22));
+  height: 29px;
+  width: 29px;
+}
+
+.correspondence-sky .correspondence-entry-content {
+  align-items: flex-start;
+}
+
+.correspondence-planets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 9px;
+  margin-top: 12px;
+}
+
+.correspondence-planet-chip {
+  align-items: center;
+  color: #62554c;
+  display: inline-flex;
+  font-size: 0.66rem;
+  gap: 5px;
+  line-height: 1;
+  min-width: 0;
+}
+
+.correspondence-planet-chip > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.correspondence-planet-chip strong {
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.correspondence-planet-chip em {
+  color: #8a7668;
+  font-size: 0.58rem;
+  font-style: normal;
+}
+
+.correspondence-planet-icon {
+  background: #b8997b;
+  border-radius: 999px;
+  box-shadow:
+    inset -2px -1px 0 rgba(49, 34, 25, 0.18),
+    0 1px 3px rgba(42, 37, 34, 0.15);
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 15px;
+  position: relative;
+  width: 15px;
+}
+
+.correspondence-planet-icon.planet-mercury {
+  background: radial-gradient(circle at 34% 30%, #f4e8d4 0 10%, #a88e76 12% 34%, #766357 36% 100%);
+}
+
+.correspondence-planet-icon.planet-venus {
+  background: radial-gradient(circle at 32% 28%, #fff7d7 0 12%, #ead6a2 24%, #b99c68 100%);
+}
+
+.correspondence-planet-icon.planet-mars {
+  background: radial-gradient(circle at 32% 28%, #e9a37e 0 10%, #b85e42 36%, #733326 100%);
+}
+
+.correspondence-planet-icon.planet-jupiter {
+  background: repeating-linear-gradient(174deg, #f0d9ae 0 3px, #bd8967 3px 5px, #f4e3bd 5px 7px, #936047 7px 9px);
+}
+
+.correspondence-planet-icon.planet-saturn {
+  background: radial-gradient(circle at 35% 30%, #fff0bb 0 12%, #d6b56d 46%, #927645 100%);
+}
+
+.correspondence-planet-icon.planet-saturn::after {
+  border: 1px solid rgba(104, 78, 42, 0.72);
+  border-radius: 999px;
+  content: '';
+  height: 5px;
+  left: -4px;
+  position: absolute;
+  top: 4px;
+  transform: rotate(-22deg);
+  width: 21px;
+}
+
+.correspondence-apod .correspondence-entry-content > img,
+.correspondence-apod .correspondence-missing-media {
+  border-radius: 7px 5px 8px 6px;
+  height: 48px;
+  width: 70px;
+}
+
+.correspondence-apod .correspondence-missing-media svg {
+  height: 21px;
+  width: 21px;
+}
+
+.correspondence-entry:hover,
+.correspondence-entry:focus-visible {
+  color: #b85045;
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.correspondence-entry:hover::before,
+.correspondence-entry:focus-visible::before {
+  opacity: 1;
+}
+
+.correspondence-artwork:hover,
+.correspondence-artwork:focus-visible {
+  box-shadow:
+    0 28px 52px -38px rgba(42, 37, 34, 0.7),
+    0 0 0 2px rgba(222, 107, 88, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  outline: none;
+  transform: translateY(-2px) rotate(0.12deg);
+}
+
+.correspondence-entry:active,
+.correspondence-artwork:active,
+.daily-correspondences-follow:active,
+.daily-correspondences-download:active {
+  transform: scale(0.96);
+}
+
+.daily-correspondences-footer {
+  align-items: center;
+  color: #79685d;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: clamp(26px, 5vw, 42px);
+  padding-top: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.daily-correspondences-footer::before {
+  left: 3px;
+  right: -2px;
+  top: 0;
+  transform: rotate(0.16deg);
+}
+
+.daily-correspondences-seal {
+  height: 33px;
+  object-fit: contain;
+  width: 33px;
+}
+
+.daily-correspondences-footer p {
+  font-size: 1.05rem;
+  margin: 0;
+  transform: rotate(-1.4deg);
+}
+
+.daily-correspondences-footer > span {
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.daily-correspondences-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.daily-correspondences-follow,
+.daily-correspondences-download {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: #a24f40;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.95rem;
+  font-style: italic;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 14px;
+  transition: color 180ms ease, opacity 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.daily-correspondences-follow {
+  border-bottom: 1px solid currentColor;
+}
+
+.daily-correspondences-download {
+  color: #76675f;
+}
+
+.daily-correspondences-follow:hover,
+.daily-correspondences-follow:focus-visible,
+.daily-correspondences-download:hover,
+.daily-correspondences-download:focus-visible {
+  color: #de6b58;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.daily-correspondences-download:disabled {
+  cursor: wait;
+  opacity: 0.56;
+}
+
+.daily-correspondences-sheet.is-dark :is(.correspondence-entry-content strong, .correspondence-word > strong, .correspondence-artwork-caption strong) {
+  color: #efe3d0;
+}
+
+.daily-correspondences-sheet.is-dark :is(.correspondence-entry-content em, .correspondence-word > em, .correspondence-artwork-caption em, .daily-correspondences-footer) {
+  color: #b7a997;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-planet-chip {
+  color: #dfcfb9;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-planet-chip em {
+  color: #bba992;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-artwork {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-artwork > img,
+.daily-correspondences-sheet.is-dark .correspondence-entry-content > img {
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-fallback-icon,
+.daily-correspondences-sheet.is-dark .correspondence-artwork-empty {
+  background: rgba(255, 255, 255, 0.055);
+  color: #cfb393;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-download {
+  color: #cfc1af;
+}
+
+/* L'autore è la diapositiva centrale; l'opera torna a essere un richiamo laterale. */
+.correspondence-author {
+  appearance: none;
+  background: rgba(255, 252, 245, 0.52);
+  border: 0;
+  border-radius: 12px 9px 14px 10px;
+  box-shadow:
+    0 22px 46px -42px rgba(42, 37, 34, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  grid-area: author;
+  min-width: 0;
+  overflow: hidden;
+  padding: 13px 13px 16px;
+  position: relative;
+  text-align: left;
+  transition: box-shadow 260ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.correspondence-author-label {
+  align-items: center;
+  color: #aa6655;
+  display: flex;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.correspondence-author-label svg {
+  height: 14px;
+  width: 14px;
+}
+
+.correspondence-author > img,
+.correspondence-author-empty {
+  aspect-ratio: 4 / 5;
+  display: block;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  width: 100%;
+}
+
+.correspondence-author-empty {
+  align-items: center;
+  background: rgba(181, 149, 106, 0.09);
+  box-sizing: border-box;
+  color: #8f7158;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  gap: 9px;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.correspondence-author-empty svg {
+  height: 32px;
+  width: 32px;
+}
+
+.correspondence-author-empty small {
+  font: inherit;
+}
+
+.correspondence-author-caption {
+  display: grid;
+  gap: 3px;
+  padding: 11px 3px 0;
+}
+
+.correspondence-author-caption strong {
+  color: #302923;
+  font-size: clamp(1.2rem, 2.5vw, 1.72rem);
+  line-height: 1.05;
+}
+
+.correspondence-author-caption em {
+  color: #74675f;
+  font-size: 0.9rem;
+  font-style: italic;
+  line-height: 1.28;
+}
+
+.correspondence-entry.correspondence-artwork {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  grid-area: artwork;
+  overflow: visible;
+  padding: 13px 0 9px;
+}
+
+.correspondence-missing-media {
+  align-items: center;
+  background: rgba(181, 149, 106, 0.09);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #8f7158;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 54px;
+  justify-content: center;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  width: 54px;
+}
+
+.correspondence-missing-media svg {
+  height: 22px;
+  width: 22px;
+}
+
+.correspondence-author:hover,
+.correspondence-author:focus-visible {
+  box-shadow:
+    0 28px 52px -38px rgba(42, 37, 34, 0.7),
+    0 0 0 2px rgba(222, 107, 88, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  outline: none;
+  transform: translateY(-2px) rotate(0.12deg);
+}
+
+.correspondence-author:active {
+  transform: scale(0.96);
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-author {
+  background: rgba(255, 255, 255, 0.035);
+  border: 0;
+  box-shadow:
+    0 24px 48px -38px rgba(0, 0, 0, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 13px 13px 16px;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-author > img,
+.daily-correspondences-sheet.is-dark .correspondence-author-empty,
+.daily-correspondences-sheet.is-dark .correspondence-missing-media {
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-author-empty,
+.daily-correspondences-sheet.is-dark .correspondence-missing-media {
+  background: rgba(255, 255, 255, 0.055);
+  color: #cfb393;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-author-caption strong {
+  color: #efe3d0;
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-author-caption em {
+  color: #b7a997;
+}
+
+.daily-correspondences-seasonal {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  background-image:
+    linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 48%, transparent) 8%, var(--correspondence-pencil) 43%, color-mix(in srgb, var(--correspondence-pencil) 70%, transparent) 86%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 42%, transparent) 5%, var(--correspondence-pencil) 36%, color-mix(in srgb, var(--correspondence-pencil) 72%, transparent) 79%, transparent 100%);
+  background-position: 0 0, 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 2px, 100% 2px;
+  border: 0;
+  color: #473c34;
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 4px 13px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin-top: clamp(28px, 5vw, 44px);
+  padding: 16px 0 15px;
+  text-align: left;
+  transition: color 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: 100%;
+}
+
+.daily-correspondences-seasonal-label,
+.daily-correspondences-seasonal > small {
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.daily-correspondences-seasonal-label {
+  color: #9a5f50;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.daily-correspondences-seasonal-preview {
+  align-items: center;
+  background: rgba(181, 149, 106, 0.09);
+  border-radius: 7px 5px 8px 6px;
+  box-shadow:
+    0 7px 14px -12px rgba(42, 37, 34, 0.65),
+    inset 0 0 0 1px oklch(0 0 0 / 0.1);
+  color: #8f7158;
+  display: inline-flex;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  height: 62px;
+  justify-content: center;
+  overflow: hidden;
+  transform: rotate(-1.1deg);
+  width: 50px;
+}
+
+.daily-correspondences-seasonal-preview img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.daily-correspondences-seasonal-preview svg {
+  height: 21px;
+  width: 21px;
+}
+
+.daily-correspondences-seasonal-copy {
+  display: grid;
+  gap: 3px;
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.daily-correspondences-seasonal-copy strong {
+  font-size: clamp(1.2rem, 2.4vw, 1.72rem);
+  font-weight: 600;
+  line-height: 1.05;
+  min-width: 0;
+}
+
+.daily-correspondences-seasonal-copy em {
+  color: #75675d;
+  font-size: 0.96rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.daily-correspondences-seasonal > small {
+  align-items: center;
+  color: #9a5f50;
+  display: inline-flex;
+  gap: 7px;
+  grid-column: 3;
+  grid-row: 1 / 3;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.daily-correspondences-seasonal > small svg {
+  transform: rotate(-90deg);
+}
+
+.daily-correspondences-seasonal:hover,
+.daily-correspondences-seasonal:focus-visible {
+  color: #a24f40;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.daily-correspondences-seasonal:active {
+  transform: scale(0.96);
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-seasonal {
+  color: #eee2d0;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-seasonal-label,
+.daily-correspondences-sheet.is-dark .daily-correspondences-seasonal > small {
+  color: #e5b39b;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-seasonal-copy em {
+  color: #c2b3a1;
+}
+
+.daily-correspondences-sheet.is-dark .daily-correspondences-seasonal-preview {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    0 7px 14px -12px rgba(0, 0, 0, 0.8),
+    inset 0 0 0 1px oklch(1 0 0 / 0.1);
+  color: #cfb393;
+}
+
+@keyframes correspondencesEntryIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-footer, .daily-correspondences-actions) {
+  animation: correspondencesEntryIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.daily-correspondences-sheet > .daily-correspondences-intro { animation-delay: 70ms; }
+.daily-correspondences-sheet > .daily-correspondences-grid { animation-delay: 140ms; }
+.daily-correspondences-sheet > .daily-correspondences-footer { animation-delay: 210ms; }
+.daily-correspondences-sheet > .daily-correspondences-actions { animation-delay: 280ms; }
+
+@media (max-width: 680px) {
+  .daily-correspondences {
+    padding: 2px 0;
+  }
+
+  .daily-correspondences-sheet {
+    border-radius: 17px 13px 19px 14px;
+    padding: 22px 18px;
+  }
+
+  .daily-correspondences-sheet.is-dark {
+    border-radius: 7px 5px 8px 6px;
+    padding-inline: 18px;
+  }
+
+  .daily-correspondences-header {
+    font-size: 0.57rem;
+    letter-spacing: 0.1em;
+  }
+
+  .daily-correspondences-grid {
+    gap: 17px;
+    grid-template-areas:
+      'author'
+      'word'
+      'artwork'
+      'music'
+      'sky'
+      'apod';
+    grid-template-columns: 1fr;
+  }
+
+  .correspondence-entry {
+    min-height: 0;
+  }
+
+  .correspondence-author {
+    justify-self: center;
+    max-width: 370px;
+    padding: 13px 13px 16px;
+    width: min(100%, 370px);
+  }
+
+  .correspondence-author > img,
+  .correspondence-author-empty {
+    aspect-ratio: 16 / 10;
+  }
+
+  .daily-correspondences-actions {
+    align-items: stretch;
+    flex-direction: column;
+    margin-top: 16px;
+  }
+
+  .daily-correspondences-follow,
+  .daily-correspondences-download {
+    width: 100%;
+  }
+
+  .daily-correspondences-seasonal {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .daily-correspondences-seasonal > small {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .daily-correspondences-seasonal-preview {
+    grid-row: 1 / 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-footer, .daily-correspondences-actions) {
+    animation: none;
+  }
+
+  .correspondence-entry,
+  .correspondence-artwork,
+  .daily-correspondences-seasonal,
+  .daily-correspondences-follow,
+  .daily-correspondences-download {
+    transition: none;
+  }
+}
+
+/* Poster 9:16: stessa carta, colophon e gerarchia degli altri export. */
+.correspondence-export-frame {
+  align-items: center;
+  background-color: #f7eedc;
+  background-image: url('/beige-paper.png');
+  background-repeat: repeat;
+  background-size: 240px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.correspondence-export-frame.is-dark {
+  background-color: #191715;
+}
+
+.correspondence-export-frame .daily-correspondences-sheet.daily-correspondences-export {
+  box-sizing: border-box;
+  min-height: 1776px;
+  padding: 68px 70px 58px;
+  transform: none;
+  width: 960px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-intro {
+  margin: 48px auto 42px;
+  max-width: 780px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-intro h2 {
+  font-size: 76px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-copy {
+  font-size: 22px;
+  line-height: 1.45;
+  max-width: 590px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-grid {
+  align-items: stretch;
+  column-gap: 38px;
+  row-gap: 30px;
+  grid-template-areas:
+    'word word'
+    'author author'
+    'artwork music'
+    'artwork sky'
+    'artwork apod';
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-author {
+  align-items: center;
+  column-gap: 30px;
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr);
+  max-width: 760px;
+  padding: 22px;
+  width: 100%;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-author-label {
+  grid-column: 1 / -1;
+  margin-bottom: 13px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-author > img,
+.correspondence-export-frame .daily-correspondences-export .correspondence-author-empty {
+  aspect-ratio: 4 / 5;
+  grid-column: 1;
+  grid-row: 2;
+  height: 298px;
+  max-height: none;
+  width: 238px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-author-caption {
+  align-self: center;
+  gap: 12px;
+  grid-column: 2;
+  grid-row: 2;
+  padding: 0;
+  text-align: left;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-author-caption strong {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-author-caption em {
+  font-size: 22px;
+  line-height: 1.42;
+  text-wrap: pretty;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-entry {
+  align-self: stretch;
+  min-height: 154px;
+  padding-top: 18px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-entry-label {
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-entry-content {
+  gap: 16px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-entry-content > img,
+.correspondence-export-frame .daily-correspondences-export .correspondence-missing-media,
+.correspondence-export-frame .daily-correspondences-export .correspondence-moon {
+  height: 72px;
+  width: 72px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-missing-media svg,
+.correspondence-export-frame .daily-correspondences-export .correspondence-moon svg {
+  height: 30px;
+  width: 30px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-entry-content strong {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-entry-content em,
+.correspondence-export-frame .daily-correspondences-export .correspondence-word > em {
+  font-size: 18px;
+  line-height: 1.32;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planets {
+  gap: 10px 13px;
+  margin-top: 16px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planet-chip {
+  font-size: 15px;
+  gap: 7px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planet-chip em {
+  font-size: 12px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planet-icon {
+  height: 21px;
+  width: 21px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-planet-icon.planet-saturn::after {
+  height: 7px;
+  left: -5px;
+  top: 6px;
+  width: 28px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-apod .correspondence-entry-content > img,
+.correspondence-export-frame .daily-correspondences-export .correspondence-apod .correspondence-missing-media {
+  height: 70px;
+  width: 104px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .correspondence-word > strong {
+  font-size: 66px;
+  margin-bottom: 12px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal {
+  margin-top: 42px;
+  padding-block: 20px 19px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-preview {
+  height: 84px;
+  width: 66px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-label,
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal > small {
+  font-size: 14px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-copy strong {
+  font-size: 30px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seasonal-copy em {
+  font-size: 20px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer {
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-seal {
+  height: 46px;
+  width: 46px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer p {
+  font-size: 26px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer > span {
+  font-size: 14px;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-footer {
+  margin-top: auto;
+}
+
+.correspondence-export-frame .daily-correspondences-export .daily-correspondences-actions {
+  display: none;
+}
+
+.correspondence-export-frame .daily-correspondences-export > * {
+  animation: none !important;
+  opacity: 1 !important;
 }

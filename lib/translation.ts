@@ -33,6 +33,60 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     ES: 'Cada día trae consigo algo digno de guardar: una frase, un poema, una imagen, una palabra, un recuerdo, un pasaje de fe. Un espacio tranquilo para reunirlos, leer lentamente y guardarlos en papel o en el corazón.',
     PT: 'Cada dia traz consigo algo que vale a pena guardar: uma frase, um poema, uma imagem, uma palavra, uma memória, uma passagem de fé. Um espaço tranquilo para recolhê-los, ler devagar e guardá-los no papel ou no coração.'
   },
+  correspondencesTitle: {
+    IT: 'Per iniziare', EN: 'A place to begin', FR: 'Pour commencer', DE: 'Zum Einstieg', ES: 'Para empezar', PT: 'Para começar'
+  },
+  correspondencesKicker: {
+    IT: 'Cinque punti per entrare nel giorno', EN: 'Five ways into today', FR: 'Cinq entrées dans la journée', DE: 'Fünf Zugänge zum Tag', ES: 'Cinco maneras de entrar en el día', PT: 'Cinco caminhos para entrar no dia'
+  },
+  correspondencesLead: {
+    IT: 'La parola di oggi è', EN: 'Today’s word is', FR: 'Le mot du jour est', DE: 'Das Wort des Tages ist', ES: 'La palabra de hoy es', PT: 'A palavra de hoje é'
+  },
+  correspondencesCopy: {
+    IT: 'Autore, opera, musica e cielo: scegli da dove iniziare a leggere questa giornata.', EN: 'Author, artwork, music, and sky: choose where to begin reading this day.', FR: 'Auteur, œuvre, musique et ciel : choisissez par où commencer cette journée.', DE: 'Autor, Kunstwerk, Musik und Himmel: Wählen Sie, wo Sie diesen Tag zu lesen beginnen.', ES: 'Autor, obra, música y cielo: elige por dónde empezar a leer este día.', PT: 'Autor, obra, música e céu: escolha por onde começar a ler este dia.'
+  },
+  correspondencesFollow: {
+    IT: 'Inizia a leggere', EN: 'Start reading', FR: 'Commencer la lecture', DE: 'Jetzt lesen', ES: 'Empieza a leer', PT: 'Começar a ler'
+  },
+  correspondencesDownload: {
+    IT: 'Scarica la tavola', EN: 'Download the plate', FR: 'Télécharger la planche', DE: 'Tafel herunterladen', ES: 'Descargar la lámina', PT: 'Descarregar a prancha'
+  },
+  correspondencesDownloadAria: {
+    IT: 'Scarica la tavola delle corrispondenze in formato verticale', EN: 'Download the correspondences plate in vertical format', FR: 'Télécharger la planche des correspondances au format vertical', DE: 'Die Korrespondenztafel im Hochformat herunterladen', ES: 'Descargar la lámina de correspondencias en formato vertical', PT: 'Descarregar a prancha de correspondências em formato vertical'
+  },
+  correspondenceAuthor: {
+    IT: 'Autore del giorno', EN: 'Author of the day', FR: 'Auteur du jour', DE: 'Autor des Tages', ES: 'Autor del día', PT: 'Autor do dia'
+  },
+  correspondenceWord: {
+    IT: 'Parola di oggi', EN: 'Today’s word', FR: 'Mot du jour', DE: 'Wort des Tages', ES: 'Palabra de hoy', PT: 'Palavra do dia'
+  },
+  correspondenceArtwork: {
+    IT: 'Opera del giorno', EN: 'Artwork of the day', FR: 'Œuvre du jour', DE: 'Kunstwerk des Tages', ES: 'Obra del día', PT: 'Obra do dia'
+  },
+  correspondenceMusic: {
+    IT: 'Musica', EN: 'Music', FR: 'Musique', DE: 'Musik', ES: 'Música', PT: 'Música'
+  },
+  correspondenceSky: {
+    IT: 'Cielo', EN: 'Sky', FR: 'Ciel', DE: 'Himmel', ES: 'Cielo', PT: 'Céu'
+  },
+  correspondenceApod: {
+    IT: 'Foto astronomica', EN: 'Astronomy picture', FR: 'Photo astronomique', DE: 'Astronomisches Bild', ES: 'Foto astronómica', PT: 'Foto astronómica'
+  },
+  correspondenceArtworkUnavailable: {
+    IT: 'L’opera sta arrivando', EN: 'The artwork is on its way', FR: 'L’œuvre arrive', DE: 'Das Kunstwerk folgt', ES: 'La obra está llegando', PT: 'A obra está a caminho'
+  },
+  correspondencePortraitUnavailable: {
+    IT: 'Ritratto non disponibile', EN: 'Portrait unavailable', FR: 'Portrait indisponible', DE: 'Porträt nicht verfügbar', ES: 'Retrato no disponible', PT: 'Retrato indisponível'
+  },
+  correspondenceMusicCoverUnavailable: {
+    IT: 'Copertina non disponibile', EN: 'Cover unavailable', FR: 'Pochette indisponible', DE: 'Cover nicht verfügbar', ES: 'Portada no disponible', PT: 'Capa indisponível'
+  },
+  seasonalArtwork: {
+    IT: 'L’opera stagionale sullo sfondo', EN: 'The seasonal artwork in the background', FR: 'L’œuvre saisonnière en arrière-plan', DE: 'Das saisonale Kunstwerk im Hintergrund', ES: 'La obra estacional del fondo', PT: 'A obra sazonal ao fundo'
+  },
+  seasonalArtworkOpen: {
+    IT: 'Entra nella sala dell’opera', EN: 'Enter the artwork room', FR: 'Entrer dans la salle de l’œuvre', DE: 'Den Kunstsaal betreten', ES: 'Entra en la sala de la obra', PT: 'Entrar na sala da obra'
+  },
   savedPages: {
     IT: 'Cose custodite', EN: 'Saved pages', FR: 'Pages sauvegardées', DE: 'Gespeicherte Seiten', ES: 'Páginas guardadas', PT: 'Páginas salvas'
   },

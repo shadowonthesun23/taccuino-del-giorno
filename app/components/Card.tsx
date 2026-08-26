@@ -1,17 +1,9 @@
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
-import localFont from 'next/font/local';
 import { IM_Fell_Double_Pica } from 'next/font/google';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
 
-
-const stampwriter = localFont({
-  src: '../../public/fonts/STAMPWRITER-KIT.ttf',
-  display: 'swap',
-  preload: true,
-  fallback: ['Courier New', 'monospace'],
-});
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -61,6 +53,7 @@ interface CardProps {
   isSaved?: boolean;
   onToggleSaved?: () => void;
   saveLabel?: string;
+  exportDate?: string;
 }
 
 export default function Card({
@@ -74,6 +67,7 @@ export default function Card({
   isSaved = false,
   onToggleSaved,
   saveLabel = 'Custodisci questa scheda',
+  exportDate,
 }: CardProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -139,18 +133,20 @@ export default function Card({
       exportVignette.style.zIndex = '0';
 
       const exportSignature = document.createElement('div');
-      exportSignature.textContent = 'Il giorno da custodire';
-      exportSignature.className = stampwriter.className;
+      exportSignature.textContent = exportDate
+        ? `Il giorno da custodire · ${exportDate}`
+        : 'Il giorno da custodire';
+      exportSignature.className = garamond.className;
       exportSignature.style.position = 'absolute';
       exportSignature.style.left = '0';
       exportSignature.style.right = '0';
       exportSignature.style.bottom = '42px';
       exportSignature.style.color = isDark ? 'rgba(238,229,211,0.34)' : 'rgba(117,88,57,0.3)';
-      exportSignature.style.fontSize = '21px';
-      exportSignature.style.letterSpacing = '0.18em';
+      exportSignature.style.fontSize = '22px';
+      exportSignature.style.fontStyle = 'italic';
+      exportSignature.style.letterSpacing = '0.09em';
       exportSignature.style.lineHeight = '1';
       exportSignature.style.textAlign = 'center';
-      exportSignature.style.textTransform = 'uppercase';
       exportSignature.style.transform = 'rotate(-0.5deg)';
       exportSignature.style.pointerEvents = 'none';
 
@@ -244,7 +240,7 @@ export default function Card({
       exportFrame?.remove();
       setExporting(false);
     }
-  }, [exporting, filename, id, isDark]);
+  }, [exportDate, exporting, filename, id, isDark]);
 
   return (
     <div id={id} className={className}>

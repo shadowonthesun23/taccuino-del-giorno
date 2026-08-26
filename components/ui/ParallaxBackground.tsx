@@ -179,7 +179,7 @@ export default function ParallaxBackground({
       setIsExitingSolo(true);
       const timer = setTimeout(() => {
         setIsExitingSolo(false);
-      }, 900);
+      }, 500);
       return () => clearTimeout(timer);
     }
     prevSoloForTransition.current = isArtworkSolo;
@@ -987,13 +987,21 @@ export default function ParallaxBackground({
           style={{
             backfaceVisibility: 'hidden',
             contain: 'layout paint style',
-            transform: isArtworkSolo ? 'translate3d(-300px, -300px, 0)' : 'translate3d(0, 0, 0)',
-            opacity: isArtworkSolo ? 0 : 1,
-            transition: 'transform 800ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease',
             willChange: 'transform',
           }}
         >
-          <EspressoCorner isDark={dark} />
+          <div
+            style={{
+              opacity: isArtworkSolo ? 0 : 1,
+              transform: isArtworkSolo ? 'translate3d(-18px, -14px, 0) scale(0.985)' : 'translate3d(0, 0, 0) scale(1)',
+              transition: isArtworkSolo
+                ? 'opacity 300ms ease-out, transform 460ms cubic-bezier(0.22, 1, 0.36, 1)'
+                : 'opacity 360ms ease-out 220ms, transform 500ms cubic-bezier(0.22, 1, 0.36, 1) 220ms',
+              willChange: 'transform, opacity',
+            }}
+          >
+            <EspressoCorner isDark={dark} />
+          </div>
         </div>
       ) : null}
 
