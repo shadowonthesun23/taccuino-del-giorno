@@ -156,7 +156,7 @@ export default function AuthorExportCard({
         */}
         <div
           ref={exportRef}
-          className={`${garamond.className} social-export-card author-social-export-card`}
+          className={`${garamond.className} social-export-card author-social-export-card${isDark ? ' is-dark' : ''}`}
           style={{
             width: '1080px',
             height: '1920px',

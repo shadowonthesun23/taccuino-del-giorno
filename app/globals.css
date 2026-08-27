@@ -12270,3 +12270,690 @@ body.museum-room-open :is(
   background-position: 2px 1px, 12px calc(100% - 1px);
   background-size: calc(100% - 22px) 1px, calc(100% - 37px) 2px;
 }
+
+/* Social exports: each download is a portrait folio, not a shrunken home card. */
+.social-export-frame,
+.social-export-card {
+  font-synthesis: none;
+}
+
+.social-export-card.editorial-card {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(222, 107, 88, 0.07), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5), transparent 44%),
+    #f7f0e4 !important;
+  border: 1px solid rgba(117, 88, 57, 0.18) !important;
+  border-radius: 22px 15px 24px 17px !important;
+  box-shadow:
+    0 30px 72px -56px rgba(42, 37, 34, 0.78),
+    0 10px 22px -19px rgba(42, 37, 34, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(117, 88, 57, 0.08) !important;
+  color: #302720 !important;
+  min-height: 100%;
+  overflow: hidden;
+  padding: 72px 76px 78px !important;
+  position: relative;
+}
+
+.social-export-card.editorial-card::before {
+  background-image: url('/beige-paper.png') !important;
+  background-repeat: repeat !important;
+  background-size: 160px !important;
+  border-radius: inherit !important;
+  content: '' !important;
+  filter: saturate(0.72) contrast(0.92) !important;
+  inset: 0 !important;
+  opacity: 0.28 !important;
+  pointer-events: none;
+  position: absolute !important;
+  transform: none !important;
+  width: auto !important;
+  z-index: 0;
+}
+
+.social-export-card.editorial-card.is-dark {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(222, 177, 125, 0.1), transparent 30%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.032), transparent 44%),
+    #29241f !important;
+  border-color: rgba(231, 203, 172, 0.16) !important;
+  box-shadow:
+    0 34px 76px -56px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34) !important;
+  color: #f0e5d4 !important;
+}
+
+.social-export-card.editorial-card.is-dark::before {
+  filter: grayscale(1) contrast(0.84) !important;
+  opacity: 0.13 !important;
+}
+
+.social-export-card.editorial-card .card-section-heading,
+.social-export-card.editorial-card .card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.social-export-card.editorial-card .card-section-heading {
+  align-items: flex-start;
+  border: 0 !important;
+  margin: 0 0 54px !important;
+  min-height: 50px;
+  padding: 0 0 31px;
+}
+
+.social-export-card.editorial-card .card-section-heading::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(166, 77, 65, 0.5) 6%, rgba(117, 88, 57, 0.56) 49%, rgba(166, 77, 65, 0.26) 88%, transparent 100%);
+  bottom: 0;
+  content: '';
+  height: 2px;
+  left: 2px;
+  opacity: 0.76;
+  position: absolute;
+  right: 58px;
+  transform: rotate(-0.32deg);
+  transform-origin: left center;
+}
+
+.social-export-card.editorial-card.is-dark .card-section-heading::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(222, 177, 125, 0.62) 7%, rgba(238, 229, 211, 0.4) 49%, rgba(222, 177, 125, 0.26) 88%, transparent 100%);
+}
+
+.social-export-card[data-social-export-section="parola"] .card-section-heading::after { transform: rotate(0.28deg); }
+.social-export-card[data-social-export-section="santi"] .card-section-heading::after { right: 22px; transform: rotate(-0.48deg); }
+.social-export-card[data-social-export-section="avvenimenti"] .card-section-heading::after { right: 94px; transform: rotate(0.16deg); }
+.social-export-card[data-social-export-section="poesia"] .card-section-heading::after { right: 36px; transform: rotate(-0.18deg); }
+.social-export-card[data-social-export-section="bibbia"] .card-section-heading::after { right: 76px; transform: rotate(0.4deg); }
+.social-export-card[data-social-export-section="opera"] .card-section-heading::after { right: 44px; transform: rotate(-0.4deg); }
+.social-export-card[data-social-export-section="musica"] .card-section-heading::after { right: 64px; transform: rotate(0.34deg); }
+.social-export-card[data-social-export-section="apod"] .card-section-heading::after { right: 30px; transform: rotate(-0.14deg); }
+
+.social-export-card.editorial-card .section-typewriter-badge {
+  align-items: center;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #a64d42 !important;
+  display: inline-flex !important;
+  font-family: inherit !important;
+  font-size: 25px !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  gap: 13px !important;
+  height: auto !important;
+  letter-spacing: 0.15em !important;
+  line-height: 1 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  text-transform: uppercase;
+  transform: none !important;
+  width: auto !important;
+}
+
+.social-export-card.editorial-card .section-typewriter-badge .badge-tape-bg {
+  display: none !important;
+}
+
+.social-export-card.editorial-card .section-typewriter-badge svg {
+  color: currentColor !important;
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.social-export-card.editorial-card.is-dark .section-typewriter-badge {
+  color: #dfb58c !important;
+}
+
+.social-export-card.editorial-card .card-content {
+  color: inherit !important;
+  font-size: 31px !important;
+  line-height: 1.52 !important;
+  max-width: none !important;
+  text-wrap: pretty;
+}
+
+.social-export-card.editorial-card .card-primary-title {
+  color: inherit !important;
+  font-size: 56px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.03 !important;
+  margin-bottom: 18px !important;
+  text-wrap: balance;
+}
+
+.social-export-card.editorial-card .card-secondary-meta,
+.social-export-card.editorial-card .card-byline {
+  color: #9c5146 !important;
+  font-size: 28px !important;
+  line-height: 1.36 !important;
+}
+
+.social-export-card.editorial-card.is-dark .card-secondary-meta,
+.social-export-card.editorial-card.is-dark .card-byline {
+  color: #dfb58c !important;
+}
+
+.social-export-card.editorial-card .card-body-copy,
+.social-export-card.editorial-card .text-xl {
+  color: inherit !important;
+  font-size: 32px !important;
+  line-height: 1.52 !important;
+}
+
+.social-export-card.editorial-card .text-lg {
+  color: inherit !important;
+  font-size: 29px !important;
+  line-height: 1.48 !important;
+}
+
+.social-export-card.editorial-card img {
+  outline: 1px solid rgba(0, 0, 0, 0.1);
+  outline-offset: -1px;
+}
+
+.social-export-card.editorial-card.is-dark img {
+  outline-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Typography-led folios */
+.social-export-card[data-social-export-section="citazione"] .quote-editorial {
+  margin: 0 !important;
+  padding: 32px 18px 28px 30px !important;
+  position: relative;
+}
+
+.social-export-card[data-social-export-section="citazione"] .quote-editorial::before {
+  background: #b35447;
+  border-radius: 99px;
+  content: '';
+  height: calc(100% - 42px);
+  left: 0;
+  opacity: 0.7;
+  position: absolute;
+  top: 22px;
+  width: 3px;
+}
+
+.social-export-card[data-social-export-section="citazione"] .quote-editorial-text {
+  font-size: 58px !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  letter-spacing: -0.033em !important;
+  line-height: 1.13 !important;
+  margin-bottom: 38px !important;
+}
+
+.social-export-card[data-social-export-section="citazione"] .decorative-initial {
+  color: #b35447 !important;
+  margin-right: 15px !important;
+}
+
+.social-export-card[data-social-export-section="citazione"] .quote-editorial-footer {
+  border: 0 !important;
+  color: inherit !important;
+  font-size: 29px !important;
+  line-height: 1.4 !important;
+  padding-top: 0 !important;
+}
+
+.social-export-card[data-social-export-section="parola"] .card-content > div:first-child {
+  margin-bottom: 44px !important;
+  text-align: left !important;
+}
+
+.social-export-card[data-social-export-section="parola"] .card-primary-title {
+  color: #6d8569 !important;
+  font-size: 76px !important;
+  line-height: 0.96 !important;
+  overflow-wrap: anywhere;
+}
+
+.social-export-card[data-social-export-section="parola"] .card-secondary-meta {
+  color: #69564a !important;
+  font-size: 31px !important;
+  max-width: 23ch;
+}
+
+.social-export-card[data-social-export-section="parola"].is-dark .card-primary-title {
+  color: #b8c9a7 !important;
+}
+
+.social-export-card[data-social-export-section="parola"].is-dark .card-secondary-meta {
+  color: #d6c7b5 !important;
+}
+
+.social-export-card[data-social-export-section="parola"] .card-body-copy {
+  border-top: 1px solid rgba(117, 88, 57, 0.2);
+  margin-top: 46px !important;
+  padding-top: 34px;
+}
+
+.social-export-card[data-social-export-section="avvenimenti"] .card-content > ul {
+  display: grid;
+  gap: 28px !important;
+  margin: 0;
+}
+
+.social-export-card[data-social-export-section="avvenimenti"] .card-content li {
+  align-items: flex-start;
+  border: 0 !important;
+  gap: 24px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.social-export-card[data-social-export-section="avvenimenti"] .card-content li > span:first-child {
+  color: #b35447 !important;
+  font-size: 38px;
+  line-height: 1.18;
+}
+
+.social-export-card[data-social-export-section="avvenimenti"] .card-content li > span:last-child {
+  font-size: 33px;
+  line-height: 1.42;
+}
+
+.social-export-card[data-social-export-section="poesia"] .decorative-initial-text,
+.social-export-card[data-social-export-section="bibbia"] .decorative-initial-text {
+  color: inherit !important;
+  display: -webkit-box;
+  font-size: 34px !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 12;
+  line-height: 1.46 !important;
+  margin: 0 0 36px !important;
+  overflow: hidden;
+}
+
+.social-export-card[data-social-export-section="poesia"] .decorative-initial,
+.social-export-card[data-social-export-section="bibbia"] .decorative-initial {
+  font-size: 1.72em;
+  line-height: 0.74;
+  margin-right: 14px;
+}
+
+.social-export-card[data-social-export-section="poesia"] .poem-bible-attribution,
+.social-export-card[data-social-export-section="bibbia"] .poem-bible-attribution {
+  border-top: 1px solid rgba(117, 88, 57, 0.2);
+  margin: 0 !important;
+  padding-top: 28px !important;
+}
+
+.social-export-card[data-social-export-section="poesia"] .poem-bible-attribution p,
+.social-export-card[data-social-export-section="bibbia"] .poem-bible-attribution p {
+  color: inherit !important;
+  font-size: 29px !important;
+  line-height: 1.38;
+}
+
+.social-export-card.editorial-card.is-dark .poem-bible-attribution {
+  border-color: rgba(238, 229, 211, 0.2);
+}
+
+/* Image-led folios keep the media intentional, never ornamental. */
+.social-export-card[data-social-export-section="santi"] .saints-card-layout {
+  align-items: stretch;
+  display: flex !important;
+  gap: 38px;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saint-card-artwork {
+  align-self: stretch;
+  bottom: auto !important;
+  display: block;
+  flex: 0 0 36%;
+  height: auto !important;
+  left: auto !important;
+  opacity: 1 !important;
+  overflow: hidden;
+  position: relative !important;
+  right: auto !important;
+  top: auto !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saint-card-artwork::after {
+  background: linear-gradient(180deg, transparent 54%, rgba(247, 240, 228, 0.7)) !important;
+  inset: 0 !important;
+  mix-blend-mode: normal !important;
+}
+
+.social-export-card[data-social-export-section="santi"].is-dark .saint-card-artwork::after {
+  background: linear-gradient(180deg, transparent 54%, rgba(41, 36, 31, 0.74)) !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saint-card-artwork img {
+  filter: grayscale(0.15) sepia(0.09) saturate(0.96) contrast(1.03) !important;
+  height: 100% !important;
+  mix-blend-mode: normal !important;
+  object-fit: cover;
+  width: 100% !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saints-card-copy {
+  flex: 1 1 auto;
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saints-card-copy > li {
+  border: 0 !important;
+  margin: 0 !important;
+  padding: 0 0 34px !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saints-card-copy > li + li {
+  border-top: 1px solid rgba(117, 88, 57, 0.18) !important;
+  padding-top: 28px !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saints-card-copy .card-primary-title {
+  font-size: 43px !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saints-card-copy .card-secondary-meta {
+  font-size: 25px !important;
+  margin-bottom: 15px !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .saints-card-copy .card-body-copy {
+  font-size: 28px !important;
+  line-height: 1.44 !important;
+}
+
+.social-export-card[data-social-export-section="santi"] .has-multiple-saints .saint-card-artwork {
+  display: none;
+}
+
+.social-export-card[data-social-export-section="santi"] .has-multiple-saints .saints-card-copy {
+  max-width: 100% !important;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard,
+.social-export-card[data-social-export-section="apod"] .apod-card-layout {
+  align-items: stretch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 34px !important;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-media,
+.social-export-card[data-social-export-section="apod"] .apod-media-container {
+  order: 1 !important;
+  perspective: none;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-copy,
+.social-export-card[data-social-export-section="apod"] .apod-copy-cell {
+  border-top: 1px solid rgba(117, 88, 57, 0.2);
+  margin: 0 !important;
+  order: 2 !important;
+  padding-top: 30px;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-link {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 7px 5px 9px 6px !important;
+  box-shadow: 0 18px 42px -32px rgba(42, 37, 34, 0.48) !important;
+  padding: 12px !important;
+  transform: none !important;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-image {
+  display: block;
+  height: 550px;
+  max-height: none;
+  object-fit: contain;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="opera"] .opera-postcard-missing-media {
+  aspect-ratio: auto;
+  height: 420px;
+}
+
+.social-export-card[data-social-export-section="opera"] .card-primary-title,
+.social-export-card[data-social-export-section="apod"] .card-primary-title {
+  font-size: 52px !important;
+}
+
+.social-export-card[data-social-export-section="opera"].is-dark .opera-postcard-copy,
+.social-export-card[data-social-export-section="apod"].is-dark .apod-copy-cell {
+  border-color: rgba(238, 229, 211, 0.2);
+}
+
+.social-export-card[data-social-export-section="musica"] .music-card-layout {
+  align-items: center;
+  display: flex !important;
+  flex-direction: column;
+  gap: 38px !important;
+}
+
+.social-export-card[data-social-export-section="musica"] .music-media-cell {
+  order: 1;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="musica"] .music-vinyl-wrapper {
+  aspect-ratio: 1;
+  width: 390px;
+}
+
+.social-export-card[data-social-export-section="musica"] .music-vinyl-disc {
+  display: none !important;
+}
+
+.social-export-card[data-social-export-section="musica"] .music-cover-frame {
+  border-radius: 7px 5px 9px 6px !important;
+  box-shadow: 0 20px 44px -30px rgba(42, 37, 34, 0.54) !important;
+  padding: 10px !important;
+  transform: rotate(-0.75deg) !important;
+}
+
+.social-export-card[data-social-export-section="musica"] .music-copy-cell {
+  order: 2;
+  text-align: left !important;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="musica"] .card-primary-title {
+  font-size: 58px !important;
+}
+
+.social-export-card[data-social-export-section="musica"] .card-body-copy {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  margin-bottom: 0 !important;
+  overflow: hidden;
+}
+
+.social-export-card[data-social-export-section="apod"] .apod-postcard {
+  border-radius: 7px 5px 9px 6px !important;
+  box-shadow: 0 20px 44px -32px rgba(42, 37, 34, 0.5) !important;
+  padding: 12px !important;
+  transform: rotate(0.45deg) !important;
+}
+
+.social-export-card[data-social-export-section="apod"] .apod-image,
+.social-export-card[data-social-export-section="apod"] .apod-postcard > div {
+  display: block;
+  height: 500px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.social-export-card[data-social-export-section="apod"] .card-body-copy {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+  margin-bottom: 0 !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  max-height: none !important;
+  overflow: hidden;
+}
+
+/* The author preview uses the same paper, colour and typographic hierarchy. */
+.author-social-export-card {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(222, 107, 88, 0.07), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5), transparent 44%),
+    #f7f0e4 !important;
+  border: 1px solid rgba(117, 88, 57, 0.18) !important;
+  border-radius: 22px 15px 24px 17px !important;
+  box-shadow:
+    0 30px 72px -56px rgba(42, 37, 34, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(117, 88, 57, 0.08) !important;
+  color: #302720 !important;
+}
+
+.author-social-export-card.is-dark {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(222, 177, 125, 0.1), transparent 30%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.032), transparent 44%),
+    #29241f !important;
+  border-color: rgba(231, 203, 172, 0.16) !important;
+  color: #f0e5d4 !important;
+}
+
+.author-social-export-card > img {
+  opacity: 0.07 !important;
+}
+
+.author-social-export-card.is-dark > img {
+  opacity: 0.1 !important;
+}
+
+.author-social-export-card .journal-date-tape {
+  border-bottom-color: rgba(179, 84, 71, 0.72) !important;
+  color: #a64d42 !important;
+  font-size: 53px !important;
+  letter-spacing: 0.09em !important;
+}
+
+.author-social-export-card.is-dark .journal-date-tape {
+  border-bottom-color: rgba(223, 181, 140, 0.66) !important;
+  color: #dfb58c !important;
+}
+
+.author-social-export-card .author-social-export-heading {
+  border-bottom: 0 !important;
+  padding-bottom: 28px;
+}
+
+.author-social-export-card .author-social-export-heading::after {
+  background: linear-gradient(90deg, transparent, rgba(166, 77, 66, 0.56) 12%, rgba(117, 88, 57, 0.52) 76%, transparent);
+  bottom: 0;
+  content: '';
+  height: 2px;
+  left: 12px;
+  position: absolute;
+  right: 38px;
+  transform: rotate(-0.28deg);
+}
+
+.author-social-export-card .author-tape-title-wrapper {
+  color: #a64d42 !important;
+  font-size: 26px !important;
+}
+
+.author-social-export-card.is-dark .author-tape-title-wrapper {
+  color: #dfb58c !important;
+}
+
+.author-social-export-card .author-export-portrait {
+  border-color: rgba(117, 88, 57, 0.26) !important;
+  border-radius: 7px 5px 9px 6px !important;
+  box-shadow: 0 22px 48px -34px rgba(42, 37, 34, 0.76) !important;
+}
+
+.author-social-export-card .author-export-portrait img {
+  filter: saturate(0.9) contrast(0.98) brightness(1.02) !important;
+}
+
+.author-social-export-card .author-export-name {
+  color: inherit !important;
+  letter-spacing: -0.035em !important;
+}
+
+.author-social-export-card .author-export-description {
+  color: inherit !important;
+  font-size: 31px !important;
+}
+
+.author-social-export-card .author-export-quote {
+  border-top-color: rgba(117, 88, 57, 0.26) !important;
+}
+
+.author-social-export-card .author-export-quote-text {
+  color: inherit !important;
+  font-size: 45px !important;
+  line-height: 1.2 !important;
+}
+
+.author-social-export-card .author-export-quote-source {
+  color: inherit !important;
+  opacity: 0.68;
+}
+
+.author-social-export-card.is-dark .author-export-quote,
+.author-social-export-card.is-dark .author-export-quote-source {
+  border-color: rgba(238, 229, 211, 0.2) !important;
+}
+
+/* Export typography is explicit: body copy cannot fall back to the app's sans-serif. */
+.social-export-card.editorial-card,
+.social-export-card.editorial-card .card-section-heading,
+.social-export-card.editorial-card .card-section-heading *,
+.social-export-card.editorial-card .card-content,
+.social-export-card.editorial-card .card-content :not(.decorative-initial) {
+  font-family: inherit !important;
+}
+
+/* Home cards stay still; a softening shadow is enough feedback for a reading surface. */
+.editorial-card:not(.social-export-card),
+.editorial-card:not(.social-export-card):hover,
+.editorial-card:not(.social-export-card):focus-within {
+  transform: none !important;
+  transition-duration: 420ms !important;
+  transition-property: box-shadow, border-color !important;
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .editorial-card:not(.social-export-card):hover,
+  .editorial-card:not(.social-export-card):focus-within {
+    box-shadow:
+      0 30px 68px -50px rgba(42, 37, 34, 0.48),
+      0 10px 24px -18px rgba(42, 37, 34, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.68),
+      inset 0 -1px 0 rgba(117, 88, 57, 0.07) !important;
+  }
+
+  .dark .editorial-card:not(.social-export-card):hover,
+  [data-theme="dark"] .editorial-card:not(.social-export-card):hover,
+  .dark .editorial-card:not(.social-export-card):focus-within,
+  [data-theme="dark"] .editorial-card:not(.social-export-card):focus-within {
+    box-shadow:
+      0 28px 64px -48px rgba(0, 0, 0, 0.88),
+      0 9px 22px -17px rgba(0, 0, 0, 0.66),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.34) !important;
+  }
+}
+
+.editorial-card:not(.social-export-card):hover .card-section-heading svg,
+.editorial-card:not(.social-export-card):focus-within .card-section-heading svg {
+  transform: none !important;
+  transition: none !important;
+}

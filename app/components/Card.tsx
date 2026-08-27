@@ -1,16 +1,9 @@
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
-import { IM_Fell_Double_Pica } from 'next/font/google';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
+import { garamond, masterSignature } from '@/lib/fonts';
 
-
-const garamond = IM_Fell_Double_Pica({
-  subsets: ['latin'],
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-});
 
 const badgeVariants: Record<string, string> = {
   citazione: 'badge-tilt-right',
@@ -26,20 +19,20 @@ const badgeVariants: Record<string, string> = {
 const SOCIAL_EXPORT_WIDTH = 1080;
 const SOCIAL_EXPORT_HEIGHT = 1920;
 const SOCIAL_EXPORT_SIDE_PADDING = 54;
-const SOCIAL_EXPORT_TOP_PADDING = 150;
-const SOCIAL_EXPORT_BOTTOM_PADDING = 190;
+const SOCIAL_EXPORT_TOP_PADDING = 210;
+const SOCIAL_EXPORT_BOTTOM_PADDING = 156;
 const SOCIAL_EXPORT_LAYOUT_WIDTH = 900;
 
 const SOCIAL_EXPORT_TARGET_HEIGHTS: Record<string, number> = {
-  citazione: 1120,
-  parola: 1280,
-  santi: 1320,
-  opera: 1320,
-  avvenimenti: 1320,
-  poesia: 1420,
-  bibbia: 1420,
-  musica: 1320,
-  apod: 1420,
+  citazione: 1320,
+  parola: 1440,
+  santi: 1460,
+  opera: 1460,
+  avvenimenti: 1400,
+  poesia: 1460,
+  bibbia: 1460,
+  musica: 1460,
+  apod: 1460,
 };
 
 interface CardProps {
@@ -81,13 +74,34 @@ export default function Card({
       await document.fonts.ready;
       const { toPng } = await import('html-to-image');
 
+      const exportFontProbe = document.createElement('span');
+      exportFontProbe.className = garamond.className;
+      exportFontProbe.style.position = 'fixed';
+      exportFontProbe.style.visibility = 'hidden';
+      exportFontProbe.style.pointerEvents = 'none';
+      document.body.appendChild(exportFontProbe);
+      const exportFontFamily = window.getComputedStyle(exportFontProbe).fontFamily;
+      exportFontProbe.remove();
+
       const source = sectionRef.current;
-      const sourceStyle = window.getComputedStyle(source);
-      const sourceFontFamily = sourceStyle.fontFamily;
       const clone = source.cloneNode(true) as HTMLElement;
-      clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
+      clone.querySelectorAll(
+        [
+          '[data-export-ignore]',
+          'button',
+          '.music-link-actions',
+          '.saint-card-credit',
+          '.reading-note',
+          '.quote-example-note',
+          '.margin-note',
+          '.editorial-link-button',
+          '.opera-postcard-source-label',
+          '.apod-postcard-source-label',
+        ].join(', ')
+      ).forEach((node) => node.remove());
 
       exportFrame = document.createElement('div');
+      exportFrame.className = `${garamond.className} social-export-frame${isDark ? ' is-dark' : ''}`;
       exportFrame.style.position = 'fixed';
       exportFrame.style.left = '0';
       exportFrame.style.top = '0';
@@ -101,19 +115,19 @@ export default function Card({
       exportFrame.style.overflow = 'hidden';
       exportFrame.style.pointerEvents = 'none';
       exportFrame.style.zIndex = '-1';
-      exportFrame.style.backgroundColor = '#eee5d3';
+      exportFrame.style.backgroundColor = isDark ? '#201d19' : '#eee5d3';
       exportFrame.style.backgroundImage = [
         isDark
-          ? 'linear-gradient(rgba(238, 229, 211, 0.58), rgba(238, 229, 211, 0.58))'
-          : 'linear-gradient(rgba(246, 239, 226, 0.64), rgba(246, 239, 226, 0.64))',
+          ? 'linear-gradient(160deg, rgba(32, 29, 25, 0.94), rgba(42, 37, 32, 0.9))'
+          : 'linear-gradient(160deg, rgba(246, 239, 226, 0.8), rgba(238, 229, 211, 0.88))',
         'url("/images/sfondo-taccuino.webp")',
         isDark
-          ? 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 226, 184, 0.18), transparent 70%)'
+          ? 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(222, 183, 133, 0.12), transparent 70%)'
           : 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(255, 255, 255, 0.62), transparent 70%)',
       ].join(', ');
       exportFrame.style.backgroundSize = 'cover, cover, cover';
       exportFrame.style.backgroundPosition = 'center, center, center';
-      exportFrame.style.fontFamily = sourceFontFamily;
+      exportFrame.style.fontFamily = exportFontFamily;
       
       const computedStyle = window.getComputedStyle(source);
       const parentTapeFilter = computedStyle.getPropertyValue('--tape-filter') || 'none';
@@ -132,17 +146,49 @@ export default function Card({
       exportVignette.style.pointerEvents = 'none';
       exportVignette.style.zIndex = '0';
 
+      const exportMasthead = document.createElement('div');
+      exportMasthead.style.position = 'absolute';
+      exportMasthead.style.top = '62px';
+      exportMasthead.style.left = '72px';
+      exportMasthead.style.right = '72px';
+      exportMasthead.style.display = 'flex';
+      exportMasthead.style.alignItems = 'flex-end';
+      exportMasthead.style.justifyContent = 'space-between';
+      exportMasthead.style.paddingBottom = '21px';
+      exportMasthead.style.borderBottom = isDark
+        ? '1px solid rgba(238,229,211,0.18)'
+        : '1px solid rgba(117,88,57,0.2)';
+      exportMasthead.style.color = isDark ? '#f0e5d4' : '#4f3b2d';
+      exportMasthead.style.pointerEvents = 'none';
+      exportMasthead.style.zIndex = '3';
+
+      const exportWordmark = document.createElement('span');
+      exportWordmark.className = masterSignature.className;
+      exportWordmark.textContent = 'Il giorno da custodire';
+      exportWordmark.style.fontSize = '48px';
+      exportWordmark.style.lineHeight = '0.88';
+      exportWordmark.style.whiteSpace = 'nowrap';
+      exportWordmark.style.transform = 'translateY(2px) rotate(-0.3deg)';
+
+      const exportDateLabel = document.createElement('span');
+      exportDateLabel.textContent = exportDate || 'Edizione quotidiana';
+      exportDateLabel.style.fontSize = '19px';
+      exportDateLabel.style.fontStyle = 'normal';
+      exportDateLabel.style.letterSpacing = '0.13em';
+      exportDateLabel.style.textTransform = 'uppercase';
+      exportDateLabel.style.whiteSpace = 'nowrap';
+      exportDateLabel.style.opacity = '0.76';
+
+      exportMasthead.append(exportWordmark, exportDateLabel);
+
       const exportSignature = document.createElement('div');
-      exportSignature.textContent = exportDate
-        ? `Il giorno da custodire · ${exportDate}`
-        : 'Il giorno da custodire';
-      exportSignature.className = garamond.className;
+      exportSignature.textContent = 'Un foglio quotidiano di cultura, memoria e ascolto';
       exportSignature.style.position = 'absolute';
       exportSignature.style.left = '0';
       exportSignature.style.right = '0';
-      exportSignature.style.bottom = '42px';
-      exportSignature.style.color = isDark ? 'rgba(238,229,211,0.34)' : 'rgba(117,88,57,0.3)';
-      exportSignature.style.fontSize = '22px';
+      exportSignature.style.bottom = '56px';
+      exportSignature.style.color = isDark ? 'rgba(238,229,211,0.48)' : 'rgba(79,59,45,0.48)';
+      exportSignature.style.fontSize = '19px';
       exportSignature.style.fontStyle = 'italic';
       exportSignature.style.letterSpacing = '0.09em';
       exportSignature.style.lineHeight = '1';
@@ -169,24 +215,15 @@ export default function Card({
       clone.style.height = 'auto';
       clone.style.maxHeight = 'none';
       clone.style.boxSizing = 'border-box';
-      clone.style.fontFamily = sourceFontFamily;
+      clone.style.fontFamily = exportFontFamily;
       clone.style.margin = '0';
-      clone.classList.add('social-export-card');
+      clone.classList.add(garamond.className, 'social-export-card');
+      if (isDark) clone.classList.add('is-dark');
       if (id) clone.dataset.socialExportSection = id;
       measureWrap.appendChild(clone);
       document.body.appendChild(measureWrap);
 
-      const densityClasses = [
-        'social-export-card-dense',
-        'social-export-card-compact',
-        'social-export-card-tight',
-      ];
       let exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
-      for (const densityClass of densityClasses) {
-        if (exportLayoutHeight * widthScale <= contentMaxHeight) break;
-        clone.classList.add(densityClass);
-        exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
-      }
 
       const targetHeight = Math.min(
         SOCIAL_EXPORT_TARGET_HEIGHTS[id ?? ''] ?? 1260,
@@ -222,7 +259,7 @@ export default function Card({
 
       scaledCardMount.appendChild(clone);
       contentWrap.appendChild(scaledCardMount);
-      exportFrame.append(exportVignette, contentWrap, exportSignature);
+      exportFrame.append(exportVignette, exportMasthead, contentWrap, exportSignature);
       document.body.appendChild(exportFrame);
 
       const dataUrl = await toPng(exportFrame, {
@@ -246,7 +283,7 @@ export default function Card({
     <div id={id} className={className}>
       <section
         ref={sectionRef}
-        className={`${
+        className={`${garamond.className} ${
           isDark ? 'bg-[#2A2A2A]/90 border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'
         } border rounded-2xl p-6 md:p-8 card-paper-shadow editorial-card relative group h-full ${id ? `card-section-${id}` : ''}`}
       >

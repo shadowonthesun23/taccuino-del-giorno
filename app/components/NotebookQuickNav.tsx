@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import type { LanguageCode } from '@/lib/types';
 import { notebookNavItems, OPEN_EPHEMERIS_EVENT } from '@/lib/constants';
 import { getSectionLabel } from '@/lib/translation';
+import { garamond } from '@/lib/fonts';
 
 export default function NotebookQuickNav({
   isDark,
@@ -31,7 +32,7 @@ export default function NotebookQuickNav({
   const navigation = (
     <nav
       aria-label={{ IT: 'Sezioni del taccuino', EN: 'Notebook sections', FR: 'Sections du carnet', DE: 'Notizbuchabschnitte', ES: 'Secciones del cuaderno', PT: 'Seções do caderno' }[lingua] || 'Notebook sections'}
-      className={`notebook-quick-nav ${isDark ? 'is-dark' : ''} ${readingComplete ? 'is-read' : ''}`}
+      className={`${garamond.className} notebook-quick-nav ${isDark ? 'is-dark' : ''} ${readingComplete ? 'is-read' : ''}`}
     >
       <span className="notebook-quick-nav-rail" aria-hidden="true">
         <span className="notebook-quick-nav-progress" />
