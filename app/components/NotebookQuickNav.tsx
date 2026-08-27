@@ -2,7 +2,7 @@
 
 import { createPortal } from 'react-dom';
 import type { LanguageCode } from '@/lib/types';
-import { notebookNavItems } from '@/lib/constants';
+import { notebookNavItems, OPEN_EPHEMERIS_EVENT } from '@/lib/constants';
 import { getSectionLabel } from '@/lib/translation';
 
 export default function NotebookQuickNav({
@@ -39,7 +39,19 @@ export default function NotebookQuickNav({
       {visibleItems.map(({ id, icon: Icon, labelIT, labelEN }) => {
         const label = getSectionLabel(id, lingua, labelIT, labelEN);
         return (
-          <a key={id} href={`#${id}`} aria-label={label} title={label} data-label={label} aria-current={activeSection === id ? 'true' : undefined}>
+          <a
+            key={id}
+            href={`#${id}`}
+            aria-label={label}
+            title={label}
+            data-label={label}
+            aria-current={activeSection === id ? 'true' : undefined}
+            onClick={(event) => {
+              if (id !== 'effemeridi' || !window.matchMedia('(min-width: 1180px)').matches) return;
+              event.preventDefault();
+              window.dispatchEvent(new Event(OPEN_EPHEMERIS_EVENT));
+            }}
+          >
             <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} aria-hidden="true" />
           </a>
         );

@@ -9,6 +9,7 @@ export const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT
 
 export const SKY_REGION_STORAGE_KEY = 'taccuino-sky-region-v1';
 export const TICKET_DOWNLOAD_EVENT = 'taccuino:download-ticket';
+export const OPEN_EPHEMERIS_EVENT = 'taccuino:open-ephemeris';
 export const VISITED_ARCHIVE_STORAGE_KEY = 'taccuino-visited-days-v1';
 export const SAVED_CARDS_STORAGE_KEY = 'taccuino-saved-cards-v1';
 export const DEFAULT_DAILY_ACCENT = '#b5956a';

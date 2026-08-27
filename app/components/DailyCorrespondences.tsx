@@ -8,7 +8,7 @@ import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 import { getMoonPhase } from '@/lib/astronomy';
 import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-utils';
 import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
-import { SKY_REGION_STORAGE_KEY } from '@/lib/constants';
+import { OPEN_EPHEMERIS_EVENT, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { garamond, masterSignature } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
@@ -120,6 +120,14 @@ export default function DailyCorrespondences({
   const openSeasonalArtwork = useCallback(() => {
     window.dispatchEvent(new Event('open-artwork-solo'));
   }, []);
+
+  const openEphemeris = useCallback(() => {
+    if (window.matchMedia('(min-width: 1180px)').matches) {
+      window.dispatchEvent(new Event(OPEN_EPHEMERIS_EVENT));
+      return;
+    }
+    scrollTo(skyTargetId);
+  }, [scrollTo, skyTargetId]);
 
   const downloadPlate = useCallback(async () => {
     if (!sheetRef.current || isExporting) return;
@@ -234,7 +242,7 @@ export default function DailyCorrespondences({
             </span>
           </button>
 
-          <button type="button" className="correspondence-entry correspondence-sky" onClick={() => scrollTo(skyTargetId)}>
+          <button type="button" className="correspondence-entry correspondence-sky" onClick={openEphemeris}>
             <span className="correspondence-entry-label"><Moon aria-hidden="true" />{t('correspondenceSky', lingua)}</span>
             <span className="correspondence-entry-content">
               <span className={`correspondence-moon phase-${moon.phase}`}><MoonPhaseGlyph phase={moon.phase} /></span>

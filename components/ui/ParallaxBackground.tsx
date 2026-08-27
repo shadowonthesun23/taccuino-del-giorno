@@ -375,6 +375,11 @@ export default function ParallaxBackground({
   }, [closeArtworkZoom]);
 
   useEffect(() => {
+    document.body.classList.toggle('museum-room-open', isArtworkSolo);
+    return () => document.body.classList.remove('museum-room-open');
+  }, [isArtworkSolo]);
+
+  useEffect(() => {
     let frame: number | null = null;
     let maxScroll = 1;
     let travel = window.innerHeight * 0.5;

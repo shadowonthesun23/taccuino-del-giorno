@@ -3976,6 +3976,18 @@ body {
   z-index: 40;
 }
 
+/* The museum room is a clean, dedicated scene: home-only controls stay out of it. */
+body.museum-room-open :is(
+  .notebook-quick-nav,
+  .mobile-reading-thread,
+  .seasonal-bookmark,
+  .seasonal-bookmark-modal-backdrop
+) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
 .notebook-quick-nav-rail {
   background: linear-gradient(to bottom, transparent, rgba(181,149,106,0.28), rgba(222,107,88,0.25), transparent);
   border-radius: 999px;
@@ -4327,6 +4339,40 @@ body {
 }
 
 /* Biglietto delle effemeridi */
+.seasonal-bookmark-modal-backdrop {
+  appearance: none;
+  background: rgba(43, 35, 27, 0.12);
+  border: 0;
+  cursor: default;
+  inset: 0;
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 420ms cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-backdrop-filter: blur(0) saturate(1);
+  backdrop-filter: blur(0) saturate(1);
+  width: 100%;
+  z-index: 50;
+}
+
+.seasonal-bookmark-modal-backdrop.is-open {
+  cursor: default;
+  opacity: 1;
+  pointer-events: auto;
+  -webkit-backdrop-filter: blur(9px) saturate(0.82);
+  backdrop-filter: blur(9px) saturate(0.82);
+}
+
+.seasonal-bookmark-modal-backdrop.is-dark {
+  background: rgba(7, 6, 5, 0.36);
+}
+
+.seasonal-bookmark-modal-backdrop.is-dark.is-open {
+  -webkit-backdrop-filter: blur(10px) saturate(0.7) brightness(0.68);
+  backdrop-filter: blur(10px) saturate(0.7) brightness(0.68);
+}
+
 .seasonal-bookmark {
   --bookmark-paper: #ddd1ad;
   --bookmark-ink: #645538;
@@ -4349,13 +4395,15 @@ body {
   pointer-events: none;
   position: fixed;
   right: auto;
-  top: 24%;
+  top: 50%;
   transition:
     color 220ms ease,
-    filter 220ms ease,
-    right 320ms cubic-bezier(0.22,1,0.36,1);
-  transform: rotate(-0.38deg);
-  transform-origin: right center;
+    filter 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    right 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, -50%, 0) rotate(-0.38deg) scale(1);
+  transform-origin: center center;
   width: 588px;
   z-index: 36;
 }
@@ -4405,8 +4453,72 @@ body {
 .seasonal-bookmark:focus-within,
 .seasonal-bookmark:focus-visible {
   outline: none;
-  right: 1px;
+  right: -470px;
   filter: drop-shadow(-4px 6px 5px rgba(42,37,34,0.22));
+}
+
+.seasonal-bookmark.is-open,
+.seasonal-bookmark.is-open:hover,
+.seasonal-bookmark.is-open:focus,
+.seasonal-bookmark.is-open:focus-within,
+.seasonal-bookmark.is-open:focus-visible {
+  filter: drop-shadow(-8px 18px 18px rgba(42, 32, 22, 0.28));
+  outline: none;
+  right: calc(50% - 294px);
+  top: 50%;
+  transform: translate3d(0, -50%, 0) rotate(-0.22deg) scale(1.5);
+  transform-origin: center center;
+  z-index: 60;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .seasonal-bookmark.is-open {
+    animation: seasonalBookmarkModalIn 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .seasonal-bookmark.is-dark.is-open {
+    animation-name: seasonalBookmarkModalInDark;
+  }
+
+  @keyframes seasonalBookmarkModalIn {
+    0% {
+      filter: blur(1.4px) drop-shadow(-5px 10px 12px rgba(42, 32, 22, 0.16));
+      opacity: 0.78;
+      transform: translate3d(12px, -50%, 0) rotate(-0.48deg) scale(0.98);
+    }
+
+    58% {
+      filter: blur(0.18px) drop-shadow(-9px 19px 20px rgba(42, 32, 22, 0.26));
+      opacity: 1;
+      transform: translate3d(0, -50%, 0) rotate(-0.22deg) scale(1.5);
+    }
+
+    100% {
+      filter: blur(0) drop-shadow(-8px 18px 18px rgba(42, 32, 22, 0.28));
+      opacity: 1;
+      transform: translate3d(0, -50%, 0) rotate(-0.22deg) scale(1.5);
+    }
+  }
+
+  @keyframes seasonalBookmarkModalInDark {
+    0% {
+      filter: blur(1.4px) drop-shadow(-5px 10px 12px rgba(0, 0, 0, 0.38));
+      opacity: 0.78;
+      transform: translate3d(12px, -50%, 0) rotate(-0.48deg) scale(0.98);
+    }
+
+    58% {
+      filter: blur(0.18px) drop-shadow(-9px 19px 20px rgba(0, 0, 0, 0.52));
+      opacity: 1;
+      transform: translate3d(0, -50%, 0) rotate(-0.22deg) scale(1.5);
+    }
+
+    100% {
+      filter: blur(0) drop-shadow(-8px 18px 18px rgba(0, 0, 0, 0.56));
+      opacity: 1;
+      transform: translate3d(0, -50%, 0) rotate(-0.22deg) scale(1.5);
+    }
+  }
 }
 
 .seasonal-bookmark-stub {
@@ -5214,6 +5326,14 @@ body {
 .seasonal-bookmark.is-dark:focus-within,
 .seasonal-bookmark.is-dark:focus-visible {
   filter: drop-shadow(-4px 6px 5px rgba(0,0,0,0.46));
+}
+
+.seasonal-bookmark.is-dark.is-open,
+.seasonal-bookmark.is-dark.is-open:hover,
+.seasonal-bookmark.is-dark.is-open:focus,
+.seasonal-bookmark.is-dark.is-open:focus-within,
+.seasonal-bookmark.is-dark.is-open:focus-visible {
+  filter: drop-shadow(-8px 18px 18px rgba(0, 0, 0, 0.56));
 }
 
 .seasonal-bookmark.is-dark .seasonal-bookmark-ticket {
@@ -12061,6 +12181,15 @@ body {
     transform: none !important;
     transition: none !important;
     animation: none !important;
+  }
+
+  .seasonal-bookmark-modal-backdrop,
+  .seasonal-bookmark {
+    transition: none !important;
+  }
+
+  .seasonal-bookmark.is-open {
+    transform: translate3d(0, -50%, 0) rotate(-0.22deg) scale(1.5);
   }
 }
 

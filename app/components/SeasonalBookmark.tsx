@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Loader2, FileDown, X } from 'lucide-react';
@@ -8,7 +8,7 @@ import { MoonDoodle } from '@/components/ui/Doodles';
 import { garamond } from '@/lib/fonts';
 import type { LanguageCode, SeasonId, MoonPhaseId } from '@/lib/types';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
-import { SKY_REGION_OPTIONS, SKY_REGION_STORAGE_KEY, TICKET_DOWNLOAD_EVENT } from '@/lib/constants';
+import { OPEN_EPHEMERIS_EVENT, SKY_REGION_OPTIONS, SKY_REGION_STORAGE_KEY, TICKET_DOWNLOAD_EVENT } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { getSeason, formatBookmarkDate, getBookmarkMonth, getDayOfYearInfo, formatUtcDate } from '@/lib/date-utils';
 import { getMoonPhase, getNextFullMoonDate } from '@/lib/astronomy';
@@ -30,6 +30,7 @@ export default function SeasonalBookmark({
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingTicket, setExportingTicket] = useState(false);
   const [desktopTicketEnabled, setDesktopTicketEnabled] = useState(false);
+  const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [preparedTicketDownload, setPreparedTicketDownload] = useState<{ url: string; filename: string } | null>(null);
   const preparedTicketUrlRef = useRef<string | null>(null);
   const season = getSeason(dataIso);
@@ -97,7 +98,11 @@ export default function SeasonalBookmark({
 
   useEffect(() => {
     const desktopQuery = window.matchMedia('(min-width: 1180px)');
-    const updateDesktopTicket = () => setDesktopTicketEnabled(desktopQuery.matches);
+    const updateDesktopTicket = () => {
+      const enabled = desktopQuery.matches;
+      setDesktopTicketEnabled(enabled);
+      if (!enabled) setIsTicketOpen(false);
+    };
     updateDesktopTicket();
     desktopQuery.addEventListener('change', updateDesktopTicket);
 
@@ -132,6 +137,49 @@ export default function SeasonalBookmark({
     preparedTicketUrlRef.current = null;
     setPreparedTicketDownload(null);
   }, []);
+
+  const closeTicket = useCallback(() => {
+    setIsTicketOpen(false);
+  }, []);
+
+  const openTicket = useCallback(() => {
+    if (desktopTicketEnabled) setIsTicketOpen(true);
+  }, [desktopTicketEnabled]);
+
+  const handleTicketClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {
+    if (isTicketOpen) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest('a, button')) return;
+    openTicket();
+  }, [isTicketOpen, openTicket]);
+
+  const handleTicketKeyDown = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (isTicketOpen) return;
+    event.preventDefault();
+    openTicket();
+  }, [isTicketOpen, openTicket]);
+
+  useEffect(() => {
+    const handleOpen = () => openTicket();
+    const handleCloseForMuseum = () => closeTicket();
+    window.addEventListener(OPEN_EPHEMERIS_EVENT, handleOpen);
+    window.addEventListener('open-artwork-solo', handleCloseForMuseum);
+    return () => {
+      window.removeEventListener(OPEN_EPHEMERIS_EVENT, handleOpen);
+      window.removeEventListener('open-artwork-solo', handleCloseForMuseum);
+    };
+  }, [closeTicket, openTicket]);
+
+  useEffect(() => {
+    if (!isTicketOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeTicket();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeTicket, isTicketOpen]);
 
   useEffect(() => () => {
     if (preparedTicketUrlRef.current) URL.revokeObjectURL(preparedTicketUrlRef.current);
@@ -253,13 +301,26 @@ export default function SeasonalBookmark({
 
   return (
     <>
+      <button
+        type="button"
+        className={`seasonal-bookmark-modal-backdrop ${isDark ? 'is-dark' : ''} ${isTicketOpen ? 'is-open' : ''}`}
+        aria-label={t('close', lingua)}
+        aria-hidden={!isTicketOpen}
+        tabIndex={isTicketOpen ? 0 : -1}
+        onClick={closeTicket}
+      />
       <aside
         id="effemeridi"
-        className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''}`}
+        className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''} ${isTicketOpen ? 'is-open' : ''}`}
         aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${daylightRowLabel}: ${daylightValue || '…'}. ${planetsLabel}: ${planetSummary}`}
         aria-hidden={!desktopTicketEnabled}
         inert={!desktopTicketEnabled ? true : undefined}
         tabIndex={desktopTicketEnabled ? 0 : -1}
+        role={isTicketOpen ? 'dialog' : undefined}
+        aria-modal={isTicketOpen ? 'true' : undefined}
+        aria-expanded={isTicketOpen}
+        onClick={handleTicketClick}
+        onKeyDown={handleTicketKeyDown}
       >
         <span ref={ticketRef} className="seasonal-bookmark-ticket">
           <span className="seasonal-bookmark-stub" aria-hidden="true">
