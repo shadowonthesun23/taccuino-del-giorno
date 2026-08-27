@@ -153,7 +153,7 @@ export default function DailyCorrespondences({
         cacheBust: true,
       });
       const link = document.createElement('a');
-      link.download = `corrispondenze-${dataIso}.png`;
+      link.download = `coordinate-del-giorno-${dataIso}.png`;
       link.href = dataUrl;
       link.click();
     } catch (error) {
