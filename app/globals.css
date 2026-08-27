@@ -11982,3 +11982,26 @@ body {
   background-position: 2px 1px, 12px calc(100% - 1px);
   background-size: calc(100% - 22px) 1px, calc(100% - 37px) 2px;
 }
+
+/* The ephemeris ticket is a permanent, standalone leaf of the home—not a hidden side tab. */
+@media (min-width: 1180px) {
+  .seasonal-bookmark {
+    display: block;
+    left: auto;
+    margin: 0 auto clamp(2.5rem, 5vw, 4.5rem);
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: rotate(-0.38deg);
+    transform-origin: center;
+  }
+
+  .seasonal-bookmark:hover,
+  .seasonal-bookmark:focus,
+  .seasonal-bookmark:focus-within,
+  .seasonal-bookmark:focus-visible {
+    right: auto;
+  }
+}
