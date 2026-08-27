@@ -66,7 +66,10 @@ export default function DailyCorrespondences({
   const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
   const authorImageAvailable = Boolean(authorImageUrl) && !failedMedia.has(authorImageUrl);
   const artworkImageAvailable = Boolean(artworkImageUrl) && !failedMedia.has(artworkImageUrl);
-  const musicCoverAvailable = musicCover !== null && !failedMedia.has(musicCover);
+  const musicCoverUrl = musicCover?.trim() || null;
+  const availableMusicCover = musicCoverUrl && !failedMedia.has(musicCoverUrl)
+    ? musicCoverUrl
+    : null;
   const seasonalArtworkImageAvailable = Boolean(seasonalArtwork?.imageUrl && !failedMedia.has(seasonalArtwork.imageUrl));
   const apodImageUrl = proxiedImageUrl(apod?.thumbnail_url || apod?.url);
   const saintArtworkImageUrl = proxiedImageUrl(saintArtwork?.imageUrl);
@@ -223,9 +226,9 @@ export default function DailyCorrespondences({
           <button type="button" className="correspondence-entry correspondence-music" onClick={() => scrollTo('musica')}>
             <span className="correspondence-entry-label"><Music aria-hidden="true" />{t('correspondenceMusic', lingua)}</span>
             <span className="correspondence-entry-content">
-              {musicCoverAvailable ? (
+              {availableMusicCover ? (
                 /* eslint-disable-next-line @next/next/no-img-element -- music cover is a runtime URL and is exported from the DOM */
-                <img draggable={false} src={musicCover} alt="" onError={() => markMediaUnavailable(musicCover)} {...eagerImageProps} />
+                <img draggable={false} src={availableMusicCover} alt="" onError={() => markMediaUnavailable(availableMusicCover)} {...eagerImageProps} />
               ) : <span className="correspondence-missing-media" title={t('correspondenceMusicCoverUnavailable', lingua)}><Music aria-hidden="true" /></span>}
               <span><strong>{data.musica.brano}</strong><em>{data.musica.autore}</em></span>
             </span>
@@ -265,6 +268,19 @@ export default function DailyCorrespondences({
               </span>
             </button>
           ) : null}
+        </div>
+
+        <div className="daily-correspondences-readings">
+          <button type="button" className="correspondence-reading correspondence-poem" onClick={() => scrollTo('poesia')}>
+            <span className="correspondence-reading-label"><Feather aria-hidden="true" />{t('correspondencePoem', lingua)}</span>
+            <strong>{data.poesia.autore}</strong>
+            <em>{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em>
+          </button>
+          <button type="button" className="correspondence-reading correspondence-bible" onClick={() => scrollTo('bibbia')}>
+            <span className="correspondence-reading-label"><BookOpen aria-hidden="true" />{t('correspondenceBible', lingua)}</span>
+            <strong>{data.bibbia.fonte}</strong>
+            <em>{getFirstSentence(data.bibbia.testo)}</em>
+          </button>
         </div>
 
         {seasonalArtwork ? (

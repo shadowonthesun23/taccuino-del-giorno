@@ -14,6 +14,8 @@ const correspondenceKeys = [
   'correspondencesDownloadAria',
   'correspondenceAuthor',
   'correspondenceWord',
+  'correspondencePoem',
+  'correspondenceBible',
   'correspondenceSaint',
   'correspondenceArtwork',
   'correspondenceMusic',

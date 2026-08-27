@@ -63,6 +63,12 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   correspondenceWord: {
     IT: 'Parola di oggi', EN: 'Today’s word', FR: 'Mot du jour', DE: 'Wort des Tages', ES: 'Palabra de hoy', PT: 'Palavra do dia'
   },
+  correspondencePoem: {
+    IT: 'Poesia del giorno', EN: 'Poem of the day', FR: 'Poème du jour', DE: 'Gedicht des Tages', ES: 'Poema del día', PT: 'Poema do dia'
+  },
+  correspondenceBible: {
+    IT: 'Passaggio biblico', EN: 'Biblical passage', FR: 'Passage biblique', DE: 'Bibelstelle', ES: 'Pasaje bíblico', PT: 'Passagem bíblica'
+  },
   correspondenceSaint: {
     IT: 'Santo del giorno', EN: 'Saint of the day', FR: 'Saint du jour', DE: 'Heiliger des Tages', ES: 'Santo del día', PT: 'Santo do dia'
   },

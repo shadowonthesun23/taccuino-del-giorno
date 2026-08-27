@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import type { LanguageCode } from '@/lib/types';
 import { notebookNavItems } from '@/lib/constants';
 import { getSectionLabel } from '@/lib/translation';
@@ -11,6 +12,7 @@ export default function NotebookQuickNav({
   hasApod,
   activeSection,
   readingComplete,
+  isMounted,
 }: {
   isDark: boolean;
   lingua: LanguageCode;
@@ -18,6 +20,7 @@ export default function NotebookQuickNav({
   hasApod: boolean;
   activeSection: string;
   readingComplete: boolean;
+  isMounted: boolean;
 }) {
   const visibleItems = notebookNavItems.filter((item) => {
     if (item.id === 'opera') return hasOpera;
@@ -25,7 +28,7 @@ export default function NotebookQuickNav({
     return true;
   });
 
-  return (
+  const navigation = (
     <nav
       aria-label={{ IT: 'Sezioni del taccuino', EN: 'Notebook sections', FR: 'Sections du carnet', DE: 'Notizbuchabschnitte', ES: 'Secciones del cuaderno', PT: 'Seções do caderno' }[lingua] || 'Notebook sections'}
       className={`notebook-quick-nav ${isDark ? 'is-dark' : ''} ${readingComplete ? 'is-read' : ''}`}
@@ -43,4 +46,6 @@ export default function NotebookQuickNav({
       })}
     </nav>
   );
+
+  return isMounted ? createPortal(navigation, document.body) : null;
 }

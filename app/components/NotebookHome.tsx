@@ -589,7 +589,10 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           fetch(`/api/music-cover?${coverParams.toString()}`)
             .then((response) => response.status === 204 ? null : response.ok ? response.json() : null)
             .then((cover) => {
-              if (requestId === latestDayRequestId) setMusicCover(proxiedImageUrl(cover?.imageUrl));
+              if (requestId === latestDayRequestId) {
+                const nextMusicCover = proxiedImageUrl(cover?.imageUrl).trim();
+                setMusicCover(nextMusicCover || null);
+              }
             })
             .catch(() => {
               if (requestId === latestDayRequestId) setMusicCover(null);
@@ -966,6 +969,22 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     document.body
   ) : null;
 
+  // Keep the day-turn layer outside the parallax content wrapper. That
+  // wrapper uses a zero-distance translate3d for compositing, which would
+  // otherwise make `position: fixed` relative to the full document instead
+  // of the viewport.
+  const dayTurnOverlay = isMounted && isTurningPage ? createPortal(
+    <div
+      className={`ink-day-transition is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`}
+      aria-hidden="true"
+    >
+      <div className="ink-day-transition-canvas">
+        <div className="ink-day-transition-sprite" />
+      </div>
+    </div>,
+    document.body
+  ) : null;
+
   if (loading) return (
     <>
       <LoadingNotebook isDark={isDark} lingua={lingua} />
@@ -1019,6 +1038,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           hasApod={Boolean(apod) || apodLoading}
           activeSection={activeSection}
           readingComplete={readingComplete}
+          isMounted={isMounted}
         />
         <MobileReadingThread
           isDark={isDark}
@@ -1240,16 +1260,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         <span className="sr-only" role="status" aria-live="polite">
           {isTurningPage ? ({ IT: 'Cambio giorno in corso', EN: 'Changing day', FR: 'Changement de jour...', DE: 'Tag wird gewechselt...', ES: 'Cambiando de día...', PT: 'Alterando o dia...' }[lingua] || 'Changing day') : ''}
         </span>
-        {isTurningPage && (
-          <div
-            className={`ink-day-transition is-${pageTurnPhase} ${isDark ? 'is-dark' : ''}`}
-            aria-hidden="true"
-          >
-            <div className="ink-day-transition-canvas">
-              <div className="ink-day-transition-sprite" />
-            </div>
-          </div>
-        )}
+        {dayTurnOverlay}
         <main
           className={`journal-page-enter journal-page-transition is-${pageTurnPhase} w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10`}
           aria-busy={isTurningPage}
