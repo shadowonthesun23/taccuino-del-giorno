@@ -11846,3 +11846,139 @@ body {
 [data-theme="dark"] .loading-notebook-paper .loading-step-text {
   color: #d8c7b2 !important;
 }
+
+/* Museum threshold: the gallery stays still while a diagonal blur dissolves the notebook. */
+@media (prefers-reduced-motion: no-preference) {
+  .journal-material:has(.seasonal-reveal-content.is-artwork-solo) {
+    filter: none;
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+
+  .seasonal-reveal-content {
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  .seasonal-reveal-content.is-artwork-solo {
+    filter: none;
+    transform: none;
+  }
+
+  .museum-dissolve-veil.is-active::before {
+    animation: museumDissolveDiagonal 1450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    -webkit-backdrop-filter: blur(10px) saturate(0.86);
+    backdrop-filter: blur(10px) saturate(0.86);
+    background: rgba(30, 27, 22, 0.08);
+    content: '';
+    inset: -60vmax;
+    -webkit-mask-image: linear-gradient(to top left, transparent 0 38%, #000 46% 57%, transparent 65% 100%);
+    mask-image: linear-gradient(to top left, transparent 0 38%, #000 46% 57%, transparent 65% 100%);
+    pointer-events: none;
+    position: fixed;
+    will-change: transform;
+    z-index: 30;
+  }
+
+  @keyframes museumDissolveDiagonal {
+    from {
+      transform: translate3d(42vmax, 42vmax, 0);
+    }
+    to {
+      transform: translate3d(-42vmax, -42vmax, 0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journal-material,
+  .journal-material:has(.seasonal-reveal-content.is-artwork-solo),
+  .seasonal-reveal-content,
+  .seasonal-reveal-content.is-artwork-solo,
+  .museum-dissolve-veil.is-active::before,
+  .museum-gallery-room.is-open {
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Each correspondence is ruled by a slightly different hand. */
+.daily-correspondences-header::after {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 38%, transparent) 5%, var(--correspondence-pencil) 23%, color-mix(in srgb, var(--correspondence-pencil) 70%, transparent) 82%, transparent 100%);
+  height: 1px;
+  left: 3px;
+  right: 12px;
+  transform: rotate(-0.34deg);
+}
+
+.correspondence-entry::before {
+  height: 1px;
+  opacity: 0.64;
+}
+
+.correspondence-word::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 34%, transparent) 6%, var(--correspondence-pencil) 18%, color-mix(in srgb, var(--correspondence-pencil) 64%, transparent) 76%, transparent 95%);
+  left: 2px;
+  right: 10px;
+  transform: rotate(0.42deg);
+}
+
+.correspondence-saint::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 44%, transparent) 9%, var(--correspondence-pencil) 31%, color-mix(in srgb, var(--correspondence-pencil) 56%, transparent) 72%, transparent 91%);
+  left: -1px;
+  right: 18px;
+  transform: rotate(-0.24deg);
+}
+
+.correspondence-artwork::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 48%, transparent) 4%, var(--correspondence-pencil) 25%, color-mix(in srgb, var(--correspondence-pencil) 65%, transparent) 58%, transparent 88%);
+  left: 7px;
+  right: 3px;
+  transform: rotate(0.17deg);
+}
+
+.correspondence-music::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 30%, transparent) 12%, var(--correspondence-pencil) 28%, color-mix(in srgb, var(--correspondence-pencil) 72%, transparent) 66%, transparent 89%);
+  left: 4px;
+  right: 15px;
+  transform: rotate(-0.48deg);
+}
+
+.correspondence-sky::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 42%, transparent) 8%, var(--correspondence-pencil) 22% 46%, transparent 48% 51%, color-mix(in srgb, var(--correspondence-pencil) 70%, transparent) 54%, var(--correspondence-pencil) 73%, transparent 94%);
+  left: 1px;
+  right: 8px;
+  transform: rotate(0.29deg);
+}
+
+.correspondence-apod::before {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 36%, transparent) 5%, var(--correspondence-pencil) 17%, color-mix(in srgb, var(--correspondence-pencil) 58%, transparent) 82%, transparent 97%);
+  left: -2px;
+  right: 20px;
+  transform: rotate(-0.12deg);
+}
+
+.correspondence-author {
+  border-bottom: 0;
+}
+
+.correspondence-author::after {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--correspondence-pencil) 32%, transparent) 7%, var(--correspondence-pencil) 26%, color-mix(in srgb, var(--correspondence-pencil) 66%, transparent) 78%, transparent 96%);
+  bottom: 4px;
+  content: '';
+  height: 1px;
+  left: 13px;
+  opacity: 0.62;
+  pointer-events: none;
+  position: absolute;
+  right: 8px;
+  transform: rotate(-0.38deg);
+}
+
+.daily-correspondences-seasonal {
+  background-position: 2px 1px, 12px calc(100% - 1px);
+  background-size: calc(100% - 22px) 1px, calc(100% - 37px) 2px;
+}

@@ -649,11 +649,14 @@ export default function ParallaxBackground({
           }`}
           style={{
             opacity: isArtworkSolo ? 1 : 0,
-            transform: isArtworkSolo ? 'scale(1)' : 'scale(0.97)',
+            transform: isArtworkSolo ? 'none' : 'scale(0.97)',
             visibility: (isArtworkSolo || isExitingSolo) ? 'visible' : 'hidden',
-            transition: isArtworkSolo 
-              ? 'opacity 550ms cubic-bezier(0.16, 1, 0.3, 1), transform 550ms cubic-bezier(0.16, 1, 0.3, 1), visibility 550ms' 
+            // On entry the room is already a complete, static backdrop: only the
+            // notebook moves away from it. The established fade-out/scale is preserved.
+            transition: isArtworkSolo
+              ? 'none'
               : 'opacity 400ms ease-out, transform 400ms ease-out, visibility 400ms 400ms',
+            zIndex: isArtworkSolo ? 5 : isExitingSolo ? 20 : 5,
           }}
           onClick={isArtworkSolo ? () => {
             closeArtworkZoom();
@@ -1011,13 +1014,22 @@ export default function ParallaxBackground({
         style={{
           opacity: isArtworkSolo ? 0 : 1,
           pointerEvents: isArtworkSolo ? 'none' : 'auto',
-          transition: isArtworkSolo 
-            ? 'opacity 400ms ease-out' 
+          transition: isArtworkSolo
+            ? 'opacity 1350ms cubic-bezier(0.22, 1, 0.36, 1)'
             : 'opacity 500ms ease-out 350ms',
         }}
       >
         {children}
       </div>
+
+      {hasSeasonalReveal && seasonalArtwork ? (
+        <div
+          aria-hidden="true"
+          className={`museum-dissolve-veil safe-viewport-backdrop fixed inset-0 z-30 pointer-events-none ${
+            isArtworkSolo ? 'is-active' : ''
+          }`}
+        />
+      ) : null}
     </>
   );
 }
