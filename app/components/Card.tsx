@@ -14,12 +14,12 @@ const garamond = IM_Fell_Double_Pica({
 
 const badgeVariants: Record<string, string> = {
   citazione: 'badge-tilt-right',
-  parola: 'badge-tilt-left badge-mirrored',
+  parola: 'badge-tilt-left',
   santi: 'badge-tilt-right',
-  opera: 'badge-tilt-left badge-mirrored',
+  opera: 'badge-tilt-left',
   avvenimenti: 'badge-tilt-right',
   poesia: 'badge-tilt-left',
-  bibbia: 'badge-tilt-right badge-mirrored',
+  bibbia: 'badge-tilt-right',
   apod: 'badge-tilt-left',
 };
 
@@ -248,7 +248,7 @@ export default function Card({
         ref={sectionRef}
         className={`${
           isDark ? 'bg-[#2A2A2A]/90 border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'
-        } border rounded-2xl p-6 md:p-8 card-paper-shadow relative group h-full ${id ? `card-section-${id}` : ''}`}
+        } border rounded-2xl p-6 md:p-8 card-paper-shadow editorial-card relative group h-full ${id ? `card-section-${id}` : ''}`}
       >
 
         {filename && (

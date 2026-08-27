@@ -37,7 +37,7 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     IT: 'Per iniziare', EN: 'A place to begin', FR: 'Pour commencer', DE: 'Zum Einstieg', ES: 'Para empezar', PT: 'Para começar'
   },
   correspondencesKicker: {
-    IT: 'Punti per entrare nel giorno', EN: 'Ways into today', FR: 'Entrées dans la journée', DE: 'Zugänge zum Tag', ES: 'Maneras de entrar en el día', PT: 'Caminhos para entrar no dia'
+    IT: 'Coordinate del giorno', EN: 'Today’s coordinates', FR: 'Repères du jour', DE: 'Koordinaten des Tages', ES: 'Coordenadas del día', PT: 'Coordenadas do dia'
   },
   correspondencesLead: {
     IT: 'La parola di oggi è', EN: 'Today’s word is', FR: 'Le mot du jour est', DE: 'Das Wort des Tages ist', ES: 'La palabra de hoy es', PT: 'A palavra de hoje é'

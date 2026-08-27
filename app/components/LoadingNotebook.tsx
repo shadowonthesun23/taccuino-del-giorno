@@ -4,15 +4,17 @@ import { useEffect, useState } from 'react';
 import { Feather } from 'lucide-react';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import { garamond, masterSignature } from '@/lib/fonts';
-import { getImageLoadingProps } from '@/lib/browser-utils';
 import { t } from '@/lib/translation';
 import type { LanguageCode } from '@/lib/types';
-
-const eagerImageProps = getImageLoadingProps(true);
 
 export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boolean; lingua?: LanguageCode }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [fadeState, setFadeState] = useState<'fade-in' | 'fade-out'>('fade-in');
+  const dateLabel = new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -40,21 +42,18 @@ export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boo
           aria-label={t('preparingNotebookAria', lingua)}
           className={`loading-notebook-paper ${isDark ? 'is-dark' : ''}`}
         >
-          <img
-            draggable={false}
-            className="loading-notebook-sheet"
-            src="/images/loading-paper-torn.png"
-            alt=""
-            aria-hidden="true"
-            {...eagerImageProps}
-          />
           <div className="loading-notebook-content">
-            <h1 className={`${masterSignature.className} notebook-wordmark`}>
-              {t('dayTitle', lingua)}
-            </h1>
+            <div className="loading-notebook-center">
+              <p className="loading-date-line" suppressHydrationWarning>{dateLabel}</p>
+              <h1 className={`${masterSignature.className} notebook-wordmark`}>
+                {t('dayTitle', lingua)}
+              </h1>
+            </div>
 
-            <div className="loading-feather-wrapper" aria-hidden="true">
+            <div className="loading-composition-mark" aria-hidden="true">
+              <span className="loading-mark-rule loading-mark-rule-top" />
               <Feather className="loading-feather-icon" />
+              <span className="loading-mark-rule loading-mark-rule-bottom" />
             </div>
 
             <div className="loading-writing-stack" aria-hidden="true">
@@ -64,7 +63,7 @@ export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boo
               <span className="loading-pen-line line-four" />
             </div>
 
-            <p className={`loading-step-text ${fadeState}`}>
+            <p className={`loading-step-text ${fadeState}`} aria-live="polite">
               {t(steps[currentStep], lingua)}
             </p>
           </div>

@@ -231,6 +231,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [isApodExpanded, setIsApodExpanded] = useState(false);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
   const [musicCover, setMusicCover] = useState<string | null>(null);
+  const [operaImageIndex, setOperaImageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
@@ -506,7 +507,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setMusicCover(null); setApod(null); setApodLoading(false); setIsApodExpanded(false);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setMusicCover(null); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -561,16 +562,16 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           setIsTurningPage(false);
           setPageTurnPhase('idle');
         }
-        const singleSaintName = dati.santi.length === 1 ? dati.santi[0]?.nome?.trim() : '';
-        if (singleSaintName) {
+        const leadSaintName = dati.santi[0]?.nome?.trim() ?? '';
+        if (leadSaintName) {
           runWhenIdle(() => {
-            fetch(`/api/santo-immagine?nome=${encodeURIComponent(singleSaintName)}`)
+            fetch(`/api/santo-immagine?nome=${encodeURIComponent(leadSaintName)}`)
               .then((response) => {
                 if (response.status === 204) return null;
                 return response.ok ? response.json() as Promise<SaintArtwork> : null;
               })
               .then((artwork) => {
-                if (requestId === latestDayRequestId && artwork) setSaintArtwork({ ...artwork, saintName: singleSaintName });
+                if (requestId === latestDayRequestId && artwork) setSaintArtwork({ ...artwork, saintName: leadSaintName });
               })
               .catch(() => {
                 if (requestId === latestDayRequestId) setSaintArtwork(null);
@@ -744,6 +745,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     operaImageUrl,
     operaImageHdUrl,
   );
+  const operaImageSrc = operaImageCandidates[operaImageIndex] ?? null;
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
@@ -1332,6 +1334,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             }}
           >
             <img
+              className="author-photo-portrait"
               draggable={false}
               src={data.foto_autore_url}
               alt={data.autore_giorno}
@@ -1341,7 +1344,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 width: '140px',
                 height: '180px',
                 objectFit: 'cover',
-                filter: 'grayscale(100%) contrast(90%) brightness(1.05)',
               }}
             />
             <span className={`${caveat.className} author-photo-caption`}>
@@ -1463,7 +1465,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   </div> {/* chiude relative z-10 */}
 </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="editorial-card-stack">
 
             <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
@@ -1491,7 +1493,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('santi')}
               onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
-              <div className="saints-card-layout">
+              <div className={`saints-card-layout ${data.santi.length > 1 ? 'has-multiple-saints' : 'has-single-saint'}`}>
                 {visibleSaintArtwork ? (
                   <figure className="saint-card-artwork">
                     <img
@@ -1559,7 +1561,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
                 initialTone="blue"
               />
-              <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
+              <div className="poem-bible-attribution text-left pt-4 mb-6">
                 <p className="font-bold text-xl">{data.poesia.autore}</p>
                 <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
               </div>
@@ -1580,7 +1582,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 text={data.bibbia.testo}
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
               />
-              <div className={`text-left border-t ${themeClasses.border} pt-4 mb-6`}>
+              <div className="poem-bible-attribution text-left pt-4 mb-6">
                 <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
               </div>
               {data.bibbia.nota && (
@@ -1622,24 +1624,29 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                   </div>
                   <div className="opera-postcard-media order-1 md:order-2">
                     <a href={operaSourceUrl || undefined} target={operaSourceUrl ? '_blank' : undefined} rel={operaSourceUrl ? 'noopener noreferrer' : undefined} className="opera-postcard-link block group">
-                      {operaImageCandidates.length > 0 ? (
+                      {operaImageSrc ? (
                         <img
                           draggable={false}
-                          src={operaImageCandidates[0]}
+                          src={operaImageSrc}
                           alt={`${opera.titolo} by ${opera.artista}`}
                           className={`opera-postcard-image w-full h-auto object-cover border ${themeClasses.border} transition-transform duration-500 group-hover:scale-[1.01]`}
-                          onError={(event) => {
-                            const currentIndex = Number(event.currentTarget.dataset.fallbackIndex ?? '0');
-                            const nextIndex = currentIndex + 1;
+                          onError={() => {
+                            const nextIndex = operaImageIndex + 1;
                             const fallback = operaImageCandidates[nextIndex];
                             if (fallback) {
-                              event.currentTarget.dataset.fallbackIndex = String(nextIndex);
-                              event.currentTarget.src = fallback;
+                              setOperaImageIndex(nextIndex);
+                            } else {
+                              setOperaImageIndex(operaImageCandidates.length);
                             }
                           }}
                           {...lowPriorityImageProps}
                         />
-                      ) : null}
+                      ) : (
+                        <span className="opera-postcard-missing-media" aria-label={lingua === 'IT' ? 'Immagine dell’opera non disponibile' : 'Artwork image unavailable'}>
+                          <Palette aria-hidden="true" strokeWidth={1.25} />
+                          <span>{lingua === 'IT' ? 'Immagine non disponibile' : 'Image unavailable'}</span>
+                        </span>
+                      )}
                       <span className="opera-postcard-source-label">
                         {{ IT: 'Fonte', EN: 'Source', FR: 'Source', DE: 'Quelle', ES: 'Fuente', PT: 'Fonte' }[lingua] || 'Source'}: {opera.museo}
                         {opera.rights ? ` · ${opera.rights}` : ''}
@@ -1653,6 +1660,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             <Card
               key={`${dataExLibris}:musica`}
               id="musica"
+              title={t('musicCard', lingua)}
+              icon={Music}
               isDark={isDark}
               className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
               filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
@@ -1661,20 +1670,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
             >
               <div className="music-card-layout">
-
-                {/* Mobile-only tape (first element at the top on mobile) */}
-                <div className="flex md:hidden items-center justify-center mb-1 select-none w-full">
-                  <ScrollRevealBadge
-                    as="h3"
-                    className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
-                    resetTrigger={dataExLibris}
-                  >
-                    <span className="badge-tape-bg" aria-hidden="true" />
-                    <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
-                    <span>{t('musicCard', lingua)}</span>
-                  </ScrollRevealBadge>
-                </div>
-
                 <div className="music-media-cell select-none">
                   <div className="music-vinyl-wrapper">
                     <div className="music-vinyl-disc" aria-hidden="true">
@@ -1702,19 +1697,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 </div>
 
                 <div className="music-copy-cell">
-                  {/* Desktop-only tape */}
-                  <div className="hidden md:flex items-center justify-start mb-5 select-none">
-                    <ScrollRevealBadge
-                      as="h3"
-                      className={`${garamond.className} italic section-typewriter-badge badge-musica badge-tilt-right text-sm`}
-                      resetTrigger={dataExLibris}
-                    >
-                      <span className="badge-tape-bg" aria-hidden="true" />
-                      <Music className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.6} />
-                      <span>{t('musicCard', lingua)}</span>
-                    </ScrollRevealBadge>
-                  </div>
-
                   <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
                   <p className="card-byline text-xl font-medium mb-2">
                     {{ IT: 'di', EN: 'by', FR: 'par', DE: 'von', ES: 'de', PT: 'de' }[lingua] || 'by'}{' '}
@@ -1750,6 +1732,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               <Card
                 key={`${dataExLibris}:apod`}
                 id="apod"
+                title={t('apodCard', lingua)}
+                icon={Telescope}
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-10"
                 filename={apod ? `apod-${dataExLibris}` : undefined}
@@ -1767,17 +1751,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     : undefined
                 }
               >
-                <div className="card-section-heading flex items-center justify-start">
-                  <ScrollRevealBadge className="apod-card-tape-wrapper" resetTrigger={dataExLibris}>
-                    <img
-                      draggable={false}
-                      src={lingua === 'IT' ? "/images/tape-astronomia.png" : "/images/tape-astronomia-en.png"}
-                      alt={t('apodCard', lingua)}
-                      className="apod-card-tape"
-                    />
-                  </ScrollRevealBadge>
-                </div>
-
                 {apodLoading ? (
                   <div className="flex flex-col items-center justify-center py-16 space-y-4">
                     <div className="relative w-12 h-12 flex items-center justify-center">

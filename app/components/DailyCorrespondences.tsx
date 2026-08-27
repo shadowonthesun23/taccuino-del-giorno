@@ -73,6 +73,14 @@ export default function DailyCorrespondences({
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
   const authorDescription = getFirstSentence(data.breve_descrizione);
   const saintOfTheDay = data.santi[0];
+  const wordLength = data.parola_giorno.parola.trim().length;
+  const wordTypographyClass = wordLength > 24
+    ? 'is-extra-long-word'
+    : wordLength > 16
+      ? 'is-long-word'
+      : wordLength > 11
+        ? 'is-wide-word'
+        : '';
 
   useEffect(() => {
     let cancelled = false;
@@ -163,7 +171,7 @@ export default function DailyCorrespondences({
 
         <div className="daily-correspondences-intro">
           <p>{t('correspondencesKicker', lingua)}</p>
-          <h2 id="correspondences-title">{t('correspondencesLead', lingua)} <span>{data.parola_giorno.parola}</span></h2>
+          <h2 id="correspondences-title">{t('correspondencesLead', lingua)} <span className={wordTypographyClass}>{data.parola_giorno.parola}</span></h2>
           <p className="daily-correspondences-copy">{t('correspondencesCopy', lingua)}</p>
         </div>
 
@@ -181,7 +189,7 @@ export default function DailyCorrespondences({
 
           <button type="button" className="correspondence-entry correspondence-word" onClick={() => scrollTo('parola')}>
             <span className="correspondence-entry-label"><Type aria-hidden="true" />{t('correspondenceWord', lingua)}</span>
-            <strong>{data.parola_giorno.parola}</strong>
+            <strong className={wordTypographyClass}>{data.parola_giorno.parola}</strong>
             <em>{data.parola_giorno.etimologia}</em>
           </button>
 

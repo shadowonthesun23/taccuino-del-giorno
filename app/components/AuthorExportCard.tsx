@@ -156,7 +156,7 @@ export default function AuthorExportCard({
         */}
         <div
           ref={exportRef}
-          className={`${garamond.className} social-export-card`}
+          className={`${garamond.className} social-export-card author-social-export-card`}
           style={{
             width: '1080px',
             height: '1920px',
@@ -189,6 +189,7 @@ export default function AuthorExportCard({
             }}
           />
           <div
+            className="author-export-signature"
             aria-hidden="true"
             style={{
               position: 'absolute',
@@ -236,7 +237,7 @@ export default function AuthorExportCard({
             </span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '60px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
+          <div className="author-social-export-heading" style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '60px', marginBottom: `${layout.labelMarginBottom + 20}px`, position: 'relative', zIndex: 2, flexShrink: 0 }}>
             <div className="author-tape-title-wrapper select-none">
               <span className="badge-tape-bg" aria-hidden="true" />
               <Feather className="w-[24px] h-[24px] text-[#E5B869] flex-shrink-0" strokeWidth={1.6} />
@@ -278,6 +279,7 @@ export default function AuthorExportCard({
           {/* ── Foto ── */}
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: `${layout.photoMarginBottom}px`, flexShrink: 0, position: 'relative', zIndex: 1 }}>
             <div
+              className="author-export-portrait"
               style={{
                 transform: fotoAutoreUrl ? 'rotate(-2deg)' : 'rotate(1.2deg)',
                 background: isDark ? '#F4F0E6' : '#FDFCF8',
@@ -364,6 +366,7 @@ export default function AuthorExportCard({
 
           {/* ── Nome autore ── */}
           <h2
+            className="author-export-name"
             style={{
               fontSize: `${authorFontSize}px`,
               fontWeight: 700,
@@ -385,6 +388,7 @@ export default function AuthorExportCard({
 
           {/* ── Descrizione ── */}
           <p
+            className="author-export-description"
             style={{
               fontSize: `${layout.descFontSize}px`,
               fontWeight: 400,
@@ -405,7 +409,7 @@ export default function AuthorExportCard({
           </p>
 
           {/* ── Divisore (senza filtri SVG, identico a satori) ── */}
-          <div aria-hidden="true" style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${layout.dividerMarginBottom}px`, flexShrink: 0, pointerEvents: 'none', position: 'relative', zIndex: 1 }}>
+          <div className="author-export-divider" aria-hidden="true" style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: `${layout.dividerMarginBottom}px`, flexShrink: 0, pointerEvents: 'none', position: 'relative', zIndex: 1 }}>
             <svg viewBox="0 0 800 36" xmlns="http://www.w3.org/2000/svg" style={{ width: '864px', height: '26px', display: 'block' }}>
               <path d="M 30 20 Q 120 12 220 18 Q 320 24 420 16 Q 520 9 630 19 Q 710 26 770 18" fill="none" stroke={palette.wcColor} strokeWidth="7" strokeLinecap="round" opacity="0.55" />
               <path d="M 60 16 Q 180 10 300 15 Q 430 20 550 13 Q 660 8 750 16" fill="none" stroke={palette.wcColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.3" />
@@ -415,6 +419,7 @@ export default function AuthorExportCard({
 
           {/* ── Box citazione ── */}
           <div
+            className="author-export-quote"
             style={{
               width: '100%',
               padding: `${layout.quotePaddingY}px ${layout.quotePaddingX}px ${layout.quotePaddingY + 2}px ${layout.quotePaddingX + 18}px`,
@@ -441,6 +446,7 @@ export default function AuthorExportCard({
               &ldquo;
             </span>
             <p
+              className="author-export-quote-text"
               style={{
                 fontSize: `${layout.quoteFontSize}px`,
                 fontStyle: 'italic',
@@ -453,6 +459,7 @@ export default function AuthorExportCard({
               {citTesto}
             </p>
             <p
+              className="author-export-quote-source"
               style={{
                 fontSize: `${layout.sourceFontSize}px`,
                 fontWeight: 700,

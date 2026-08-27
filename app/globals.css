@@ -965,6 +965,562 @@ body {
   }
 }
 
+/* Draft cascade retained while the final home overrides are declared at file end. */
+@media (max-width: 900px) {
+  .daily-correspondences-grid {
+    gap: clamp(1.1rem, 3.5vw, 1.55rem);
+    grid-template-areas:
+      'author'
+      'word'
+      'saint'
+      'artwork'
+      'music'
+      'sky'
+      'apod';
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .correspondence-author {
+    justify-self: center;
+    max-width: min(100%, 34rem);
+    width: 100%;
+  }
+
+  .correspondence-word > strong {
+    font-size: clamp(2rem, 8vw, 3.3rem);
+    max-width: 100%;
+  }
+}
+
+.editorial-card:not(.social-export-card)::before {
+  display: none !important;
+}
+
+.editorial-card:not(.social-export-card) .card-section-heading {
+  border-bottom: 0 !important;
+  margin-bottom: clamp(1.6rem, 3vw, 2.55rem);
+  padding-bottom: 0.9rem;
+}
+
+.editorial-card:not(.social-export-card) .card-section-heading::after {
+  background: linear-gradient(90deg, transparent, var(--editorial-rule) 14%, var(--editorial-rule) 86%, transparent);
+  bottom: 0;
+  content: '';
+  height: 2px;
+  left: 0.1rem;
+  opacity: 0.78;
+  position: absolute;
+  transform: rotate(var(--section-mark-angle, -0.35deg));
+  transform-origin: left center;
+  width: var(--section-mark-width, 8.5rem);
+}
+
+.card-section-citazione { --section-mark-width: 5.75rem; --section-mark-angle: 0.55deg; }
+.card-section-parola { --section-mark-width: 10.75rem; --section-mark-angle: -0.75deg; }
+.card-section-santi { --section-mark-width: 7.25rem; --section-mark-angle: 0.28deg; }
+.card-section-avvenimenti { --section-mark-width: 12.5rem; --section-mark-angle: -0.22deg; }
+.card-section-poesia { --section-mark-width: 6.5rem; --section-mark-angle: 0.8deg; }
+.card-section-bibbia { --section-mark-width: 9.25rem; --section-mark-angle: -0.58deg; }
+.card-section-opera { --section-mark-width: 5.4rem; --section-mark-angle: 0.34deg; }
+.music-feature-card { --section-mark-width: 11.25rem; --section-mark-angle: -0.4deg; }
+.card-section-apod { --section-mark-width: 7.8rem; --section-mark-angle: 0.65deg; }
+
+.editorial-card:not(.social-export-card) .section-typewriter-badge,
+.editorial-card:not(.social-export-card) .author-tape-title-wrapper {
+  font-size: clamp(1.32rem, 2.15vw, 1.68rem) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.005em !important;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.editorial-card:not(.social-export-card) .section-typewriter-badge svg {
+  height: 1.4rem !important;
+  width: 1.4rem !important;
+}
+
+.editorial-card:not(.social-export-card) .quote-editorial-footer,
+.card-section-avvenimenti .card-content li {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.card-section-poesia .card-content,
+.card-section-bibbia .card-content {
+  margin-inline: 0;
+  max-width: 65ch;
+}
+
+.poem-bible-attribution {
+  margin-top: clamp(1.5rem, 3vw, 2.4rem);
+}
+
+.card-section-santi .saints-card-layout.has-multiple-saints {
+  min-height: 0;
+  padding-bottom: 1.8rem;
+}
+
+.card-section-santi .has-multiple-saints .saints-card-copy {
+  max-width: min(67ch, 72%);
+}
+
+.card-section-santi .has-multiple-saints .saint-card-artwork {
+  bottom: 0;
+  height: min(100%, 31rem);
+  opacity: 0.42;
+  right: clamp(-2.5rem, -3vw, -0.75rem);
+  width: min(31%, 17rem);
+}
+
+.card-section-santi .has-multiple-saints .saint-card-artwork::after {
+  background: linear-gradient(90deg, rgba(249,246,238,0.92), rgba(249,246,238,0.38) 64%, rgba(249,246,238,0.04));
+}
+
+.card-section-santi .saints-card-copy > li {
+  padding-bottom: clamp(1.35rem, 2.5vw, 2.15rem) !important;
+  padding-top: clamp(0.15rem, 0.8vw, 0.55rem);
+}
+
+.card-section-apod .apod-card-layout {
+  align-items: center;
+  gap: clamp(2rem, 4.2vw, 4rem);
+}
+
+.card-section-apod .apod-copy-cell {
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.card-section-apod .card-primary-title {
+  font-size: clamp(2.4rem, 4.1vw, 4.25rem) !important;
+  max-width: 18ch;
+}
+
+.card-section-apod .card-body-copy {
+  max-width: 58ch;
+}
+
+.card-section-apod .apod-link-actions {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 980px) {
+  .apod-card-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .apod-media-container,
+  .apod-copy-cell {
+    grid-column: 1 !important;
+  }
+
+  .apod-copy-cell {
+    grid-row: 1 !important;
+    margin-top: 0 !important;
+  }
+
+  .apod-media-container {
+    grid-row: 2 !important;
+  }
+
+  .card-section-santi .has-multiple-saints .saints-card-copy {
+    max-width: 100%;
+  }
+
+  .card-section-santi .has-multiple-saints .saint-card-artwork {
+    bottom: -3rem;
+    height: 16rem;
+    opacity: 0.2;
+    right: -3rem;
+    width: 50%;
+  }
+}
+
+@media (max-width: 767px) {
+  .editorial-card:not(.social-export-card) .section-typewriter-badge,
+  .editorial-card:not(.social-export-card) .author-tape-title-wrapper {
+    font-size: 1.16rem !important;
+  }
+
+  .card-section-poesia .card-content,
+  .card-section-bibbia .card-content {
+    margin-inline: 0;
+    max-width: none;
+  }
+
+  .card-section-apod .card-primary-title {
+    max-width: none;
+  }
+}
+
+/* ── Editorial refinement: hierarchy without a rigid grid ── */
+/* The correspondence plate needs room for an unbroken daily word. Before the
+   narrow central author column can crowd it, it becomes a vertical reading path. */
+@media (max-width: 900px) {
+  .daily-correspondences-grid {
+    gap: clamp(1.1rem, 3.5vw, 1.55rem);
+    grid-template-areas:
+      'author'
+      'word'
+      'saint'
+      'artwork'
+      'music'
+      'sky'
+      'apod';
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .correspondence-author {
+    justify-self: center;
+    max-width: min(100%, 34rem);
+    width: 100%;
+  }
+
+  .correspondence-word > strong {
+    font-size: clamp(2rem, 8vw, 3.3rem);
+    max-width: 100%;
+  }
+}
+
+/* One traced sign is enough. The slightly different length and inclination give
+   each leaf an identity without turning the page into a ruled interface. */
+.editorial-card::before,
+.editorial-card .card-section-heading,
+.editorial-card .quote-editorial-footer,
+.card-section-avvenimenti .card-content li {
+  border-color: transparent !important;
+}
+
+.editorial-card::before {
+  display: none !important;
+}
+
+.editorial-card .card-section-heading {
+  border-bottom: 0 !important;
+  margin-bottom: clamp(1.6rem, 3vw, 2.55rem);
+  padding-bottom: 0.9rem;
+}
+
+.editorial-card .card-section-heading::after {
+  background: linear-gradient(90deg, transparent, var(--editorial-rule) 14%, var(--editorial-rule) 86%, transparent);
+  bottom: 0;
+  content: '';
+  height: 2px;
+  left: 0.1rem;
+  opacity: 0.78;
+  position: absolute;
+  transform: rotate(var(--section-mark-angle, -0.35deg));
+  transform-origin: left center;
+  width: var(--section-mark-width, 8.5rem);
+}
+
+.card-section-citazione { --section-mark-width: 5.75rem; --section-mark-angle: 0.55deg; }
+.card-section-parola { --section-mark-width: 10.75rem; --section-mark-angle: -0.75deg; }
+.card-section-santi { --section-mark-width: 7.25rem; --section-mark-angle: 0.28deg; }
+.card-section-avvenimenti { --section-mark-width: 12.5rem; --section-mark-angle: -0.22deg; }
+.card-section-poesia { --section-mark-width: 6.5rem; --section-mark-angle: 0.8deg; }
+.card-section-bibbia { --section-mark-width: 9.25rem; --section-mark-angle: -0.58deg; }
+.card-section-opera { --section-mark-width: 5.4rem; --section-mark-angle: 0.34deg; }
+.music-feature-card { --section-mark-width: 11.25rem; --section-mark-angle: -0.4deg; }
+.card-section-apod { --section-mark-width: 7.8rem; --section-mark-angle: 0.65deg; }
+
+.editorial-card .section-typewriter-badge,
+.editorial-card .author-tape-title-wrapper {
+  font-size: clamp(1.02rem, 1.5vw, 1.22rem) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.012em !important;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.editorial-card .section-typewriter-badge svg {
+  height: 1.2rem !important;
+  width: 1.2rem !important;
+}
+
+.editorial-card .quote-editorial-footer,
+.card-section-avvenimenti .card-content li {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.card-section-poesia .card-content,
+.card-section-bibbia .card-content {
+  margin-inline: 0;
+  max-width: 65ch;
+}
+
+.card-section-poesia .decorative-initial-text,
+.card-section-bibbia .decorative-initial-text {
+  margin-inline-start: 0;
+}
+
+.poem-bible-attribution {
+  margin-top: clamp(1.5rem, 3vw, 2.4rem);
+}
+
+/* One saint can inhabit the page; several saints switch to a quiet folio at the
+   edge, keeping every biography readable and making the lead iconography clear. */
+.card-section-santi .saints-card-layout.has-multiple-saints {
+  min-height: 0;
+  padding-bottom: 1.8rem;
+}
+
+.card-section-santi .has-multiple-saints .saints-card-copy {
+  max-width: min(67ch, 72%);
+}
+
+.card-section-santi .has-multiple-saints .saint-card-artwork {
+  bottom: 0;
+  height: min(100%, 31rem);
+  opacity: 0.42;
+  right: clamp(-2.5rem, -3vw, -0.75rem);
+  width: min(31%, 17rem);
+}
+
+.card-section-santi .has-multiple-saints .saint-card-artwork::after {
+  background: linear-gradient(90deg, rgba(249,246,238,0.92), rgba(249,246,238,0.38) 64%, rgba(249,246,238,0.04));
+}
+
+.card-section-santi .saints-card-copy > li {
+  padding-bottom: clamp(1.35rem, 2.5vw, 2.15rem) !important;
+  padding-top: clamp(0.15rem, 0.8vw, 0.55rem);
+}
+
+.card-section-santi .saints-card-copy > li + li {
+  border-top: 0 !important;
+  margin-top: 0.45rem;
+}
+
+.opera-postcard-missing-media {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background:
+    radial-gradient(circle at 70% 22%, rgba(190, 131, 95, 0.14), transparent 26%),
+    linear-gradient(135deg, rgba(181,149,106,0.12), rgba(255,255,255,0.16));
+  color: #785f4b;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  font-style: italic;
+  gap: 0.65rem;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  text-align: center;
+}
+
+.opera-postcard-missing-media svg {
+  height: 2rem;
+  width: 2rem;
+}
+
+.dark .opera-postcard-missing-media,
+[data-theme="dark"] .opera-postcard-missing-media {
+  background:
+    radial-gradient(circle at 70% 22%, rgba(211, 169, 123, 0.1), transparent 26%),
+    rgba(255,255,255,0.035);
+  color: #d0bda6;
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+/* The APOD becomes a two-part reading spread: a generous image folio beside a
+   deliberately bounded reading column, then a single column before it gets tight. */
+.card-section-apod .apod-card-layout {
+  align-items: center;
+  gap: clamp(2rem, 4.2vw, 4rem);
+}
+
+.card-section-apod .apod-copy-cell {
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.card-section-apod .card-primary-title {
+  font-size: clamp(2.4rem, 4.1vw, 4.25rem) !important;
+  max-width: 18ch;
+}
+
+.card-section-apod .card-body-copy {
+  max-width: 58ch;
+}
+
+.card-section-apod .apod-link-actions {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 980px) {
+  .apod-card-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .apod-media-container,
+  .apod-copy-cell {
+    grid-column: 1 !important;
+  }
+
+  .apod-copy-cell {
+    grid-row: 1 !important;
+    margin-top: 0 !important;
+  }
+
+  .apod-media-container {
+    grid-row: 2 !important;
+  }
+
+  .card-section-santi .has-multiple-saints .saints-card-copy {
+    max-width: 100%;
+  }
+
+  .card-section-santi .has-multiple-saints .saint-card-artwork {
+    bottom: -3rem;
+    height: 16rem;
+    opacity: 0.2;
+    right: -3rem;
+    width: 50%;
+  }
+}
+
+@media (max-width: 767px) {
+  .editorial-card .section-typewriter-badge,
+  .editorial-card .author-tape-title-wrapper {
+    font-size: 1rem !important;
+  }
+
+  .card-section-poesia .card-content,
+  .card-section-bibbia .card-content {
+    margin-inline: 0;
+    max-width: none;
+  }
+
+  .card-section-apod .card-primary-title {
+    max-width: none;
+  }
+}
+
+/* ── Editorial corrections: readable running heads and a stronger saint image ── */
+.editorial-card .section-typewriter-badge.badge-mirrored {
+  flex-direction: row !important;
+  transform: none !important;
+}
+
+.editorial-card .section-typewriter-badge.badge-mirrored :is(span:not(.badge-tape-bg), svg) {
+  transform: none !important;
+}
+
+.daily-correspondences-intro h2 span,
+.correspondence-word > strong {
+  overflow-wrap: normal !important;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.daily-correspondences-intro h2 span.is-long-word {
+  font-size: 0.82em;
+  letter-spacing: -0.06em;
+}
+
+.daily-correspondences-intro h2 span.is-extra-long-word {
+  font-size: 0.68em;
+  letter-spacing: -0.072em;
+}
+
+.correspondence-word > strong.is-long-word {
+  font-size: clamp(1.55rem, 3.2vw, 2.72rem);
+}
+
+.correspondence-word > strong.is-extra-long-word {
+  font-size: clamp(1.28rem, 2.55vw, 2.08rem);
+  letter-spacing: -0.065em;
+}
+
+.card-section-santi.editorial-card {
+  overflow: hidden;
+}
+
+.card-section-santi.editorial-card > .card-content {
+  max-width: none;
+}
+
+.card-section-santi .saints-card-layout {
+  min-height: clamp(25rem, 34vw, 33rem);
+}
+
+.card-section-santi .saints-card-copy {
+  max-width: min(60ch, 61%);
+}
+
+.card-section-santi .saint-card-artwork {
+  bottom: clamp(-5.25rem, -5.5vw, -2.35rem);
+  height: calc(100% + clamp(3rem, 7vw, 6rem));
+  max-height: none;
+  opacity: 0.72;
+  right: clamp(-7.25rem, -7vw, -1.5rem);
+  transform: none;
+  width: min(49%, 29rem);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,0.08) 11%, #000 48%, #000 100%),
+    linear-gradient(to bottom, transparent 0%, #000 13%, #000 84%, rgba(0,0,0,0.8) 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,0.08) 11%, #000 48%, #000 100%),
+    linear-gradient(to bottom, transparent 0%, #000 13%, #000 84%, rgba(0,0,0,0.8) 94%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.card-section-santi .saint-card-artwork::after {
+  background: linear-gradient(90deg, rgba(249,246,238,0.72), rgba(165,77,65,0.12) 68%, rgba(91,53,39,0.08));
+  mix-blend-mode: normal;
+}
+
+.card-section-santi .saint-card-artwork img {
+  filter: grayscale(0.72) sepia(0.26) saturate(0.94) contrast(1.07) brightness(1.04);
+  mix-blend-mode: multiply;
+  object-position: 52% 15%;
+}
+
+.dark .card-section-santi .saint-card-artwork,
+[data-theme="dark"] .card-section-santi .saint-card-artwork {
+  opacity: 0.56;
+}
+
+.dark .card-section-santi .saint-card-artwork::after,
+[data-theme="dark"] .card-section-santi .saint-card-artwork::after {
+  background: linear-gradient(90deg, rgba(37,35,33,0.86), rgba(71,49,40,0.18) 70%, rgba(0,0,0,0.08));
+}
+
+.dark .card-section-santi .saint-card-artwork img,
+[data-theme="dark"] .card-section-santi .saint-card-artwork img {
+  mix-blend-mode: screen;
+}
+
+@media (max-width: 767px) {
+  .daily-correspondences-intro h2 span.is-long-word {
+    font-size: 0.76em;
+  }
+
+  .daily-correspondences-intro h2 span.is-extra-long-word {
+    font-size: 0.62em;
+  }
+
+  .card-section-santi .saints-card-layout {
+    min-height: 27rem;
+  }
+
+  .card-section-santi .saints-card-copy {
+    max-width: 100%;
+  }
+
+  .card-section-santi .saint-card-artwork {
+    bottom: -3.5rem;
+    height: 21rem;
+    opacity: 0.32;
+    right: -4rem;
+    width: min(88%, 23rem);
+  }
+}
+
 /* Dark mode: forza bg scuro su tutto il viewport */
 @media (prefers-color-scheme: dark) {
   body {
@@ -10322,4 +10878,877 @@ body {
 .correspondence-export-frame .daily-correspondences-export > * {
   animation: none !important;
   opacity: 1 !important;
+}
+
+/* ── EDITORIAL REDESIGN: a continuous publication, not a widget grid ── */
+.editorial-card-stack {
+  display: grid;
+  gap: clamp(2.4rem, 5vw, 5.75rem);
+  grid-template-columns: minmax(0, 1fr) !important;
+  margin-inline: auto;
+  max-width: 1090px;
+}
+
+.editorial-card-stack > * {
+  grid-column: 1 / -1 !important;
+  min-width: 0;
+  width: 100%;
+}
+
+.editorial-card {
+  --editorial-rule: rgba(105, 77, 52, 0.2);
+  --editorial-ink: #2a2522;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.56), rgba(255,255,255,0) 22%),
+    #fdfcf8 !important;
+  border-color: rgba(117, 88, 57, 0.15) !important;
+  border-radius: 3px !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 16px 36px -34px rgba(45, 35, 24, 0.58) !important;
+  min-height: clamp(20rem, 35vw, 30rem);
+  padding: clamp(2rem, 5.5vw, 5.25rem) clamp(1.5rem, 7vw, 7.25rem) !important;
+  transition: box-shadow 360ms ease, transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.editorial-card::before {
+  background: linear-gradient(to bottom, transparent 8%, var(--editorial-rule) 8%, var(--editorial-rule) 92%, transparent 92%) !important;
+  border-radius: 0 !important;
+  bottom: clamp(2rem, 5.5vw, 5.25rem) !important;
+  left: clamp(0.8rem, 2vw, 1.55rem) !important;
+  opacity: 0.6 !important;
+  top: clamp(2rem, 5.5vw, 5.25rem) !important;
+  transform: none !important;
+  width: 1px !important;
+}
+
+.editorial-card::after {
+  background: radial-gradient(circle at 78% 18%, rgba(196, 152, 101, 0.07), transparent 23%) !important;
+  opacity: 0.8 !important;
+}
+
+.editorial-card:hover,
+.editorial-card:focus-within {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 25px 52px -42px rgba(45, 35, 24, 0.68) !important;
+  transform: translateY(-2px) !important;
+}
+
+.dark .editorial-card,
+[data-theme="dark"] .editorial-card {
+  --editorial-rule: rgba(240, 224, 195, 0.18);
+  --editorial-ink: #e2d8c8;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.025), transparent 24%),
+    #252321 !important;
+  border-color: rgba(244, 233, 213, 0.12) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.035) inset,
+    0 22px 50px -38px rgba(0,0,0,0.72) !important;
+}
+
+.editorial-card .card-section-heading {
+  align-items: center;
+  border-bottom: 1px solid var(--editorial-rule);
+  margin-bottom: clamp(1.75rem, 4vw, 3.2rem);
+  padding-bottom: 0.9rem;
+}
+
+.editorial-card .section-typewriter-badge,
+.editorial-card .author-tape-title-wrapper {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--editorial-ink) !important;
+  font-family: inherit !important;
+  font-size: 0.76rem !important;
+  font-style: normal !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  text-transform: uppercase;
+  transform: none !important;
+}
+
+.editorial-card .section-typewriter-badge::before,
+.editorial-card .section-typewriter-badge::after,
+.editorial-card .badge-tape-bg {
+  display: none !important;
+}
+
+.editorial-card .section-typewriter-badge span:not(.badge-tape-bg),
+.editorial-card .section-typewriter-badge svg {
+  color: currentColor !important;
+}
+
+.editorial-card .section-typewriter-badge svg {
+  height: 1rem !important;
+  width: 1rem !important;
+}
+
+.editorial-card .card-content {
+  color: var(--editorial-ink) !important;
+  font-size: clamp(1.06rem, 1.7vw, 1.25rem);
+  line-height: 1.58;
+  margin-inline: auto;
+  max-width: 68ch;
+}
+
+.editorial-card .card-primary-title {
+  font-size: clamp(2.2rem, 5vw, 4.75rem) !important;
+  line-height: 1.02 !important;
+  text-wrap: balance;
+}
+
+.editorial-card .card-body-copy,
+.editorial-card .text-xl {
+  font-size: clamp(1.08rem, 1.8vw, 1.32rem) !important;
+  line-height: 1.58 !important;
+}
+
+.editorial-card .text-lg {
+  font-size: clamp(0.98rem, 1.55vw, 1.14rem) !important;
+  line-height: 1.55 !important;
+}
+
+.card-section-citazione.editorial-card {
+  align-items: center;
+  display: grid;
+}
+
+.card-section-citazione .card-content {
+  max-width: 61ch;
+}
+
+.editorial-card .quote-editorial {
+  border-left: 0;
+  padding-inline: 0 !important;
+}
+
+.editorial-card .quote-editorial-text {
+  font-size: clamp(2rem, 4.7vw, 4.15rem) !important;
+  letter-spacing: -0.028em;
+  line-height: 1.1 !important;
+  text-wrap: balance;
+}
+
+.editorial-card .quote-editorial-footer {
+  border-top: 1px solid var(--editorial-rule);
+  font-size: 1rem;
+  margin-top: clamp(1.75rem, 4vw, 3rem);
+  padding-top: 0.85rem;
+}
+
+.card-section-parola .card-content {
+  max-width: 62ch;
+}
+
+.card-section-parola .card-content > div:first-child {
+  margin-bottom: clamp(2.5rem, 5vw, 4.5rem) !important;
+  text-align: start;
+}
+
+.card-section-parola .card-primary-title {
+  color: #bd5948 !important;
+  font-size: clamp(3.3rem, 9vw, 7.4rem) !important;
+}
+
+.card-section-avvenimenti .card-content {
+  max-width: 70ch;
+}
+
+.card-section-avvenimenti .card-content li {
+  border-bottom: 1px solid var(--editorial-rule);
+  padding-block: 1rem;
+}
+
+.card-section-poesia .card-content,
+.card-section-bibbia .card-content {
+  max-width: 58ch;
+}
+
+.card-section-poesia .decorative-initial-text,
+.card-section-bibbia .decorative-initial-text {
+  font-size: clamp(1.15rem, 2vw, 1.4rem) !important;
+  line-height: 1.65 !important;
+}
+
+.card-section-opera .card-content,
+.music-feature-card .card-content,
+.card-section-apod .card-content {
+  max-width: none;
+}
+
+.card-section-opera .opera-postcard,
+.music-feature-card .music-card-layout,
+.card-section-apod .apod-card-layout {
+  gap: clamp(2rem, 5vw, 5rem);
+}
+
+.card-section-opera .opera-postcard-link,
+.music-feature-card .music-cover-frame,
+.card-section-apod .apod-postcard {
+  border-radius: 2px !important;
+  box-shadow: 0 16px 34px -28px rgba(29, 22, 16, 0.7) !important;
+  transform: none !important;
+}
+
+.dark .card-section-opera .opera-postcard-link,
+.dark .music-feature-card .music-cover-frame,
+.dark .card-section-apod .apod-postcard,
+[data-theme="dark"] .card-section-opera .opera-postcard-link,
+[data-theme="dark"] .music-feature-card .music-cover-frame,
+[data-theme="dark"] .card-section-apod .apod-postcard {
+  box-shadow: 0 18px 42px -28px rgba(0, 0, 0, 0.88) !important;
+}
+
+/* Exported cards inherit the same pages, scaled inside the existing 9:16 engine. */
+.social-export-card.editorial-card {
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(117, 88, 57, 0.14) 8% calc(8% + 1px), transparent calc(8% + 1px)),
+    #fdfaf3 !important;
+  border: 1px solid rgba(117, 88, 57, 0.17) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  min-height: 0;
+  padding: 76px 82px 82px !important;
+}
+
+.social-export-card.editorial-card::before,
+.social-export-card.editorial-card::after {
+  display: none !important;
+}
+
+.social-export-card.editorial-card .card-section-heading {
+  margin-bottom: 48px;
+  padding-bottom: 16px;
+}
+
+.social-export-card.editorial-card .section-typewriter-badge {
+  font-size: 20px !important;
+  letter-spacing: 0.18em !important;
+}
+
+.social-export-card.editorial-card .card-content {
+  font-size: 30px;
+  max-width: 67ch;
+}
+
+.social-export-card.editorial-card .quote-editorial-text {
+  font-size: 51px !important;
+  line-height: 1.12 !important;
+}
+
+.social-export-card.editorial-card .card-primary-title {
+  font-size: 58px !important;
+  line-height: 1.02 !important;
+}
+
+.social-export-card.editorial-card .card-body-copy,
+.social-export-card.editorial-card .text-xl {
+  font-size: 31px !important;
+  line-height: 1.55 !important;
+}
+
+/* The author share card stays portrait, but now reads as a single editorial leaf. */
+.author-social-export-card {
+  background: #fdfaf3 !important;
+  border: 1px solid rgba(117, 88, 57, 0.18) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+
+.author-social-export-card > img {
+  opacity: 0.055 !important;
+}
+
+.author-social-export-card .journal-date-tape {
+  background: transparent !important;
+  border-bottom: 2px solid rgba(183, 82, 67, 0.6);
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #5c4634 !important;
+  font-family: inherit !important;
+  letter-spacing: 0.12em;
+  transform: none !important;
+}
+
+.author-social-export-card .author-social-export-heading {
+  border-bottom: 1px solid rgba(117, 88, 57, 0.24);
+  height: 56px !important;
+}
+
+.author-social-export-card .author-tape-title-wrapper {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #5c4634 !important;
+  font-family: inherit !important;
+  font-style: normal !important;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: none !important;
+}
+
+.author-social-export-card .author-tape-title-wrapper .badge-tape-bg,
+.author-social-export-card .author-photo-tape {
+  display: none !important;
+}
+
+.author-social-export-card .author-tape-title-wrapper span:not(.badge-tape-bg),
+.author-social-export-card .author-tape-title-wrapper svg {
+  color: currentColor !important;
+}
+
+.author-social-export-card .author-export-portrait {
+  border-color: rgba(117, 88, 57, 0.24) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 18px 35px -30px rgba(43, 32, 21, 0.8) !important;
+  transform: none !important;
+}
+
+.author-social-export-card .author-export-name {
+  letter-spacing: -0.025em;
+  line-height: 1.03 !important;
+}
+
+.author-social-export-card .author-export-description {
+  line-height: 1.5 !important;
+  text-shadow: none !important;
+}
+
+.author-social-export-card .author-export-divider svg path:first-child {
+  stroke-width: 3px;
+}
+
+.author-social-export-card .author-export-quote {
+  background: transparent !important;
+  border-top: 1px solid rgba(117, 88, 57, 0.28);
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.author-social-export-card .author-export-quote-text {
+  letter-spacing: -0.016em;
+  line-height: 1.25 !important;
+}
+
+.author-social-export-card .author-export-quote-source {
+  border-top: 1px solid rgba(117, 88, 57, 0.18);
+  padding-top: 20px;
+}
+
+.author-social-export-card .author-export-signature {
+  opacity: 0.58 !important;
+}
+
+/* The loading state is a live composition, not a torn-paper splash screen. */
+.loading-notebook-paper {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  min-height: min(32rem, 78vh);
+  overflow: visible !important;
+  width: min(37rem, 100%);
+}
+
+.loading-notebook-sheet {
+  display: none !important;
+}
+
+.loading-notebook-content {
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+  border-block: 1px solid rgba(112, 82, 53, 0.2);
+  box-shadow: 0 28px 55px -48px rgba(44, 33, 22, 0.64);
+  display: flex;
+  justify-content: center;
+  min-height: 21rem;
+  padding: clamp(2.5rem, 9vw, 5rem) clamp(2rem, 8vw, 5.5rem);
+  position: relative;
+}
+
+.loading-notebook-paper.is-dark .loading-notebook-content,
+.dark .loading-notebook-paper .loading-notebook-content,
+[data-theme="dark"] .loading-notebook-paper .loading-notebook-content {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  border-color: rgba(240, 224, 195, 0.18);
+}
+
+.loading-date-line {
+  color: rgba(102, 73, 49, 0.68);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.16em;
+  margin-bottom: 1.3rem;
+  text-transform: uppercase;
+}
+
+.loading-notebook-paper.is-dark .loading-date-line,
+.dark .loading-notebook-paper .loading-date-line,
+[data-theme="dark"] .loading-notebook-paper .loading-date-line {
+  color: rgba(235, 222, 202, 0.58);
+}
+
+.loading-notebook-paper h1 {
+  font-size: clamp(2.5rem, 6.2vw, 5rem) !important;
+  line-height: 0.86 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  text-align: center;
+}
+
+.loading-composition-mark {
+  align-items: center;
+  display: flex;
+  gap: 0.9rem;
+  margin: 2.2rem 0 1.4rem;
+  width: min(21rem, 88%);
+}
+
+.loading-mark-rule {
+  background: currentColor;
+  height: 1px;
+  opacity: 0.34;
+  transform-origin: center left;
+  width: 100%;
+}
+
+.loading-mark-rule-bottom {
+  transform-origin: center right;
+}
+
+.loading-feather-icon {
+  color: #bd5948 !important;
+  flex: 0 0 auto;
+  height: 1.2rem !important;
+  transform: rotate(-20deg);
+  width: 1.2rem !important;
+}
+
+.loading-writing-stack {
+  gap: 0.55rem;
+  margin: 0 0 1.55rem !important;
+  max-width: 16rem;
+  width: 72%;
+}
+
+.loading-pen-line {
+  background: currentColor !important;
+  height: 1px !important;
+  opacity: 0.23 !important;
+  transform-origin: left center;
+}
+
+.loading-step-text {
+  font-size: 1rem !important;
+  letter-spacing: 0.02em;
+  margin: 0 !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .loading-date-line,
+  .loading-notebook-paper h1,
+  .loading-composition-mark,
+  .loading-writing-stack,
+  .loading-step-text {
+    animation: editorialComposeIn 740ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .loading-notebook-paper h1 { animation-delay: 100ms; }
+  .loading-composition-mark { animation-delay: 240ms; }
+  .loading-writing-stack { animation-delay: 340ms; }
+  .loading-step-text { animation-delay: 430ms; }
+
+  .loading-mark-rule,
+  .loading-pen-line {
+    animation: editorialRuleDraw 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .loading-mark-rule-bottom { animation-delay: 120ms; }
+  .loading-pen-line.line-one { animation-delay: 360ms; }
+  .loading-pen-line.line-two { animation-delay: 440ms; }
+  .loading-pen-line.line-three { animation-delay: 520ms; }
+  .loading-pen-line.line-four { animation-delay: 600ms; }
+}
+
+@keyframes editorialComposeIn {
+  from { filter: blur(2px); opacity: 0; transform: translateY(8px); }
+  to { filter: blur(0); opacity: 1; transform: translateY(0); }
+}
+
+@keyframes editorialRuleDraw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (max-width: 767px) {
+  .journal-material {
+    padding-inline: 0.8rem !important;
+  }
+
+  .editorial-card-stack {
+    gap: 2.1rem;
+  }
+
+  .editorial-card {
+    min-height: 0;
+    padding: 2rem 1.5rem 2.35rem !important;
+  }
+
+  .editorial-card::before {
+    left: 0.65rem !important;
+  }
+
+  .editorial-card .card-section-heading {
+    margin-bottom: 1.7rem;
+  }
+
+  .editorial-card .quote-editorial-text {
+    font-size: clamp(1.82rem, 9.5vw, 2.6rem) !important;
+  }
+
+  .card-section-parola .card-primary-title {
+    font-size: clamp(3.1rem, 18vw, 5.1rem) !important;
+  }
+
+  .loading-notebook-content {
+    min-height: 19rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorial-card,
+  .editorial-card:hover,
+  .editorial-card:focus-within {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .loading-date-line,
+  .loading-notebook-paper h1,
+  .loading-composition-mark,
+  .loading-writing-stack,
+  .loading-step-text,
+  .loading-mark-rule,
+  .loading-pen-line {
+    animation: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Final cascade for the home leaf: this stays after legacy card rules. */
+.loading-notebook-content {
+  align-items: stretch;
+}
+
+.loading-notebook-paper h1 {
+  align-self: stretch;
+  margin-inline: auto !important;
+  max-inline-size: 100%;
+  transform: none !important;
+  width: 100%;
+}
+
+.editorial-card:not(.social-export-card) .section-typewriter-badge,
+.editorial-card:not(.social-export-card) .author-tape-title-wrapper {
+  font-size: clamp(1.22rem, 2vw, 1.55rem) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.005em !important;
+}
+
+.editorial-card:not(.social-export-card) .section-typewriter-badge svg {
+  height: 1.4rem !important;
+  width: 1.4rem !important;
+}
+
+@media (min-width: 768px) {
+  .music-feature-card .music-card-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 270px);
+  }
+
+  .music-feature-card .music-copy-cell {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: start;
+  }
+
+  .music-feature-card .music-media-cell {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 767px) {
+  .editorial-card:not(.social-export-card) .section-typewriter-badge,
+  .editorial-card:not(.social-export-card) .author-tape-title-wrapper {
+    font-size: 1.16rem !important;
+  }
+
+  .music-feature-card .music-copy-cell {
+    text-align: start;
+  }
+}
+
+.daily-correspondences-intro h2 span.is-wide-word {
+  font-size: 0.9em;
+  letter-spacing: -0.055em;
+}
+
+.correspondence-word > strong.is-wide-word {
+  font-size: clamp(2rem, 2.9vw, 2.75rem) !important;
+  letter-spacing: -0.075em;
+  max-inline-size: 100%;
+  transform: scaleX(0.94);
+  transform-origin: left center;
+}
+
+.correspondence-word {
+  overflow: clip;
+}
+
+.author-photo-portrait {
+  filter: saturate(0.96) contrast(0.98) brightness(1.02);
+}
+
+.author-photo-paper::before {
+  opacity: 0.2;
+}
+
+.loading-notebook-content {
+  align-items: center;
+  box-sizing: border-box;
+  flex-direction: column;
+  padding-inline: clamp(2rem, 5vw, 4rem);
+  text-align: center;
+  transform: none !important;
+  width: 100%;
+}
+
+.loading-notebook-center {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.loading-date-line {
+  align-self: center;
+  font-size: clamp(0.92rem, 1.8vw, 1.14rem);
+  inline-size: fit-content;
+  letter-spacing: 0.18em;
+  margin: 0 auto 1.55rem;
+}
+
+.loading-notebook-paper h1 {
+  align-self: center;
+  display: block;
+  inline-size: fit-content;
+  margin-inline: auto !important;
+  transform: none !important;
+  width: auto !important;
+}
+
+@media (max-width: 767px) {
+  .correspondence-word > strong.is-wide-word {
+    font-size: clamp(1.8rem, 9.2vw, 2.65rem) !important;
+  }
+
+}
+
+@media (max-width: 900px) {
+  .daily-correspondences-grid {
+    gap: clamp(1.1rem, 3.5vw, 1.55rem);
+    grid-template-areas:
+      'author'
+      'word'
+      'saint'
+      'artwork'
+      'music'
+      'sky'
+      'apod';
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .correspondence-author {
+    justify-self: center;
+    max-width: min(100%, 34rem);
+    width: 100%;
+  }
+
+  .correspondence-word > strong {
+    font-size: clamp(2rem, 8vw, 3.3rem);
+    max-width: 100%;
+  }
+}
+
+.editorial-card:not(.social-export-card)::before {
+  display: none !important;
+}
+
+.editorial-card:not(.social-export-card) .card-section-heading {
+  border-bottom: 0 !important;
+  margin-bottom: clamp(1.6rem, 3vw, 2.55rem);
+  padding-bottom: 0.9rem;
+}
+
+.editorial-card:not(.social-export-card) .card-section-heading::after {
+  background: linear-gradient(90deg, transparent, var(--editorial-rule) 14%, var(--editorial-rule) 86%, transparent);
+  bottom: 0;
+  content: '';
+  height: 2px;
+  left: 0.1rem;
+  opacity: 0.78;
+  position: absolute;
+  transform: rotate(var(--section-mark-angle, -0.35deg));
+  transform-origin: left center;
+  width: var(--section-mark-width, 8.5rem);
+}
+
+.card-section-citazione { --section-mark-width: 5.75rem; --section-mark-angle: 0.55deg; }
+.card-section-parola { --section-mark-width: 10.75rem; --section-mark-angle: -0.75deg; }
+.card-section-santi { --section-mark-width: 7.25rem; --section-mark-angle: 0.28deg; }
+.card-section-avvenimenti { --section-mark-width: 12.5rem; --section-mark-angle: -0.22deg; }
+.card-section-poesia { --section-mark-width: 6.5rem; --section-mark-angle: 0.8deg; }
+.card-section-bibbia { --section-mark-width: 9.25rem; --section-mark-angle: -0.58deg; }
+.card-section-opera { --section-mark-width: 5.4rem; --section-mark-angle: 0.34deg; }
+.music-feature-card { --section-mark-width: 11.25rem; --section-mark-angle: -0.4deg; }
+.card-section-apod { --section-mark-width: 7.8rem; --section-mark-angle: 0.65deg; }
+
+.editorial-card:not(.social-export-card) .section-typewriter-badge,
+.editorial-card:not(.social-export-card) .author-tape-title-wrapper {
+  font-size: clamp(1.32rem, 2.15vw, 1.68rem) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.005em !important;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.editorial-card:not(.social-export-card) .section-typewriter-badge svg {
+  height: 1.4rem !important;
+  width: 1.4rem !important;
+}
+
+.editorial-card:not(.social-export-card) .quote-editorial-footer,
+.card-section-avvenimenti .card-content li {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.card-section-poesia .card-content,
+.card-section-bibbia .card-content {
+  margin-inline: 0;
+  max-width: 65ch;
+}
+
+.poem-bible-attribution {
+  margin-top: clamp(1.5rem, 3vw, 2.4rem);
+}
+
+.card-section-santi .saints-card-layout.has-multiple-saints {
+  min-height: 0;
+  padding-bottom: 1.8rem;
+}
+
+.card-section-santi .has-multiple-saints .saints-card-copy {
+  max-width: min(67ch, 72%);
+}
+
+.card-section-santi .has-multiple-saints .saint-card-artwork {
+  bottom: 0;
+  height: min(100%, 31rem);
+  opacity: 0.42;
+  right: clamp(-2.5rem, -3vw, -0.75rem);
+  width: min(31%, 17rem);
+}
+
+.card-section-santi .has-multiple-saints .saint-card-artwork::after {
+  background: linear-gradient(90deg, rgba(249,246,238,0.92), rgba(249,246,238,0.38) 64%, rgba(249,246,238,0.04));
+}
+
+.card-section-santi .saints-card-copy > li {
+  padding-bottom: clamp(1.35rem, 2.5vw, 2.15rem) !important;
+  padding-top: clamp(0.15rem, 0.8vw, 0.55rem);
+}
+
+.card-section-apod .apod-card-layout {
+  align-items: center;
+  gap: clamp(2rem, 4.2vw, 4rem);
+}
+
+.card-section-apod .apod-copy-cell {
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.card-section-apod .card-primary-title {
+  font-size: clamp(2.4rem, 4.1vw, 4.25rem) !important;
+  max-width: 18ch;
+}
+
+.card-section-apod .card-body-copy {
+  max-width: 58ch;
+}
+
+.card-section-apod .apod-link-actions {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 980px) {
+  .apod-card-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .apod-media-container,
+  .apod-copy-cell {
+    grid-column: 1 !important;
+  }
+
+  .apod-copy-cell {
+    grid-row: 1 !important;
+    margin-top: 0 !important;
+  }
+
+  .apod-media-container {
+    grid-row: 2 !important;
+  }
+
+  .card-section-santi .has-multiple-saints .saints-card-copy {
+    max-width: 100%;
+  }
+
+  .card-section-santi .has-multiple-saints .saint-card-artwork {
+    bottom: -3rem;
+    height: 16rem;
+    opacity: 0.2;
+    right: -3rem;
+    width: 50%;
+  }
+}
+
+@media (max-width: 767px) {
+  .editorial-card:not(.social-export-card) .section-typewriter-badge,
+  .editorial-card:not(.social-export-card) .author-tape-title-wrapper {
+    font-size: 1rem !important;
+  }
+
+  .card-section-poesia .card-content,
+  .card-section-bibbia .card-content {
+    margin-inline: 0;
+    max-width: none;
+  }
+
+  .card-section-apod .card-primary-title {
+    max-width: none;
+  }
 }
