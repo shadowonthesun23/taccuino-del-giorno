@@ -163,7 +163,7 @@ function LanguageSelector({
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="relative inline-block text-left select-none">
+    <div ref={containerRef} className={`${garamond.className} relative inline-block text-left select-none`}>
       <button
         type="button"
         disabled={disabled}
@@ -1055,7 +1055,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           }}
           onNavigate={() => setMobileNavOpen(false)}
         />
-        <div className={`top-control-panel ${controlsHidden && !popoverOpen && !savedDrawerOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
+        {isMounted ? createPortal(
+          <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2">
           <LanguageSelector
             lingua={lingua}
             onChange={cambiaLingua}
@@ -1116,7 +1117,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
-        </div>
+          </div>,
+          document.body
+        ) : null}
         <div
           ref={mobileToolsRef}
           className={`mobile-tools ${isDark ? 'is-dark' : ''} ${mobileToolsOpen ? 'is-open' : ''} ${controlsHidden && !mobileToolsOpen && !popoverOpen && !savedDrawerOpen ? 'is-hidden' : ''}`}
