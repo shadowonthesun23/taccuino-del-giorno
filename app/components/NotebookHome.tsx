@@ -23,7 +23,7 @@ import WatercolorDivider from '@/components/ui/WatercolorDivider';
 // Library utilities & types
 import type { SaintArtwork } from '@/lib/saint-artwork';
 import type { LanguageCode, OperaGiorno, SaintArtworkResult, ApodData, DatiTaccuino, ArchivioItem, SavedSectionId, SavedCardItem } from '@/lib/types';
-import { TICKET_DOWNLOAD_EVENT, VISITED_ARCHIVE_STORAGE_KEY, DEFAULT_DAILY_ACCENT, SEAL_COLOR_MAP } from '@/lib/constants';
+import { TICKET_DOWNLOAD_EVENT, VISITED_ARCHIVE_STORAGE_KEY, DEFAULT_DAILY_ACCENT, SEAL_COLOR_MAP, notebookNavItems } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { formatDataItaliana, getRomeDateIso, getSavedVisitedDates, getMonthNumber, getDisplayDate, getDayOfYearInfo, getInitials, getSeason, formatExLibrisDate, isSeasonId, getMarginalia, normalizeArchiveText } from '@/lib/date-utils';
 import { getAmbientLightStyle, applyBrowserTheme, runWhenIdle, getImageLoadingProps, uniqueImageCandidates, proxiedImageUrl } from '@/lib/browser-utils';
@@ -380,7 +380,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   useEffect(() => {
     if (!data) return;
 
-    const sectionIds = ['autore', 'citazione', 'parola', 'santi', 'opera', 'avvenimenti', 'poesia', 'bibbia', 'apod', 'musica']
+    const sectionIds = notebookNavItems.map(({ id }) => id)
       .filter((id) => {
         if (id === 'opera') return Boolean(opera);
         if (id === 'apod') return Boolean(apod);
@@ -1301,7 +1301,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             isDark={isDark}
             musicCover={musicCover}
           sealColor={currentSealColor}
-          skyTargetId={apod ? 'apod' : 'effemeridi'}
+          skyTargetId="effemeridi"
           seasonalArtwork={seasonalArtwork}
           apod={apod}
           saintArtwork={visibleSaintArtwork}

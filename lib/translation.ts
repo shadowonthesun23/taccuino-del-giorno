@@ -442,7 +442,8 @@ const SECTION_KEY_MAP: Record<string, keyof typeof UI_TRANSLATIONS> = {
   poesia: 'poemTitle',
   bibbia: 'bibleTitle',
   apod: 'apodCard',
-  musica: 'musicTitle'
+  musica: 'musicTitle',
+  effemeridi: 'correspondenceSky'
 };
 
 export function getSectionLabel(id: string, lingua: LanguageCode, fallbackIT: string, fallbackEN: string): string {

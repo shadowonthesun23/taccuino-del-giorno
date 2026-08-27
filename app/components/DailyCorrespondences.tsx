@@ -207,16 +207,18 @@ export default function DailyCorrespondences({
             </button>
           ) : null}
 
-          <button type="button" className="correspondence-entry correspondence-artwork" onClick={() => scrollTo('opera')}>
-            <span className="correspondence-entry-label"><Palette aria-hidden="true" />{t('correspondenceArtwork', lingua)}</span>
-            <span className="correspondence-entry-content">
-              {artworkImageAvailable ? (
-                /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
-                <img draggable={false} src={artworkImageUrl} alt={opera ? `${opera.titolo}, ${opera.artista}` : ''} onError={() => markMediaUnavailable(artworkImageUrl)} {...eagerImageProps} />
-              ) : <span className="correspondence-missing-media" title={t('correspondenceArtworkUnavailable', lingua)}><Palette aria-hidden="true" /></span>}
-              <span><strong>{opera?.titolo ?? t('correspondenceArtworkUnavailable', lingua)}</strong>{opera ? <em>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em> : null}</span>
-            </span>
-          </button>
+          {opera ? (
+            <button type="button" className="correspondence-entry correspondence-artwork" onClick={() => scrollTo('opera')}>
+              <span className="correspondence-entry-label"><Palette aria-hidden="true" />{t('correspondenceArtwork', lingua)}</span>
+              <span className="correspondence-entry-content">
+                {artworkImageAvailable ? (
+                  /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
+                  <img draggable={false} src={artworkImageUrl} alt={`${opera.titolo}, ${opera.artista}`} onError={() => markMediaUnavailable(artworkImageUrl)} {...eagerImageProps} />
+                ) : <span className="correspondence-missing-media" title={t('correspondenceArtworkUnavailable', lingua)}><Palette aria-hidden="true" /></span>}
+                <span><strong>{opera.titolo}</strong><em>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em></span>
+              </span>
+            </button>
+          ) : null}
 
           <button type="button" className="correspondence-entry correspondence-music" onClick={() => scrollTo('musica')}>
             <span className="correspondence-entry-label"><Music aria-hidden="true" />{t('correspondenceMusic', lingua)}</span>
