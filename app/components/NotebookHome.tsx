@@ -1922,11 +1922,13 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         </main>
 
         {isMounted ? createPortal(
-          <SeasonalBookmark
-            dataIso={dataExLibris}
-            lingua={lingua}
-            isDark={isDark}
-          />,
+          <div className={garamond.className}>
+            <SeasonalBookmark
+              dataIso={dataExLibris}
+              lingua={lingua}
+              isDark={isDark}
+            />
+          </div>,
           document.body
         ) : null}
 
