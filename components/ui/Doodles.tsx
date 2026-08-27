@@ -38,3 +38,34 @@ export function MoonDoodle({ phase }: { phase: MoonPhaseId }) {
     </svg>
   );
 }
+
+/** A small phase-faithful moon: a dark lunar disc with a curved illuminated limb. */
+export function MoonPhaseGlyph({ phase }: { phase: MoonPhaseId }) {
+  const isWaning = phase.startsWith('waning') || phase === 'last-quarter';
+  const litPath = phase === 'new'
+    ? null
+    : phase === 'first-quarter' || phase === 'last-quarter'
+      ? 'M50 8A42 42 0 0 1 50 92L50 8Z'
+      : phase === 'waxing-crescent' || phase === 'waning-crescent'
+        ? 'M50 8A42 42 0 0 1 50 92A24 42 0 0 0 50 8Z'
+        : phase === 'waxing-gibbous' || phase === 'waning-gibbous'
+          ? 'M50 8A42 42 0 0 1 50 92A30 42 0 0 0 50 8Z'
+          : null;
+
+  return (
+    <svg className={`moon-phase-glyph ${isWaning ? 'is-waning' : ''}`} viewBox="0 0 100 100" aria-hidden="true">
+      <circle className="moon-phase-shadow" cx="50" cy="50" r="41" />
+      <g transform={isWaning ? 'translate(100 0) scale(-1 1)' : undefined}>
+        {!litPath && phase === 'full' ? <circle className="moon-phase-lit" cx="50" cy="50" r="41" /> : null}
+        {litPath ? <path className="moon-phase-lit" d={litPath} /> : null}
+        {phase !== 'new' ? (
+          <g className="moon-phase-craters">
+            <circle cx="59" cy="31" r="4.2" />
+            <circle cx="70" cy="58" r="3" />
+            <circle cx="46" cy="68" r="2.5" />
+          </g>
+        ) : null}
+      </g>
+    </svg>
+  );
+}

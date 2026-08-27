@@ -11,6 +11,7 @@ import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
 import { SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { garamond, masterSignature } from '@/lib/fonts';
+import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 
 const eagerImageProps = getImageLoadingProps(true);
 
@@ -231,7 +232,7 @@ export default function DailyCorrespondences({
           <button type="button" className="correspondence-entry correspondence-sky" onClick={() => scrollTo(skyTargetId)}>
             <span className="correspondence-entry-label"><Moon aria-hidden="true" />{t('correspondenceSky', lingua)}</span>
             <span className="correspondence-entry-content">
-              <span className={`correspondence-moon phase-${moon.phase}`}><Moon aria-hidden="true" /></span>
+              <span className={`correspondence-moon phase-${moon.phase}`}><MoonPhaseGlyph phase={moon.phase} /></span>
               <span><strong>{moonLabel}</strong><em>{moon.illumination}%</em></span>
             </span>
             {visiblePlanets?.length ? (
