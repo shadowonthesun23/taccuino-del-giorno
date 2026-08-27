@@ -1035,11 +1035,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           }}
           onNavigate={() => setMobileNavOpen(false)}
         />
-        <SeasonalBookmark
-          dataIso={dataExLibris}
-          lingua={lingua}
-          isDark={isDark}
-        />
         <div className={`top-control-panel ${controlsHidden && !popoverOpen && !savedDrawerOpen && !mobileNavOpen ? 'is-hidden' : ''} fixed top-4 right-4 z-50 flex items-center gap-2`}>
           <LanguageSelector
             lingua={lingua}
@@ -1925,6 +1920,15 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           </footer>
 
         </main>
+
+        {isMounted ? createPortal(
+          <SeasonalBookmark
+            dataIso={dataExLibris}
+            lingua={lingua}
+            isDark={isDark}
+          />,
+          document.body
+        ) : null}
 
         {archivioPopover}
         {savedCardsDrawer}
