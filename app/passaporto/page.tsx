@@ -10,6 +10,9 @@ import {
   localizeArtworkToItalian,
   type Artwork,
 } from '@/lib/artwork';
+import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
+import type { EditorialMediaCrop } from '@/lib/editorial-media';
+import { sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -204,6 +207,7 @@ async function getPassportData(dataIso: string): Promise<{
   data: DatiTaccuino;
   opera: OperaGiorno | null;
   albumCover: string | null;
+  authorCrop: EditorialMediaCrop | null;
 }> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
@@ -219,7 +223,7 @@ async function getPassportData(dataIso: string): Promise<{
     throw new Error('Nessun contenuto disponibile per questa data.');
   }
 
-  const [fotoUrl, rawArtwork, albumCover] = await Promise.all([
+  const [fotoUrl, rawArtwork, albumCover, editorialMediaResult, editorialContentResult] = await Promise.all([
     getFotoAutore(data.autore_giorno),
     data.opera_giorno
       ? Promise.resolve(data.opera_giorno)
@@ -230,13 +234,28 @@ async function getPassportData(dataIso: string): Promise<{
           })
         : Promise.resolve(null),
     findAlbumCover(data.musica),
+    supabase
+      .from('editorial_media_overrides')
+      .select('overrides, crops')
+      .eq('data', dataIso)
+      .maybeSingle(),
+    supabase
+      .from('editorial_content_overrides')
+      .select('overrides')
+      .eq('data', dataIso)
+      .maybeSingle(),
   ]);
   const opera = rawArtwork ? await localizeArtworkToItalian(rawArtwork) : null;
+  const editorialMedia = sanitizeEditorialMediaOverrides(editorialMediaResult.data?.overrides);
+  const editorialMediaCrops = sanitizeEditorialMediaCrops(editorialMediaResult.data?.crops);
+  const editorialContent = sanitizeEditorialContentOverrides(editorialContentResult.data?.overrides);
+  const dataWithContent = applyEditorialContentOverrides(data, editorialContent);
 
   return {
-    data: { ...data, foto_autore_url: fotoUrl },
+    data: { ...dataWithContent, foto_autore_url: editorialMedia.autore || fotoUrl },
     opera,
     albumCover,
+    authorCrop: editorialMediaCrops.autore ?? null,
   };
 }
 
@@ -255,6 +274,7 @@ export default async function PassportPage({
     data: DatiTaccuino;
     opera: OperaGiorno | null;
     albumCover: string | null;
+    authorCrop: EditorialMediaCrop | null;
   };
   try {
     payload = await getPassportData(dataIso);
@@ -263,7 +283,7 @@ export default async function PassportPage({
     return <main className={`${styles.error} ${garamond.className}`}>{message}</main>;
   }
 
-  const { data, opera, albumCover } = payload;
+  const { data, opera, albumCover, authorCrop } = payload;
   const initials = getInitials(data.autore_giorno);
   const printableZineId = 'daily-zine-print-sheet';
   const digitalZineId = 'daily-zine-digital-sheet';
@@ -297,7 +317,17 @@ export default async function PassportPage({
       <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
         {data.foto_autore_url && (
           <figure className={styles.authorPhoto}>
-            <img draggable={false} crossOrigin="anonymous" src={data.foto_autore_url} alt={`Ritratto dell'autore: ${data.autore_giorno}`} />
+            <img
+              draggable={false}
+              crossOrigin="anonymous"
+              src={data.foto_autore_url}
+              alt={`Ritratto dell'autore: ${data.autore_giorno}`}
+              style={authorCrop ? {
+                objectPosition: `${authorCrop.x}% ${authorCrop.y}%`,
+                transform: `scale(${authorCrop.zoom})`,
+                transformOrigin: 'center center',
+              } : undefined}
+            />
           </figure>
         )}
         <div className={styles.authorBio}>

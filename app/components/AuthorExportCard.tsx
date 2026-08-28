@@ -12,6 +12,8 @@ import {
   getAuthorInitials,
   getAuthorNameFontSize,
 } from '@/app/lib/authorCardDesign';
+import type { EditorialMediaCrop } from '@/lib/editorial-media';
+import { DEFAULT_EDITORIAL_MEDIA_CROP } from '@/lib/editorial-media';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -35,6 +37,7 @@ interface AuthorExportCardProps {
   autoreGiorno: string;
   breveDescrizione: string;
   fotoAutoreUrl?: string | null;
+  fotoAutoreCrop?: EditorialMediaCrop;
   citazione: { testo: string; autore: string; fonte: string };
   dataOdierna: string;
   dataIso?: string;
@@ -52,6 +55,7 @@ export default function AuthorExportCard({
   autoreGiorno,
   breveDescrizione,
   fotoAutoreUrl,
+  fotoAutoreCrop,
   citazione,
   dataOdierna,
   dataIso,
@@ -106,6 +110,7 @@ export default function AuthorExportCard({
   const authorFontSize = getAuthorNameFontSize(autoreGiorno, layout.authorFontSize);
   const authorNameWraps = autoreGiorno.replace(/\s+/g, ' ').trim().length > 34;
   const photoCaption = `${initials} · ${formatAuthorCardDate(dataIso, dataOdierna)}`;
+  const authorImageCrop = fotoAutoreCrop ?? DEFAULT_EDITORIAL_MEDIA_CROP;
 
   // Scala 1:3 rispetto al PNG satori (1080×1920 → 360×640)
   const S = 1 / 3;
@@ -309,21 +314,33 @@ export default function AuthorExportCard({
                 }}
               />
               {fotoAutoreUrl ? (
-                <img
-                  draggable={false}
-                  src={fotoAutoreUrl}
-                  alt={autoreGiorno}
-                  crossOrigin="anonymous"
+                <div
+                  className="author-export-photo-frame"
                   style={{
-                    display: 'block',
-                    width: `${layout.photoWidth}px`,
                     height: `${layout.photoHeight}px`,
-                    objectFit: 'cover',
-                    filter: 'grayscale(100%) contrast(92%) brightness(1.04)',
-                    outline: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-                    outlineOffset: '-1px',
+                    overflow: 'hidden',
+                    width: `${layout.photoWidth}px`,
                   }}
-                />
+                >
+                  <img
+                    draggable={false}
+                    src={fotoAutoreUrl}
+                    alt={autoreGiorno}
+                    crossOrigin="anonymous"
+                    style={{
+                      display: 'block',
+                      width: `${layout.photoWidth}px`,
+                      height: `${layout.photoHeight}px`,
+                      objectFit: 'cover',
+                      objectPosition: `${authorImageCrop.x}% ${authorImageCrop.y}%`,
+                      transform: `scale(${authorImageCrop.zoom})`,
+                      transformOrigin: 'center center',
+                      filter: 'grayscale(100%) contrast(92%) brightness(1.04)',
+                      outline: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                      outlineOffset: '-1px',
+                    }}
+                  />
+                </div>
               ) : (
                 <div
                   style={{

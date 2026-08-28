@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
+import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
+import { sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
 
 function getRomeDateIso(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -58,9 +59,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Nessun contenuto per questa data' }, { status: 404 });
     }
 
-    const [{ data: editorialMediaRow, error: editorialMediaError }, fotoUrl] = await Promise.all([
+    const [
+      { data: editorialMediaRow, error: editorialMediaError },
+      { data: editorialContentRow, error: editorialContentError },
+      fotoUrl,
+    ] = await Promise.all([
       supabase
         .from('editorial_media_overrides')
+        .select('overrides, crops')
+        .eq('data', dataIso)
+        .maybeSingle(),
+      supabase
+        .from('editorial_content_overrides')
         .select('overrides')
         .eq('data', dataIso)
         .maybeSingle(),
@@ -70,12 +80,20 @@ export async function GET(request: Request) {
     if (editorialMediaError) {
       console.error('Errore lettura immagini editoriali:', editorialMediaError);
     }
+    if (editorialContentError) {
+      console.error('Errore lettura contenuti editoriali:', editorialContentError);
+    }
+
+    const editorialContent = sanitizeEditorialContentOverrides(editorialContentRow?.overrides);
+    const editorialMedia = sanitizeEditorialMediaOverrides(editorialMediaRow?.overrides);
 
     return NextResponse.json(
       {
-        ...data,
+        ...applyEditorialContentOverrides(data, editorialContent),
         foto_autore_url: fotoUrl,
-        editorial_media: sanitizeEditorialMediaOverrides(editorialMediaRow?.overrides),
+        editorial_media: editorialMedia,
+        editorial_media_crops: sanitizeEditorialMediaCrops(editorialMediaRow?.crops),
+        editorial_content: editorialContent,
       },
       { headers: { 'Cache-Control': 'no-store' } }
     );

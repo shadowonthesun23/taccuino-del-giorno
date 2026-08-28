@@ -1,14 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import {
-  sanitizeEditorialMediaCrops,
-  sanitizeEditorialMediaOverrides,
-} from '@/lib/editorial-media';
+import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 
-type EditorialMediaPayload = {
+type EditorialContentPayload = {
   data?: unknown;
   overrides?: unknown;
-  crops?: unknown;
 };
 
 function isValidIsoDate(value: string) {
@@ -35,9 +31,9 @@ export async function POST(request: Request) {
     return new Response('Configurazione Supabase incompleta', { status: 500 });
   }
 
-  let payload: EditorialMediaPayload;
+  let payload: EditorialContentPayload;
   try {
-    payload = await request.json() as EditorialMediaPayload;
+    payload = await request.json() as EditorialContentPayload;
   } catch {
     return new Response('Payload non valido', { status: 400 });
   }
@@ -47,37 +43,35 @@ export async function POST(request: Request) {
     return new Response('Data non valida', { status: 400 });
   }
 
-  const overrides = sanitizeEditorialMediaOverrides(payload.overrides);
-  const crops = sanitizeEditorialMediaCrops(payload.crops);
+  const overrides = sanitizeEditorialContentOverrides(payload.overrides);
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  if (Object.keys(overrides).length === 0 && Object.keys(crops).length === 0) {
+  if (Object.keys(overrides).length === 0) {
     const { error } = await supabase
-      .from('editorial_media_overrides')
+      .from('editorial_content_overrides')
       .delete()
       .eq('data', dataIso);
 
     if (error) {
-      console.error('Errore rimozione immagini editoriali:', error);
+      console.error('Errore rimozione contenuti editoriali:', error);
       return new Response(error.message, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, data: dataIso, overrides: {}, crops: {} });
+    return NextResponse.json({ ok: true, data: dataIso, overrides: {} });
   }
 
   const { error } = await supabase
-    .from('editorial_media_overrides')
+    .from('editorial_content_overrides')
     .upsert({
       data: dataIso,
       overrides,
-      crops,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'data' });
 
   if (error) {
-    console.error('Errore salvataggio immagini editoriali:', error);
+    console.error('Errore salvataggio contenuti editoriali:', error);
     return new Response(error.message, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, data: dataIso, overrides, crops });
+  return NextResponse.json({ ok: true, data: dataIso, overrides });
 }

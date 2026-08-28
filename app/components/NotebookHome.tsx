@@ -31,8 +31,13 @@ import { getSavedCards, persistSavedCards, groupByMonth, getArchiveMonthMood, ge
 import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-translation';
 import { garamond, caveat, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
-import type { EditorialMediaOverrides } from '@/lib/editorial-media';
-import { getEditorialMediaOverrides, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
+import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
+import {
+  DEFAULT_EDITORIAL_MEDIA_CROP,
+  getEditorialMediaDocument,
+  sanitizeEditorialMediaCrops,
+  sanitizeEditorialMediaOverrides,
+} from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
 const lazyImageProps = getImageLoadingProps();
@@ -223,17 +228,6 @@ function LanguageSelector({
   );
 }
 
-function ManualSectionImage({ src, alt }: { src?: string; alt: string }) {
-  if (!src) return null;
-
-  return (
-    <figure className="manual-section-media">
-      {/* eslint-disable-next-line @next/next/no-img-element -- manual editorial media can be a local data URL or an author-supplied remote URL */}
-      <img draggable={false} src={src} alt={alt} {...lazyImageProps} />
-    </figure>
-  );
-}
-
 export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCode }) {
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
@@ -245,6 +239,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
   const [musicCover, setMusicCover] = useState<string | null>(null);
   const [editorialMedia, setEditorialMedia] = useState<EditorialMediaOverrides>({});
+  const [editorialMediaCrops, setEditorialMediaCrops] = useState<EditorialMediaCrops>({});
   const [operaImageIndex, setOperaImageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -521,7 +516,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setMusicCover(null); setEditorialMedia({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setMusicCover(null); setEditorialMedia({}); setEditorialMediaCrops({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -538,17 +533,23 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       .then(([dati, operaData]) => {
         if (requestId !== latestDayRequestId) return;
         const remoteEditorialMedia = sanitizeEditorialMediaOverrides(dati.editorial_media);
-        const localEditorialMedia = getEditorialMediaOverrides(dataIso ?? oggi);
-        const editorialMediaForDay = Object.keys(remoteEditorialMedia).length > 0
+        const remoteEditorialMediaCrops = sanitizeEditorialMediaCrops(dati.editorial_media_crops);
+        const localEditorialMediaDocument = getEditorialMediaDocument(dataIso ?? oggi);
+        const hasRemoteEditorialMedia = Object.keys(remoteEditorialMedia).length > 0
+          || Object.keys(remoteEditorialMediaCrops).length > 0;
+        const editorialMediaForDay = hasRemoteEditorialMedia
           ? remoteEditorialMedia
-          : localEditorialMedia;
+          : localEditorialMediaDocument.overrides;
+        const editorialMediaCropsForDay = hasRemoteEditorialMedia
+          ? remoteEditorialMediaCrops
+          : localEditorialMediaDocument.crops;
         const nextData = editorialMediaForDay.autore
           ? { ...dati, foto_autore_url: editorialMediaForDay.autore }
           : dati;
         const nextOpera = operaData && editorialMediaForDay.opera
           ? { ...operaData, immagine_url: editorialMediaForDay.opera, immagine_url_hd: editorialMediaForDay.opera }
           : operaData;
-        setData(nextData); setDataOriginale(nextData); setOpera(nextOpera); setEditorialMedia(editorialMediaForDay); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
+        setData(nextData); setDataOriginale(nextData); setOpera(nextOpera); setEditorialMedia(editorialMediaForDay); setEditorialMediaCrops(editorialMediaCropsForDay); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
         const nextUrl = new URL(window.location.href);
         if (dataIso) nextUrl.searchParams.set('data', dataIso);
         else nextUrl.searchParams.delete('data');
@@ -791,6 +792,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     operaImageHdUrl,
   );
   const operaImageSrc = operaImageCandidates[operaImageIndex] ?? null;
+  const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
@@ -1357,6 +1359,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           apod={apod}
           saintArtwork={visibleSaintArtwork}
           editorialMedia={editorialMedia}
+          editorialMediaCrops={editorialMediaCrops}
         />
 
         <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
@@ -1385,19 +1388,24 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               padding: '10px 10px 28px 10px',
             }}
           >
-            <img
-              className="author-photo-portrait"
-              draggable={false}
-              src={data.foto_autore_url}
-              alt={data.autore_giorno}
-              {...eagerImageProps}
-              style={{
-                display: 'block',
-                width: '140px',
-                height: '180px',
-                objectFit: 'cover',
-              }}
-            />
+            <div className="author-photo-image-frame">
+              <img
+                className="author-photo-portrait"
+                draggable={false}
+                src={data.foto_autore_url}
+                alt={data.autore_giorno}
+                {...eagerImageProps}
+                style={{
+                  display: 'block',
+                  width: '140px',
+                  height: '180px',
+                  objectFit: 'cover',
+                  objectPosition: `${authorImageCrop.x}% ${authorImageCrop.y}%`,
+                  transform: `scale(${authorImageCrop.zoom})`,
+                  transformOrigin: 'center center',
+                }}
+              />
+            </div>
             <span className={`${caveat.className} author-photo-caption`}>
               {inizialiExLibris} · {formatExLibrisDate(dataExLibris)}
             </span>
@@ -1456,10 +1464,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         isSaved={isCardSaved('citazione')}
         onToggleSaved={() => saveCard('citazione', `${{ IT: 'Citazione di', EN: 'Quote by', FR: 'Citation de', DE: 'Zitat von', ES: 'Cita de', PT: 'Citação de' }[lingua] || 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
       >
-        <ManualSectionImage
-          src={editorialMedia.citazione}
-          alt={`Immagine editoriale per la citazione di ${data.citazione.autore}`}
-        />
         <blockquote className="quote-editorial md:px-8">
           <EditorialQuoteText text={data.citazione.testo} />
           <footer className="quote-editorial-footer text-right text-lg clear-both pt-2">
@@ -1506,6 +1510,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             autoreGiorno={data.autore_giorno}
             breveDescrizione={data.breve_descrizione}
             fotoAutoreUrl={data.foto_autore_url}
+            fotoAutoreCrop={authorImageCrop}
             citazione={data.citazione}
             dataOdierna={getDisplayDate(data, lingua, dataSelezionata)}
             dataIso={dataExLibris}
@@ -1528,10 +1533,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('parola')}
               onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
-              <ManualSectionImage
-                src={editorialMedia.parola}
-                alt={`Immagine editoriale per la parola ${data.parola_giorno.parola}`}
-              />
               <div className="text-center mb-6">
                 <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
                 <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
@@ -1598,10 +1599,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('avvenimenti')}
               onToggleSaved={() => saveCard('avvenimenti', t('eventsCard', lingua), data.avvenimenti[0] ?? '')}>
-              <ManualSectionImage
-                src={editorialMedia.avvenimenti}
-                alt="Immagine editoriale per Accadde oggi"
-              />
               <ul className="space-y-4">
                 {data.avvenimenti.map((evento, idx) => {
                   const parts = evento.split(':');
@@ -1620,10 +1617,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('poesia')}
               onToggleSaved={() => saveCard('poesia', data.poesia.fonte || t('poemCard', lingua), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
-              <ManualSectionImage
-                src={editorialMedia.poesia}
-                alt={`Immagine editoriale per la poesia di ${data.poesia.autore}`}
-              />
               <DecorativeInitialText
                 text={data.poesia.testo}
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
@@ -1646,10 +1639,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
-              <ManualSectionImage
-                src={editorialMedia.bibbia}
-                alt={`Immagine editoriale per ${data.bibbia.fonte}`}
-              />
               <DecorativeInitialText
                 text={data.bibbia.testo}
                 className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"

@@ -1,15 +1,21 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent, useEffect, useRef, useState } from 'react';
 import { IM_Fell_Double_Pica } from 'next/font/google';
 import { ExternalLink, ImagePlus, RotateCcw, Save, Upload } from 'lucide-react';
 import type { DatiTaccuino } from '@/lib/types';
+import type { EditorialContentOverrides } from '@/lib/editorial-content';
+import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import {
   clearEditorialMediaOverrides,
-  getEditorialMediaOverrides,
+  DEFAULT_EDITORIAL_MEDIA_CROP,
+  getEditorialMediaDocument,
   normalizeEditorialMediaValue,
+  sanitizeEditorialMediaCrops,
   sanitizeEditorialMediaOverrides,
-  saveEditorialMediaOverrides,
+  saveEditorialMediaDocument,
+  type EditorialMediaCrop,
+  type EditorialMediaCrops,
   type EditorialMediaOverrides,
   type EditorialMediaSectionId,
 } from '@/lib/editorial-media';
@@ -39,6 +45,8 @@ function snapshotKey(date: string) {
 type EditorPreviewData = DatiTaccuino & {
   keyword_arte_en?: string | null;
   editorial_media?: unknown;
+  editorial_media_crops?: unknown;
+  editorial_content?: unknown;
 };
 
 const MEDIA_FIELDS: Array<{
@@ -47,15 +55,9 @@ const MEDIA_FIELDS: Array<{
   hint: string;
 }> = [
   { id: 'autore', label: 'Autore del giorno', hint: 'Ritratto o fotografia d’archivio.' },
-  { id: 'citazione', label: 'Citazione', hint: 'Un’immagine che accompagni la voce dell’autore.' },
-  { id: 'parola', label: 'Parola del giorno', hint: 'Un’immagine capace di dare corpo al lemma.' },
   { id: 'santi', label: 'Santi', hint: 'Icona, dipinto o immagine del santo.' },
-  { id: 'avvenimenti', label: 'Accadde oggi', hint: 'Una fotografia legata all’evento storico.' },
-  { id: 'poesia', label: 'Poesia', hint: 'Ritratto del poeta o immagine evocativa.' },
-  { id: 'bibbia', label: 'Passaggio biblico', hint: 'Un’immagine d’arte o simbolica.' },
   { id: 'opera', label: 'Opera del giorno', hint: 'Immagine dell’opera da usare nella tavola.' },
   { id: 'musica', label: 'Musica', hint: 'Copertina dell’album o del brano.' },
-  { id: 'effemeridi', label: 'Cielo ed effemeridi', hint: 'Una fotografia del cielo o del fenomeno.' },
   { id: 'apod', label: 'Foto astronomica', hint: 'Un’immagine astronomica alternativa.' },
 ];
 
@@ -65,27 +67,111 @@ function mediaSearchQuery(id: EditorialMediaSectionId, preview: EditorPreviewDat
   switch (id) {
     case 'autore':
       return `${currentAuthor} ritratto`;
-    case 'citazione':
-      return `${preview?.citazione?.autore?.trim() || currentAuthor} ritratto archivio`;
-    case 'parola':
-      return `${preview?.parola_giorno?.parola?.trim() || 'parola italiana'} fotografia`;
     case 'santi':
       return `${preview?.santi?.[0]?.nome?.trim() || 'santo del giorno'} immagine`;
-    case 'avvenimenti':
-      return `${preview?.avvenimenti?.[0]?.trim() || 'evento storico'} fotografia`;
-    case 'poesia':
-      return `${preview?.poesia?.autore?.trim() || 'poesia italiana'} ritratto`;
-    case 'bibbia':
-      return `${preview?.bibbia?.fonte?.trim() || 'passaggio biblico'} arte`;
     case 'opera':
       return `${preview?.keyword_arte_en?.trim() || 'artwork museum'} painting`;
     case 'musica':
       return `${preview?.musica?.brano?.trim() || 'album'} ${preview?.musica?.autore?.trim() || ''} cover`.trim();
-    case 'effemeridi':
-      return `night sky ${date}`;
     case 'apod':
       return `astronomy ${date} NASA`;
   }
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function isRecordValue(value: unknown): value is Record<string, string> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function AuthorCropEditor({
+  src,
+  crop,
+  onChange,
+  onReset,
+}: {
+  src: string;
+  crop: EditorialMediaCrop;
+  onChange: (crop: EditorialMediaCrop) => void;
+  onReset: () => void;
+}) {
+  const dragRef = useRef<{ startX: number; startY: number; cropX: number; cropY: number } | null>(null);
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = { startX: event.clientX, startY: event.clientY, cropX: crop.x, cropY: crop.y };
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const deltaX = ((event.clientX - drag.startX) / Math.max(1, bounds.width)) * 100;
+    const deltaY = ((event.clientY - drag.startY) / Math.max(1, bounds.height)) * 100;
+    onChange({
+      x: clamp(drag.cropX - deltaX, 0, 100),
+      y: clamp(drag.cropY - deltaY, 0, 100),
+      zoom: crop.zoom,
+    });
+  }
+
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragRef.current = null;
+  }
+
+  function handleWheel(event: ReactWheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    onChange({ ...crop, zoom: clamp(crop.zoom + (event.deltaY < 0 ? 0.05 : -0.05), 1, 3) });
+  }
+
+  return (
+    <div className="editor-author-crop">
+      <div
+        className="editor-author-crop-stage"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onWheel={handleWheel}
+        role="application"
+        aria-label="Ritaglia il ritratto dell’autore trascinando la foto"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- crop preview accepts author-supplied remote URLs and local data URLs */}
+        <img
+          src={src}
+          alt="Anteprima del ritaglio dell’autore"
+          draggable={false}
+          style={{
+            objectPosition: `${crop.x}% ${crop.y}%`,
+            transform: `scale(${crop.zoom})`,
+            transformOrigin: 'center center',
+          }}
+        />
+        <span className="editor-author-crop-guides" aria-hidden="true" />
+      </div>
+      <div className="editor-author-crop-controls">
+        <label>
+          <span>Zoom <strong>{crop.zoom.toFixed(2)}×</strong></span>
+          <input
+            type="range"
+            min="1"
+            max="3"
+            step="0.05"
+            value={crop.zoom}
+            aria-label="Zoom del ritratto"
+            onChange={(event) => onChange({ ...crop, zoom: Number(event.target.value) })}
+          />
+        </label>
+        <button type="button" onClick={onReset}>Ripristina inquadratura</button>
+      </div>
+      <p className="editor-author-crop-hint">Trascina la foto per scegliere il punto da mettere in evidenza. Puoi anche usare la rotellina sul computer.</p>
+    </div>
+  );
 }
 
 function readImageFile(file: File): Promise<string> {
@@ -139,8 +225,12 @@ export default function EditorPage() {
   const [previewData, setPreviewData] = useState<EditorPreviewData | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [mediaOverrides, setMediaOverrides] = useState<EditorialMediaOverrides>({});
+  const [mediaCrops, setMediaCrops] = useState<EditorialMediaCrops>({});
   const [mediaStatus, setMediaStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [mediaMessage, setMediaMessage] = useState('');
+  const [contentOverrides, setContentOverrides] = useState<EditorialContentOverrides>({});
+  const [contentStatus, setContentStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [contentMessage, setContentMessage] = useState('');
 
   useEffect(() => {
     // The editor secret is a client-only preference; hydrate it after the server render.
@@ -156,10 +246,15 @@ export default function EditorPage() {
 
   useEffect(() => {
     // Manual media is an external localStorage value keyed by the selected date.
+    const localDocument = getEditorialMediaDocument(date);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMediaOverrides(getEditorialMediaOverrides(date));
+    setMediaOverrides(localDocument.overrides);
+    setMediaCrops(localDocument.crops);
+    setContentOverrides({});
     setMediaStatus('idle');
     setMediaMessage('');
+    setContentStatus('idle');
+    setContentMessage('');
   }, [date]);
 
   useEffect(() => {
@@ -183,8 +278,12 @@ export default function EditorPage() {
           setPreviewData(nextPreview);
           if (nextPreview) {
             const remoteOverrides = sanitizeEditorialMediaOverrides(nextPreview.editorial_media);
-            const localOverrides = getEditorialMediaOverrides(date.trim());
-            setMediaOverrides(Object.keys(remoteOverrides).length > 0 ? remoteOverrides : localOverrides);
+            const remoteCrops = sanitizeEditorialMediaCrops(nextPreview.editorial_media_crops);
+            const localDocument = getEditorialMediaDocument(date.trim());
+            const hasRemoteMedia = Object.keys(remoteOverrides).length > 0 || Object.keys(remoteCrops).length > 0;
+            setMediaOverrides(hasRemoteMedia ? remoteOverrides : localDocument.overrides);
+            setMediaCrops(hasRemoteMedia ? remoteCrops : localDocument.crops);
+            setContentOverrides(sanitizeEditorialContentOverrides(nextPreview.editorial_content));
           }
         }
       })
@@ -286,8 +385,35 @@ export default function EditorPage() {
 
   function updateMediaOverride(section: EditorialMediaSectionId, value: string) {
     setMediaOverrides((current) => ({ ...current, [section]: value }));
+    if (section === 'autore') {
+      setMediaCrops((current) => current.autore ? {} : current);
+    }
     setMediaStatus('idle');
     setMediaMessage('');
+  }
+
+  function updateAuthorCrop(crop: EditorialMediaCrop) {
+    setMediaCrops({ autore: crop });
+    setMediaStatus('idle');
+    setMediaMessage('');
+  }
+
+  function updateContentOverride(section: Exclude<keyof EditorialContentOverrides, 'avvenimenti'>, field: string, value: string) {
+    setContentOverrides((current) => {
+      const next = { ...current } as Record<string, unknown>;
+      const group = isRecordValue(next[section]) ? { ...(next[section] as Record<string, string>) } : {};
+      group[field] = value;
+      next[section] = group;
+      return next as EditorialContentOverrides;
+    });
+    setContentStatus('idle');
+    setContentMessage('');
+  }
+
+  function updateEvents(value: string) {
+    setContentOverrides((current) => ({ ...current, avvenimenti: value.split('\n') }));
+    setContentStatus('idle');
+    setContentMessage('');
   }
 
   async function handleMediaFileChange(section: EditorialMediaSectionId, event: ChangeEvent<HTMLInputElement>) {
@@ -333,13 +459,14 @@ export default function EditorPage() {
 
     try {
       const overrides = sanitizeEditorialMediaOverrides(mediaOverrides);
+      const crops = sanitizeEditorialMediaCrops(mediaCrops);
       const response = await fetch('/api/editorial-media', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ data: date.trim(), overrides }),
+        body: JSON.stringify({ data: date.trim(), overrides, crops }),
       });
 
       if (!response.ok) {
@@ -347,11 +474,13 @@ export default function EditorPage() {
         throw new Error(errorText || `Errore ${response.status}`);
       }
 
-      const result = await response.json() as { overrides?: unknown };
+      const result = await response.json() as { overrides?: unknown; crops?: unknown };
       const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
+      const savedCrops = sanitizeEditorialMediaCrops(result.crops ?? crops);
       window.localStorage.setItem('taccuino-editor-secret', secret.trim());
-      saveEditorialMediaOverrides(date.trim(), savedOverrides);
+      saveEditorialMediaDocument(date.trim(), { overrides: savedOverrides, crops: savedCrops });
       setMediaOverrides(savedOverrides);
+      setMediaCrops(savedCrops);
       setMediaStatus('success');
       setMediaMessage('Immagini pubblicate in Supabase: ora valgono per tutti i visitatori.');
     } catch (error) {
@@ -378,7 +507,7 @@ export default function EditorPage() {
           Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ data: date.trim(), overrides: {} }),
+        body: JSON.stringify({ data: date.trim(), overrides: {}, crops: {} }),
       });
 
       if (!response.ok) {
@@ -388,11 +517,101 @@ export default function EditorPage() {
 
       clearEditorialMediaOverrides(date.trim());
       setMediaOverrides({});
+      setMediaCrops({});
       setMediaStatus('success');
       setMediaMessage('Immagini manuali rimosse dalla tavola condivisa.');
     } catch (error) {
       setMediaStatus('error');
       setMediaMessage(error instanceof Error ? error.message : 'Rimozione delle immagini non riuscita.');
+    }
+  }
+
+  async function refreshEditorPreview() {
+    const response = await fetch(`/api/oggi?data=${encodeURIComponent(date.trim())}`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return response.json() as Promise<EditorPreviewData>;
+  }
+
+  async function handleSaveContent() {
+    if (!secret.trim()) {
+      setContentStatus('error');
+      setContentMessage('Inserisci il CRON_SECRET per pubblicare il contenuto nella tavola condivisa.');
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
+      setContentStatus('error');
+      setContentMessage('Inserisci una data valida prima di salvare il contenuto.');
+      return;
+    }
+
+    setContentStatus('loading');
+    setContentMessage('Pubblico il contenuto nella tavola condivisa…');
+
+    try {
+      const overrides = sanitizeEditorialContentOverrides(contentOverrides);
+      const response = await fetch('/api/editorial-content', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: date.trim(), overrides }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Errore ${response.status}`);
+      }
+
+      const result = await response.json() as { overrides?: unknown };
+      const savedOverrides = sanitizeEditorialContentOverrides(result.overrides ?? overrides);
+      window.localStorage.setItem('taccuino-editor-secret', secret.trim());
+      setContentOverrides(savedOverrides);
+      const refreshedPreview = await refreshEditorPreview();
+      if (refreshedPreview) setPreviewData(refreshedPreview);
+      setContentStatus('success');
+      setContentMessage('Contenuto pubblicato in Supabase: ora vale per tutti i visitatori.');
+    } catch (error) {
+      setContentStatus('error');
+      setContentMessage(error instanceof Error ? error.message : 'Pubblicazione del contenuto non riuscita.');
+    }
+  }
+
+  async function handleClearContent() {
+    if (!window.confirm(`Ripristinare il contenuto automatico del ${date}?`)) return;
+    if (!secret.trim()) {
+      setContentStatus('error');
+      setContentMessage('Inserisci il CRON_SECRET per ripristinare il contenuto automatico.');
+      return;
+    }
+
+    setContentStatus('loading');
+    setContentMessage('Ripristino il contenuto automatico…');
+
+    try {
+      const response = await fetch('/api/editorial-content', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: date.trim(), overrides: {} }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Errore ${response.status}`);
+      }
+
+      setContentOverrides({});
+      const refreshedPreview = await refreshEditorPreview();
+      if (refreshedPreview) setPreviewData(refreshedPreview);
+      setContentStatus('success');
+      setContentMessage('Contenuto automatico ripristinato per questa data.');
+    } catch (error) {
+      setContentStatus('error');
+      setContentMessage(error instanceof Error ? error.message : 'Ripristino del contenuto non riuscito.');
     }
   }
 
@@ -497,7 +716,7 @@ export default function EditorPage() {
             </span>
           </div>
           <p className="editor-media-intro">
-            Per ogni sezione puoi incollare l’URL diretto dell’immagine oppure caricare un file che hai trovato online.
+            Qui puoi scegliere le immagini che hanno una presenza reale nella tavola: autore, santi, opera, musica e foto astronomica.
             Dopo il salvataggio vengono pubblicate in Supabase e restano associate alla data scelta per tutti i visitatori.
             Il browser conserva anche una copia di fallback per te.
           </p>
@@ -509,8 +728,12 @@ export default function EditorPage() {
             {MEDIA_FIELDS.map((field) => {
               const value = mediaOverrides[field.id] ?? '';
               const query = mediaSearchQuery(field.id, previewData, author, date);
+              const cropSource = field.id === 'autore'
+                ? normalizeEditorialMediaValue(value) || normalizeEditorialMediaValue(previewData?.foto_autore_url)
+                : '';
+              const authorCrop = mediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
               return (
-                <fieldset key={field.id} className="editor-media-field">
+                <fieldset key={field.id} className={`editor-media-field ${field.id === 'autore' ? 'editor-media-author-field' : ''}`}>
                   <div className="editor-media-field-heading">
                     <legend>{field.label}</legend>
                     <a
@@ -552,6 +775,18 @@ export default function EditorPage() {
                       <button type="button" onClick={() => updateMediaOverride(field.id, '')}>Rimuovi</button>
                     </div>
                   ) : null}
+                  {field.id === 'autore' && cropSource ? (
+                    <AuthorCropEditor
+                      src={cropSource}
+                      crop={authorCrop}
+                      onChange={updateAuthorCrop}
+                      onReset={() => {
+                        setMediaCrops({});
+                        setMediaStatus('idle');
+                        setMediaMessage('');
+                      }}
+                    />
+                  ) : null}
                 </fieldset>
               );
             })}
@@ -560,7 +795,7 @@ export default function EditorPage() {
           <div className="editor-media-actions">
             <p>Le immagini manuali prendono il posto del risultato automatico nella home e nella tavola, per tutti i visitatori.</p>
             <div>
-              <button type="button" className="editor-media-clear" onClick={() => void handleClearMedia()} disabled={mediaStatus === 'loading' || !Object.keys(mediaOverrides).length}>
+              <button type="button" className="editor-media-clear" onClick={() => void handleClearMedia()} disabled={mediaStatus === 'loading' || (!Object.keys(mediaOverrides).length && !Object.keys(mediaCrops).length)}>
                 <RotateCcw aria-hidden="true" />
                 <span>Svuota questa data</span>
               </button>
@@ -573,6 +808,199 @@ export default function EditorPage() {
           {mediaMessage ? (
             <p className={`editor-media-message ${mediaStatus === 'error' ? 'is-error' : 'is-success'}`} role="status">
               {mediaMessage}
+            </p>
+          ) : null}
+        </section>
+
+        <section className="editor-content-panel" aria-labelledby="editor-content-title">
+          <div className="editor-media-heading">
+            <div>
+              <p className="editor-media-kicker"><Save aria-hidden="true" /> Testi manuali</p>
+              <h2 id="editor-content-title">Correggi il contenuto</h2>
+            </div>
+            <span className="editor-media-date-note">Override condivisi per la data</span>
+          </div>
+          <p className="editor-media-intro">
+            Questi campi sostituiscono solo il testo scelto, senza rigenerare l’intera giornata. Lascia invariato ciò che vuoi mantenere automatico.
+            Le modifiche pubblicate valgono per tutti i visitatori.
+          </p>
+
+          <div className="editor-content-grid">
+            <fieldset className="editor-content-field editor-content-field-wide">
+              <legend>Citazione</legend>
+              <label>
+                <span>Testo</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea"
+                  value={contentOverrides.citazione?.testo ?? previewData?.citazione?.testo ?? ''}
+                  onChange={(event) => updateContentOverride('citazione', 'testo', event.target.value)}
+                />
+              </label>
+              <div className="editor-content-two-columns">
+                <label>
+                  <span>Autore</span>
+                  <input
+                    className="editor-content-input"
+                    value={contentOverrides.citazione?.autore ?? previewData?.citazione?.autore ?? ''}
+                    onChange={(event) => updateContentOverride('citazione', 'autore', event.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>Fonte</span>
+                  <input
+                    className="editor-content-input"
+                    value={contentOverrides.citazione?.fonte ?? previewData?.citazione?.fonte ?? ''}
+                    onChange={(event) => updateContentOverride('citazione', 'fonte', event.target.value)}
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset className="editor-content-field">
+              <legend>Parola del giorno</legend>
+              <label>
+                <span>Parola</span>
+                <input
+                  className="editor-content-input"
+                  value={contentOverrides.parola_giorno?.parola ?? previewData?.parola_giorno?.parola ?? ''}
+                  onChange={(event) => updateContentOverride('parola_giorno', 'parola', event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Etimologia</span>
+                <input
+                  className="editor-content-input"
+                  value={contentOverrides.parola_giorno?.etimologia ?? previewData?.parola_giorno?.etimologia ?? ''}
+                  onChange={(event) => updateContentOverride('parola_giorno', 'etimologia', event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Definizione</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea"
+                  value={contentOverrides.parola_giorno?.definizione ?? previewData?.parola_giorno?.definizione ?? ''}
+                  onChange={(event) => updateContentOverride('parola_giorno', 'definizione', event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Esempio</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea editor-content-textarea-compact"
+                  value={contentOverrides.parola_giorno?.esempio ?? previewData?.parola_giorno?.esempio ?? ''}
+                  onChange={(event) => updateContentOverride('parola_giorno', 'esempio', event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Nota</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea editor-content-textarea-compact"
+                  value={contentOverrides.parola_giorno?.nota ?? previewData?.parola_giorno?.nota ?? ''}
+                  onChange={(event) => updateContentOverride('parola_giorno', 'nota', event.target.value)}
+                />
+              </label>
+            </fieldset>
+
+            <fieldset className="editor-content-field">
+              <legend>Accadde oggi</legend>
+              <label>
+                <span>Un evento per riga</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea editor-content-events"
+                  value={contentOverrides.avvenimenti?.join('\n') ?? previewData?.avvenimenti?.join('\n') ?? ''}
+                  onChange={(event) => updateEvents(event.target.value)}
+                />
+              </label>
+              <p className="editor-content-hint">Le righe vuote vengono ignorate quando pubblichi.</p>
+            </fieldset>
+
+            <fieldset className="editor-content-field editor-content-field-wide">
+              <legend>Poesia</legend>
+              <label>
+                <span>Testo</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea editor-content-poem"
+                  value={contentOverrides.poesia?.testo ?? previewData?.poesia?.testo ?? ''}
+                  onChange={(event) => updateContentOverride('poesia', 'testo', event.target.value)}
+                />
+              </label>
+              <div className="editor-content-two-columns">
+                <label>
+                  <span>Autore</span>
+                  <input
+                    className="editor-content-input"
+                    value={contentOverrides.poesia?.autore ?? previewData?.poesia?.autore ?? ''}
+                    onChange={(event) => updateContentOverride('poesia', 'autore', event.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>Fonte</span>
+                  <input
+                    className="editor-content-input"
+                    value={contentOverrides.poesia?.fonte ?? previewData?.poesia?.fonte ?? ''}
+                    onChange={(event) => updateContentOverride('poesia', 'fonte', event.target.value)}
+                  />
+                </label>
+              </div>
+              <label>
+                <span>Nota curatoriale</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea editor-content-textarea-compact"
+                  value={contentOverrides.poesia?.nota ?? previewData?.poesia?.nota ?? ''}
+                  onChange={(event) => updateContentOverride('poesia', 'nota', event.target.value)}
+                />
+              </label>
+            </fieldset>
+
+            <fieldset className="editor-content-field editor-content-field-wide">
+              <legend>Passaggio biblico</legend>
+              <label>
+                <span>Testo</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea editor-content-poem"
+                  value={contentOverrides.bibbia?.testo ?? previewData?.bibbia?.testo ?? ''}
+                  onChange={(event) => updateContentOverride('bibbia', 'testo', event.target.value)}
+                />
+              </label>
+              <div className="editor-content-two-columns">
+                <label>
+                  <span>Fonte</span>
+                  <input
+                    className="editor-content-input"
+                    value={contentOverrides.bibbia?.fonte ?? previewData?.bibbia?.fonte ?? ''}
+                    onChange={(event) => updateContentOverride('bibbia', 'fonte', event.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>Nota</span>
+                  <input
+                    className="editor-content-input"
+                    value={contentOverrides.bibbia?.nota ?? previewData?.bibbia?.nota ?? ''}
+                    onChange={(event) => updateContentOverride('bibbia', 'nota', event.target.value)}
+                  />
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <p className="editor-content-note">
+            Cielo ed effemeridi restano calcolati automaticamente dalla data e dalla posizione scelta dal visitatore.
+          </p>
+          <div className="editor-media-actions">
+            <p>Puoi tornare al testo generato in qualsiasi momento, rimuovendo gli override della data.</p>
+            <div>
+              <button type="button" className="editor-media-clear" onClick={() => void handleClearContent()} disabled={contentStatus === 'loading'}>
+                <RotateCcw aria-hidden="true" />
+                <span>Ripristina automatico</span>
+              </button>
+              <button type="button" className="editor-media-save" onClick={() => void handleSaveContent()} disabled={contentStatus === 'loading'}>
+                <Save aria-hidden="true" />
+                <span>{contentStatus === 'loading' ? 'Pubblico…' : 'Pubblica contenuti'}</span>
+              </button>
+            </div>
+          </div>
+          {contentMessage ? (
+            <p className={`editor-media-message ${contentStatus === 'error' ? 'is-error' : 'is-success'}`} role="status">
+              {contentMessage}
             </p>
           ) : null}
         </section>
