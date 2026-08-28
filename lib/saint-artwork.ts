@@ -5,7 +5,7 @@ export interface SaintArtwork {
   author: string;
   license: string;
   licenseUrl: string;
-  source: 'wikimedia' | 'met';
+  source: 'wikimedia' | 'met' | 'manual';
 }
 
 type JsonRecord = Record<string, unknown>;

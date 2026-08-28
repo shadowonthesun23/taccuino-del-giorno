@@ -12,6 +12,7 @@ import { OPEN_EPHEMERIS_EVENT, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { garamond, masterSignature } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
+import type { EditorialMediaOverrides } from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
 
@@ -42,6 +43,7 @@ export default function DailyCorrespondences({
   seasonalArtwork,
   apod,
   saintArtwork,
+  editorialMedia,
 }: {
   data: DatiTaccuino;
   opera: OperaGiorno | null;
@@ -54,6 +56,7 @@ export default function DailyCorrespondences({
   seasonalArtwork: SeasonalArtwork | null;
   apod: ApodData | null;
   saintArtwork: SaintArtworkResult | null;
+  editorialMedia: EditorialMediaOverrides;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -62,17 +65,17 @@ export default function DailyCorrespondences({
   const moon = getMoonPhase(dataIso);
   const moonLabel = moonLabels[moon.phase]?.[lingua] ?? moonLabels[moon.phase]?.EN ?? t('moon', lingua);
   const { day: dayOfYear, total: totalDays } = getDayOfYearInfo(dataIso);
-  const authorImageUrl = proxiedImageUrl(data.foto_autore_url);
-  const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
+  const authorImageUrl = editorialMedia.autore || proxiedImageUrl(data.foto_autore_url);
+  const artworkImageUrl = editorialMedia.opera || proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
   const authorImageAvailable = Boolean(authorImageUrl) && !failedMedia.has(authorImageUrl);
   const artworkImageAvailable = Boolean(artworkImageUrl) && !failedMedia.has(artworkImageUrl);
-  const musicCoverUrl = musicCover?.trim() || null;
+  const musicCoverUrl = editorialMedia.musica?.trim() || musicCover?.trim() || null;
   const availableMusicCover = musicCoverUrl && !failedMedia.has(musicCoverUrl)
     ? musicCoverUrl
     : null;
   const seasonalArtworkImageAvailable = Boolean(seasonalArtwork?.imageUrl && !failedMedia.has(seasonalArtwork.imageUrl));
-  const apodImageUrl = proxiedImageUrl(apod?.thumbnail_url || apod?.url);
-  const saintArtworkImageUrl = proxiedImageUrl(saintArtwork?.imageUrl);
+  const apodImageUrl = editorialMedia.apod || proxiedImageUrl(apod?.thumbnail_url || apod?.url);
+  const saintArtworkImageUrl = editorialMedia.santi || proxiedImageUrl(saintArtwork?.imageUrl);
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
   const authorDescription = getFirstSentence(data.breve_descrizione);
@@ -201,8 +204,16 @@ export default function DailyCorrespondences({
 
           <button type="button" className="correspondence-entry correspondence-word" onClick={() => scrollTo('parola')}>
             <span className="correspondence-entry-label"><Type aria-hidden="true" />{t('correspondenceWord', lingua)}</span>
-            <strong className={wordTypographyClass}>{data.parola_giorno.parola}</strong>
-            <em>{data.parola_giorno.etimologia}</em>
+            <span className={`correspondence-word-content ${editorialMedia.parola ? 'has-image' : ''}`}>
+              {editorialMedia.parola ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- manual editorial media can be a local data URL or an author-supplied remote URL */
+                <img draggable={false} src={editorialMedia.parola} alt="" {...eagerImageProps} />
+              ) : null}
+              <span>
+                <strong className={wordTypographyClass}>{data.parola_giorno.parola}</strong>
+                <em>{data.parola_giorno.etimologia}</em>
+              </span>
+            </span>
           </button>
 
           {saintOfTheDay ? (
@@ -245,7 +256,12 @@ export default function DailyCorrespondences({
           <button type="button" className="correspondence-entry correspondence-sky" onClick={openEphemeris}>
             <span className="correspondence-entry-label"><Moon aria-hidden="true" />{t('correspondenceSky', lingua)}</span>
             <span className="correspondence-entry-content">
-              <span className={`correspondence-moon phase-${moon.phase}`}><MoonPhaseGlyph phase={moon.phase} /></span>
+              {editorialMedia.effemeridi ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- manual editorial media can be a local data URL or an author-supplied remote URL */
+                <img draggable={false} src={editorialMedia.effemeridi} alt="" {...eagerImageProps} />
+              ) : (
+                <span className={`correspondence-moon phase-${moon.phase}`}><MoonPhaseGlyph phase={moon.phase} /></span>
+              )}
               <span><strong>{moonLabel}</strong><em>{moon.illumination}%</em></span>
             </span>
             {visiblePlanets?.length ? (
@@ -281,13 +297,23 @@ export default function DailyCorrespondences({
         <div className="daily-correspondences-readings">
           <button type="button" className="correspondence-reading correspondence-poem" onClick={() => scrollTo('poesia')}>
             <span className="correspondence-reading-label"><Feather aria-hidden="true" />{t('correspondencePoem', lingua)}</span>
-            <strong>{data.poesia.autore}</strong>
-            <em>{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em>
+            <span className={`correspondence-reading-content ${editorialMedia.poesia ? 'has-image' : ''}`}>
+              {editorialMedia.poesia ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- manual editorial media can be a local data URL or an author-supplied remote URL */
+                <img draggable={false} src={editorialMedia.poesia} alt="" {...eagerImageProps} />
+              ) : null}
+              <span><strong>{data.poesia.autore}</strong><em>{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em></span>
+            </span>
           </button>
           <button type="button" className="correspondence-reading correspondence-bible" onClick={() => scrollTo('bibbia')}>
             <span className="correspondence-reading-label"><BookOpen aria-hidden="true" />{t('correspondenceBible', lingua)}</span>
-            <strong>{data.bibbia.fonte}</strong>
-            <em>{getFirstSentence(data.bibbia.testo)}</em>
+            <span className={`correspondence-reading-content ${editorialMedia.bibbia ? 'has-image' : ''}`}>
+              {editorialMedia.bibbia ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- manual editorial media can be a local data URL or an author-supplied remote URL */
+                <img draggable={false} src={editorialMedia.bibbia} alt="" {...eagerImageProps} />
+              ) : null}
+              <span><strong>{data.bibbia.fonte}</strong><em>{getFirstSentence(data.bibbia.testo)}</em></span>
+            </span>
           </button>
         </div>
 
