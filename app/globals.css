@@ -10413,9 +10413,11 @@ body.museum-room-open :is(
     inset 0 1px 0 rgba(255, 255, 255, 0.56);
   color: inherit;
   cursor: pointer;
-  display: block;
+  display: flex;
+  flex-direction: column;
   font: inherit;
   grid-area: author;
+  justify-content: flex-start;
   min-width: 0;
   overflow: hidden;
   padding: 13px 13px 16px;
@@ -10502,9 +10504,12 @@ body.museum-room-open :is(
 
 .correspondence-author-caption em {
   color: #74675f;
+  display: block;
   font-size: 0.9rem;
   font-style: italic;
   line-height: 1.28;
+  max-width: 28ch;
+  text-wrap: pretty;
 }
 
 .correspondence-entry.correspondence-artwork {
@@ -10600,6 +10605,7 @@ body.museum-room-open :is(
   grid-template-columns: auto minmax(0, 1fr) auto;
   margin-top: clamp(28px, 5vw, 44px);
   padding: 16px 0 15px;
+  position: relative;
   text-align: left;
   transition: color 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
   width: 100%;
@@ -13770,4 +13776,50 @@ body.museum-room-open :is(
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry.correspondence-artwork {
   padding-top: 14px;
+}
+
+/* A quiet invitation to continue: visible on hover/focus, absent from exports. */
+.correspondence-read-more {
+  align-items: center;
+  color: rgba(170, 102, 85, 0.82);
+  display: flex;
+  filter: blur(4px);
+  height: 18px;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 7px;
+  top: 12px;
+  transform: scale(0.25);
+  transform-origin: center;
+  transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1), transform 180ms cubic-bezier(0.2, 0, 0, 1), filter 180ms cubic-bezier(0.2, 0, 0, 1);
+  width: 18px;
+}
+
+.correspondence-read-more svg {
+  height: 14px;
+  width: 14px;
+}
+
+:is(.correspondence-author, .correspondence-entry, .correspondence-reading, .daily-correspondences-seasonal):hover .correspondence-read-more,
+:is(.correspondence-author, .correspondence-entry, .correspondence-reading, .daily-correspondences-seasonal):focus-visible .correspondence-read-more,
+:is(.correspondence-author, .correspondence-entry, .correspondence-reading, .daily-correspondences-seasonal):focus-within .correspondence-read-more {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1);
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-read-more {
+  color: rgba(216, 177, 140, 0.88);
+}
+
+.correspondence-export-frame .correspondence-read-more {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .correspondence-read-more {
+    transition: none;
+  }
 }

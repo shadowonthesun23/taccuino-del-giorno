@@ -21,6 +21,45 @@ function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();
 }
 
+function getAuthorTeaser(text: string) {
+  const firstSentence = getFirstSentence(text)
+    .replace(/\s*[([{][^\])}]*[\])}]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (firstSentence.length <= 112) return firstSentence;
+
+  const maxLength = 112;
+  const prefix = firstSentence.slice(0, maxLength);
+  const boundary = Math.max(
+    prefix.lastIndexOf(','),
+    prefix.lastIndexOf(';'),
+    prefix.lastIndexOf(':'),
+    prefix.lastIndexOf(' — '),
+    prefix.lastIndexOf(' – '),
+  );
+
+  if (boundary >= 48) {
+    return `${prefix.slice(0, boundary).replace(/[,:;–—-]+$/u, '').trim()}.`;
+  }
+
+  const words = prefix.trim().split(/\s+/u);
+  let teaser = words.slice(0, -1).join(' ');
+  while (/\b(?:e|ed|di|del|della|dei|degli|delle|il|lo|la|i|gli|le|un|uno|una|che|con|per|in|a|da|nel|nella|è|fu|ha)$/iu.test(teaser)) {
+    teaser = teaser.replace(/\s+\S+$/u, '');
+  }
+
+  return `${teaser.replace(/[,:;–—-]+$/u, '').trim()}.`;
+}
+
+function ContinueReadingHint() {
+  return (
+    <span className="correspondence-read-more" aria-hidden="true">
+      <BookOpen strokeWidth={1.45} />
+    </span>
+  );
+}
+
 const moonLabels: Record<string, Record<LanguageCode, string>> = {
   new: { IT: 'Luna nuova', EN: 'New moon', FR: 'Nouvelle lune', DE: 'Neumond', ES: 'Luna nueva', PT: 'Lua nova' },
   'waxing-crescent': { IT: 'Luna crescente', EN: 'Waxing crescent', FR: 'Premier croissant', DE: 'Zunehmende Sichel', ES: 'Luna creciente', PT: 'Lua crescente' },
@@ -82,7 +121,7 @@ export default function DailyCorrespondences({
   const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
-  const authorDescription = getFirstSentence(data.breve_descrizione);
+  const authorDescription = getAuthorTeaser(data.breve_descrizione);
   const saintOfTheDay = data.santi[0];
   const wordLength = data.parola_giorno.parola.trim().length;
   const wordTypographyClass = wordLength > 24
@@ -213,6 +252,7 @@ export default function DailyCorrespondences({
               <span className="correspondence-author-image-frame correspondence-author-empty"><Feather aria-hidden="true" /><small>{t('correspondencePortraitUnavailable', lingua)}</small></span>
             )}
             <span className="correspondence-author-caption"><strong>{data.autore_giorno}</strong><em>{authorDescription}</em></span>
+            <ContinueReadingHint />
           </button>
 
           <button type="button" className="correspondence-entry correspondence-word" onClick={() => scrollTo('parola')}>
@@ -223,6 +263,7 @@ export default function DailyCorrespondences({
                 <em>{data.parola_giorno.etimologia}</em>
               </span>
             </span>
+            <ContinueReadingHint />
           </button>
 
           {saintOfTheDay ? (
@@ -235,6 +276,7 @@ export default function DailyCorrespondences({
                 ) : <span className="correspondence-saint-mark" aria-hidden="true"><Church /></span>}
                 <span><strong>{saintOfTheDay.nome}</strong><em>{saintOfTheDay.ruolo}</em></span>
               </span>
+              <ContinueReadingHint />
             </button>
           ) : null}
 
@@ -248,6 +290,7 @@ export default function DailyCorrespondences({
                 ) : <span className="correspondence-missing-media" title={t('correspondenceArtworkUnavailable', lingua)}><Palette aria-hidden="true" /></span>}
                 <span><strong>{opera.titolo}</strong><em>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em></span>
               </span>
+              <ContinueReadingHint />
             </button>
           ) : null}
 
@@ -260,6 +303,7 @@ export default function DailyCorrespondences({
               ) : <span className="correspondence-missing-media" title={t('correspondenceMusicCoverUnavailable', lingua)}><Music aria-hidden="true" /></span>}
               <span><strong>{data.musica.brano}</strong><em>{data.musica.autore}</em></span>
             </span>
+            <ContinueReadingHint />
           </button>
 
           <button type="button" className="correspondence-entry correspondence-sky" onClick={openEphemeris}>
@@ -294,6 +338,7 @@ export default function DailyCorrespondences({
                 ) : <span className="correspondence-missing-media" aria-hidden="true"><Telescope /></span>}
                 <span><strong>{lingua === 'IT' ? apod.title_it : apod.title_en}</strong><em>NASA APOD</em></span>
               </span>
+              <ContinueReadingHint />
             </button>
           ) : null}
         </div>
@@ -304,12 +349,14 @@ export default function DailyCorrespondences({
             <span className="correspondence-reading-content">
               <span><strong>{data.poesia.autore}</strong><em>{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em></span>
             </span>
+            <ContinueReadingHint />
           </button>
           <button type="button" className="correspondence-reading correspondence-bible" onClick={() => scrollTo('bibbia')}>
             <span className="correspondence-reading-label"><BookOpen aria-hidden="true" />{t('correspondenceBible', lingua)}</span>
             <span className="correspondence-reading-content">
               <span><strong>{data.bibbia.fonte}</strong><em>{getFirstSentence(data.bibbia.testo)}</em></span>
             </span>
+            <ContinueReadingHint />
           </button>
         </div>
 
@@ -324,6 +371,7 @@ export default function DailyCorrespondences({
             </span>
             <span className="daily-correspondences-seasonal-copy"><strong>{seasonalArtwork.title}</strong><em>{seasonalArtwork.artist}{seasonalArtwork.year ? ` · ${seasonalArtwork.year}` : ''}</em></span>
             <small>{t('seasonalArtworkOpen', lingua)} <ArrowDown aria-hidden="true" strokeWidth={1.7} /></small>
+            <ContinueReadingHint />
           </button>
         ) : null}
 
