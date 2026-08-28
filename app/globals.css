@@ -1622,6 +1622,7 @@ body {
   font-style: normal;
   margin-left: 0;
   overflow-wrap: normal;
+  text-wrap: wrap;
   white-space: normal;
   word-break: normal;
 }
@@ -1638,6 +1639,51 @@ body {
   font-style: italic;
   margin-left: 0.12em;
   white-space: nowrap;
+}
+
+.daily-correspondences-intro h2 .correspondence-lead-typewriter .typewriter-phrase-tail {
+  color: inherit;
+  display: inline;
+  font-style: normal;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.daily-correspondences-intro h2 .correspondence-lead-typewriter .typewriter-character.is-pending {
+  color: transparent;
+  display: contents;
+  visibility: visible;
+}
+
+.daily-correspondences-intro h2 .correspondence-lead-typewriter .typewriter-character {
+  color: inherit;
+  display: contents;
+  font-style: inherit;
+  margin: 0;
+  white-space: inherit;
+}
+
+.daily-correspondences-intro h2 .correspondence-lead-typewriter .typewriter-character.is-visible {
+  display: contents;
+}
+
+.daily-correspondences-intro h2 .correspondence-lead-typewriter .typewriter-phrase-caret-anchor {
+  color: inherit;
+  display: inline-block;
+  font-style: normal;
+  height: 0;
+  margin-left: 0;
+  position: absolute;
+  vertical-align: baseline;
+  width: 0;
+}
+
+.daily-correspondences-intro h2 .correspondence-lead-typewriter .typewriter-phrase-caret-anchor .typewriter-caret {
+  bottom: auto;
+  left: 0;
+  margin-left: 0;
+  position: absolute;
+  top: -0.08em;
 }
 
 /* ── Effetto scrittura a mano per il titolo principale ───────────── */

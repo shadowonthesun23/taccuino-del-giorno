@@ -17,6 +17,7 @@ import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editori
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
+const CORRESPONDENCE_TYPEWRITER_DELAY = 1160;
 
 function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();
@@ -242,6 +243,7 @@ export default function DailyCorrespondences({
               word={data.parola_giorno.parola}
               wordClass={wordTypographyClass}
               className="correspondence-lead-typewriter"
+              startDelay={CORRESPONDENCE_TYPEWRITER_DELAY}
             />
           </h2>
           <p className="daily-correspondences-copy">{t('correspondencesCopy', lingua)}</p>

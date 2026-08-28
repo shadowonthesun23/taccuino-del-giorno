@@ -82,23 +82,52 @@ export function TypewriterPhrase({
 }) {
   const phrase = `${prefix} ${word}`;
   const visibleText = useTypewriterText(phrase, startDelay);
+  const prefixBoundary = prefix.lastIndexOf(' ');
+  const leadPrefix = prefixBoundary > 0 ? prefix.slice(0, prefixBoundary) : '';
+  const leadConnector = prefixBoundary > 0 ? prefix.slice(prefixBoundary + 1) : prefix;
+  const connectorStart = leadPrefix ? leadPrefix.length + 1 : 0;
   const wordStart = prefix.length + 1;
-  const visiblePrefix = visibleText.slice(0, prefix.length);
-  const visibleWord = visibleText.slice(wordStart);
-  const hasSeparator = visibleText.length > prefix.length;
+  const wordSeparator = ' ';
   const phraseWordClass = `typewriter-phrase-word ${wordClass}`.trim();
+
+  const renderCaret = (key: string) => (
+    <span key={key} className="typewriter-phrase-caret-anchor"><span className="typewriter-caret" /></span>
+  );
+
+  const renderCharacter = (character: string, characterIndex: number, keyPrefix: string) => {
+    const isVisible = characterIndex < visibleText.length;
+    const isCaretPosition = visibleText.length < phrase.length && characterIndex === visibleText.length;
+    const characterNode = (
+      <span key={`${keyPrefix}-${characterIndex}`} className={`typewriter-character ${isVisible ? 'is-visible' : 'is-pending'}`}>
+        {character}
+      </span>
+    );
+
+    return isCaretPosition ? [renderCaret(`${keyPrefix}-caret-${characterIndex}`), characterNode] : [characterNode];
+  };
+
+  const renderCharacters = (text: string, offset: number, keyPrefix: string) => Array.from(text).flatMap((character, index) => (
+    renderCharacter(character, offset + index, keyPrefix)
+  ));
 
   return (
     <span className={`typewriter-text typewriter-phrase ${className}`} aria-label={phrase}>
       <span className="typewriter-measure" aria-hidden="true">
-        {prefix}{' '}
-        <span className={phraseWordClass}>{word}</span>
+        {leadPrefix}
+        {leadPrefix ? wordSeparator : null}
+        <span className="typewriter-phrase-tail">
+          {leadConnector}{wordSeparator}
+          <span className={phraseWordClass}>{word}</span>
+        </span>
       </span>
       <span className="typewriter-live" aria-hidden="true">
-        {visiblePrefix}
-        {hasSeparator ? ' ' : null}
-        <span className={phraseWordClass}>{visibleWord}</span>
-        {visibleText.length < phrase.length && <span className="typewriter-caret" />}
+        {leadPrefix ? renderCharacters(leadPrefix, 0, 'lead-prefix') : null}
+        {leadPrefix ? renderCharacter(wordSeparator, leadPrefix.length, 'lead-prefix-separator') : null}
+        <span className="typewriter-phrase-tail">
+          {renderCharacters(leadConnector, connectorStart, 'connector')}
+          {renderCharacter(wordSeparator, prefix.length, 'word-separator')}
+          <span className={phraseWordClass}>{renderCharacters(word, wordStart, 'word')}</span>
+        </span>
       </span>
     </span>
   );
