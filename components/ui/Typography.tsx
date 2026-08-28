@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-export function TypewriterText({ text, className = '' }: { text: string; className?: string }) {
+function useTypewriterText(text: string, startDelay = 260) {
   const [visibleText, setVisibleText] = useState('');
 
   useEffect(() => {
@@ -42,13 +42,19 @@ export function TypewriterText({ text, className = '' }: { text: string; classNa
       schedule(tick, baseDelay + pause);
     };
 
-    schedule(tick, 260);
+    schedule(tick, startDelay);
 
     return () => {
       cancelled = true;
       timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
-  }, [text]);
+  }, [startDelay, text]);
+
+  return visibleText;
+}
+
+export function TypewriterText({ text, className = '', startDelay = 260 }: { text: string; className?: string; startDelay?: number }) {
+  const visibleText = useTypewriterText(text, startDelay);
 
   return (
     <span className={`typewriter-text ${className}`} aria-label={text}>
@@ -56,6 +62,43 @@ export function TypewriterText({ text, className = '' }: { text: string; classNa
       <span className="typewriter-live" aria-hidden="true">
         {visibleText}
         {visibleText.length < text.length && <span className="typewriter-caret" />}
+      </span>
+    </span>
+  );
+}
+
+export function TypewriterPhrase({
+  prefix,
+  word,
+  wordClass = '',
+  className = '',
+  startDelay = 360,
+}: {
+  prefix: string;
+  word: string;
+  wordClass?: string;
+  className?: string;
+  startDelay?: number;
+}) {
+  const phrase = `${prefix} ${word}`;
+  const visibleText = useTypewriterText(phrase, startDelay);
+  const wordStart = prefix.length + 1;
+  const visiblePrefix = visibleText.slice(0, prefix.length);
+  const visibleWord = visibleText.slice(wordStart);
+  const hasSeparator = visibleText.length > prefix.length;
+  const phraseWordClass = `typewriter-phrase-word ${wordClass}`.trim();
+
+  return (
+    <span className={`typewriter-text typewriter-phrase ${className}`} aria-label={phrase}>
+      <span className="typewriter-measure" aria-hidden="true">
+        {prefix}{' '}
+        <span className={phraseWordClass}>{word}</span>
+      </span>
+      <span className="typewriter-live" aria-hidden="true">
+        {visiblePrefix}
+        {hasSeparator ? ' ' : null}
+        <span className={phraseWordClass}>{visibleWord}</span>
+        {visibleText.length < phrase.length && <span className="typewriter-caret" />}
       </span>
     </span>
   );

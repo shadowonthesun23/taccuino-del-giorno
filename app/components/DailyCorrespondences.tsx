@@ -12,6 +12,7 @@ import { OPEN_EPHEMERIS_EVENT, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { garamond, masterSignature } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
+import { TypewriterPhrase } from '@/components/ui/Typography';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
 
@@ -235,7 +236,14 @@ export default function DailyCorrespondences({
 
         <div className="daily-correspondences-intro">
           <p>{t('correspondencesKicker', lingua)}</p>
-          <h2 id="correspondences-title">{t('correspondencesLead', lingua)} <span className={wordTypographyClass}>{data.parola_giorno.parola}</span></h2>
+          <h2 id="correspondences-title">
+            <TypewriterPhrase
+              prefix={t('correspondencesLead', lingua)}
+              word={data.parola_giorno.parola}
+              wordClass={wordTypographyClass}
+              className="correspondence-lead-typewriter"
+            />
+          </h2>
           <p className="daily-correspondences-copy">{t('correspondencesCopy', lingua)}</p>
         </div>
 

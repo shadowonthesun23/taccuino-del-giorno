@@ -43,6 +43,7 @@ import {
 const eagerImageProps = getImageLoadingProps(true);
 const lazyImageProps = getImageLoadingProps();
 const lowPriorityImageProps = { decoding: 'async' as const, fetchPriority: 'low' as const };
+const PRELOAD_EXIT_DURATION = 820;
 let latestDayRequestId = 0;
 
 interface ScrollRevealBadgeProps {
@@ -259,6 +260,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [operaImageIndex, setOperaImageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPreloadExiting, setIsPreloadExiting] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
@@ -527,10 +529,12 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const caricaGiorno = (dataIso: string | null, usePageTurn = false, targetSection = 'autore') => {
     const requestId = ++latestDayRequestId;
     if (usePageTurn) {
+      setIsPreloadExiting(false);
       setIsTurningPage(true);
       setPageTurnPhase('covering');
     } else {
       setLoading(true);
+      setIsPreloadExiting(false);
     }
     setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setReadingMedia({ poesia: null, bibbia: null }); setMusicCover(null); setEditorialMedia({}); setEditorialMediaCrops({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
@@ -566,6 +570,12 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           ? { ...operaData, immagine_url: editorialMediaForDay.opera, immagine_url_hd: editorialMediaForDay.opera }
           : operaData;
         setData(nextData); setDataOriginale(nextData); setOpera(nextOpera); setEditorialMedia(editorialMediaForDay); setEditorialMediaCrops(editorialMediaCropsForDay); setDataSelezionata(dataIso); setLoading(false); setActiveSection(targetSection); setContentKey(k => k + 1);
+        if (!usePageTurn) {
+          setIsPreloadExiting(true);
+          window.setTimeout(() => {
+            if (requestId === latestDayRequestId) setIsPreloadExiting(false);
+          }, PRELOAD_EXIT_DURATION);
+        }
         const nextUrl = new URL(window.location.href);
         if (dataIso) nextUrl.searchParams.set('data', dataIso);
         else nextUrl.searchParams.delete('data');
@@ -672,7 +682,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       })
       .catch(err => {
         if (requestId !== latestDayRequestId) return;
-        setError(err.message); setLoading(false); setIsTurningPage(false); setPageTurnPhase('idle');
+        setError(err.message); setLoading(false); setIsPreloadExiting(false); setIsTurningPage(false); setPageTurnPhase('idle');
       });
   };
 
@@ -1059,9 +1069,18 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     document.body
   ) : null;
 
+  const loadingScreen = (loading || isPreloadExiting) ? (
+    <div
+      className={`loading-screen-overlay ${isPreloadExiting ? 'is-exiting' : ''}`}
+      aria-hidden={isPreloadExiting || undefined}
+    >
+      <LoadingNotebook isDark={isDark} lingua={lingua} />
+    </div>
+  ) : null;
+
   if (loading) return (
     <>
-      <LoadingNotebook isDark={isDark} lingua={lingua} />
+      {loadingScreen}
       {archivioPopover}
       {savedCardsDrawer}
     </>
@@ -1096,7 +1115,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const seasonalArtwork = getLocalizedSeasonalArtwork(getSeasonalArtwork(season, dataExLibris), lingua) ?? null;
 
   return (
-    <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className} language={lingua} sealColor={currentSealColor}>
+    <>
+      {loadingScreen}
+      <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className} language={lingua} sealColor={currentSealColor}>
       <div
         className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
         style={{
@@ -2085,6 +2106,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         />
 
       </div>
-    </ParallaxBackground>
+      </ParallaxBackground>
+    </>
   );
 }
