@@ -13823,3 +13823,71 @@ body.museum-room-open :is(
     transition: none;
   }
 }
+
+/* Mobile tavola: give the reading details more room without touching the poster export. */
+@media (max-width: 680px) {
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .daily-correspondences-header {
+    font-size: 0.62rem;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .daily-correspondences-intro > p:first-child {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .daily-correspondences-copy {
+    font-size: clamp(1.03rem, 4.3vw, 1.14rem);
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) :is(.correspondence-entry-label, .correspondence-author-label, .correspondence-reading-label) {
+    font-size: 0.72rem;
+    letter-spacing: 0.13em;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) :is(.correspondence-entry-label, .correspondence-author-label, .correspondence-reading-label) svg {
+    height: 16px;
+    width: 16px;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-author-caption {
+    align-self: stretch;
+    padding-inline: 0;
+    width: 100%;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-author-caption strong {
+    font-size: clamp(1.32rem, 5.6vw, 1.72rem);
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-author-caption em {
+    font-size: 1rem;
+    line-height: 1.35;
+    max-width: none;
+    overflow-wrap: break-word;
+    width: 100%;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-entry-content strong,
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-reading strong {
+    font-size: clamp(1.1rem, 4.6vw, 1.32rem);
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-entry-content em,
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-word-content > span > em,
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-reading em {
+    font-size: 0.98rem;
+    line-height: 1.32;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planets-heading {
+    font-size: 0.64rem;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-chip {
+    font-size: 0.72rem;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-chip em {
+    font-size: 0.64rem;
+  }
+}
