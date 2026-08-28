@@ -42,7 +42,7 @@ export function normalizeEditorialMediaValue(value: unknown): string {
   }
 }
 
-function sanitizeOverrides(value: unknown): EditorialMediaOverrides {
+export function sanitizeEditorialMediaOverrides(value: unknown): EditorialMediaOverrides {
   if (!isRecord(value)) return {};
 
   const entries = EDITORIAL_MEDIA_SECTION_IDS.flatMap((section) => {
@@ -63,7 +63,7 @@ function readStore(): EditorialMediaStore {
     if (!isRecord(parsed)) return {};
 
     return Object.fromEntries(
-      Object.entries(parsed).map(([date, overrides]) => [date, sanitizeOverrides(overrides)])
+      Object.entries(parsed).map(([date, overrides]) => [date, sanitizeEditorialMediaOverrides(overrides)])
     );
   } catch {
     return {};
@@ -80,7 +80,7 @@ export function saveEditorialMediaOverrides(date: string, overrides: EditorialMe
 
   try {
     const store = readStore();
-    const sanitized = sanitizeOverrides(overrides);
+    const sanitized = sanitizeEditorialMediaOverrides(overrides);
     if (Object.keys(sanitized).length > 0) {
       store[date] = sanitized;
     } else {

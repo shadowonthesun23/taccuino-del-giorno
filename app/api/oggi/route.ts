@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
 
 function getRomeDateIso(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -57,9 +58,27 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Nessun contenuto per questa data' }, { status: 404 });
     }
 
-    const fotoUrl = await getFotoAutore(data.autore_giorno);
+    const [{ data: editorialMediaRow, error: editorialMediaError }, fotoUrl] = await Promise.all([
+      supabase
+        .from('editorial_media_overrides')
+        .select('overrides')
+        .eq('data', dataIso)
+        .maybeSingle(),
+      getFotoAutore(data.autore_giorno),
+    ]);
 
-    return NextResponse.json({ ...data, foto_autore_url: fotoUrl });
+    if (editorialMediaError) {
+      console.error('Errore lettura immagini editoriali:', editorialMediaError);
+    }
+
+    return NextResponse.json(
+      {
+        ...data,
+        foto_autore_url: fotoUrl,
+        editorial_media: sanitizeEditorialMediaOverrides(editorialMediaRow?.overrides),
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error: unknown) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Errore inatteso' }, { status: 500 });
   }

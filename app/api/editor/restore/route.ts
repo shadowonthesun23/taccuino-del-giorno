@@ -40,7 +40,9 @@ export async function POST(request: Request) {
   }
 
   const content = Object.fromEntries(
-    Object.entries(payload.contenuto).filter(([key]) => key !== 'data' && key !== 'foto_autore_url')
+    Object.entries(payload.contenuto).filter(([key]) => (
+      key !== 'data' && key !== 'foto_autore_url' && key !== 'editorial_media'
+    ))
   );
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   const { error } = await supabase

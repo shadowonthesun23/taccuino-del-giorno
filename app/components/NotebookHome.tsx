@@ -32,7 +32,7 @@ import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-tran
 import { garamond, caveat, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { EditorialMediaOverrides } from '@/lib/editorial-media';
-import { getEditorialMediaOverrides } from '@/lib/editorial-media';
+import { getEditorialMediaOverrides, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
 const lazyImageProps = getImageLoadingProps();
@@ -537,7 +537,11 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     ])
       .then(([dati, operaData]) => {
         if (requestId !== latestDayRequestId) return;
-        const editorialMediaForDay = getEditorialMediaOverrides(dataIso ?? oggi);
+        const remoteEditorialMedia = sanitizeEditorialMediaOverrides(dati.editorial_media);
+        const localEditorialMedia = getEditorialMediaOverrides(dataIso ?? oggi);
+        const editorialMediaForDay = Object.keys(remoteEditorialMedia).length > 0
+          ? remoteEditorialMedia
+          : localEditorialMedia;
         const nextData = editorialMediaForDay.autore
           ? { ...dati, foto_autore_url: editorialMediaForDay.autore }
           : dati;

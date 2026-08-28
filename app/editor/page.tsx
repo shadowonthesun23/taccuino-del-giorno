@@ -8,6 +8,7 @@ import {
   clearEditorialMediaOverrides,
   getEditorialMediaOverrides,
   normalizeEditorialMediaValue,
+  sanitizeEditorialMediaOverrides,
   saveEditorialMediaOverrides,
   type EditorialMediaOverrides,
   type EditorialMediaSectionId,
@@ -35,7 +36,10 @@ function snapshotKey(date: string) {
   return `taccuino-editor-snapshot-${date}`;
 }
 
-type EditorPreviewData = DatiTaccuino & { keyword_arte_en?: string | null };
+type EditorPreviewData = DatiTaccuino & {
+  keyword_arte_en?: string | null;
+  editorial_media?: unknown;
+};
 
 const MEDIA_FIELDS: Array<{
   id: EditorialMediaSectionId;
@@ -135,7 +139,7 @@ export default function EditorPage() {
   const [previewData, setPreviewData] = useState<EditorPreviewData | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [mediaOverrides, setMediaOverrides] = useState<EditorialMediaOverrides>({});
-  const [mediaStatus, setMediaStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [mediaStatus, setMediaStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [mediaMessage, setMediaMessage] = useState('');
 
   useEffect(() => {
@@ -175,7 +179,14 @@ export default function EditorPage() {
     fetch(`/api/oggi?data=${encodeURIComponent(date.trim())}`, { cache: 'no-store' })
       .then((response) => response.ok ? response.json() as Promise<EditorPreviewData> : null)
       .then((nextPreview) => {
-        if (!cancelled) setPreviewData(nextPreview);
+        if (!cancelled) {
+          setPreviewData(nextPreview);
+          if (nextPreview) {
+            const remoteOverrides = sanitizeEditorialMediaOverrides(nextPreview.editorial_media);
+            const localOverrides = getEditorialMediaOverrides(date.trim());
+            setMediaOverrides(Object.keys(remoteOverrides).length > 0 ? remoteOverrides : localOverrides);
+          }
+        }
       })
       .catch(() => {
         if (!cancelled) setPreviewData(null);
@@ -293,7 +304,7 @@ export default function EditorPage() {
     }
   }
 
-  function handleSaveMedia() {
+  async function handleSaveMedia() {
     const invalidField = MEDIA_FIELDS.find(({ id }) => {
       const value = mediaOverrides[id];
       return Boolean(value?.trim()) && !normalizeEditorialMediaValue(value);
@@ -305,23 +316,84 @@ export default function EditorPage() {
       return;
     }
 
-    if (!saveEditorialMediaOverrides(date.trim(), mediaOverrides)) {
+    if (!secret.trim()) {
       setMediaStatus('error');
-      setMediaMessage('Non riesco a salvare le immagini in questo browser.');
+      setMediaMessage('Inserisci il CRON_SECRET per pubblicare le immagini nella tavola condivisa.');
       return;
     }
 
-    setMediaOverrides(getEditorialMediaOverrides(date.trim()));
-    setMediaStatus('success');
-    setMediaMessage('Immagini salvate per questa data in questo browser.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
+      setMediaStatus('error');
+      setMediaMessage('Inserisci una data valida prima di salvare le immagini.');
+      return;
+    }
+
+    setMediaStatus('loading');
+    setMediaMessage('Pubblico le immagini nella tavola condivisa…');
+
+    try {
+      const overrides = sanitizeEditorialMediaOverrides(mediaOverrides);
+      const response = await fetch('/api/editorial-media', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: date.trim(), overrides }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Errore ${response.status}`);
+      }
+
+      const result = await response.json() as { overrides?: unknown };
+      const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
+      window.localStorage.setItem('taccuino-editor-secret', secret.trim());
+      saveEditorialMediaOverrides(date.trim(), savedOverrides);
+      setMediaOverrides(savedOverrides);
+      setMediaStatus('success');
+      setMediaMessage('Immagini pubblicate in Supabase: ora valgono per tutti i visitatori.');
+    } catch (error) {
+      setMediaStatus('error');
+      setMediaMessage(error instanceof Error ? error.message : 'Pubblicazione delle immagini non riuscita.');
+    }
   }
 
-  function handleClearMedia() {
+  async function handleClearMedia() {
     if (!window.confirm(`Rimuovere tutte le immagini manuali del ${date}?`)) return;
-    clearEditorialMediaOverrides(date.trim());
-    setMediaOverrides({});
-    setMediaStatus('success');
-    setMediaMessage('Immagini manuali rimosse per questa data.');
+    if (!secret.trim()) {
+      setMediaStatus('error');
+      setMediaMessage('Inserisci il CRON_SECRET per rimuovere le immagini dalla tavola condivisa.');
+      return;
+    }
+
+    setMediaStatus('loading');
+    setMediaMessage('Rimuovo le immagini dalla tavola condivisa…');
+
+    try {
+      const response = await fetch('/api/editorial-media', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: date.trim(), overrides: {} }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Errore ${response.status}`);
+      }
+
+      clearEditorialMediaOverrides(date.trim());
+      setMediaOverrides({});
+      setMediaStatus('success');
+      setMediaMessage('Immagini manuali rimosse dalla tavola condivisa.');
+    } catch (error) {
+      setMediaStatus('error');
+      setMediaMessage(error instanceof Error ? error.message : 'Rimozione delle immagini non riuscita.');
+    }
   }
 
   return (
@@ -426,7 +498,8 @@ export default function EditorPage() {
           </div>
           <p className="editor-media-intro">
             Per ogni sezione puoi incollare l’URL diretto dell’immagine oppure caricare un file che hai trovato online.
-            Le immagini vengono salvate solo in questo browser e restano associate alla data scelta.
+            Dopo il salvataggio vengono pubblicate in Supabase e restano associate alla data scelta per tutti i visitatori.
+            Il browser conserva anche una copia di fallback per te.
           </p>
           <div className="editor-media-note">
             <strong>Nota pratica.</strong> Dal pulsante “Cerca immagini” apri una ricerca, poi copia l’URL del file immagine; se il sito non offre un URL diretto, scarica l’immagine e usa “Carica file”.
@@ -485,15 +558,15 @@ export default function EditorPage() {
           </div>
 
           <div className="editor-media-actions">
-            <p>Le immagini manuali prendono il posto del risultato automatico nella home e nella tavola.</p>
+            <p>Le immagini manuali prendono il posto del risultato automatico nella home e nella tavola, per tutti i visitatori.</p>
             <div>
-              <button type="button" className="editor-media-clear" onClick={handleClearMedia} disabled={!Object.keys(mediaOverrides).length}>
+              <button type="button" className="editor-media-clear" onClick={() => void handleClearMedia()} disabled={mediaStatus === 'loading' || !Object.keys(mediaOverrides).length}>
                 <RotateCcw aria-hidden="true" />
                 <span>Svuota questa data</span>
               </button>
-              <button type="button" className="editor-media-save" onClick={handleSaveMedia}>
+              <button type="button" className="editor-media-save" onClick={() => void handleSaveMedia()} disabled={mediaStatus === 'loading'}>
                 <Save aria-hidden="true" />
-                <span>Salva immagini</span>
+                <span>{mediaStatus === 'loading' ? 'Pubblico…' : 'Pubblica immagini'}</span>
               </button>
             </div>
           </div>
