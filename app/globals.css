@@ -3131,7 +3131,7 @@ body {
 }
 
 .author-photo-image-frame {
-  height: 180px;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   width: 140px;
 }
@@ -7656,7 +7656,7 @@ body.museum-room-open :is(
 }
 
 .daily-passport-author-photo {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   transform: rotate(-2deg);
 }
 
@@ -7856,7 +7856,7 @@ body.museum-room-open :is(
   }
 
   .daily-passport-author-photo {
-    aspect-ratio: 3 / 4 !important;
+    aspect-ratio: 4 / 5 !important;
     max-height: 58mm !important;
     width: 100% !important;
   }
@@ -10776,11 +10776,6 @@ body.museum-room-open :is(
     max-width: 370px;
     padding: 13px 13px 16px;
     width: min(100%, 370px);
-  }
-
-  .correspondence-author > img,
-  .correspondence-author-empty {
-    aspect-ratio: 16 / 10;
   }
 
   .daily-correspondences-closure {

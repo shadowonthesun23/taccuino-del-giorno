@@ -1398,7 +1398,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 style={{
                   display: 'block',
                   width: '140px',
-                  height: '180px',
+                  height: '175px',
                   objectFit: 'cover',
                   objectPosition: `${authorImageCrop.x}% ${authorImageCrop.y}%`,
                   transform: `scale(${authorImageCrop.zoom})`,

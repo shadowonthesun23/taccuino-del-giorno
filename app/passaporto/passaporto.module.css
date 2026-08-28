@@ -700,7 +700,7 @@
 }
 
 .authorPhoto {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   float: left;
   margin: 0 10px 7px 0;
   transform: rotate(-1deg);
