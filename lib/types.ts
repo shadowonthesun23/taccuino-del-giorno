@@ -8,6 +8,23 @@ export type MoonPhaseId = 'new' | 'waxing-crescent' | 'first-quarter' | 'waxing-
 export type OperaGiorno = Artwork;
 export type SaintArtworkResult = SaintArtwork & { saintName: string };
 
+export type ReadingMediaSource = 'wikimedia' | 'wikipedia';
+
+export interface ReadingMedia {
+  imageUrl: string;
+  sourceUrl: string;
+  title: string;
+  author: string;
+  license: string;
+  licenseUrl: string;
+  source: ReadingMediaSource;
+}
+
+export interface ReadingMediaResult {
+  poesia: ReadingMedia | null;
+  bibbia: ReadingMedia | null;
+}
+
 export interface ApodData {
   date: string;
   media_type: 'image' | 'video' | string;

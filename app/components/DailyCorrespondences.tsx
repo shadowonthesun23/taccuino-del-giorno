@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Moon, Music, Palette, Sparkles, Telescope, Type } from 'lucide-react';
-import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno, SaintArtworkResult } from '@/lib/types';
+import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno, ReadingMediaResult, SaintArtworkResult } from '@/lib/types';
 import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 import { getMoonPhase } from '@/lib/astronomy';
@@ -83,6 +83,7 @@ export default function DailyCorrespondences({
   seasonalArtwork,
   apod,
   saintArtwork,
+  readingMedia,
   editorialMedia,
   editorialMediaCrops,
 }: {
@@ -97,6 +98,7 @@ export default function DailyCorrespondences({
   seasonalArtwork: SeasonalArtwork | null;
   apod: ApodData | null;
   saintArtwork: SaintArtworkResult | null;
+  readingMedia: ReadingMediaResult;
   editorialMedia: EditorialMediaOverrides;
   editorialMediaCrops: EditorialMediaCrops;
 }) {
@@ -118,9 +120,13 @@ export default function DailyCorrespondences({
   const seasonalArtworkImageAvailable = Boolean(seasonalArtwork?.imageUrl && !failedMedia.has(seasonalArtwork.imageUrl));
   const apodImageUrl = editorialMedia.apod || proxiedImageUrl(apod?.thumbnail_url || apod?.url);
   const saintArtworkImageUrl = editorialMedia.santi || proxiedImageUrl(saintArtwork?.imageUrl);
+  const poemImageUrl = proxiedImageUrl(readingMedia.poesia?.imageUrl);
+  const bibleImageUrl = proxiedImageUrl(readingMedia.bibbia?.imageUrl);
   const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
+  const poemImageAvailable = Boolean(poemImageUrl) && !failedMedia.has(poemImageUrl);
+  const bibleImageAvailable = Boolean(bibleImageUrl) && !failedMedia.has(bibleImageUrl);
   const authorDescription = getAuthorTeaser(data.breve_descrizione);
   const saintOfTheDay = data.santi[0];
   const wordLength = data.parola_giorno.parola.trim().length;
@@ -346,14 +352,22 @@ export default function DailyCorrespondences({
         <div className="daily-correspondences-readings">
           <button type="button" className="correspondence-reading correspondence-poem" onClick={() => scrollTo('poesia')}>
             <span className="correspondence-reading-label"><Feather aria-hidden="true" />{t('correspondencePoem', lingua)}</span>
-            <span className="correspondence-reading-content">
+            <span className={`correspondence-reading-content${poemImageAvailable ? ' has-image' : ''}`}>
+              {poemImageAvailable ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
+                <img draggable={false} src={poemImageUrl} alt="" onError={() => markMediaUnavailable(poemImageUrl)} {...eagerImageProps} />
+              ) : null}
               <span><strong>{data.poesia.autore}</strong><em>{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em></span>
             </span>
             <ContinueReadingHint />
           </button>
           <button type="button" className="correspondence-reading correspondence-bible" onClick={() => scrollTo('bibbia')}>
             <span className="correspondence-reading-label"><BookOpen aria-hidden="true" />{t('correspondenceBible', lingua)}</span>
-            <span className="correspondence-reading-content">
+            <span className={`correspondence-reading-content${bibleImageAvailable ? ' has-image' : ''}`}>
+              {bibleImageAvailable ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
+                <img draggable={false} src={bibleImageUrl} alt="" onError={() => markMediaUnavailable(bibleImageUrl)} {...eagerImageProps} />
+              ) : null}
               <span><strong>{data.bibbia.fonte}</strong><em>{getFirstSentence(data.bibbia.testo)}</em></span>
             </span>
             <ContinueReadingHint />

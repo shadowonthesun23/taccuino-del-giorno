@@ -22,7 +22,7 @@ import WatercolorDivider from '@/components/ui/WatercolorDivider';
 
 // Library utilities & types
 import type { SaintArtwork } from '@/lib/saint-artwork';
-import type { LanguageCode, OperaGiorno, SaintArtworkResult, ApodData, DatiTaccuino, ArchivioItem, SavedSectionId, SavedCardItem } from '@/lib/types';
+import type { LanguageCode, OperaGiorno, SaintArtworkResult, ApodData, DatiTaccuino, ArchivioItem, SavedSectionId, SavedCardItem, ReadingMedia, ReadingMediaResult } from '@/lib/types';
 import { TICKET_DOWNLOAD_EVENT, VISITED_ARCHIVE_STORAGE_KEY, DEFAULT_DAILY_ACCENT, SEAL_COLOR_MAP, notebookNavItems } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { formatDataItaliana, getRomeDateIso, getSavedVisitedDates, getMonthNumber, getDisplayDate, getDayOfYearInfo, getInitials, getSeason, formatExLibrisDate, isSeasonId, getMarginalia, normalizeArchiveText } from '@/lib/date-utils';
@@ -62,6 +62,20 @@ function ScrollRevealBadge({
       {children}
     </Component>
   );
+}
+
+function getReadingMediaCreditLabel(
+  lingua: LanguageCode,
+  section: 'poesia' | 'bibbia',
+  media: ReadingMedia,
+) {
+  const labels = {
+    poesia: { IT: 'Ritratto', EN: 'Portrait', FR: 'Portrait', DE: 'Porträt', ES: 'Retrato', PT: 'Retrato' },
+    bibbia: { IT: 'Foto', EN: 'Photo', FR: 'Photo', DE: 'Foto', ES: 'Foto', PT: 'Foto' },
+  } as const;
+  const source = media.source === 'wikimedia' ? 'Wikimedia Commons' : 'Wikipedia';
+  const details = section === 'bibbia' ? [media.author, media.license] : [];
+  return [labels[section][lingua], source, ...details].filter(Boolean).join(' · ');
 }
 
 interface LanguageConfig {
@@ -238,6 +252,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [apodLoading, setApodLoading] = useState(false);
   const [isApodExpanded, setIsApodExpanded] = useState(false);
   const [saintArtwork, setSaintArtwork] = useState<SaintArtworkResult | null>(null);
+  const [readingMedia, setReadingMedia] = useState<ReadingMediaResult>({ poesia: null, bibbia: null });
   const [musicCover, setMusicCover] = useState<string | null>(null);
   const [editorialMedia, setEditorialMedia] = useState<EditorialMediaOverrides>({});
   const [editorialMediaCrops, setEditorialMediaCrops] = useState<EditorialMediaCrops>({});
@@ -517,7 +532,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     } else {
       setLoading(true);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setMusicCover(null); setEditorialMedia({}); setEditorialMediaCrops({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setReadingMedia({ poesia: null, bibbia: null }); setMusicCover(null); setEditorialMedia({}); setEditorialMediaCrops({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -618,6 +633,18 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             });
           }
         }
+        const poemAuthor = nextData.poesia.autore.trim();
+        runWhenIdle(() => {
+          if (requestId !== latestDayRequestId) return;
+          fetch(`/api/reading-media?autore=${encodeURIComponent(poemAuthor)}`)
+            .then((response) => response.ok ? response.json() as Promise<ReadingMediaResult> : null)
+            .then((media) => {
+              if (requestId === latestDayRequestId) setReadingMedia(media ?? { poesia: null, bibbia: null });
+            })
+            .catch(() => {
+              if (requestId === latestDayRequestId) setReadingMedia({ poesia: null, bibbia: null });
+            });
+        });
         if (editorialMediaForDay.musica) {
           setMusicCover(editorialMediaForDay.musica);
         } else {
@@ -794,6 +821,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   );
   const operaImageSrc = operaImageCandidates[operaImageIndex] ?? null;
   const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
+  const poemImageUrl = proxiedImageUrl(readingMedia.poesia?.imageUrl);
+  const bibleImageUrl = proxiedImageUrl(readingMedia.bibbia?.imageUrl);
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
@@ -1359,6 +1388,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           seasonalArtwork={seasonalArtwork}
           apod={apod}
           saintArtwork={visibleSaintArtwork}
+          readingMedia={readingMedia}
           editorialMedia={editorialMedia}
           editorialMediaCrops={editorialMediaCrops}
         />
@@ -1610,21 +1640,48 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('poesia')}
               onToggleSaved={() => saveCard('poesia', data.poesia.fonte || t('poemCard', lingua), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
-              <DecorativeInitialText
-                text={data.poesia.testo}
-                className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
-                initialTone="blue"
-              />
-              <div className="poem-bible-attribution text-left pt-4 mb-6">
-                <p className="font-bold text-xl">{data.poesia.autore}</p>
-                <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
-              </div>
-              {data.poesia.nota && (
-                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
-                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Perché questa scelta', EN: 'Why this choice', FR: 'Pourquoi ce choix', DE: 'Warum diese Wahl', ES: '¿Por qué esta elección?', PT: 'Por que esta escolha' }[lingua] || 'Why this choice'}</span>
-                  {data.poesia.nota}
+              <div className={`reading-card-layout ${poemImageUrl ? 'has-image' : ''}`}>
+                {poemImageUrl ? (
+                  <figure className="reading-card-artwork reading-card-artwork-poem" aria-hidden="true">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
+                    <img
+                      draggable={false}
+                      src={poemImageUrl}
+                      alt=""
+                      onError={() => setReadingMedia((current) => ({ ...current, poesia: null }))}
+                      {...lazyImageProps}
+                    />
+                  </figure>
+                ) : null}
+                <div className="reading-card-copy">
+                  <DecorativeInitialText
+                    text={data.poesia.testo}
+                    className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
+                    initialTone="blue"
+                  />
+                  <div className="poem-bible-attribution text-left pt-4 mb-6">
+                    <p className="font-bold text-xl">{data.poesia.autore}</p>
+                    <p className={`${themeClasses.textMuted} font-medium italic`}>{data.poesia.fonte}</p>
+                  </div>
+                  {data.poesia.nota && (
+                    <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                      <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Perché questa scelta', EN: 'Why this choice', FR: 'Pourquoi ce choix', DE: 'Warum diese Wahl', ES: '¿Por qué esta elección?', PT: 'Por que esta escolha' }[lingua] || 'Why this choice'}</span>
+                      {data.poesia.nota}
+                    </div>
+                  )}
+                  {readingMedia.poesia?.sourceUrl ? (
+                    <a
+                      href={readingMedia.poesia.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="reading-card-credit"
+                      aria-label={getReadingMediaCreditLabel(lingua, 'poesia', readingMedia.poesia)}
+                    >
+                      {getReadingMediaCreditLabel(lingua, 'poesia', readingMedia.poesia)}
+                    </a>
+                  ) : null}
                 </div>
-              )}
+              </div>
               </Card>
 
             <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={t('bibleCard', lingua)} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
@@ -1632,19 +1689,46 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
-              <DecorativeInitialText
-                text={data.bibbia.testo}
-                className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
-              />
-              <div className="poem-bible-attribution text-left pt-4 mb-6">
-                <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
-              </div>
-              {data.bibbia.nota && (
-                <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
-                  <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Il senso del passaggio', EN: 'The meaning of the passage', FR: 'Le sens du passage', DE: 'Die Bedeutung der Passage', ES: 'El sentido del pasaje', PT: 'O sentido da passagem' }[lingua] || 'The meaning of the passage'}</span>
-                  {data.bibbia.nota}
+              <div className={`reading-card-layout ${bibleImageUrl ? 'has-image' : ''}`}>
+                {bibleImageUrl ? (
+                  <figure className="reading-card-artwork reading-card-artwork-bible" aria-hidden="true">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
+                    <img
+                      draggable={false}
+                      src={bibleImageUrl}
+                      alt=""
+                      onError={() => setReadingMedia((current) => ({ ...current, bibbia: null }))}
+                      {...lazyImageProps}
+                    />
+                  </figure>
+                ) : null}
+                <div className="reading-card-copy">
+                  <DecorativeInitialText
+                    text={data.bibbia.testo}
+                    className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
+                  />
+                  <div className="poem-bible-attribution text-left pt-4 mb-6">
+                    <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
+                  </div>
+                  {data.bibbia.nota && (
+                    <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                      <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Il senso del passaggio', EN: 'The meaning of the passage', FR: 'Le sens du passage', DE: 'Die Bedeutung der Passage', ES: 'El sentido del pasaje', PT: 'O sentido da passagem' }[lingua] || 'The meaning of the passage'}</span>
+                      {data.bibbia.nota}
+                    </div>
+                  )}
+                  {readingMedia.bibbia?.sourceUrl ? (
+                    <a
+                      href={readingMedia.bibbia.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="reading-card-credit"
+                      aria-label={getReadingMediaCreditLabel(lingua, 'bibbia', readingMedia.bibbia)}
+                    >
+                      {getReadingMediaCreditLabel(lingua, 'bibbia', readingMedia.bibbia)}
+                    </a>
+                  ) : null}
                 </div>
-              )}
+              </div>
             </Card>
 
             {opera && (
