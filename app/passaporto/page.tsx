@@ -12,7 +12,7 @@ import {
 } from '@/lib/artwork';
 import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import type { EditorialMediaCrop } from '@/lib/editorial-media';
-import { sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
+import { getEditorialMediaCropImageStyle, sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -317,17 +317,15 @@ export default async function PassportPage({
       <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
         {data.foto_autore_url && (
           <figure className={styles.authorPhoto}>
-            <img
-              draggable={false}
-              crossOrigin="anonymous"
-              src={data.foto_autore_url}
-              alt={`Ritratto dell'autore: ${data.autore_giorno}`}
-              style={authorCrop ? {
-                objectPosition: `${authorCrop.x}% ${authorCrop.y}%`,
-                transform: `scale(${authorCrop.zoom})`,
-                transformOrigin: 'center center',
-              } : undefined}
-            />
+            <div className={styles.authorPhotoFrame}>
+              <img
+                draggable={false}
+                crossOrigin="anonymous"
+                src={data.foto_autore_url}
+                alt={`Ritratto dell'autore: ${data.autore_giorno}`}
+                style={authorCrop ? getEditorialMediaCropImageStyle(authorCrop) : undefined}
+              />
+            </div>
           </figure>
         )}
         <div className={styles.authorBio}>

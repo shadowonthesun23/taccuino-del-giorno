@@ -9,6 +9,7 @@ import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import {
   clearEditorialMediaOverrides,
   DEFAULT_EDITORIAL_MEDIA_CROP,
+  getEditorialMediaCropImageStyle,
   getEditorialMediaDocument,
   normalizeEditorialMediaValue,
   sanitizeEditorialMediaCrops,
@@ -146,11 +147,7 @@ function AuthorCropEditor({
           src={src}
           alt="Anteprima del ritaglio dell’autore"
           draggable={false}
-          style={{
-            objectPosition: `${crop.x}% ${crop.y}%`,
-            transform: `scale(${crop.zoom})`,
-            transformOrigin: 'center center',
-          }}
+          style={getEditorialMediaCropImageStyle(crop)}
         />
         <span className="editor-author-crop-guides" aria-hidden="true" />
       </div>

@@ -13,7 +13,7 @@ import {
   getAuthorNameFontSize,
 } from '@/app/lib/authorCardDesign';
 import type { EditorialMediaCrop } from '@/lib/editorial-media';
-import { DEFAULT_EDITORIAL_MEDIA_CROP } from '@/lib/editorial-media';
+import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -319,6 +319,7 @@ export default function AuthorExportCard({
                   style={{
                     height: `${layout.photoHeight}px`,
                     overflow: 'hidden',
+                    position: 'relative',
                     width: `${layout.photoWidth}px`,
                   }}
                 >
@@ -328,13 +329,7 @@ export default function AuthorExportCard({
                     alt={autoreGiorno}
                     crossOrigin="anonymous"
                     style={{
-                      display: 'block',
-                      width: `${layout.photoWidth}px`,
-                      height: `${layout.photoHeight}px`,
-                      objectFit: 'cover',
-                      objectPosition: `${authorImageCrop.x}% ${authorImageCrop.y}%`,
-                      transform: `scale(${authorImageCrop.zoom})`,
-                      transformOrigin: 'center center',
+                      ...getEditorialMediaCropImageStyle(authorImageCrop),
                       filter: 'grayscale(100%) contrast(92%) brightness(1.04)',
                       outline: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
                       outlineOffset: '-1px',

@@ -34,6 +34,7 @@ import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import {
   DEFAULT_EDITORIAL_MEDIA_CROP,
+  getEditorialMediaCropImageStyle,
   getEditorialMediaDocument,
   sanitizeEditorialMediaCrops,
   sanitizeEditorialMediaOverrides,
@@ -1395,15 +1396,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 src={data.foto_autore_url}
                 alt={data.autore_giorno}
                 {...eagerImageProps}
-                style={{
-                  display: 'block',
-                  width: '140px',
-                  height: '175px',
-                  objectFit: 'cover',
-                  objectPosition: `${authorImageCrop.x}% ${authorImageCrop.y}%`,
-                  transform: `scale(${authorImageCrop.zoom})`,
-                  transformOrigin: 'center center',
-                }}
+                style={getEditorialMediaCropImageStyle(authorImageCrop)}
               />
             </div>
             <span className={`${caveat.className} author-photo-caption`}>

@@ -27,6 +27,38 @@ type EditorialMediaStore = Record<string, EditorialMediaDocument>;
 const MAX_EDITORIAL_DATA_URL_LENGTH = 700_000;
 export const DEFAULT_EDITORIAL_MEDIA_CROP: EditorialMediaCrop = { x: 50, y: 50, zoom: 1 };
 
+function cropAxisPosition(offset: number) {
+  if (offset === 0) return '50%';
+  return `calc(50% ${offset > 0 ? '+' : '-'} ${Math.abs(offset).toFixed(3)}%)`;
+}
+
+/**
+ * Shared rendering for the author crop.
+ *
+ * object-position alone cannot move an image whose source already has the
+ * same aspect ratio as its frame. The explicit left/top offsets preserve the
+ * editor's focal point even in that case, while object-position still handles
+ * the intrinsic cover crop for wider or taller source images.
+ */
+export function getEditorialMediaCropImageStyle(crop: EditorialMediaCrop) {
+  const normalizedCrop = sanitizeEditorialMediaCrop(crop) ?? DEFAULT_EDITORIAL_MEDIA_CROP;
+  const offsetX = (50 - normalizedCrop.x) * (normalizedCrop.zoom - 1);
+  const offsetY = (50 - normalizedCrop.y) * (normalizedCrop.zoom - 1);
+
+  return {
+    display: 'block' as const,
+    height: '100%',
+    left: cropAxisPosition(offsetX),
+    objectFit: 'cover' as const,
+    objectPosition: `${normalizedCrop.x}% ${normalizedCrop.y}%`,
+    position: 'absolute' as const,
+    top: cropAxisPosition(offsetY),
+    transform: `translate(-50%, -50%) scale(${normalizedCrop.zoom})`,
+    transformOrigin: 'center center',
+    width: '100%',
+  };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }

@@ -13,7 +13,7 @@ import { t } from '@/lib/translation';
 import { garamond, masterSignature } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
-import { DEFAULT_EDITORIAL_MEDIA_CROP } from '@/lib/editorial-media';
+import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
 
@@ -198,21 +198,19 @@ export default function DailyCorrespondences({
           <button type="button" className="correspondence-author" onClick={() => scrollTo('autore')}>
             <span className="correspondence-author-label"><Feather aria-hidden="true" />{t('correspondenceAuthor', lingua)}</span>
             {authorImageAvailable ? (
-                /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
-              <img
-                draggable={false}
-                src={authorImageUrl}
-                alt=""
-                onError={() => markMediaUnavailable(authorImageUrl)}
-                {...eagerImageProps}
-                style={{
-                  objectPosition: `${authorImageCrop.x}% ${authorImageCrop.y}%`,
-                  transform: `scale(${authorImageCrop.zoom})`,
-                  transformOrigin: 'center center',
-                }}
-              />
+              <span className="correspondence-author-image-frame">
+                {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
+                <img
+                  draggable={false}
+                  src={authorImageUrl}
+                  alt=""
+                  onError={() => markMediaUnavailable(authorImageUrl)}
+                  {...eagerImageProps}
+                  style={getEditorialMediaCropImageStyle(authorImageCrop)}
+                />
+              </span>
             ) : (
-              <span className="correspondence-author-empty"><Feather aria-hidden="true" /><small>{t('correspondencePortraitUnavailable', lingua)}</small></span>
+              <span className="correspondence-author-image-frame correspondence-author-empty"><Feather aria-hidden="true" /><small>{t('correspondencePortraitUnavailable', lingua)}</small></span>
             )}
             <span className="correspondence-author-caption"><strong>{data.autore_giorno}</strong><em>{authorDescription}</em></span>
           </button>

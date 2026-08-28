@@ -3133,6 +3133,7 @@ body {
 .author-photo-image-frame {
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  position: relative;
   width: 140px;
 }
 
@@ -10442,13 +10443,22 @@ body.museum-room-open :is(
   width: 14px;
 }
 
-.correspondence-author > img,
+.correspondence-author-image-frame,
 .correspondence-author-empty {
   aspect-ratio: 4 / 5;
+  box-sizing: border-box;
   display: block;
-  object-fit: cover;
+  overflow: hidden;
   outline: 1px solid oklch(0 0 0 / 0.1);
   outline-offset: -1px;
+  position: relative;
+  width: 100%;
+}
+
+.correspondence-author-image-frame > img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
   width: 100%;
 }
 
@@ -10551,7 +10561,7 @@ body.museum-room-open :is(
   padding: 13px 13px 16px;
 }
 
-.daily-correspondences-sheet.is-dark .correspondence-author > img,
+.daily-correspondences-sheet.is-dark .correspondence-author-image-frame,
 .daily-correspondences-sheet.is-dark .correspondence-author-empty,
 .daily-correspondences-sheet.is-dark .correspondence-missing-media {
   outline-color: oklch(1 0 0 / 0.1);
@@ -10928,7 +10938,7 @@ body.museum-room-open :is(
   margin-bottom: 12px;
 }
 
-.correspondence-export-frame .daily-correspondences-export .correspondence-author > img,
+.correspondence-export-frame .daily-correspondences-export .correspondence-author-image-frame,
 .correspondence-export-frame .daily-correspondences-export .correspondence-author-empty {
   aspect-ratio: 4 / 5;
   grid-column: 1;

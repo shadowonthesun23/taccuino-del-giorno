@@ -703,8 +703,15 @@
   aspect-ratio: 4 / 5;
   float: left;
   margin: 0 10px 7px 0;
+  position: relative;
   transform: rotate(-1deg);
   width: 84px;
+}
+
+.authorPhotoFrame {
+  inset: 5px;
+  overflow: hidden;
+  position: absolute;
 }
 
 .artwork {
