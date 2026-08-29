@@ -1,41 +1,52 @@
-**Findings**
+# Design QA — Tavola completa delle corrispondenze
 
-- [P1] Browser-rendered visual comparison not yet available.
-  Location: `DailyCorrespondences` on the home page.
-  Evidence: the selected source visual is available at `/Users/antonello/.codex/generated_images/01a03ec5-d76b-79d2-8d7c-aaa652e8148f/exec-2a415c12-65ef-4163-bf53-6f2d39ed3660.png`, but the in-app browser could not reach the local development server and Chrome was unavailable in this session.
-  Impact: typography, grid rhythm, responsive layout, image cropping, and export composition cannot be visually compared with sufficient confidence.
-  Fix: with the user's approval, open the local app in their chosen browser, capture desktop and mobile states, compare them with the source, and iterate on any P0/P1/P2 differences.
+## Findings
 
-**Open Questions**
-
-- The project instructions ask not to run visual browser checks unless the user requests them, in order to conserve credits. This QA pass therefore does not override that constraint.
-
-**Implementation Checklist**
-
-- [x] Add the source-grounded `Le Corrispondenze del Giorno` section.
-- [x] Connect each atlas point to its corresponding reading section.
-- [x] Add a 9:16 PNG export and unify the existing card-export colophon.
-- [x] Pass build, test, and whitespace checks.
-- [ ] Capture and compare browser-rendered desktop and mobile states with the selected source visual.
-
-**Follow-up Polish**
-
-- Verify the exact perceived weight of the display headline and the central artwork crop against real daily data after browser capture.
+- [P3] L’ornamento centrale sotto il titolo è realizzato con l’icona `Flower2` già presente nel sistema, mentre il riferimento usa un piccolo fregio orizzontale più decorativo. Non compromette la gerarchia o la leggibilità; può essere sostituito in una rifinitura dedicata agli asset ornamentali.
+- [P3] Il contenuto APOD dell’export contiene il dato reale della giornata corrente (`Eclipse Pair`), diverso dal testo presente nell’immagine di riferimento. È intenzionale: la tavola deve cambiare ogni giorno senza hardcode del contenuto editoriale.
 
 ## Comparison evidence
 
-- Source visual truth: `/Users/antonello/.codex/generated_images/01a03ec5-d76b-79d2-8d7c-aaa652e8148f/exec-2a415c12-65ef-4163-bf53-6f2d39ed3660.png`
-- Source dimensions: 1487 x 1058 px.
-- Implementation screenshot: not captured.
-- Viewport / CSS size / density normalization: not available because the in-app browser could not reach the local development server; Chrome was unavailable as a fallback.
-- State: intended default light-theme home state; desktop atlas section and its mobile/export layouts are implemented, but not visually captured.
-- Full-view comparison: blocked until a same-state browser screenshot exists.
-- Focused-region comparison: blocked for the same reason.
-- Primary interactions implemented: four scroll targets, follow-reading action, and PNG export; not browser-tested in this QA pass.
-- Console errors checked: not available; the local page could not be opened in the available browser.
+- Source visual truth: `/Users/antonello/Downloads/ChatGPT Image 29 ago 2026, 16_17_35.png`
+- Source dimensions: `941 x 1672 px`; normalized comparison: `/private/tmp/coordinate-reference-1080-final.png` at `1080 x 1920 px`
+- Implementation export: `/Users/antonello/Downloads/coordinate-del-giorno-2026-08-29 (3).png` at `1080 x 1920 px`
+- Same viewport and state: `1080 x 1920`, light theme, 29 August 2026 data, complete-plate export
+- Full-view comparison: `/private/tmp/coordinate-compare-final-19.png`
+- Pixel comparison reference: ImageMagick absolute error `126612` (`0.0610589`), with differences primarily from live daily media/text, paper texture, the italic word treatment, and the ornamental mark.
+- Focused regions reviewed: header/word, author block, four-row two-column coordinate grid, and wax-seal footer.
+
+## Fidelity surfaces
+
+- Header: JaneAust wordmark, date/edition metadata, rule, and central ornament.
+- Hierarchy: word of the day first, author second, then the eight smaller coordinates.
+- Typography: IM Fell Double Pica for display/editorial copy, typewriter labels, and JaneAust for the title.
+- Media: author portrait and daily images retain the source-led crop and rounded editorial frames.
+- Paper language: warm cream background, restrained terracotta accent, thin rules, and wax seal.
+
+## Responsive/export checks
+
+- The export remains a fixed `1080 x 1920` 9:16 canvas with a protected top safe area and side margins.
+- The clone is measured after fonts and images are ready; if daily text or media makes the composition exceed the available height, it scales down only as much as needed.
+- Word-length classes, concise export copy, flexible grid columns, and wrapping author/coordinate text keep variable daily material from relying on the 29 August content.
+- `includeQueryParams: true` is enabled in `html-to-image` so distinct proxied daily media URLs do not collapse into one cached image during export.
+
+## Verification
+
+| Check | Result |
+|---|---|
+| `npm run build` | Passed — Next.js 16.2.4, 30 static pages generated |
+| `npx eslint app/components/DailyCorrespondences.tsx` | Passed |
+| `npm test` | Passed — 2 tests |
+| `git diff --check` | Passed |
+| Export button and generated PNG | Passed in the local browser at 1080 × 1920 |
+| Console errors during final export | None introduced by the final export pass |
 
 ## Comparison history
 
-- The local server was started on port 3001. The in-app browser returned a connection-refused error for that server and Chrome was not available, so no visual comparison iteration could occur. The implementation remains covered by production-build type checking.
+- Replaced the rejected thread/coordinate-folio experiment with the supplied reference composition.
+- Rebuilt the complete plate as a two-column editorial grid with the word and author as the primary hierarchy.
+- Added export-only concise copy so the browser card can retain its reading detail while the PNG remains readable.
+- Added measured overflow scaling after validating that the reference day should remain at full scale; the wax seal is allowed a controlled lower bleed matching the source composition.
+- Switched the export word to the loaded IM Fell italic face at a slightly smaller scale and tightened the closure spacing so the complete seal remains inside the canvas.
 
-final result: blocked
+final result: passed

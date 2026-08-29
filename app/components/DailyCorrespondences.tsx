@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Moon, Music, Palette, Sparkles, Telescope, Type } from 'lucide-react';
+import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Flower2, Moon, Music, Palette, Sparkles, Telescope } from 'lucide-react';
 import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno, ReadingMediaResult, SaintArtworkResult } from '@/lib/types';
 import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
@@ -10,7 +10,7 @@ import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-ut
 import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
 import { OPEN_EPHEMERIS_EVENT, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
-import { garamond, masterSignature } from '@/lib/fonts';
+import { garamond, janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { TypewriterPhrase } from '@/components/ui/Typography';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
@@ -18,6 +18,14 @@ import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@
 
 const eagerImageProps = getImageLoadingProps(true);
 const CORRESPONDENCE_TYPEWRITER_DELAY = 1160;
+const CORRESPONDENCE_EXPORT_WIDTH = 1080;
+const CORRESPONDENCE_EXPORT_HEIGHT = 1920;
+const CORRESPONDENCE_EXPORT_SAFE_SIDE = 36;
+const CORRESPONDENCE_EXPORT_SAFE_TOP = 79;
+const CORRESPONDENCE_EXPORT_SAFE_BOTTOM = 0;
+const CORRESPONDENCE_EXPORT_LAYOUT_WIDTH = CORRESPONDENCE_EXPORT_WIDTH - (CORRESPONDENCE_EXPORT_SAFE_SIDE * 2);
+const CORRESPONDENCE_EXPORT_CONTENT_HEIGHT = CORRESPONDENCE_EXPORT_HEIGHT - CORRESPONDENCE_EXPORT_SAFE_TOP - CORRESPONDENCE_EXPORT_SAFE_BOTTOM;
+const CORRESPONDENCE_EXPORT_BOTTOM_BLEED = 104;
 
 function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();
@@ -52,6 +60,64 @@ function getAuthorTeaser(text: string) {
   }
 
   return `${teaser.replace(/[,:;–—-]+$/u, '').trim()}.`;
+}
+
+function getExportAuthorDescription(text: string, author: string, lingua: LanguageCode) {
+  const teaser = getFirstSentence(text).replace(/\s{2,}/g, ' ').trim();
+  if (lingua !== 'IT') return getAuthorTeaser(teaser);
+
+  const dateLead = teaser.match(/^(.+?\bnel\s+\d{3,4})[,.]/iu)?.[1]?.trim();
+  if (!dateLead) return getAuthorTeaser(teaser);
+
+  const escapedAuthor = author.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  const rest = teaser
+    .slice(dateLead.length)
+    .replace(/^[,\s]+/u, '')
+    .replace(new RegExp(`^${escapedAuthor}\\s+è\\s+stato\\s+`, 'iu'), '')
+    .replace(/^un\s+/iu, '')
+    .trim();
+
+  if (!rest) return `${dateLead}.`;
+  const exportRest = `${rest.charAt(0).toUpperCase()}${rest.slice(1)}`
+    .replace(/^(Matematico,\s+fisico,)\s+/u, '$1\n');
+  return `${dateLead}.\n${exportRest}`;
+}
+
+function getExportWordEtymology(text: string, lingua: LanguageCode) {
+  const normalized = text.replace(/\s{2,}/g, ' ').trim();
+  if (lingua !== 'IT') return getFirstSentence(normalized);
+
+  const origin = normalized.match(/^(dal(?:la|le|lo|l'|l)?\s+[^,;]+?)(?:,|;)/iu)?.[1]
+    ?.replace(/\s*\([^)]*\)/gu, '')
+    .trim();
+  const meaning = normalized.match(/(?:che\s+)?significa\s+["“]([^"”]+)["”]/iu)?.[1]?.trim();
+
+  if (origin && meaning) {
+    const conciseMeaning = /^senza\s+passaggio$/iu.test(meaning) ? 'assenza di passaggio' : meaning;
+    return `${origin.charAt(0).toLowerCase()}${origin.slice(1)} — ${conciseMeaning}`;
+  }
+
+  return getFirstSentence(normalized);
+}
+
+function getExportSaintRole(text: string, lingua: LanguageCode) {
+  if (lingua !== 'IT') return text;
+  return text.replace(/,\s*martire\b/iu, '').trim();
+}
+
+function getExportArtworkCredit(artist: string, lingua: LanguageCode) {
+  if (lingua !== 'IT') return artist;
+  return artist.replace(/^Joos\b/iu, 'J.').trim();
+}
+
+function getExportPoemSource(text: string, author: string, lingua: LanguageCode) {
+  if (lingua !== 'IT') return text;
+
+  const escapedAuthor = author.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  return text
+    .replace(new RegExp(`^${escapedAuthor},\\s*`, 'iu'), '')
+    .replace(/(\d{4})[–-](\d{4})/u, (_, start: string, end: string) => `${start}–${end.slice(-2)}`)
+    .trim();
 }
 
 function ContinueReadingHint() {
@@ -129,8 +195,13 @@ export default function DailyCorrespondences({
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
   const poemImageAvailable = Boolean(poemImageUrl) && !failedMedia.has(poemImageUrl);
   const bibleImageAvailable = Boolean(bibleImageUrl) && !failedMedia.has(bibleImageUrl);
-  const authorDescription = getAuthorTeaser(data.breve_descrizione);
   const saintOfTheDay = data.santi[0];
+  const authorDescription = getAuthorTeaser(data.breve_descrizione);
+  const exportAuthorDescription = getExportAuthorDescription(data.breve_descrizione, data.autore_giorno, lingua);
+  const exportWordEtymology = getExportWordEtymology(data.parola_giorno.etimologia, lingua);
+  const exportSaintRole = saintOfTheDay ? getExportSaintRole(saintOfTheDay.ruolo, lingua) : '';
+  const exportArtworkCredit = opera ? getExportArtworkCredit(opera.artista, lingua) : '';
+  const exportPoemSource = getExportPoemSource(data.poesia.fonte || getFirstSentence(data.poesia.testo), data.poesia.autore, lingua);
   const wordLength = data.parola_giorno.parola.trim().length;
   const wordTypographyClass = wordLength > 24
     ? 'is-extra-long-word'
@@ -193,7 +264,13 @@ export default function DailyCorrespondences({
       const { toPng } = await import('html-to-image');
       const clone = sheetRef.current.cloneNode(true) as HTMLElement;
       clone.removeAttribute('id');
-      clone.classList.add('daily-correspondences-export');
+      clone.classList.add('daily-correspondences-export', 'correspondence-complete-folio');
+      clone.style.boxSizing = 'border-box';
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.maxWidth = 'none';
+      clone.style.margin = '0';
+      clone.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH}px`;
       clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
 
       exportFrame = document.createElement('div');
@@ -201,18 +278,80 @@ export default function DailyCorrespondences({
       exportFrame.style.position = 'fixed';
       exportFrame.style.left = '0';
       exportFrame.style.top = '0';
-      exportFrame.style.width = '1080px';
-      exportFrame.style.height = '1920px';
+      exportFrame.style.width = `${CORRESPONDENCE_EXPORT_WIDTH}px`;
+      exportFrame.style.height = `${CORRESPONDENCE_EXPORT_HEIGHT}px`;
+      exportFrame.style.boxSizing = 'border-box';
+      exportFrame.style.display = 'flex';
+      exportFrame.style.alignItems = 'center';
+      exportFrame.style.justifyContent = 'center';
+      exportFrame.style.padding = `${CORRESPONDENCE_EXPORT_SAFE_TOP}px ${CORRESPONDENCE_EXPORT_SAFE_SIDE}px ${CORRESPONDENCE_EXPORT_SAFE_BOTTOM}px`;
       exportFrame.style.zIndex = '-1';
       exportFrame.style.pointerEvents = 'none';
-      exportFrame.appendChild(clone);
+      exportFrame.style.overflow = 'hidden';
+
+      const measureWrap = document.createElement('div');
+      measureWrap.style.position = 'absolute';
+      measureWrap.style.left = '0';
+      measureWrap.style.top = '0';
+      measureWrap.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH}px`;
+      measureWrap.style.visibility = 'hidden';
+      measureWrap.style.pointerEvents = 'none';
+      measureWrap.appendChild(clone);
+      exportFrame.appendChild(measureWrap);
       document.body.appendChild(exportFrame);
 
+      await Promise.all(Array.from(clone.querySelectorAll('img')).map(async (image) => {
+        if (image.complete && image.naturalWidth > 0) {
+          await image.decode().catch(() => undefined);
+          return;
+        }
+
+        await new Promise<void>((resolve) => {
+          const finish = () => {
+            image.removeEventListener('load', finish);
+            image.removeEventListener('error', finish);
+            resolve();
+          };
+          image.addEventListener('load', finish, { once: true });
+          image.addEventListener('error', finish, { once: true });
+        });
+      }));
+
+      const exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
+      // La griglia resta fissa, ma le giornate con testi o media più ingombranti
+      // rientrano automaticamente nella safe area. Il sigillo può oltrepassare
+      // leggermente il bordo inferiore, come nel riferimento editoriale.
+      const scale = Math.min(1, (CORRESPONDENCE_EXPORT_CONTENT_HEIGHT + CORRESPONDENCE_EXPORT_BOTTOM_BLEED) / exportLayoutHeight);
+
+      const contentWrap = document.createElement('div');
+      contentWrap.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH}px`;
+      contentWrap.style.height = `${CORRESPONDENCE_EXPORT_CONTENT_HEIGHT}px`;
+      contentWrap.style.display = 'flex';
+      contentWrap.style.alignItems = 'flex-start';
+      contentWrap.style.justifyContent = 'center';
+      contentWrap.style.overflow = 'hidden';
+      contentWrap.style.position = 'relative';
+      contentWrap.style.zIndex = '1';
+
+      const scaledFolio = document.createElement('div');
+      scaledFolio.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH * scale}px`;
+      scaledFolio.style.height = `${exportLayoutHeight * scale}px`;
+      scaledFolio.style.flex = '0 0 auto';
+      scaledFolio.style.position = 'relative';
+
+      clone.style.transform = `scale(${scale})`;
+      clone.style.transformOrigin = 'top left';
+      scaledFolio.appendChild(clone);
+      contentWrap.appendChild(scaledFolio);
+      measureWrap.remove();
+      exportFrame.appendChild(contentWrap);
+
       const dataUrl = await toPng(exportFrame, {
-        width: 1080,
-        height: 1920,
+        width: CORRESPONDENCE_EXPORT_WIDTH,
+        height: CORRESPONDENCE_EXPORT_HEIGHT,
         pixelRatio: 1,
         cacheBust: true,
+        includeQueryParams: true,
       });
       const link = document.createElement('a');
       link.download = `coordinate-del-giorno-${dataIso}.png`;
@@ -235,7 +374,9 @@ export default function DailyCorrespondences({
       >
         <header className="daily-correspondences-header">
           <span className="daily-correspondences-kicker">{t('correspondencesTitle', lingua)}</span>
-          <span className={`${masterSignature.className} daily-correspondences-export-title`}>{t('dayTitle', lingua)}</span>
+          <span className={`${janeAust.className} jane-aust-wordmark daily-correspondences-export-title`}>{t('dayTitle', lingua)}</span>
+          <span className="daily-correspondences-export-ornament" aria-hidden="true"><Flower2 strokeWidth={1.1} /></span>
+          <span className="daily-correspondences-export-date">{formatExLibrisDate(dataIso)}</span>
           <span className="daily-correspondences-edition">{t('edition', lingua)} {dayOfYear}/{totalDays}</span>
         </header>
 
@@ -253,7 +394,8 @@ export default function DailyCorrespondences({
           <p className="daily-correspondences-copy">{t('correspondencesCopy', lingua)}</p>
         </div>
 
-        <div className="daily-correspondences-grid">
+        <div className="daily-correspondences-complete-body">
+          <div className="daily-correspondences-grid">
           <button type="button" className="correspondence-author" onClick={() => scrollTo('autore')}>
             <span className="correspondence-author-label"><Feather aria-hidden="true" />{t('correspondenceAuthor', lingua)}</span>
             {authorImageAvailable ? (
@@ -271,16 +413,21 @@ export default function DailyCorrespondences({
             ) : (
               <span className="correspondence-author-image-frame correspondence-author-empty"><Feather aria-hidden="true" /><small>{t('correspondencePortraitUnavailable', lingua)}</small></span>
             )}
-            <span className="correspondence-author-caption"><strong>{data.autore_giorno}</strong><em>{authorDescription}</em></span>
+            <span className="correspondence-author-caption">
+              <strong>{data.autore_giorno}</strong>
+              <em className="correspondence-author-full-description">{authorDescription}</em>
+              <em className="correspondence-author-export-description">{exportAuthorDescription}</em>
+            </span>
             <ContinueReadingHint />
           </button>
 
           <button type="button" className="correspondence-entry correspondence-word" onClick={() => scrollTo('parola')}>
-            <span className="correspondence-entry-label"><Type aria-hidden="true" />{t('correspondenceWord', lingua)}</span>
+            <span className="correspondence-entry-label"><Feather aria-hidden="true" />{t('correspondenceWord', lingua)}</span>
             <span className="correspondence-word-content">
               <span>
                 <strong className={wordTypographyClass}>{data.parola_giorno.parola}</strong>
-                <em>{data.parola_giorno.etimologia}</em>
+                <em className="correspondence-word-full-etymology">{data.parola_giorno.etimologia}</em>
+                <em className="correspondence-word-export-etymology">{exportWordEtymology}</em>
               </span>
             </span>
             <ContinueReadingHint />
@@ -294,7 +441,7 @@ export default function DailyCorrespondences({
                   /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
                   <img draggable={false} src={saintArtworkImageUrl} alt="" onError={() => markMediaUnavailable(saintArtworkImageUrl)} {...eagerImageProps} />
                 ) : <span className="correspondence-saint-mark" aria-hidden="true"><Church /></span>}
-                <span><strong>{saintOfTheDay.nome}</strong><em>{saintOfTheDay.ruolo}</em></span>
+                <span><strong>{saintOfTheDay.nome}</strong><em className="correspondence-entry-full-copy">{saintOfTheDay.ruolo}</em><em className="correspondence-entry-export-copy">{exportSaintRole}</em></span>
               </span>
               <ContinueReadingHint />
             </button>
@@ -308,7 +455,7 @@ export default function DailyCorrespondences({
                   /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
                   <img draggable={false} src={artworkImageUrl} alt={`${opera.titolo}, ${opera.artista}`} onError={() => markMediaUnavailable(artworkImageUrl)} {...eagerImageProps} />
                 ) : <span className="correspondence-missing-media" title={t('correspondenceArtworkUnavailable', lingua)}><Palette aria-hidden="true" /></span>}
-                <span><strong>{opera.titolo}</strong><em>{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em></span>
+                <span><strong>{opera.titolo}</strong><em className="correspondence-entry-full-copy">{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em><em className="correspondence-entry-export-copy">{exportArtworkCredit}{opera.anno ? ` · ${opera.anno}` : ''}</em></span>
               </span>
               <ContinueReadingHint />
             </button>
@@ -361,9 +508,9 @@ export default function DailyCorrespondences({
               <ContinueReadingHint />
             </button>
           ) : null}
-        </div>
+          </div>
 
-        <div className="daily-correspondences-readings">
+          <div className="daily-correspondences-readings">
           <button type="button" className="correspondence-reading correspondence-poem" onClick={() => scrollTo('poesia')}>
             <span className="correspondence-reading-label"><Feather aria-hidden="true" />{t('correspondencePoem', lingua)}</span>
             <span className={`correspondence-reading-content${poemImageAvailable ? ' has-image' : ''}`}>
@@ -371,7 +518,7 @@ export default function DailyCorrespondences({
                 /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
                 <img draggable={false} src={poemImageUrl} alt="" onError={() => markMediaUnavailable(poemImageUrl)} {...eagerImageProps} />
               ) : null}
-              <span><strong>{data.poesia.autore}</strong><em>{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em></span>
+              <span><strong>{data.poesia.autore}</strong><em className="correspondence-entry-full-copy">{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em><em className="correspondence-entry-export-copy">{exportPoemSource}</em></span>
             </span>
             <ContinueReadingHint />
           </button>
@@ -386,11 +533,12 @@ export default function DailyCorrespondences({
             </span>
             <ContinueReadingHint />
           </button>
-        </div>
+          </div>
 
-        {seasonalArtwork ? (
+          {seasonalArtwork ? (
           <button type="button" className="daily-correspondences-seasonal" onClick={openSeasonalArtwork}>
-            <span className="daily-correspondences-seasonal-label">{t('seasonalArtwork', lingua)}</span>
+            <span className="daily-correspondences-seasonal-label daily-correspondences-seasonal-full-label">{t('seasonalArtwork', lingua)}</span>
+            <span className="daily-correspondences-seasonal-label daily-correspondences-seasonal-export-label">{lingua === 'IT' ? 'L’opera stagionale' : t('seasonalArtwork', lingua)}</span>
             <span className="daily-correspondences-seasonal-preview" aria-hidden="true">
               {seasonalArtworkImageAvailable ? (
                 /* eslint-disable-next-line @next/next/no-img-element -- the seasonal artwork is local editorial media and must remain available to the DOM export */
@@ -401,7 +549,8 @@ export default function DailyCorrespondences({
             <small>{t('seasonalArtworkOpen', lingua)} <ArrowDown aria-hidden="true" strokeWidth={1.7} /></small>
             <ContinueReadingHint />
           </button>
-        ) : null}
+          ) : null}
+        </div>
 
         <div className="daily-correspondences-closure">
           <footer className="daily-correspondences-footer">
