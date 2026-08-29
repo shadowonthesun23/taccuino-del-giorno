@@ -9,10 +9,10 @@
 
 - Source visual truth: `/Users/antonello/Downloads/ChatGPT Image 29 ago 2026, 16_17_35.png`
 - Source dimensions: `941 x 1672 px`; normalized comparison: `/private/tmp/coordinate-reference-1080-final.png` at `1080 x 1920 px`
-- Implementation export: `/Users/antonello/Downloads/coordinate-del-giorno-2026-08-29 (3).png` at `1080 x 1920 px`
+- Implementation export: `/Users/antonello/Downloads/coordinate-del-giorno-2026-08-29 (2).png` at `1080 x 1920 px`
 - Same viewport and state: `1080 x 1920`, light theme, 29 August 2026 data, complete-plate export
-- Full-view comparison: `/private/tmp/coordinate-compare-final-19.png`
-- Pixel comparison reference: ImageMagick absolute error `126612` (`0.0610589`), with differences primarily from live daily media/text, paper texture, the italic word treatment, and the ornamental mark.
+- Full-view comparison: `/private/tmp/coordinate-compare-final-20.png`
+- Pixel comparison reference: ImageMagick absolute error `188307` (`0.0908117`), with differences primarily from live daily media/text, paper texture, the italic word treatment, the repaired export label, and the larger seal treatment.
 - Focused regions reviewed: header/word, author block, four-row two-column coordinate grid, and wax-seal footer.
 
 ## Fidelity surfaces
@@ -46,7 +46,7 @@
 - Replaced the rejected thread/coordinate-folio experiment with the supplied reference composition.
 - Rebuilt the complete plate as a two-column editorial grid with the word and author as the primary hierarchy.
 - Added export-only concise copy so the browser card can retain its reading detail while the PNG remains readable.
-- Added measured overflow scaling after validating that the reference day should remain at full scale; the wax seal is allowed a controlled lower bleed matching the source composition.
-- Switched the export word to the loaded IM Fell italic face at a slightly smaller scale and tightened the closure spacing so the complete seal remains inside the canvas.
+- Added measured overflow scaling after validating that the reference day should remain at full scale; the complete layout now scales into the canvas with no lower bleed.
+- Switched the export word to the loaded IM Fell italic face at a slightly smaller scale, changed the export label to `Parola del giorno`, tightened the word block, and reserved footer space so the larger seal remains fully visible without covering the final coordinate row.
 
 final result: passed

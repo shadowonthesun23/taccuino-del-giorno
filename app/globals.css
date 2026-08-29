@@ -14289,6 +14289,7 @@ body.museum-room-open :is(
 /* ── Tavola completa: il riferimento editoriale scelto per questa fase ── */
 .correspondence-author-export-description,
 .correspondence-word-export-etymology,
+.correspondence-word-label-export,
 .daily-correspondences-seasonal-export-label,
 .correspondence-entry-export-copy {
   display: none;
@@ -14336,7 +14337,7 @@ body.museum-room-open :is(
   margin-bottom: 32px;
   padding: 0;
   position: relative;
-  row-gap: 92px;
+  row-gap: 84px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-kicker {
@@ -14351,11 +14352,11 @@ body.museum-room-open :is(
   grid-row: 1;
   justify-self: center;
   letter-spacing: 0.035em;
-  line-height: 0.86;
+  line-height: 0.98;
   margin: 0;
   text-align: center;
   text-transform: none;
-  transform: translateX(14px);
+  transform: translate(14px, 5px);
   -webkit-text-stroke: 0.006em currentColor;
   white-space: nowrap;
 }
@@ -14533,6 +14534,7 @@ body.museum-room-open :is(
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-author-full-description,
+.correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word-label-full,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word-full-etymology,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-entry-full-copy,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal-full-label {
@@ -14546,11 +14548,15 @@ body.museum-room-open :is(
   display: block !important;
 }
 
+.correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word-label-export {
+  display: flex !important;
+}
+
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word {
   display: block;
   grid-area: word;
   min-height: 0;
-  padding: 30px 0 33px;
+  padding: 26px 0 27px;
   text-align: left;
 }
 
@@ -14558,7 +14564,7 @@ body.museum-room-open :is(
   font-size: 22px;
   gap: 20px;
   justify-content: flex-start;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   position: relative;
   width: fit-content;
 }
@@ -14585,7 +14591,7 @@ body.museum-room-open :is(
   font-weight: 400;
   letter-spacing: 0;
   line-height: 0.82;
-  margin: 13px 0 38px 39px;
+  margin: 10px 0 25px 39px;
   transform: scaleX(1.08);
   transform-origin: left center;
   white-space: nowrap;
@@ -14799,14 +14805,14 @@ body.museum-room-open :is(
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-closure {
   align-self: stretch;
-  margin: -60px 0 0 !important;
+  margin: 0 !important;
   padding-top: 0;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-footer {
   width: 100%;
   justify-content: center;
-  min-height: 150px !important;
+  min-height: 180px !important;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-wax-seal.daily-wax-seal {
@@ -14815,20 +14821,20 @@ body.museum-room-open :is(
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-wax-seal .daily-wax-seal-inner {
-  height: 118px;
-  width: 118px;
+  height: 132px;
+  width: 132px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-wax-seal .seal-initials {
-  font-size: 2.15rem;
+  font-size: 2.56rem;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-wax-seal .seal-date {
-  font-size: 0.7rem;
+  font-size: 0.95rem;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-wax-seal .seal-edition {
-  font-size: 0.56rem;
+  font-size: 0.74rem;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-actions {

@@ -25,7 +25,7 @@ const CORRESPONDENCE_EXPORT_SAFE_TOP = 79;
 const CORRESPONDENCE_EXPORT_SAFE_BOTTOM = 0;
 const CORRESPONDENCE_EXPORT_LAYOUT_WIDTH = CORRESPONDENCE_EXPORT_WIDTH - (CORRESPONDENCE_EXPORT_SAFE_SIDE * 2);
 const CORRESPONDENCE_EXPORT_CONTENT_HEIGHT = CORRESPONDENCE_EXPORT_HEIGHT - CORRESPONDENCE_EXPORT_SAFE_TOP - CORRESPONDENCE_EXPORT_SAFE_BOTTOM;
-const CORRESPONDENCE_EXPORT_BOTTOM_BLEED = 104;
+const CORRESPONDENCE_EXPORT_BOTTOM_BLEED = 0;
 
 function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();
@@ -319,8 +319,7 @@ export default function DailyCorrespondences({
 
       const exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
       // La griglia resta fissa, ma le giornate con testi o media più ingombranti
-      // rientrano automaticamente nella safe area. Il sigillo può oltrepassare
-      // leggermente il bordo inferiore, come nel riferimento editoriale.
+      // rientrano automaticamente nella safe area, incluso il sigillo finale.
       const scale = Math.min(1, (CORRESPONDENCE_EXPORT_CONTENT_HEIGHT + CORRESPONDENCE_EXPORT_BOTTOM_BLEED) / exportLayoutHeight);
 
       const contentWrap = document.createElement('div');
@@ -422,7 +421,8 @@ export default function DailyCorrespondences({
           </button>
 
           <button type="button" className="correspondence-entry correspondence-word" onClick={() => scrollTo('parola')}>
-            <span className="correspondence-entry-label"><Feather aria-hidden="true" />{t('correspondenceWord', lingua)}</span>
+            <span className="correspondence-entry-label correspondence-word-label-full"><Feather aria-hidden="true" />{t('correspondenceWord', lingua)}</span>
+            <span className="correspondence-entry-label correspondence-word-label-export"><Feather aria-hidden="true" />{lingua === 'IT' ? 'Parola del giorno' : t('correspondenceWord', lingua)}</span>
             <span className="correspondence-word-content">
               <span>
                 <strong className={wordTypographyClass}>{data.parola_giorno.parola}</strong>
