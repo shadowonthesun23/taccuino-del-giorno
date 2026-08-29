@@ -832,10 +832,12 @@ body {
   min-height: 100dvh; /* dvh invece di vh copre correttamente su mobile */
 }
 
+/* Keep the fixed paper treatment continuous through the viewport; a mid-viewport
+   gradient stop reads as a hard horizontal mask while the parallax layer moves. */
 .journal-material::before {
   background:
     radial-gradient(ellipse 58% 32% at var(--journal-light-x, 50%) var(--journal-light-y, 7%), var(--journal-light-color, rgba(255, 242, 198, 0.24)), transparent 70%),
-    linear-gradient(180deg, var(--journal-material-wash, rgba(255,255,255,0.04)), transparent 52%),
+    linear-gradient(180deg, var(--journal-material-wash, rgba(255,255,255,0.04)), transparent 100%),
     linear-gradient(112deg, transparent 0 34%, var(--journal-side-wash, rgba(181,149,106,0.08)) 52%, transparent 78%);
   content: "";
   inset: 0;
@@ -848,7 +850,7 @@ body {
 
 .journal-material::after {
   background:
-    radial-gradient(ellipse 120% 52% at 50% 0%, transparent 0 44%, rgba(31, 25, 18, 0.18) 100%),
+    radial-gradient(ellipse 120% 100% at 50% 0%, transparent 0 44%, rgba(31, 25, 18, 0.18) 100%),
     radial-gradient(circle at 18% 22%, rgba(117, 88, 57, 0.035), transparent 12%),
     radial-gradient(circle at 84% 76%, rgba(117, 88, 57, 0.026), transparent 14%);
   content: "";
@@ -4131,6 +4133,8 @@ body {
 body.museum-room-open :is(
   .notebook-quick-nav,
   .mobile-reading-thread,
+  .top-control-panel,
+  .mobile-tools,
   .seasonal-bookmark,
   .seasonal-bookmark-modal-backdrop
 ) {
