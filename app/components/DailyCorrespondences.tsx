@@ -228,7 +228,11 @@ export default function DailyCorrespondences({
 
   return (
     <section id="corrispondenze" className={`daily-correspondences ${isDark ? 'is-dark' : ''}`} aria-labelledby="correspondences-title">
-      <article ref={sheetRef} className={`daily-correspondences-sheet ${isDark ? 'is-dark' : ''}`}>
+      <article
+        ref={sheetRef}
+        className={`daily-correspondences-sheet ${isDark ? 'is-dark' : ''}`}
+        data-seal-color={sealColor}
+      >
         <header className="daily-correspondences-header">
           <span className="daily-correspondences-kicker">{t('correspondencesTitle', lingua)}</span>
           <span className={`${masterSignature.className} daily-correspondences-export-title`}>{t('dayTitle', lingua)}</span>

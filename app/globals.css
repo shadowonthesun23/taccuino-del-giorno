@@ -1549,6 +1549,26 @@ body {
   text-rendering: geometricPrecision;
 }
 
+.jane-aust-wordmark {
+  font-synthesis: none;
+  font-weight: 400;
+  letter-spacing: 0.022em;
+  -webkit-text-stroke: 0.012em currentColor;
+}
+
+.journal-hero .jane-aust-wordmark {
+  font-size: 1.08em;
+  letter-spacing: 0.028em;
+}
+
+@media (min-width: 768px) {
+  .journal-hero .jane-aust-wordmark {
+    font-size: clamp(3.25rem, 6.3vw, 4rem);
+    letter-spacing: 0.022em;
+    -webkit-text-stroke: 0.018em currentColor;
+  }
+}
+
 .hero-ink-title {
   box-sizing: content-box;
   display: inline-block;
@@ -12003,6 +12023,12 @@ body.museum-room-open :is(
   width: auto !important;
 }
 
+.loading-notebook-paper h1.jane-aust-wordmark {
+  font-size: clamp(2.75rem, 6.8vw, 5.4rem) !important;
+  letter-spacing: 0.026em;
+  line-height: 0.92 !important;
+}
+
 @media (max-width: 767px) {
   .correspondence-word > strong.is-wide-word {
     font-size: clamp(1.8rem, 9.2vw, 2.65rem) !important;
@@ -13239,6 +13265,53 @@ body.museum-room-open :is(
 
 .daily-correspondences-sheet.is-dark .correspondence-word-content > span > em {
   color: #b7a997;
+}
+
+/* Lift only the darker rotating seal accents on the dark paper. The hue and
+   chroma stay aligned with the original swatch; only perceived lightness moves
+   into a readable range for the large daily word. */
+.daily-correspondences-sheet.is-dark[data-seal-color='blu'],
+.daily-correspondences-sheet.is-dark[data-seal-color='rosso'],
+.daily-correspondences-sheet.is-dark[data-seal-color='oro'],
+.daily-correspondences-sheet.is-dark[data-seal-color='verde-scuro'],
+.daily-correspondences-sheet.is-dark[data-seal-color='salvia'],
+.daily-correspondences-sheet.is-dark[data-seal-color='borgogna'],
+.daily-correspondences-sheet.is-dark[data-seal-color='terracotta'],
+.daily-correspondences-sheet.is-dark[data-seal-color='antracite'],
+.daily-correspondences-sheet.is-dark[data-seal-color='ottanio'] {
+  --daily-accent: oklch(0.62 0.066 250.3);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='rosso'] {
+  --daily-accent: oklch(0.62 0.147 24.7);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='oro'] {
+  --daily-accent: oklch(0.62 0.074 76.8);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='verde-scuro'] {
+  --daily-accent: oklch(0.62 0.061 151.9);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='salvia'] {
+  --daily-accent: oklch(0.62 0.048 132.6);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='borgogna'] {
+  --daily-accent: oklch(0.62 0.088 17.9);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='terracotta'] {
+  --daily-accent: oklch(0.62 0.141 45.4);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='antracite'] {
+  --daily-accent: oklch(0.62 0.004 308.4);
+}
+
+.daily-correspondences-sheet.is-dark[data-seal-color='ottanio'] {
+  --daily-accent: oklch(0.62 0.068 203.4);
 }
 
 @media (max-width: 900px) {

@@ -29,7 +29,7 @@ import { formatDataItaliana, getRomeDateIso, getSavedVisitedDates, getMonthNumbe
 import { getAmbientLightStyle, applyBrowserTheme, runWhenIdle, getImageLoadingProps, uniqueImageCandidates, proxiedImageUrl } from '@/lib/browser-utils';
 import { getSavedCards, persistSavedCards, groupByMonth, getArchiveMonthMood, getArchiveEntryMark } from '@/lib/archive-utils';
 import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-translation';
-import { garamond, caveat, masterSignature } from '@/lib/fonts';
+import { garamond, caveat, janeAust, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import {
@@ -1378,7 +1378,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     : '0 1px 1px rgba(255,252,242,0.75)',
                 }}
               >
-                <span className={`${masterSignature.className} notebook-wordmark hero-ink-title journal-wordmark-reserve animate-handwrite`}>
+                <span className={`${janeAust.className} jane-aust-wordmark notebook-wordmark hero-ink-title journal-wordmark-reserve animate-handwrite`}>
                   {t('dayTitle', lingua)}
                 </span>
               </h1>

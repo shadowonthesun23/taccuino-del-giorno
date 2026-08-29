@@ -28,6 +28,15 @@ export const masterSignature = localFont({
   fallback: ['serif'],
 });
 
+export const janeAust = localFont({
+  src: '../public/fonts/JaneAust.ttf',
+  display: 'block',
+  preload: true,
+  fallback: ['cursive', 'serif'],
+  style: 'normal',
+  weight: '400',
+});
+
 export const stampwriter = localFont({
   src: '../public/fonts/STAMPWRITER-KIT.ttf',
   display: 'swap',

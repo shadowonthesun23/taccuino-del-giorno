@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Feather } from 'lucide-react';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
-import { garamond, masterSignature } from '@/lib/fonts';
+import { garamond, janeAust } from '@/lib/fonts';
 import { t } from '@/lib/translation';
 import type { LanguageCode } from '@/lib/types';
 
@@ -45,7 +45,7 @@ export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boo
           <div className="loading-notebook-content">
             <div className="loading-notebook-center">
               <p className="loading-date-line" suppressHydrationWarning>{dateLabel}</p>
-              <h1 className={`${masterSignature.className} notebook-wordmark`}>
+              <h1 className={`${janeAust.className} jane-aust-wordmark notebook-wordmark`}>
                 {t('dayTitle', lingua)}
               </h1>
             </div>
