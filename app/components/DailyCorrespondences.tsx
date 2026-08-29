@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Flower2, Moon, Music, Palette, Sparkles, Telescope } from 'lucide-react';
+import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Flower2, Images, Moon, Music, Palette, Sparkles, Telescope } from 'lucide-react';
 import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno, ReadingMediaResult, SaintArtworkResult } from '@/lib/types';
 import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
@@ -154,6 +154,8 @@ export default function DailyCorrespondences({
   readingMedia,
   editorialMedia,
   editorialMediaCrops,
+  presentation = 'home',
+  onOpenStories,
 }: {
   data: DatiTaccuino;
   opera: OperaGiorno | null;
@@ -169,11 +171,14 @@ export default function DailyCorrespondences({
   readingMedia: ReadingMediaResult;
   editorialMedia: EditorialMediaOverrides;
   editorialMediaCrops: EditorialMediaCrops;
+  presentation?: 'home' | 'social';
+  onOpenStories?: () => void;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [failedMedia, setFailedMedia] = useState<Set<string>>(() => new Set());
   const [visiblePlanets, setVisiblePlanets] = useState<VisiblePlanet[] | null>(null);
+  const isSocialPresentation = presentation === 'social';
   const moon = getMoonPhase(dataIso);
   const moonLabel = moonLabels[moon.phase]?.[lingua] ?? moonLabels[moon.phase]?.EN ?? t('moon', lingua);
   const { day: dayOfYear, total: totalDays } = getDayOfYearInfo(dataIso);
@@ -365,10 +370,16 @@ export default function DailyCorrespondences({
   }, [dataIso, isDark, isExporting]);
 
   return (
-    <section id="corrispondenze" className={`daily-correspondences ${isDark ? 'is-dark' : ''}`} aria-labelledby="correspondences-title">
+    <section
+      id={isSocialPresentation ? undefined : 'corrispondenze'}
+      className={`daily-correspondences ${isDark ? 'is-dark' : ''}${isSocialPresentation ? ' correspondence-export-frame social-story-export-root' : ''}`}
+      data-social-story={isSocialPresentation ? 'all-in-one' : undefined}
+      data-social-story-root={isSocialPresentation ? 'true' : undefined}
+      aria-labelledby={isSocialPresentation ? 'social-correspondences-title' : 'correspondences-title'}
+    >
       <article
         ref={sheetRef}
-        className={`daily-correspondences-sheet ${isDark ? 'is-dark' : ''}`}
+        className={`daily-correspondences-sheet ${isDark ? 'is-dark' : ''}${isSocialPresentation ? ' daily-correspondences-export correspondence-complete-folio' : ''}`}
         data-seal-color={sealColor}
       >
         <header className="daily-correspondences-header">
@@ -381,7 +392,7 @@ export default function DailyCorrespondences({
 
         <div className="daily-correspondences-intro">
           <p>{t('correspondencesKicker', lingua)}</p>
-          <h2 id="correspondences-title">
+          <h2 id={isSocialPresentation ? 'social-correspondences-title' : 'correspondences-title'}>
             <TypewriterPhrase
               prefix={t('correspondencesLead', lingua)}
               word={data.parola_giorno.parola}
@@ -574,6 +585,12 @@ export default function DailyCorrespondences({
               </span>
               <span aria-live="polite">{isExporting ? t('correspondencesPreparing', lingua) : t('correspondencesDownload', lingua)}</span>
             </button>
+            {onOpenStories ? (
+              <button type="button" className="daily-correspondences-download daily-correspondences-stories" onClick={onOpenStories}>
+                <Images aria-hidden="true" strokeWidth={1.65} />
+                <span>{t('socialStories', lingua)}</span>
+              </button>
+            ) : null}
           </div>
         </div>
       </article>

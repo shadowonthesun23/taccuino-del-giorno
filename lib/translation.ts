@@ -57,6 +57,48 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
   correspondencesDownloadAria: {
     IT: 'Scarica la tavola delle corrispondenze in formato verticale', EN: 'Download the correspondences plate in vertical format', FR: 'Télécharger la planche des correspondances au format vertical', DE: 'Die Korrespondenztafel im Hochformat herunterladen', ES: 'Descargar la lámina de correspondencias en formato vertical', PT: 'Descarregar a prancha de correspondências em formato vertical'
   },
+  socialStories: {
+    IT: 'Scarica Stories', EN: 'Download Stories', FR: 'Télécharger les Stories', DE: 'Stories herunterladen', ES: 'Descargar Stories', PT: 'Descarregar Stories'
+  },
+  socialStoriesTitle: {
+    IT: 'Le tre Stories del giorno', EN: 'The three Stories of the day', FR: 'Les trois Stories du jour', DE: 'Die drei Stories des Tages', ES: 'Las tres Stories del día', PT: 'As três Stories do dia'
+  },
+  socialStoryAllInOne: {
+    IT: 'All-in-one', EN: 'All-in-one', FR: 'Tout-en-un', DE: 'Alles-in-einem', ES: 'Todo en uno', PT: 'Tudo-em-um'
+  },
+  socialStoryThings: {
+    IT: 'Le cose del giorno', EN: 'The things of the day', FR: 'Les choses du jour', DE: 'Die Dinge des Tages', ES: 'Las cosas del día', PT: 'As coisas do dia'
+  },
+  socialStoryCarry: {
+    IT: 'Da portare con sé', EN: 'To carry with you', FR: 'À emporter avec soi', DE: 'Zum Mitnehmen', ES: 'Para llevar consigo', PT: 'Para levar consigo'
+  },
+  socialStoryDownload: {
+    IT: 'Scarica PNG', EN: 'Download PNG', FR: 'Télécharger PNG', DE: 'PNG herunterladen', ES: 'Descargar PNG', PT: 'Descarregar PNG'
+  },
+  socialStoryDownloadAll: {
+    IT: 'Scarica tutte', EN: 'Download all', FR: 'Télécharger tout', DE: 'Alle herunterladen', ES: 'Descargar todas', PT: 'Descarregar todas'
+  },
+  socialStoryPreparing: {
+    IT: 'Preparo le Stories…', EN: 'Preparing Stories…', FR: 'Préparation des Stories…', DE: 'Stories werden vorbereitet…', ES: 'Preparando Stories…', PT: 'A preparar as Stories…'
+  },
+  socialStoryPageTitle: {
+    IT: 'Anteprima delle Stories', EN: 'Stories preview', FR: 'Aperçu des Stories', DE: 'Stories-Vorschau', ES: 'Vista previa de Stories', PT: 'Pré-visualização das Stories'
+  },
+  socialStoryMusicAdvice: {
+    IT: 'CONSIGLIO MUSICALE', EN: 'MUSICAL RECOMMENDATION', FR: 'CONSEIL MUSICAL', DE: 'MUSIKTIPP', ES: 'RECOMENDACIÓN MUSICAL', PT: 'SUGESTÃO MUSICAL'
+  },
+  socialStorySkyOfDay: {
+    IT: 'CIELO DEL GIORNO', EN: 'SKY OF THE DAY', FR: 'CIEL DU JOUR', DE: 'HIMMEL DES TAGES', ES: 'CIELO DEL DÍA', PT: 'CÉU DO DIA'
+  },
+  socialCarryPoemSource: {
+    IT: 'Raccolta e riferimento', EN: 'Collection and reference', FR: 'Recueil et référence', DE: 'Sammlung und Referenz', ES: 'Colección y referencia', PT: 'Coleção e referência'
+  },
+  socialStoryImageUnavailable: {
+    IT: 'Immagine non disponibile', EN: 'Image unavailable', FR: 'Image indisponible', DE: 'Bild nicht verfügbar', ES: 'Imagen no disponible', PT: 'Imagem indisponível'
+  },
+  socialStoryPlanets: {
+    IT: 'Pianeti visibili', EN: 'Visible planets', FR: 'Planètes visibles', DE: 'Sichtbare Planeten', ES: 'Planetas visibles', PT: 'Planetas visíveis'
+  },
   correspondenceAuthor: {
     IT: 'Autore del giorno', EN: 'Author of the day', FR: 'Auteur du jour', DE: 'Autor des Tages', ES: 'Autor del día', PT: 'Autor do dia'
   },

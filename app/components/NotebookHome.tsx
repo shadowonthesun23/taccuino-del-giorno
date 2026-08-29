@@ -11,6 +11,7 @@ import Card from './Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import SeasonalBookmark from './SeasonalBookmark';
 import DailyCorrespondences from './DailyCorrespondences';
+import { SocialStoriesModal } from './SocialStories';
 import LoadingNotebook from './LoadingNotebook';
 import NotebookQuickNav from './NotebookQuickNav';
 import MobileReadingThread from './MobileReadingThread';
@@ -23,7 +24,7 @@ import WatercolorDivider from '@/components/ui/WatercolorDivider';
 // Library utilities & types
 import type { SaintArtwork } from '@/lib/saint-artwork';
 import type { LanguageCode, OperaGiorno, SaintArtworkResult, ApodData, DatiTaccuino, ArchivioItem, SavedSectionId, SavedCardItem, ReadingMedia, ReadingMediaResult } from '@/lib/types';
-import { TICKET_DOWNLOAD_EVENT, VISITED_ARCHIVE_STORAGE_KEY, DEFAULT_DAILY_ACCENT, SEAL_COLOR_MAP, notebookNavItems } from '@/lib/constants';
+import { DAILY_SEAL_COLORS, TICKET_DOWNLOAD_EVENT, VISITED_ARCHIVE_STORAGE_KEY, DEFAULT_DAILY_ACCENT, SEAL_COLOR_MAP, notebookNavItems } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { formatDataItaliana, getRomeDateIso, getSavedVisitedDates, getMonthNumber, getDisplayDate, getDayOfYearInfo, getInitials, getSeason, formatExLibrisDate, isSeasonId, getMarginalia, normalizeArchiveText } from '@/lib/date-utils';
 import { getAmbientLightStyle, applyBrowserTheme, runWhenIdle, getImageLoadingProps, uniqueImageCandidates, proxiedImageUrl } from '@/lib/browser-utils';
@@ -277,6 +278,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [archivioHasScroll, setArchivioHasScroll] = useState(false);
   const [archivioAtBottom, setArchivioAtBottom] = useState(false);
   const [showExportCard, setShowExportCard] = useState(false);
+  const [socialStoriesOpen, setSocialStoriesOpen] = useState(false);
   const [guestbookOpen, setGuestbookOpen] = useState(false);
   const [isTurningPage, setIsTurningPage] = useState(false);
   const [pageTurnPhase, setPageTurnPhase] = useState<'idle' | 'covering' | 'revealing'>('idle');
@@ -536,7 +538,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       setLoading(true);
       setIsPreloadExiting(false);
     }
-    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSaintArtwork(null); setReadingMedia({ poesia: null, bibbia: null }); setMusicCover(null); setEditorialMedia({}); setEditorialMediaCrops({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
+    setError(null); setPopoverOpen(false); setSavedDrawerOpen(false); setTranslationsCache({}); setErroreTraduzioni(null); setShowExportCard(false); setSocialStoriesOpen(false); setSaintArtwork(null); setReadingMedia({ poesia: null, bibbia: null }); setMusicCover(null); setEditorialMedia({}); setEditorialMediaCrops({}); setOperaImageIndex(0); setApod(null); setApodLoading(false); setIsApodExpanded(false);
     document.documentElement.style.setProperty('--reading-progress-scale', '0'); setReadingComplete(false);
     const url = dataIso ? `/api/oggi?data=${dataIso}` : '/api/oggi';
     const minimumTurnDelay = usePageTurn
@@ -839,11 +841,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     : opera?.dipartimento;
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
   const { day: dayOfYear, total: totalDays } = getDayOfYearInfo(dataExLibris);
-  const sealColors = [
-    'blu', 'rosso', 'oro', 'verde-scuro', 'salvia', 'verde-chiaro', 'borgogna',
-    'rame', 'terracotta', 'argento', 'ocra', 'antracite', 'ottanio'
-  ];
-  const currentSealColor = sealColors[(dayOfYear - 1) % sealColors.length];
+  const currentSealColor = DAILY_SEAL_COLORS[(dayOfYear - 1) % DAILY_SEAL_COLORS.length];
 
   const tapeFilters = [
     'hue-rotate(240deg) saturate(1.0) brightness(0.8)', // 1. blu (elegant deep navy blue matching #11304e)
@@ -1412,6 +1410,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           readingMedia={readingMedia}
           editorialMedia={editorialMedia}
           editorialMediaCrops={editorialMediaCrops}
+          onOpenStories={() => setSocialStoriesOpen(true)}
         />
 
         <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
@@ -2103,6 +2102,23 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           onClose={() => setGuestbookOpen(false)}
           isDark={isDark}
           lingua={lingua}
+        />
+        <SocialStoriesModal
+          isOpen={socialStoriesOpen}
+          onClose={() => setSocialStoriesOpen(false)}
+          data={data}
+          opera={opera}
+          dataIso={dataExLibris}
+          lingua={lingua}
+          isDark={isDark}
+          musicCover={musicCover}
+          sealColor={currentSealColor}
+          seasonalArtwork={seasonalArtwork}
+          apod={apod}
+          saintArtwork={visibleSaintArtwork}
+          readingMedia={readingMedia}
+          editorialMedia={editorialMedia}
+          editorialMediaCrops={editorialMediaCrops}
         />
 
       </div>

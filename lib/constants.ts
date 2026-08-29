@@ -13,6 +13,10 @@ export const OPEN_EPHEMERIS_EVENT = 'taccuino:open-ephemeris';
 export const VISITED_ARCHIVE_STORAGE_KEY = 'taccuino-visited-days-v1';
 export const SAVED_CARDS_STORAGE_KEY = 'taccuino-saved-cards-v1';
 export const DEFAULT_DAILY_ACCENT = '#b5956a';
+export const DAILY_SEAL_COLORS = [
+  'blu', 'rosso', 'oro', 'verde-scuro', 'salvia', 'verde-chiaro', 'borgogna',
+  'rame', 'terracotta', 'argento', 'ocra', 'antracite', 'ottanio',
+] as const;
 
 export const THEME_SURFACE = {
   light: '#F8F6F0',

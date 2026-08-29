@@ -50,3 +50,58 @@
 - Switched the export word to the loaded IM Fell italic face at a slightly smaller scale, changed the export label to `Parola del giorno`, tightened the word block, and reserved footer space so the larger seal remains fully visible without covering the final coordinate row.
 
 final result: passed
+
+## Social Stories QA — 29 agosto 2026
+
+### Source e implementazione
+
+- Story 1 source: `/Users/antonello/Downloads/coordinate-del-giorno-2026-08-29 (2).png` (`1080 x 1920 px`); export verificato: `/Users/antonello/Downloads/coordinate-del-giorno-2026-08-29 (7).png`.
+- Story 2 source: `/Users/antonello/Downloads/ChatGPT Image 29 ago 2026, 21_57_21.png` (`941 x 1672 px`); export verificato: `/Users/antonello/Downloads/le-cose-del-giorno-2026-08-29 (5).png`.
+- Story 3 source: `/Users/antonello/Downloads/ChatGPT Image 29 ago 2026, 21_57_30.png` (`941 x 1672 px`); export verificato: `/Users/antonello/Downloads/da-portare-con-se-2026-08-29 (4).png`.
+- Il confronto side-by-side è stato normalizzato a `540 x 960 px` per lato: `/private/tmp/taccuino-compare-story1-final.png`, `/private/tmp/taccuino-compare-story2-final.png`, `/private/tmp/taccuino-compare-story3-final.png`.
+
+### Superfici controllate
+
+- `/social-preview?data=2026-08-29&theme=light`, tre preview contemporanee a desktop (`1600 x 1200`, DPR `1`) e mobile (`390 x 844`, DPR `1`).
+- Modal di download a desktop: `/private/tmp/taccuino-social-stories-modal-light-final.png`.
+- Modal di download a mobile: `/private/tmp/taccuino-social-stories-modal-mobile-final.png`.
+- Screenshot route desktop: `/private/tmp/taccuino-social-preview-desktop-light-final.png`.
+- Screenshot route mobile: `/private/tmp/taccuino-social-preview-mobile-light-final.png`.
+- Screenshot della rifinitura Story 2 desktop: `/private/tmp/taccuino-social-story2-after-title-removal.png`.
+- Screenshot del modal dopo le nuove label: `/private/tmp/taccuino-social-stories-modal-desktop-after-labels.png` e `/private/tmp/taccuino-social-stories-modal-mobile-after-labels.png`.
+- Sono stati confrontati header, gerarchia tipografica, pannello 2 x 2 della Story 2, ritmo verticale della Story 3, immagini, separatori, safe area e sigillo.
+
+### Findings e decisioni
+
+- [P2] Le immagini e i testi dell’implementazione sono quelli reali del 29 agosto (`San Giovanni Battista`, `The Adoration of the Magi`, `Gotham Lullaby`, `Eclipse Pair`, `Clemente Rebora`, `Isaia 40, 6-8`, `I papaveri di Vetheuil`), quindi differiscono necessariamente dagli esempi nelle reference.
+- [P3] La Luna della Story 2 è una rappresentazione SVG dinamica della fase e dell’illuminazione, non la fotografia campione della reference; in export il riempimento SVG viene inlined per mantenere la resa della preview.
+- [P3] Il fregio centrale usa l’ornamento `Flower2` già presente nel progetto; la chiusura della Story 3 include ora un ramo botanico SVG leggero, coerente con la reference.
+- [P3] Il testo biblico è un estratto derivato solo per la composizione social; il dato originale resta intatto. Il fallback APOD mantiene titolo/credito e una superficie vuota coerente quando il provider non risponde.
+- [P3] Il titolo visivo della Story 2 è stato rimosso su richiesta; la griglia è stata ricentrata e portata più in alto nello spazio liberato. Il nome della Story resta nel modal per identificarla.
+
+### Verifica funzionale e tecnica
+
+| Check | Result |
+|---|---|
+| Preview desktop/mobile | Passed — 3 root 9:16; mobile `362 x 644` per preview, `scrollWidth = 390` |
+| Story 2 title/labels | Passed — nessun title block; label `CONSIGLIO MUSICALE` e `CIELO DEL GIORNO` presenti |
+| Modal | Passed — 3 preview, 3 `Scarica PNG`, `Scarica tutte`; nessun overflow orizzontale |
+| Export PNG | Passed — tutti e tre `1080 x 1920`, `srgba`, `opaque = True` |
+| Export collettivo | Passed — generati `/Users/antonello/Downloads/coordinate-del-giorno-2026-08-29 (7).png`, `/Users/antonello/Downloads/le-cose-del-giorno-2026-08-29 (4).png`, `/Users/antonello/Downloads/da-portare-con-se-2026-08-29 (4).png` |
+| Console browser | Passed — nessun errore o warning nella verifica finale |
+| `npm run lint` | Passed — 0 errori, 18 warning preesistenti |
+| `npm test` | Passed — 2 test |
+| `npm run build` | Passed — Next.js 16.2.4, route `/social-preview` presente |
+| `npx tsc --noEmit` | Existing failure — 2 `TS5097` preesistenti nei test `.mts`; il typecheck applicativo del build passa |
+| `git diff --check` | Passed |
+
+### Comparison history
+
+- Reused the existing Story 1 component, export frame, data pipeline, seal, colors and typography.
+- Added Story 2 as an editorial 2 x 2 composition and Story 3 as a more vertical, contemplative composition.
+- Added one modal entry point beside the existing download action and kept the home controls to `[ Scarica la tavola ] [ Scarica Stories ]`.
+- Added export-only SVG paint inlining for the new story canvases after detecting the stylesheet serialization issue in the moon glyph.
+- Added measured export scaling and image fallbacks so variable daily content does not escape the 1080 x 1920 canvas.
+- Removed the disliked Story 2 display title, moved the editorial grid upward, and renamed its music and sky labels to `Consiglio musicale` and `Cielo del giorno`.
+
+final result: passed
