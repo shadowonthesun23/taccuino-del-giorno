@@ -4,6 +4,9 @@ import { blobToDataUrl } from '@/lib/browser-utils';
 export const SOCIAL_STORY_WIDTH = 1080;
 export const SOCIAL_STORY_HEIGHT = 1920;
 
+const IMAGE_WAIT_TIMEOUT_MS = 8_000;
+const MOBILE_IMAGE_MAX_DIMENSION = 1_600;
+
 type ShareNavigator = Navigator & {
   canShare?: (data?: ShareData) => boolean;
   share?: (data: ShareData) => Promise<void>;
@@ -11,26 +14,72 @@ type ShareNavigator = Navigator & {
 
 function waitForImages(root: HTMLElement) {
   return Promise.all(Array.from(root.querySelectorAll('img')).map(async (image) => {
-    if (image.complete && image.naturalWidth > 0) {
-      await image.decode().catch(() => undefined);
+    if (image.complete) {
+      if (image.naturalWidth > 0) await image.decode().catch(() => undefined);
       return;
     }
 
     await new Promise<void>((resolve) => {
+      let timeoutId: number | null = null;
+      let settled = false;
       const finish = () => {
+        if (settled) return;
+        settled = true;
         image.removeEventListener('load', finish);
         image.removeEventListener('error', finish);
+        if (timeoutId !== null) window.clearTimeout(timeoutId);
         resolve();
       };
       image.addEventListener('load', finish, { once: true });
       image.addEventListener('error', finish, { once: true });
+      timeoutId = window.setTimeout(finish, IMAGE_WAIT_TIMEOUT_MS);
     });
   }));
 }
 
-async function inlineCloneImages(root: HTMLElement) {
+function findLoadedSourceImage(sourceRoot: HTMLElement, cloneImage: HTMLImageElement) {
+  const cloneSources = new Set([
+    cloneImage.currentSrc,
+    cloneImage.src,
+    cloneImage.getAttribute('src') || '',
+  ].filter(Boolean));
+
+  if (!cloneSources.size) return null;
+
+  return Array.from(sourceRoot.querySelectorAll<HTMLImageElement>('img')).find((sourceImage) => {
+    if (!sourceImage.complete || sourceImage.naturalWidth <= 0) return false;
+    return [sourceImage.currentSrc, sourceImage.src, sourceImage.getAttribute('src') || '']
+      .some((source) => Boolean(source) && cloneSources.has(source));
+  }) || null;
+}
+
+function rasterizeLoadedImage(image: HTMLImageElement | null) {
+  if (!image || !image.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) return null;
+
+  try {
+    const scale = Math.min(
+      1,
+      MOBILE_IMAGE_MAX_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight),
+    );
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const source = image.currentSrc || image.src || '';
+    const preservesAlpha = /^data:image\/(?:png|webp|avif)/iu.test(source);
+    return canvas.toDataURL(preservesAlpha ? 'image/png' : 'image/jpeg', 0.88);
+  } catch {
+    return null;
+  }
+}
+
+async function inlineCloneImages(root: HTMLElement, sourceRoot: HTMLElement) {
   const dataUrlCache = new Map<string, Promise<string | null>>();
   const images = Array.from(root.querySelectorAll<HTMLImageElement>('img'));
+  const useMobileRaster = isMobileBrowser();
 
   await Promise.all(images.map(async (image) => {
     const source = image.currentSrc || image.src;
@@ -38,13 +87,19 @@ async function inlineCloneImages(root: HTMLElement) {
 
     let dataUrlPromise = dataUrlCache.get(source);
     if (!dataUrlPromise) {
-      dataUrlPromise = fetch(source, { cache: 'force-cache', credentials: 'same-origin' })
-        .then((response) => {
-          if (!response.ok) throw new Error(`Immagine non disponibile (${response.status}).`);
-          return response.blob();
-        })
-        .then(blobToDataUrl)
-        .catch(() => null);
+      const loadedImage = useMobileRaster
+        ? findLoadedSourceImage(sourceRoot, image) || (image.complete ? image : null)
+        : null;
+      dataUrlPromise = Promise.resolve(rasterizeLoadedImage(loadedImage)).then((rasterized) => {
+        if (rasterized) return rasterized;
+        return fetch(source, { cache: 'force-cache', credentials: 'same-origin' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`Immagine non disponibile (${response.status}).`);
+            return response.blob();
+          })
+          .then(blobToDataUrl)
+          .catch(() => null);
+      });
       dataUrlCache.set(source, dataUrlPromise);
     }
 
@@ -155,6 +210,8 @@ async function renderSocialStoryBlob(
   clone.style.transform = 'none';
   clone.style.width = `${SOCIAL_STORY_WIDTH}px`;
   clone.style.fontFamily = exportFontFamily;
+  const exportBackground = isDark ? '#29231e' : '#f6efdf';
+  clone.style.backgroundColor = exportBackground;
   // A Story may be exported while the live typewriter is still composing the
   // word. The clone must always contain the complete editorial text.
   revealTypewriterClone(clone);
@@ -172,17 +229,24 @@ async function renderSocialStoryBlob(
   exportFrame.style.boxSizing = 'border-box';
   exportFrame.style.overflow = 'hidden';
   exportFrame.style.pointerEvents = 'none';
-  exportFrame.style.zIndex = '-1';
+  // Keep a tiny composited presence in the viewport. A negative stacking
+  // context can make iOS Safari serialize the text but return a transparent
+  // canvas for the rest of the foreignObject. The export overrides this
+  // opacity again, so nothing perceptible is shown during capture.
+  exportFrame.style.opacity = '0.001';
+  exportFrame.style.backgroundColor = exportBackground;
+  exportFrame.style.zIndex = '0';
   exportFrame.appendChild(clone);
   document.body.appendChild(exportFrame);
 
   try {
+    await waitForImages(source);
     await waitForImages(clone);
     // Mobile Safari/Chromium can serialize the surrounding text while
     // dropping images that are still represented by HTTP URLs in the SVG
     // foreignObject. Embed each loaded photo in the clone first so the final
     // PNG has no external image dependency left to resolve.
-    await inlineCloneImages(clone);
+    await inlineCloneImages(clone, source);
     await waitForImages(clone);
 
     const correspondenceSheet = clone.querySelector<HTMLElement>('.daily-correspondences-sheet');
@@ -213,9 +277,11 @@ async function renderSocialStoryBlob(
     const blob = await toBlob(exportFrame, {
       width: SOCIAL_STORY_WIDTH,
       height: SOCIAL_STORY_HEIGHT,
+      backgroundColor: exportBackground,
       pixelRatio: 1,
-      cacheBust: true,
+      cacheBust: false,
       includeQueryParams: true,
+      style: { opacity: '1' },
       // Missing-media cards keep their paper placeholder in the export, but
       // their inline Lucide fallback can make html-to-image reject the whole
       // foreignObject in Chromium. The placeholder itself is CSS-only and
