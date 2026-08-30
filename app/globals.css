@@ -15181,12 +15181,51 @@ body.museum-room-open :is(
 }
 
 /* Story 3 — Da portare con sé */
+.social-carry-seasonal-background {
+  bottom: 0;
+  height: 1050px;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 0;
+}
+
+.social-carry-seasonal-background-image,
+.social-carry-seasonal-background .social-story-media-empty {
+  display: block;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center bottom;
+  opacity: 0.72;
+  width: 100%;
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.76) 58%,
+    rgba(0, 0, 0, 0.28) 76%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.76) 58%,
+    rgba(0, 0, 0, 0.28) 76%,
+    transparent 100%
+  );
+}
+
 .social-story-carry-main {
-  height: 1392px;
+  height: 1488px;
   left: 84px;
   position: absolute;
   right: 84px;
   top: 337px;
+  z-index: 1;
 }
 
 .social-carry-section {
@@ -15201,7 +15240,7 @@ body.museum-room-open :is(
 }
 
 .social-carry-poem {
-  height: 294px;
+  height: 390px;
 }
 
 .social-carry-poem-layout {
@@ -15209,7 +15248,7 @@ body.museum-room-open :is(
   display: grid;
   gap: 58px;
   grid-template-columns: 205px minmax(0, 1fr);
-  height: 221px;
+  height: 305px;
   margin-top: 14px;
 }
 
@@ -15253,7 +15292,7 @@ body.museum-room-open :is(
   font-size: 50px;
 }
 
-.social-carry-poem-copy p,
+.social-carry-poem-source,
 .social-carry-apod-copy p,
 .social-carry-seasonal-copy p {
   color: var(--social-muted);
@@ -15264,9 +15303,20 @@ body.museum-room-open :is(
   max-width: 600px;
 }
 
+.social-carry-poem-excerpt {
+  color: var(--social-muted);
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.22;
+  margin: 12px 0 0;
+  max-height: 168px;
+  overflow: hidden;
+  white-space: pre-line;
+}
+
 .social-carry-poem-copy .social-story-rule {
   margin-left: 0;
-  margin-top: 20px;
+  margin-top: 12px;
 }
 
 .social-carry-bible {
@@ -15304,35 +15354,37 @@ body.museum-room-open :is(
 
 .social-carry-bible-excerpt {
   color: var(--social-muted);
-  font-size: 28px;
+  font-size: 26px;
   font-style: italic;
-  line-height: 1.36;
+  line-height: 1.28;
   margin: 23px 0 0;
+  max-height: 180px;
   max-width: 870px;
   overflow: hidden;
   text-wrap: pretty;
+  white-space: pre-line;
 }
 
 .social-carry-apod {
-  height: 465px;
+  height: 365px;
   padding-top: 34px;
 }
 
 .social-carry-apod-layout {
   align-items: flex-start;
   display: grid;
-  gap: 72px;
-  grid-template-columns: 470px minmax(0, 1fr);
+  gap: 44px;
+  grid-template-columns: 256px minmax(0, 1fr);
   margin-top: 24px;
 }
 
 .social-carry-apod-image,
 .social-carry-apod .social-story-media-empty {
-  border-radius: 12px 10px 13px 9px;
-  box-shadow: 0 10px 20px -16px rgba(53, 36, 25, 0.9), 0 0 0 1px rgba(81, 52, 34, 0.08);
-  height: 338px;
+  border-radius: 11px 9px 12px 8px;
+  box-shadow: 0 8px 16px -15px rgba(53, 36, 25, 0.85), 0 0 0 1px rgba(81, 52, 34, 0.08);
+  height: 148px;
   object-fit: cover;
-  width: 470px;
+  width: 256px;
 }
 
 .social-carry-apod-copy {
@@ -15375,7 +15427,7 @@ body.museum-room-open :is(
 
 .social-carry-seasonal {
   border-bottom: 0;
-  height: 226px;
+  height: 326px;
   padding-top: 31px;
 }
 
@@ -15385,15 +15437,6 @@ body.museum-room-open :is(
   gap: 44px;
   grid-template-columns: 256px minmax(0, 1fr);
   margin-top: 20px;
-}
-
-.social-carry-seasonal-image,
-.social-carry-seasonal .social-story-media-empty {
-  border-radius: 11px 9px 12px 8px;
-  box-shadow: 0 8px 16px -15px rgba(53, 36, 25, 0.85), 0 0 0 1px rgba(81, 52, 34, 0.08);
-  height: 148px;
-  object-fit: cover;
-  width: 256px;
 }
 
 .social-carry-seasonal-title {
@@ -15420,7 +15463,10 @@ body.museum-room-open :is(
 }
 
 .social-carry-seasonal-copy {
+  grid-column: 1 / -1;
   padding-top: 6px;
+  position: relative;
+  z-index: 1;
 }
 
 .social-carry-seasonal-copy p {
@@ -15480,6 +15526,12 @@ body.museum-room-open :is(
 .social-story-canvas.is-dark::after,
 .social-story-export-root.is-dark::after {
   border-color: rgba(255, 232, 202, 0.1);
+}
+
+.social-story-canvas.is-dark .social-carry-seasonal-background-image,
+.social-story-export-root.is-dark .social-carry-seasonal-background-image {
+  filter: saturate(0.78) brightness(0.72);
+  opacity: 0.56;
 }
 
 .social-story-canvas.is-dark .social-story-wordmark,

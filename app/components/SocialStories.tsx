@@ -103,6 +103,49 @@ function getSocialExcerpt(text: string, maxChars = 220) {
   return `${excerpt.replace(/[,:;–—-]+$/u, '').trim()}…`;
 }
 
+function getSocialLineExcerpt(text: string, maxChars: number, maxLines: number) {
+  const lines = text
+    .split(/\r?\n/u)
+    .map((line) => normalizeText(line))
+    .filter(Boolean);
+  if (!lines.length) return '';
+  if (lines.length === 1) return getSocialExcerpt(lines[0], maxChars);
+
+  const selected: string[] = [];
+  let length = 0;
+  for (const line of lines) {
+    if (selected.length >= maxLines) break;
+    const separatorLength = selected.length > 0 ? 1 : 0;
+    if (length + separatorLength + line.length > maxChars) break;
+    selected.push(line);
+    length += separatorLength + line.length;
+  }
+
+  if (!selected.length) return getSocialExcerpt(text, maxChars);
+  if (selected.length < lines.length) {
+    selected[selected.length - 1] = `${selected[selected.length - 1].replace(/[,:;–—-]+$/u, '').trim()}…`;
+  }
+  return selected.join('\n');
+}
+
+function getSocialPoemExcerpt(text: string) {
+  const blocks = text
+    .split(/\r?\n\s*\r?\n/u)
+    .map((block) => block.split(/\r?\n/u).map((line) => normalizeText(line)).filter(Boolean))
+    .filter((block) => block.length > 0);
+  if (!blocks.length) return '';
+
+  const firstBlock = blocks[0];
+  const verseBlocks = blocks.length > 1 && firstBlock.length === 1
+    ? blocks.slice(1)
+    : [firstBlock.length > 1 && !/[.!?,;:]$/u.test(firstBlock[0]) ? firstBlock.slice(1) : firstBlock];
+  return getSocialLineExcerpt(verseBlocks.flat().join('\n'), 420, 6);
+}
+
+function getSocialPassageExcerpt(text: string) {
+  return getSocialLineExcerpt(text, 430, 5);
+}
+
 function getSocialPoemSource(data: DatiTaccuino) {
   const source = normalizeText(data.poesia.fonte || getFirstSentence(data.poesia.testo));
   if (!source) return '—';
@@ -357,8 +400,9 @@ function CarryStory(props: SocialStoryProps) {
   const { data, dataIso, lingua, isDark, sealColor, apod, seasonalArtwork } = props;
   const media = getSocialMedia(props);
   const poemSource = getSocialPoemSource(data);
+  const poemExcerpt = getSocialPoemExcerpt(data.poesia.testo);
   const bibleReference = normalizeText(data.bibbia.fonte) || '—';
-  const bibleExcerpt = getSocialExcerpt(data.bibbia.testo, 230) || '—';
+  const bibleExcerpt = getSocialPassageExcerpt(data.bibbia.testo) || '—';
   const apodTitle = lingua === 'IT' ? (apod?.title_it || apod?.title_en || '—') : (apod?.title_en || apod?.title_it || '—');
   const apodCredit = apod?.copyright ? `NASA APOD · ${apod.copyright}` : 'NASA APOD';
   const seasonalMeta = seasonalArtwork
@@ -374,6 +418,15 @@ function CarryStory(props: SocialStoryProps) {
       aria-label={t('socialStoryCarry', lingua)}
     >
       <StoryHeader dataIso={dataIso} lingua={lingua} />
+      <div className="social-carry-seasonal-background" aria-hidden="true">
+        <StoryImage
+          src={media.seasonal}
+          alt=""
+          className="social-carry-seasonal-background-image"
+          fallbackLabel={t('socialStoryImageUnavailable', lingua)}
+          fallbackIcon={Palette}
+        />
+      </div>
       <main className="social-story-carry-main">
         <section className="social-carry-section social-carry-poem">
           <StorySectionLabel icon={Feather}>{t('correspondencePoem', lingua)}</StorySectionLabel>
@@ -387,7 +440,8 @@ function CarryStory(props: SocialStoryProps) {
             />
             <div className="social-carry-poem-copy">
               <h1 className={`social-carry-author ${getTextLengthClass(data.poesia.autore, [20, 32, 46])}`}>{data.poesia.autore || '—'}</h1>
-              <p>{poemSource}</p>
+              <p className="social-carry-poem-source">{poemSource}</p>
+              <p className="social-carry-poem-excerpt">{poemExcerpt || '—'}</p>
               <StoryRule />
             </div>
           </div>
@@ -421,13 +475,6 @@ function CarryStory(props: SocialStoryProps) {
         <section className="social-carry-section social-carry-seasonal">
           <StorySectionLabel icon={ImageIcon}>{t('seasonalArtwork', lingua)}</StorySectionLabel>
           <div className="social-carry-seasonal-layout">
-            <StoryImage
-              src={media.seasonal}
-              alt={seasonalArtwork?.title || t('seasonalArtwork', lingua)}
-              className="social-carry-seasonal-image"
-              fallbackLabel={t('socialStoryImageUnavailable', lingua)}
-              fallbackIcon={Palette}
-            />
             <div className="social-carry-seasonal-copy">
               <h2 className={`social-carry-seasonal-title ${getTextLengthClass(seasonalArtwork?.title || '', [24, 38, 56])}`}>{seasonalArtwork?.title || '—'}</h2>
               <p>{seasonalMeta}</p>
