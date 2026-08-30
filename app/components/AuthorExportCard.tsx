@@ -222,7 +222,7 @@ export default function AuthorExportCard({
               IL GIORNO DA CUSTODIRE
             </div>
             <div className={garamond.className} style={{ fontSize: '20px', letterSpacing: '0.08em', marginTop: '6px', color: palette.textMuted, opacity: 0.9 }}>
-              taccuino-del-giorno.vercel.app
+              dayatlas.vercel.app
             </div>
             <div style={{ height: '1px', margin: '12px auto 0', width: '260px', background: palette.wcColor, opacity: 0.42 }} />
           </div>
