@@ -174,7 +174,7 @@ function getSocialMedia(props: SocialStoryProps) {
     saint: getSocialImageUrl(editorialMedia.santi || saintArtwork?.imageUrl),
     artwork: getSocialImageUrl(editorialMedia.opera || opera?.immagine_url || opera?.immagine_url_hd),
     music: getSocialImageUrl(rawMusic),
-    musicFallback: rawMusic,
+    musicFallback: '',
     apod: getSocialImageUrl(editorialMedia.apod || apod?.thumbnail_url || apod?.url),
     poem: getSocialImageUrl(readingMedia.poesia?.imageUrl),
     bible: getSocialImageUrl(readingMedia.bibbia?.imageUrl),

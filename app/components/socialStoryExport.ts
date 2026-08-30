@@ -104,6 +104,14 @@ export async function downloadSocialStory(
       pixelRatio: 1,
       cacheBust: true,
       includeQueryParams: true,
+      // Missing-media cards keep their paper placeholder in the export, but
+      // their inline Lucide fallback can make html-to-image reject the whole
+      // foreignObject in Chromium. The placeholder itself is CSS-only and
+      // remains fully exportable without that decorative child SVG.
+      filter: (node) => !(
+        node instanceof SVGElement
+        && Boolean(node.parentElement?.closest('.social-story-media-empty, .correspondence-missing-media, .correspondence-saint-mark'))
+      ),
     });
     const link = document.createElement('a');
     link.download = filename;

@@ -3,6 +3,8 @@ const TRUSTED_IMAGE_HOST_SUFFIXES = [
   'clevelandart.org',
   'metmuseum.org',
   'nasa.gov',
+  'bcbits.com',
+  'santacaterinabg.it',
   'vimeocdn.com',
   'wikimedia.org',
   'wikipedia.org',

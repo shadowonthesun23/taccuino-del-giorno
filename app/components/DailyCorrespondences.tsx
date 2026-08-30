@@ -28,6 +28,18 @@ const CORRESPONDENCE_EXPORT_LAYOUT_WIDTH = CORRESPONDENCE_EXPORT_WIDTH - (CORRES
 const CORRESPONDENCE_EXPORT_CONTENT_HEIGHT = CORRESPONDENCE_EXPORT_HEIGHT - CORRESPONDENCE_EXPORT_SAFE_TOP - CORRESPONDENCE_EXPORT_SAFE_BOTTOM;
 const CORRESPONDENCE_EXPORT_BOTTOM_BLEED = 0;
 
+function getRenderableImageUrl(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? '';
+  if (!trimmed) return '';
+  if (
+    trimmed.startsWith('/')
+    || trimmed.startsWith('data:image/')
+    || trimmed.startsWith('blob:')
+    || trimmed.includes('/api/image-proxy?')
+  ) return trimmed;
+  return proxiedImageUrl(trimmed);
+}
+
 function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();
 }
@@ -183,19 +195,19 @@ export default function DailyCorrespondences({
   const moon = getMoonPhase(dataIso);
   const moonLabel = moonLabels[moon.phase]?.[lingua] ?? moonLabels[moon.phase]?.EN ?? t('moon', lingua);
   const { day: dayOfYear, total: totalDays } = getDayOfYearInfo(dataIso);
-  const authorImageUrl = editorialMedia.autore || proxiedImageUrl(data.foto_autore_url);
-  const artworkImageUrl = editorialMedia.opera || proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
+  const authorImageUrl = getRenderableImageUrl(editorialMedia.autore) || getRenderableImageUrl(data.foto_autore_url);
+  const artworkImageUrl = getRenderableImageUrl(editorialMedia.opera) || getRenderableImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
   const authorImageAvailable = Boolean(authorImageUrl) && !failedMedia.has(authorImageUrl);
   const artworkImageAvailable = Boolean(artworkImageUrl) && !failedMedia.has(artworkImageUrl);
-  const musicCoverUrl = editorialMedia.musica?.trim() || musicCover?.trim() || null;
+  const musicCoverUrl = getRenderableImageUrl(editorialMedia.musica || musicCover) || null;
   const availableMusicCover = musicCoverUrl && !failedMedia.has(musicCoverUrl)
     ? musicCoverUrl
     : null;
   const seasonalArtworkImageAvailable = Boolean(seasonalArtwork?.imageUrl && !failedMedia.has(seasonalArtwork.imageUrl));
-  const apodImageUrl = editorialMedia.apod || proxiedImageUrl(apod?.thumbnail_url || apod?.url);
-  const saintArtworkImageUrl = editorialMedia.santi || proxiedImageUrl(saintArtwork?.imageUrl);
-  const poemImageUrl = proxiedImageUrl(readingMedia.poesia?.imageUrl);
-  const bibleImageUrl = proxiedImageUrl(readingMedia.bibbia?.imageUrl);
+  const apodImageUrl = getRenderableImageUrl(editorialMedia.apod) || getRenderableImageUrl(apod?.thumbnail_url || apod?.url);
+  const saintArtworkImageUrl = getRenderableImageUrl(editorialMedia.santi) || getRenderableImageUrl(saintArtwork?.imageUrl);
+  const poemImageUrl = getRenderableImageUrl(readingMedia.poesia?.imageUrl);
+  const bibleImageUrl = getRenderableImageUrl(readingMedia.bibbia?.imageUrl);
   const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
