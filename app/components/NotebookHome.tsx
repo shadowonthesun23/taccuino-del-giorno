@@ -1590,7 +1590,15 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               isSaved={isCardSaved('parola')}
               onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
               <div className="text-center mb-6">
-                <h4 className="card-primary-title text-4xl font-bold text-[#DE6B58] mb-2">{data.parola_giorno.parola}</h4>
+                <h4 className={`card-primary-title text-4xl font-bold text-[#DE6B58] mb-2 ${
+                  data.parola_giorno.parola.trim().length > 24
+                    ? 'is-extra-long-word'
+                    : data.parola_giorno.parola.trim().length > 16
+                      ? 'is-long-word'
+                      : data.parola_giorno.parola.trim().length > 11
+                        ? 'is-wide-word'
+                        : ''
+                }`}>{data.parola_giorno.parola}</h4>
                 <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
               <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{{ IT: 'Definizione', EN: 'Definition', FR: 'Définition', DE: 'Definition', ES: 'Definición', PT: 'Definição' }[lingua] || 'Definition'}:</strong> {data.parola_giorno.definizione}</p>

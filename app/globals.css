@@ -11436,6 +11436,8 @@ body.museum-room-open :is(
 .card-section-parola .card-primary-title {
   color: #bd5948 !important;
   font-size: clamp(3.3rem, 9vw, 7.4rem) !important;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .card-section-avvenimenti .card-content {
@@ -11809,6 +11811,24 @@ body.museum-room-open :is(
 
   .card-section-parola .card-primary-title {
     font-size: clamp(3.1rem, 18vw, 5.1rem) !important;
+  }
+
+  .card-section-parola .card-primary-title.is-wide-word {
+    font-size: clamp(2.7rem, 15.5vw, 5.1rem) !important;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
+  }
+
+  .card-section-parola .card-primary-title.is-long-word {
+    font-size: clamp(2.45rem, 13.5vw, 4.65rem) !important;
+    letter-spacing: -0.05em;
+    white-space: nowrap;
+  }
+
+  .card-section-parola .card-primary-title.is-extra-long-word {
+    font-size: clamp(2.2rem, 11.8vw, 4.2rem) !important;
+    letter-spacing: -0.055em;
+    white-space: nowrap;
   }
 
   .loading-notebook-content {
