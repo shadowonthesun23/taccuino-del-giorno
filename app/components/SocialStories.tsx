@@ -240,36 +240,10 @@ function StoryHeader({ dataIso, lingua }: { dataIso: string; lingua: LanguageCod
   );
 }
 
-function StoryBotanicalSprigs() {
-  return (
-    <svg className="social-story-seal-sprigs" viewBox="0 0 660 170" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2">
-        <path d="M330 118C286 111 251 95 214 101C174 108 127 98 62 69" />
-        <path d="M330 118C374 111 409 95 446 101C486 108 533 98 598 69" />
-        <path d="M237 99C228 78 214 56 194 41" />
-        <path d="M423 99C432 78 446 56 466 41" />
-        <path d="M171 98C164 78 151 61 135 51" />
-        <path d="M489 98C496 78 509 61 525 51" />
-        <path d="M108 89C102 76 94 66 83 59" />
-        <path d="M552 89C558 76 566 66 577 59" />
-        <path d="M278 103C270 85 259 74 245 68C250 84 261 96 278 103Z" />
-        <path d="M382 103C390 85 401 74 415 68C410 84 399 96 382 103Z" />
-        <path d="M213 92C204 76 193 67 179 64C184 78 196 88 213 92Z" />
-        <path d="M447 92C456 76 467 67 481 64C476 78 464 88 447 92Z" />
-        <path d="M153 85C145 73 135 67 124 66C130 77 139 84 153 85Z" />
-        <path d="M507 85C515 73 525 67 536 66C530 77 521 84 507 85Z" />
-        <path d="M92 77C83 68 74 65 65 66C72 74 81 78 92 77Z" />
-        <path d="M568 77C577 68 586 65 595 66C588 74 579 78 568 77Z" />
-      </g>
-    </svg>
-  );
-}
-
-function StorySeal({ data, dataIso, lingua, sealColor, withSprigs = false }: Pick<SocialStoryProps, 'data' | 'dataIso' | 'lingua' | 'sealColor'> & { withSprigs?: boolean }) {
+function StorySeal({ data, dataIso, lingua, sealColor }: Pick<SocialStoryProps, 'data' | 'dataIso' | 'lingua' | 'sealColor'>) {
   const { day, total } = getDayOfYearInfo(dataIso);
   return (
     <footer className="social-story-seal-footer">
-      {withSprigs ? <StoryBotanicalSprigs /> : null}
       <div className={`daily-wax-seal social-story-seal seal-${sealColor}`} aria-label={`${t('waxSealAria', lingua)}: ${data.autore_giorno}`}>
         <div className="daily-wax-seal-inner">
           <span className="seal-initials">{getInitials(data.autore_giorno)}</span>
@@ -461,7 +435,7 @@ function CarryStory(props: SocialStoryProps) {
           </div>
         </section>
       </main>
-      <StorySeal data={data} dataIso={dataIso} lingua={lingua} sealColor={sealColor} withSprigs />
+      <StorySeal data={data} dataIso={dataIso} lingua={lingua} sealColor={sealColor} />
     </article>
   );
 }
