@@ -15465,9 +15465,27 @@ body.museum-room-open :is(
 
 .social-carry-seasonal-copy {
   grid-column: 1 / -1;
+  isolation: isolate;
   padding-top: 6px;
   position: relative;
   z-index: 1;
+}
+
+.social-carry-seasonal-copy::before {
+  background: linear-gradient(
+    90deg,
+    rgba(246, 239, 223, 0.94) 0%,
+    rgba(246, 239, 223, 0.78) 48%,
+    rgba(246, 239, 223, 0.34) 76%,
+    rgba(246, 239, 223, 0) 100%
+  );
+  border-radius: 24px;
+  content: '';
+  filter: blur(10px);
+  inset: -18px -54px -18px -28px;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
 }
 
 .social-carry-seasonal-copy p {
@@ -15520,7 +15538,14 @@ body.museum-room-open :is(
   --social-accent: #d28a74;
   --social-pencil: rgba(224, 196, 161, 0.34);
   background-color: #29231e;
-  background-image: url('/beige-paper.png');
+  background-image:
+    radial-gradient(circle at 22% 28%, rgba(255, 214, 166, 0.025) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle at 71% 63%, rgba(0, 0, 0, 0.018) 0 0.8px, transparent 1px),
+    radial-gradient(circle at 16% 10%, rgba(255, 214, 166, 0.035), transparent 34%),
+    radial-gradient(circle at 82% 86%, rgba(255, 214, 166, 0.02), transparent 30%);
+  background-position: 0 0, 34px 57px, 0 0, 0 0;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
+  background-size: 137px 137px, 191px 191px, 100% 100%, 100% 100%;
   color: var(--social-ink);
 }
 
@@ -15541,10 +15566,24 @@ body.museum-room-open :is(
 }
 
 .social-story-canvas.is-dark .social-story-header-line,
-.social-story-export-root.is-dark .social-story-header-line,
+.social-story-export-root.is-dark .social-story-header-line {
+  background-color: rgba(224, 196, 161, 0.28);
+}
+
 .social-story-canvas.is-dark .social-carry-section,
 .social-story-export-root.is-dark .social-carry-section {
-  background-color: rgba(224, 196, 161, 0.28);
+  border-bottom-color: rgba(224, 196, 161, 0.24);
+}
+
+.social-story-canvas.is-dark .social-carry-seasonal-copy::before,
+.social-story-export-root.is-dark .social-carry-seasonal-copy::before {
+  background: linear-gradient(
+    90deg,
+    rgba(41, 35, 30, 0.96) 0%,
+    rgba(41, 35, 30, 0.84) 48%,
+    rgba(41, 35, 30, 0.42) 76%,
+    rgba(41, 35, 30, 0) 100%
+  );
 }
 
 .social-story-canvas.is-dark .social-story-date,
@@ -15794,6 +15833,14 @@ body.museum-room-open :is(
 
 .social-stories-overlay.is-dark .social-stories-dialog {
   background-color: #29231e;
+  background-image:
+    radial-gradient(circle at 22% 28%, rgba(255, 214, 166, 0.025) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle at 71% 63%, rgba(0, 0, 0, 0.018) 0 0.8px, transparent 1px),
+    radial-gradient(circle at 16% 10%, rgba(255, 214, 166, 0.035), transparent 34%),
+    radial-gradient(circle at 82% 86%, rgba(255, 214, 166, 0.02), transparent 30%);
+  background-position: 0 0, 34px 57px, 0 0, 0 0;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
+  background-size: 137px 137px, 191px 191px, 100% 100%, 100% 100%;
   border-color: rgba(224, 196, 161, 0.24);
 }
 
