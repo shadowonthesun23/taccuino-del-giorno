@@ -12233,8 +12233,9 @@ body.museum-room-open :is(
   }
 
   .seasonal-reveal-content {
-    filter: blur(0);
-    transform: translate3d(0, 0, 0);
+    /* Keep fixed paper layers viewport-bound during ordinary page scrolling. */
+    filter: none;
+    transform: none;
   }
 
   .seasonal-reveal-content.is-artwork-solo {
