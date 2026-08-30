@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, Binoculars, BookOpen, Church, Download, Eye, Feather, Flower2, Images, Moon, Music, Palette, Sparkles, Telescope } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { ArrowDown, Binoculars, BookOpen, Church, Eye, Feather, Flower2, Images, Moon, Music, Palette, Telescope } from 'lucide-react';
 import type { ApodData, DatiTaccuino, LanguageCode, OperaGiorno, ReadingMediaResult, SaintArtworkResult } from '@/lib/types';
 import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
@@ -10,7 +10,7 @@ import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-ut
 import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
 import { OPEN_EPHEMERIS_EVENT, SITE_WATERMARK, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
-import { garamond, janeAust } from '@/lib/fonts';
+import { janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { TypewriterPhrase } from '@/components/ui/Typography';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
@@ -19,14 +19,6 @@ import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@
 const eagerImageProps = getImageLoadingProps(true);
 const CORRESPONDENCE_TYPEWRITER_DELAY = 520;
 const CORRESPONDENCE_TYPEWRITER_SPEED = 1.8;
-const CORRESPONDENCE_EXPORT_WIDTH = 1080;
-const CORRESPONDENCE_EXPORT_HEIGHT = 1920;
-const CORRESPONDENCE_EXPORT_SAFE_SIDE = 36;
-const CORRESPONDENCE_EXPORT_SAFE_TOP = 79;
-const CORRESPONDENCE_EXPORT_SAFE_BOTTOM = 0;
-const CORRESPONDENCE_EXPORT_LAYOUT_WIDTH = CORRESPONDENCE_EXPORT_WIDTH - (CORRESPONDENCE_EXPORT_SAFE_SIDE * 2);
-const CORRESPONDENCE_EXPORT_CONTENT_HEIGHT = CORRESPONDENCE_EXPORT_HEIGHT - CORRESPONDENCE_EXPORT_SAFE_TOP - CORRESPONDENCE_EXPORT_SAFE_BOTTOM;
-const CORRESPONDENCE_EXPORT_BOTTOM_BLEED = 0;
 
 function getRenderableImageUrl(value: string | null | undefined) {
   const trimmed = value?.trim() ?? '';
@@ -187,8 +179,6 @@ export default function DailyCorrespondences({
   presentation?: 'home' | 'social';
   onOpenStories?: () => void;
 }) {
-  const sheetRef = useRef<HTMLElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const [failedMedia, setFailedMedia] = useState<Set<string>>(() => new Set());
   const [visiblePlanets, setVisiblePlanets] = useState<VisiblePlanet[] | null>(null);
   const isSocialPresentation = presentation === 'social';
@@ -272,116 +262,6 @@ export default function DailyCorrespondences({
     scrollTo(skyTargetId);
   }, [scrollTo, skyTargetId]);
 
-  const downloadPlate = useCallback(async () => {
-    if (!sheetRef.current || isExporting) return;
-    setIsExporting(true);
-    let exportFrame: HTMLDivElement | null = null;
-
-    try {
-      await document.fonts.ready;
-      const { toPng } = await import('html-to-image');
-      const clone = sheetRef.current.cloneNode(true) as HTMLElement;
-      clone.removeAttribute('id');
-      clone.classList.add('daily-correspondences-export', 'correspondence-complete-folio');
-      clone.style.boxSizing = 'border-box';
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.maxWidth = 'none';
-      clone.style.margin = '0';
-      clone.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH}px`;
-      clone.querySelectorAll('[data-export-ignore]').forEach((node) => node.remove());
-
-      exportFrame = document.createElement('div');
-      exportFrame.className = `${garamond.className} correspondence-export-frame ${isDark ? 'is-dark' : ''}`;
-      exportFrame.style.position = 'fixed';
-      exportFrame.style.left = '0';
-      exportFrame.style.top = '0';
-      exportFrame.style.width = `${CORRESPONDENCE_EXPORT_WIDTH}px`;
-      exportFrame.style.height = `${CORRESPONDENCE_EXPORT_HEIGHT}px`;
-      exportFrame.style.boxSizing = 'border-box';
-      exportFrame.style.display = 'flex';
-      exportFrame.style.alignItems = 'center';
-      exportFrame.style.justifyContent = 'center';
-      exportFrame.style.padding = `${CORRESPONDENCE_EXPORT_SAFE_TOP}px ${CORRESPONDENCE_EXPORT_SAFE_SIDE}px ${CORRESPONDENCE_EXPORT_SAFE_BOTTOM}px`;
-      exportFrame.style.zIndex = '-1';
-      exportFrame.style.pointerEvents = 'none';
-      exportFrame.style.overflow = 'hidden';
-
-      const measureWrap = document.createElement('div');
-      measureWrap.style.position = 'absolute';
-      measureWrap.style.left = '0';
-      measureWrap.style.top = '0';
-      measureWrap.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH}px`;
-      measureWrap.style.visibility = 'hidden';
-      measureWrap.style.pointerEvents = 'none';
-      measureWrap.appendChild(clone);
-      exportFrame.appendChild(measureWrap);
-      document.body.appendChild(exportFrame);
-
-      await Promise.all(Array.from(clone.querySelectorAll('img')).map(async (image) => {
-        if (image.complete && image.naturalWidth > 0) {
-          await image.decode().catch(() => undefined);
-          return;
-        }
-
-        await new Promise<void>((resolve) => {
-          const finish = () => {
-            image.removeEventListener('load', finish);
-            image.removeEventListener('error', finish);
-            resolve();
-          };
-          image.addEventListener('load', finish, { once: true });
-          image.addEventListener('error', finish, { once: true });
-        });
-      }));
-
-      const exportLayoutHeight = Math.max(clone.getBoundingClientRect().height, 1);
-      // La griglia resta fissa, ma le giornate con testi o media più ingombranti
-      // rientrano automaticamente nella safe area, incluso il sigillo finale.
-      const scale = Math.min(1, (CORRESPONDENCE_EXPORT_CONTENT_HEIGHT + CORRESPONDENCE_EXPORT_BOTTOM_BLEED) / exportLayoutHeight);
-
-      const contentWrap = document.createElement('div');
-      contentWrap.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH}px`;
-      contentWrap.style.height = `${CORRESPONDENCE_EXPORT_CONTENT_HEIGHT}px`;
-      contentWrap.style.display = 'flex';
-      contentWrap.style.alignItems = 'flex-start';
-      contentWrap.style.justifyContent = 'center';
-      contentWrap.style.overflow = 'hidden';
-      contentWrap.style.position = 'relative';
-      contentWrap.style.zIndex = '1';
-
-      const scaledFolio = document.createElement('div');
-      scaledFolio.style.width = `${CORRESPONDENCE_EXPORT_LAYOUT_WIDTH * scale}px`;
-      scaledFolio.style.height = `${exportLayoutHeight * scale}px`;
-      scaledFolio.style.flex = '0 0 auto';
-      scaledFolio.style.position = 'relative';
-
-      clone.style.transform = `scale(${scale})`;
-      clone.style.transformOrigin = 'top left';
-      scaledFolio.appendChild(clone);
-      contentWrap.appendChild(scaledFolio);
-      measureWrap.remove();
-      exportFrame.appendChild(contentWrap);
-
-      const dataUrl = await toPng(exportFrame, {
-        width: CORRESPONDENCE_EXPORT_WIDTH,
-        height: CORRESPONDENCE_EXPORT_HEIGHT,
-        pixelRatio: 1,
-        cacheBust: true,
-        includeQueryParams: true,
-      });
-      const link = document.createElement('a');
-      link.download = `coordinate-del-giorno-${dataIso}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (error) {
-      console.error('Errore export corrispondenze:', error);
-    } finally {
-      exportFrame?.remove();
-      setIsExporting(false);
-    }
-  }, [dataIso, isDark, isExporting]);
-
   return (
     <section
       id={isSocialPresentation ? undefined : 'corrispondenze'}
@@ -391,7 +271,6 @@ export default function DailyCorrespondences({
       aria-labelledby={isSocialPresentation ? 'social-correspondences-title' : 'correspondences-title'}
     >
       <article
-        ref={sheetRef}
         className={`daily-correspondences-sheet ${isDark ? 'is-dark' : ''}${isSocialPresentation ? ' daily-correspondences-export correspondence-complete-folio' : ''}`}
         data-seal-color={sealColor}
       >
@@ -577,8 +456,6 @@ export default function DailyCorrespondences({
           ) : null}
         </div>
 
-        {isSocialPresentation ? <span className="social-story-watermark">{SITE_WATERMARK}</span> : null}
-
         <div className="daily-correspondences-closure">
           <footer className="daily-correspondences-footer">
             <div className={`daily-wax-seal daily-correspondences-wax-seal seal-${sealColor}`} aria-label={`${t('waxSealAria', lingua)}: ${data.autore_giorno}`}>
@@ -594,13 +471,6 @@ export default function DailyCorrespondences({
               <span>{t('correspondencesFollow', lingua)}</span>
               <BookOpen aria-hidden="true" strokeWidth={1.7} />
             </button>
-            <button type="button" className="daily-correspondences-download" onClick={() => void downloadPlate()} disabled={isExporting} aria-label={t('correspondencesDownloadAria', lingua)}>
-              <span className={`daily-correspondences-download-icon ${isExporting ? 'is-preparing' : ''}`} aria-hidden="true">
-                <Download className="daily-correspondences-download-default" strokeWidth={1.7} />
-                <Sparkles className="daily-correspondences-download-preparing" strokeWidth={1.7} />
-              </span>
-              <span aria-live="polite">{isExporting ? t('correspondencesPreparing', lingua) : t('correspondencesDownload', lingua)}</span>
-            </button>
             {onOpenStories ? (
               <button type="button" className="daily-correspondences-download daily-correspondences-stories" onClick={onOpenStories}>
                 <Images aria-hidden="true" strokeWidth={1.65} />
@@ -610,6 +480,7 @@ export default function DailyCorrespondences({
           </div>
         </div>
       </article>
+      {isSocialPresentation ? <span className="social-story-watermark">{SITE_WATERMARK}</span> : null}
     </section>
   );
 }

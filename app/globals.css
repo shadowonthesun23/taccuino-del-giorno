@@ -15568,10 +15568,6 @@ body.museum-room-open :is(
   z-index: 4;
 }
 
-.correspondence-export-frame .daily-correspondences-export > .social-story-watermark {
-  opacity: 0.76 !important;
-}
-
 .social-story-watermark::before {
   background: radial-gradient(ellipse at 90% 50%, rgba(246, 239, 223, 0.58), rgba(246, 239, 223, 0) 72%);
   content: '';
