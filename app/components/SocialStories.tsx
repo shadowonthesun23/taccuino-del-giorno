@@ -19,7 +19,12 @@ import {
   X,
 } from 'lucide-react';
 import DailyCorrespondences from './DailyCorrespondences';
-import { downloadSocialStory, SOCIAL_STORY_HEIGHT, SOCIAL_STORY_WIDTH } from './socialStoryExport';
+import {
+  downloadSocialStories,
+  downloadSocialStory,
+  SOCIAL_STORY_HEIGHT,
+  SOCIAL_STORY_WIDTH,
+} from './socialStoryExport';
 import type {
   ApodData,
   DatiTaccuino,
@@ -592,11 +597,13 @@ export function SocialStoriesGallery({ className = '', ...props }: SocialStories
     if (exporting) return;
     setExporting('all');
     try {
-      for (const variant of STORY_VARIANTS) {
-        const source = getStoryNode(variant);
-        if (source) await downloadSocialStory(source, storyFilename(variant, dataIso), isDark);
-        await new Promise((resolve) => window.setTimeout(resolve, 120));
-      }
+      const stories = STORY_VARIANTS
+        .map((variant) => {
+          const source = getStoryNode(variant);
+          return source ? { source, filename: storyFilename(variant, dataIso) } : null;
+        })
+        .filter((story): story is { source: HTMLElement; filename: string } => Boolean(story));
+      await downloadSocialStories(stories, isDark);
     } catch (error) {
       console.error('Errore export Stories:', error);
     } finally {

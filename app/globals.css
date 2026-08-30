@@ -11905,10 +11905,6 @@ body.museum-room-open :is(
   transform-origin: left center;
 }
 
-.correspondence-word {
-  overflow: clip;
-}
-
 .author-photo-portrait {
   filter: saturate(0.96) contrast(0.98) brightness(1.02);
 }

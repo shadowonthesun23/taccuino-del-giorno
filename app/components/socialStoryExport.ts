@@ -3,6 +3,11 @@ import { garamond } from '@/lib/fonts';
 export const SOCIAL_STORY_WIDTH = 1080;
 export const SOCIAL_STORY_HEIGHT = 1920;
 
+type ShareNavigator = Navigator & {
+  canShare?: (data?: ShareData) => boolean;
+  share?: (data: ShareData) => Promise<void>;
+};
+
 function waitForImages(root: HTMLElement) {
   return Promise.all(Array.from(root.querySelectorAll('img')).map(async (image) => {
     if (image.complete && image.naturalWidth > 0) {
@@ -22,13 +27,80 @@ function waitForImages(root: HTMLElement) {
   }));
 }
 
-export async function downloadSocialStory(
+function revealTypewriterClone(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>('.typewriter-character').forEach((character) => {
+    character.classList.remove('is-pending');
+    character.classList.add('is-visible');
+    character.style.color = 'inherit';
+  });
+  root.querySelectorAll<HTMLElement>('.typewriter-phrase-caret-anchor, .typewriter-caret').forEach((caret) => {
+    caret.remove();
+  });
+}
+
+function isMobileBrowser() {
+  const userAgent = navigator.userAgent || '';
+  return /Android|iPhone|iPad|iPod|Mobile/iu.test(userAgent)
+    || (navigator.maxTouchPoints > 1 && /Macintosh/iu.test(userAgent));
+}
+
+function canShareFiles(files: File[]) {
+  const shareNavigator = navigator as ShareNavigator;
+  if (
+    !isMobileBrowser()
+    || typeof shareNavigator.share !== 'function'
+    || typeof shareNavigator.canShare !== 'function'
+  ) return false;
+
+  try {
+    return shareNavigator.canShare({ files });
+  } catch {
+    return false;
+  }
+}
+
+function toStoryFile(blob: Blob, filename: string) {
+  return new File([blob], filename, { type: blob.type || 'image/png' });
+}
+
+function triggerBlobDownload(file: File) {
+  const objectUrl = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.download = file.name;
+  link.href = objectUrl;
+  link.rel = 'noopener';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+}
+
+async function deliverStoryFiles(files: File[], shareTitle: string) {
+  const shareNavigator = navigator as ShareNavigator;
+  if (canShareFiles(files)) {
+    try {
+      await shareNavigator.share!({ files, title: shareTitle });
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      // Fall back to object-URL downloads when the share sheet is unavailable
+      // or the browser rejects the request after the async render completes.
+    }
+  }
+
+  for (const file of files) {
+    triggerBlobDownload(file);
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
+  }
+}
+
+async function renderSocialStoryBlob(
   source: HTMLElement,
-  filename: string,
   isDark: boolean,
 ) {
   await document.fonts.ready;
-  const { toPng } = await import('html-to-image');
+  const { toBlob } = await import('html-to-image');
 
   const exportFontProbe = document.createElement('span');
   exportFontProbe.className = garamond.className;
@@ -52,6 +124,9 @@ export async function downloadSocialStory(
   clone.style.transform = 'none';
   clone.style.width = `${SOCIAL_STORY_WIDTH}px`;
   clone.style.fontFamily = exportFontFamily;
+  // A Story may be exported while the live typewriter is still composing the
+  // word. The clone must always contain the complete editorial text.
+  revealTypewriterClone(clone);
 
   const exportFrame = document.createElement('div');
   exportFrame.className = `${garamond.className} social-story-download-frame${isDark ? ' is-dark' : ''}`;
@@ -98,7 +173,7 @@ export async function downloadSocialStory(
       });
     }
 
-    const dataUrl = await toPng(exportFrame, {
+    const blob = await toBlob(exportFrame, {
       width: SOCIAL_STORY_WIDTH,
       height: SOCIAL_STORY_HEIGHT,
       pixelRatio: 1,
@@ -113,11 +188,31 @@ export async function downloadSocialStory(
         && Boolean(node.parentElement?.closest('.social-story-media-empty, .correspondence-missing-media, .correspondence-saint-mark'))
       ),
     });
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = dataUrl;
-    link.click();
+    if (!blob) throw new Error('Impossibile creare il file PNG della Story.');
+    return blob;
   } finally {
     exportFrame.remove();
   }
+}
+
+export async function downloadSocialStory(
+  source: HTMLElement,
+  filename: string,
+  isDark: boolean,
+) {
+  const blob = await renderSocialStoryBlob(source, isDark);
+  await deliverStoryFiles([toStoryFile(blob, filename)], filename.replace(/\.png$/iu, ''));
+}
+
+export async function downloadSocialStories(
+  stories: Array<{ source: HTMLElement; filename: string }>,
+  isDark: boolean,
+) {
+  const files: File[] = [];
+  for (const story of stories) {
+    const blob = await renderSocialStoryBlob(story.source, isDark);
+    files.push(toStoryFile(blob, story.filename));
+  }
+
+  if (files.length) await deliverStoryFiles(files, 'Stories del giorno');
 }
