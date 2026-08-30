@@ -438,8 +438,15 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
     let frame: number | null = null;
     let lastScrollY = window.scrollY;
+    let scrollableHeight = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const progressEl1 = document.querySelector<HTMLElement>('.notebook-quick-nav-progress');
+    const progressEl2 = document.querySelector<HTMLElement>('.mobile-reading-thread-progress > span');
+
+    const updateScrollMetrics = () => {
+      scrollableHeight = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    };
+
     const updateReadingProgress = () => {
-      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
       const nextProgress = scrollableHeight <= 0
         ? 100
         : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
@@ -448,8 +455,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       const mobileReadingThreshold = Math.max(220, window.innerHeight * 0.3);
 
       const scale = nextProgress / 100;
-      const progressEl1 = document.querySelector<HTMLElement>('.notebook-quick-nav-progress');
-      const progressEl2 = document.querySelector<HTMLElement>('.mobile-reading-thread-progress > span');
       if (progressEl1) progressEl1.style.transform = `translateX(-50%) scaleY(${scale})`;
       if (progressEl2) progressEl2.style.transform = `scaleX(${scale})`;
       setReadingComplete((current) => current === nextComplete ? current : nextComplete);
@@ -482,13 +487,21 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     const handleScroll = () => {
       if (frame === null) frame = window.requestAnimationFrame(updateReadingProgress);
     };
+    const handleResize = () => {
+      updateScrollMetrics();
+      handleScroll();
+    };
+    const resizeObserver = new ResizeObserver(updateScrollMetrics);
 
+    resizeObserver.observe(document.documentElement);
+    updateScrollMetrics();
     updateReadingProgress();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
+    window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, [data, contentKey]);

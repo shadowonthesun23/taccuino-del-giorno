@@ -1929,19 +1929,6 @@ body {
   position: relative;
 }
 
-@supports (content-visibility: auto) {
-  /* The notebook can contain several long editorial sections. Browsers can
-     defer painting the ones outside the viewport without changing reading order. */
-  .card-paper-shadow {
-    contain-intrinsic-size: auto 620px;
-    content-visibility: auto;
-  }
-
-  .card-paper-shadow:focus-within {
-    content-visibility: visible;
-  }
-}
-
 .opera-postcard-media {
   perspective: 900px;
 }
@@ -2969,17 +2956,6 @@ body {
   }
 }
 
-@keyframes sectionSoftReveal {
-  from {
-    opacity: 0.62;
-    transform: translateY(12px) scale(0.992);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 .animate-fadeInUp {
   animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -3036,16 +3012,6 @@ body {
     filter: none;
     opacity: 0;
     transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .journal-page-enter .card-paper-shadow {
-      animation: sectionSoftReveal linear both;
-      animation-range: entry 4% cover 22%;
-      animation-timeline: view();
-    }
   }
 }
 
@@ -3504,51 +3470,6 @@ body {
     filter: blur(0);
     opacity: 1;
     transform: translateY(0) skewX(0);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .quote-editorial-dropcap,
-    .quote-editorial-copy,
-    .quote-editorial-footer,
-    .margin-note,
-    .margin-note-doodle,
-    .margin-note-doodle-line,
-    .margin-note-doodle-head,
-    .margin-note span {
-      animation-delay: 0s;
-      animation-timeline: view();
-    }
-
-    .quote-editorial-dropcap {
-      animation-range: entry 4% cover 20%;
-    }
-
-    .quote-editorial-copy {
-      animation-range: entry 7% cover 24%;
-    }
-
-    .quote-editorial-footer {
-      animation-range: entry 18% cover 34%;
-    }
-
-    .margin-note {
-      animation-range: entry 4% cover 24%;
-    }
-
-    .margin-note-doodle,
-    .margin-note-doodle-line {
-      animation-range: entry 6% cover 22%;
-    }
-
-    .margin-note-doodle-head {
-      animation-range: entry 14% cover 28%;
-    }
-
-    .margin-note span {
-      animation-range: entry 18% cover 34%;
-    }
   }
 }
 
@@ -6827,6 +6748,12 @@ body.museum-room-open :is(
   top: 24px;
   transform: translateX(-50%) rotate(-0.7deg);
   width: min(60%, 380px);
+}
+
+/* Keep the page ending open: the footer must not read as a hard section break. */
+.journal-footer::before,
+.journal-footer::after {
+  display: none;
 }
 
 .journal-footer-inner {
@@ -14297,6 +14224,16 @@ body.museum-room-open :is(
 .daily-correspondences-seasonal-export-label,
 .correspondence-entry-export-copy {
   display: none;
+}
+
+/* Export-only copies must stay out of the live table; the export frame opts in
+   later with its own display:block !important rules. */
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-author-export-description,
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-word-export-etymology,
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-word-label-export,
+.daily-correspondences-sheet:not(.daily-correspondences-export) .daily-correspondences-seasonal-export-label,
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-entry-export-copy {
+  display: none !important;
 }
 
 .daily-correspondences-export-date {

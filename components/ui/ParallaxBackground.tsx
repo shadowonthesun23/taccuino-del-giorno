@@ -386,7 +386,6 @@ export default function ParallaxBackground({
     let targetY = 0;
     let currentY = 0;
     let initialized = false;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const paintParallax = () => {
       const image = imageRef.current;
@@ -395,17 +394,15 @@ export default function ParallaxBackground({
         return;
       }
 
-      if (reducedMotion.matches) {
-        currentY = targetY;
-      } else {
-        currentY += (targetY - currentY) * 0.085;
-      }
-      if (Math.abs(targetY - currentY) < 0.05) currentY = targetY;
+      // Track the scroll position in one paint instead of chasing it with a
+      // long-lived animation loop. The latter kept the page busy during fast
+      // wheel/trackpad gestures and made sections appear late.
+      currentY = targetY;
 
       const transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
       image.style.transform = transform;
       if (coffeeLayerRef.current) coffeeLayerRef.current.style.transform = transform;
-      frame = currentY === targetY ? null : window.requestAnimationFrame(paintParallax);
+      frame = null;
     };
 
     const updateTarget = (immediate = false) => {
