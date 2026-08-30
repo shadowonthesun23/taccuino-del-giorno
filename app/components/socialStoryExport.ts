@@ -12,29 +12,41 @@ type ShareNavigator = Navigator & {
   share?: (data: ShareData) => Promise<void>;
 };
 
-function waitForImages(root: HTMLElement) {
-  return Promise.all(Array.from(root.querySelectorAll('img')).map(async (image) => {
+async function decodeImage(image: HTMLImageElement) {
+  if (image.naturalWidth <= 0 || typeof image.decode !== 'function') return;
+
+  await Promise.race([
+    image.decode().catch(() => undefined),
+    new Promise<void>((resolve) => window.setTimeout(resolve, IMAGE_WAIT_TIMEOUT_MS)),
+  ]);
+}
+
+function waitForImage(image: HTMLImageElement) {
+  return new Promise<void>((resolve) => {
+    let timeoutId: number | null = null;
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      image.removeEventListener('load', finish);
+      image.removeEventListener('error', finish);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      void decodeImage(image).finally(resolve);
+    };
+
     if (image.complete) {
-      if (image.naturalWidth > 0) await image.decode().catch(() => undefined);
+      finish();
       return;
     }
 
-    await new Promise<void>((resolve) => {
-      let timeoutId: number | null = null;
-      let settled = false;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        image.removeEventListener('load', finish);
-        image.removeEventListener('error', finish);
-        if (timeoutId !== null) window.clearTimeout(timeoutId);
-        resolve();
-      };
-      image.addEventListener('load', finish, { once: true });
-      image.addEventListener('error', finish, { once: true });
-      timeoutId = window.setTimeout(finish, IMAGE_WAIT_TIMEOUT_MS);
-    });
-  }));
+    image.addEventListener('load', finish, { once: true });
+    image.addEventListener('error', finish, { once: true });
+    timeoutId = window.setTimeout(finish, IMAGE_WAIT_TIMEOUT_MS);
+  });
+}
+
+function waitForImages(root: HTMLElement) {
+  return Promise.all(Array.from(root.querySelectorAll('img')).map(waitForImage));
 }
 
 function findLoadedSourceImage(sourceRoot: HTMLElement, cloneImage: HTMLImageElement) {
@@ -76,6 +88,16 @@ function rasterizeLoadedImage(image: HTMLImageElement | null) {
   }
 }
 
+async function fetchImageDataUrl(source: string) {
+  try {
+    const response = await fetch(source, { cache: 'force-cache', credentials: 'same-origin' });
+    if (!response.ok) return null;
+    return await blobToDataUrl(await response.blob());
+  } catch {
+    return null;
+  }
+}
+
 async function inlineCloneImages(root: HTMLElement, sourceRoot: HTMLElement) {
   const dataUrlCache = new Map<string, Promise<string | null>>();
   const images = Array.from(root.querySelectorAll<HTMLImageElement>('img'));
@@ -90,16 +112,9 @@ async function inlineCloneImages(root: HTMLElement, sourceRoot: HTMLElement) {
       const loadedImage = useMobileRaster
         ? findLoadedSourceImage(sourceRoot, image) || (image.complete ? image : null)
         : null;
-      dataUrlPromise = Promise.resolve(rasterizeLoadedImage(loadedImage)).then((rasterized) => {
-        if (rasterized) return rasterized;
-        return fetch(source, { cache: 'force-cache', credentials: 'same-origin' })
-          .then((response) => {
-            if (!response.ok) throw new Error(`Immagine non disponibile (${response.status}).`);
-            return response.blob();
-          })
-          .then(blobToDataUrl)
-          .catch(() => null);
-      });
+      dataUrlPromise = (useMobileRaster ? fetchImageDataUrl(source) : Promise.resolve(null))
+        .then((fetched) => fetched || rasterizeLoadedImage(loadedImage))
+        .then((rasterized) => rasterized || fetchImageDataUrl(source));
       dataUrlCache.set(source, dataUrlPromise);
     }
 
@@ -128,6 +143,14 @@ function isMobileBrowser() {
   const userAgent = navigator.userAgent || '';
   return /Android|iPhone|iPad|iPod|Mobile/iu.test(userAgent)
     || (navigator.maxTouchPoints > 1 && /Macintosh/iu.test(userAgent));
+}
+
+function waitForNextPaint() {
+  return new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  });
 }
 
 function canShareFiles(files: File[]) {
@@ -187,6 +210,7 @@ async function renderSocialStoryBlob(
 ) {
   await document.fonts.ready;
   const { toBlob } = await import('html-to-image');
+  const mobileBrowser = isMobileBrowser();
 
   const exportFontProbe = document.createElement('span');
   exportFontProbe.className = garamond.className;
@@ -274,7 +298,7 @@ async function renderSocialStoryBlob(
       });
     }
 
-    const blob = await toBlob(exportFrame, {
+    const exportOptions: NonNullable<Parameters<typeof toBlob>[1]> = {
       width: SOCIAL_STORY_WIDTH,
       height: SOCIAL_STORY_HEIGHT,
       backgroundColor: exportBackground,
@@ -290,7 +314,18 @@ async function renderSocialStoryBlob(
         node instanceof SVGElement
         && Boolean(node.parentElement?.closest('.social-story-media-empty, .correspondence-missing-media, .correspondence-saint-mark'))
       ),
-    });
+    };
+
+    // Safari/iOS may complete the first foreignObject pass before its image
+    // layers are painted. A discarded warm-up render makes the final pass
+    // deterministic without changing the exported composition.
+    if (mobileBrowser) {
+      await waitForNextPaint();
+      await toBlob(exportFrame, exportOptions).catch(() => null);
+      await waitForNextPaint();
+    }
+
+    const blob = await toBlob(exportFrame, exportOptions);
     if (!blob) throw new Error('Impossibile creare il file PNG della Story.');
     return blob;
   } finally {
