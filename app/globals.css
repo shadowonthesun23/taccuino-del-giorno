@@ -14988,7 +14988,7 @@ body.museum-room-open :is(
 .social-things-grid {
   border: 1px solid rgba(155, 125, 94, 0.53);
   border-radius: 24px 22px 25px 21px;
-  bottom: 203px;
+  bottom: 231px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
@@ -14996,7 +14996,7 @@ body.museum-room-open :is(
   overflow: hidden;
   position: absolute;
   right: 0;
-  top: 54px;
+  top: 26px;
 }
 
 .social-things-cell {
