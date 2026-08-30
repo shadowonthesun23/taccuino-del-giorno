@@ -17,7 +17,8 @@ import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editori
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
-const CORRESPONDENCE_TYPEWRITER_DELAY = 1160;
+const CORRESPONDENCE_TYPEWRITER_DELAY = 520;
+const CORRESPONDENCE_TYPEWRITER_SPEED = 1.8;
 const CORRESPONDENCE_EXPORT_WIDTH = 1080;
 const CORRESPONDENCE_EXPORT_HEIGHT = 1920;
 const CORRESPONDENCE_EXPORT_SAFE_SIDE = 36;
@@ -399,6 +400,7 @@ export default function DailyCorrespondences({
               wordClass={wordTypographyClass}
               className="correspondence-lead-typewriter"
               startDelay={CORRESPONDENCE_TYPEWRITER_DELAY}
+              speed={CORRESPONDENCE_TYPEWRITER_SPEED}
             />
           </h2>
           <p className="daily-correspondences-copy">{t('correspondencesCopy', lingua)}</p>

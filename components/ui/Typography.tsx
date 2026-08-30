@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
-function useTypewriterText(text: string, startDelay = 260) {
+function useTypewriterText(text: string, startDelay = 260, speed = 1) {
   const [visibleText, setVisibleText] = useState('');
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const safeSpeed = Number.isFinite(speed) && speed > 0 ? speed : 1;
     let cancelled = false;
     let index = 0;
     const timeoutIds = new Set<number>();
@@ -37,8 +38,8 @@ function useTypewriterText(text: string, startDelay = 260) {
 
       const current = text[index - 1];
       const next = text[index];
-      const baseDelay = 34 + ((text.charCodeAt(index) || index) % 4) * 14;
-      const pause = current === ' ' || next === ' ' ? 92 : 0;
+      const baseDelay = (34 + ((text.charCodeAt(index) || index) % 4) * 14) / safeSpeed;
+      const pause = current === ' ' || next === ' ' ? 92 / safeSpeed : 0;
       schedule(tick, baseDelay + pause);
     };
 
@@ -48,7 +49,7 @@ function useTypewriterText(text: string, startDelay = 260) {
       cancelled = true;
       timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
-  }, [startDelay, text]);
+  }, [speed, startDelay, text]);
 
   return visibleText;
 }
@@ -73,15 +74,17 @@ export function TypewriterPhrase({
   wordClass = '',
   className = '',
   startDelay = 360,
+  speed = 1,
 }: {
   prefix: string;
   word: string;
   wordClass?: string;
   className?: string;
   startDelay?: number;
+  speed?: number;
 }) {
   const phrase = `${prefix} ${word}`;
-  const visibleText = useTypewriterText(phrase, startDelay);
+  const visibleText = useTypewriterText(phrase, startDelay, speed);
   const prefixBoundary = prefix.lastIndexOf(' ');
   const leadPrefix = prefixBoundary > 0 ? prefix.slice(0, prefixBoundary) : '';
   const leadConnector = prefixBoundary > 0 ? prefix.slice(prefixBoundary + 1) : prefix;
