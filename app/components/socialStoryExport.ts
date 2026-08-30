@@ -1,4 +1,5 @@
 import { garamond } from '@/lib/fonts';
+import { blobToDataUrl } from '@/lib/browser-utils';
 
 export const SOCIAL_STORY_WIDTH = 1080;
 export const SOCIAL_STORY_HEIGHT = 1920;
@@ -24,6 +25,36 @@ function waitForImages(root: HTMLElement) {
       image.addEventListener('load', finish, { once: true });
       image.addEventListener('error', finish, { once: true });
     });
+  }));
+}
+
+async function inlineCloneImages(root: HTMLElement) {
+  const dataUrlCache = new Map<string, Promise<string | null>>();
+  const images = Array.from(root.querySelectorAll<HTMLImageElement>('img'));
+
+  await Promise.all(images.map(async (image) => {
+    const source = image.currentSrc || image.src;
+    if (!source || source.startsWith('data:') || source.startsWith('blob:')) return;
+
+    let dataUrlPromise = dataUrlCache.get(source);
+    if (!dataUrlPromise) {
+      dataUrlPromise = fetch(source, { cache: 'force-cache', credentials: 'same-origin' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Immagine non disponibile (${response.status}).`);
+          return response.blob();
+        })
+        .then(blobToDataUrl)
+        .catch(() => null);
+      dataUrlCache.set(source, dataUrlPromise);
+    }
+
+    const dataUrl = await dataUrlPromise;
+    if (!dataUrl) return;
+
+    image.removeAttribute('srcset');
+    image.removeAttribute('loading');
+    image.src = dataUrl;
+    await image.decode().catch(() => undefined);
   }));
 }
 
@@ -146,6 +177,12 @@ async function renderSocialStoryBlob(
   document.body.appendChild(exportFrame);
 
   try {
+    await waitForImages(clone);
+    // Mobile Safari/Chromium can serialize the surrounding text while
+    // dropping images that are still represented by HTTP URLs in the SVG
+    // foreignObject. Embed each loaded photo in the clone first so the final
+    // PNG has no external image dependency left to resolve.
+    await inlineCloneImages(clone);
     await waitForImages(clone);
 
     const correspondenceSheet = clone.querySelector<HTMLElement>('.daily-correspondences-sheet');

@@ -452,16 +452,21 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         : Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100));
       const nextComplete = nextProgress >= 96;
       const scrollDelta = window.scrollY - lastScrollY;
-      const mobileReadingThreshold = Math.max(220, window.innerHeight * 0.3);
+      const correspondenceSection = document.getElementById('corrispondenze');
+      const nextMobileReadingVisible = correspondenceSection
+        ? correspondenceSection.getBoundingClientRect().bottom <= 0
+        : false;
 
       const scale = nextProgress / 100;
       if (progressEl1) progressEl1.style.transform = `translateX(-50%) scaleY(${scale})`;
       if (progressEl2) progressEl2.style.transform = `scaleX(${scale})`;
       setReadingComplete((current) => current === nextComplete ? current : nextComplete);
       setMobileReadingVisible((current) => {
-        const nextVisible = window.scrollY > mobileReadingThreshold;
-        return current === nextVisible ? current : nextVisible;
+        return current === nextMobileReadingVisible ? current : nextMobileReadingVisible;
       });
+      if (!nextMobileReadingVisible) {
+        setMobileNavOpen((current) => current ? false : current);
+      }
       if (window.scrollY < 120 || scrollDelta < -8) {
         setControlsHidden((prev) => {
           if (!prev) return prev;
