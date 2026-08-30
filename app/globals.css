@@ -14500,11 +14500,12 @@ body.museum-room-open :is(
   min-height: 0;
   padding: 26px 0 27px;
   text-align: left;
+  transform: translateX(-7px);
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word .correspondence-entry-label {
   font-size: 22px;
-  gap: 20px;
+  gap: 8px;
   justify-content: flex-start;
   margin-bottom: 18px;
   position: relative;
@@ -14521,7 +14522,7 @@ body.museum-room-open :is(
   bottom: -15px;
   content: '';
   height: 2px;
-  left: 45px;
+  left: 25px;
   position: absolute;
   width: 32px;
 }
@@ -14533,7 +14534,7 @@ body.museum-room-open :is(
   font-weight: 400;
   letter-spacing: 0;
   line-height: 0.82;
-  margin: 10px 0 25px 39px;
+  margin: 10px 0 25px;
   transform: scaleX(1.08);
   transform-origin: left center;
   white-space: nowrap;
@@ -14561,7 +14562,6 @@ body.museum-room-open :is(
   font-weight: 400;
   letter-spacing: 0.005em;
   line-height: 1.28;
-  margin-left: 38px;
   max-width: 72ch;
 }
 
