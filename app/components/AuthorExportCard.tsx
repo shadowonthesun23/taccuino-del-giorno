@@ -14,6 +14,7 @@ import {
 } from '@/app/lib/authorCardDesign';
 import type { EditorialMediaCrop } from '@/lib/editorial-media';
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
+import { SITE_WATERMARK } from '@/lib/constants';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -222,7 +223,7 @@ export default function AuthorExportCard({
               IL GIORNO DA CUSTODIRE
             </div>
             <div className={garamond.className} style={{ fontSize: '20px', letterSpacing: '0.08em', marginTop: '6px', color: palette.textMuted, opacity: 0.9 }}>
-              dayatlas.vercel.app
+              {SITE_WATERMARK}
             </div>
             <div style={{ height: '1px', margin: '12px auto 0', width: '260px', background: palette.wcColor, opacity: 0.42 }} />
           </div>

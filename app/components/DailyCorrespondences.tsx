@@ -8,7 +8,7 @@ import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 import { getMoonPhase } from '@/lib/astronomy';
 import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-utils';
 import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
-import { OPEN_EPHEMERIS_EVENT, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
+import { OPEN_EPHEMERIS_EVENT, SITE_WATERMARK, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { garamond, janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
@@ -576,6 +576,8 @@ export default function DailyCorrespondences({
           </button>
           ) : null}
         </div>
+
+        {isSocialPresentation ? <span className="social-story-watermark">{SITE_WATERMARK}</span> : null}
 
         <div className="daily-correspondences-closure">
           <footer className="daily-correspondences-footer">

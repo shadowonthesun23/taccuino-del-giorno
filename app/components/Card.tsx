@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
 import { garamond, masterSignature } from '@/lib/fonts';
+import { SITE_WATERMARK } from '@/lib/constants';
 
 
 const badgeVariants: Record<string, string> = {
@@ -323,6 +324,8 @@ export default function Card({
             )}
           </button>
         )}
+
+        <span className="card-export-watermark" aria-hidden="true">{SITE_WATERMARK}</span>
 
         {title && (
           <div className="card-section-heading flex items-center justify-start relative z-10">

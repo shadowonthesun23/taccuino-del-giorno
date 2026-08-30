@@ -34,6 +34,7 @@ import { getMoonPhase } from '@/lib/astronomy';
 import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-utils';
 import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
 import { getVisiblePlanets, type VisiblePlanet } from '@/lib/visible-planets';
+import { SITE_WATERMARK } from '@/lib/constants';
 import { garamond, janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { t } from '@/lib/translation';
@@ -298,6 +299,10 @@ function StorySeal({ data, dataIso, lingua, sealColor }: Pick<SocialStoryProps, 
   );
 }
 
+function StoryWatermark() {
+  return <span className="social-story-watermark">{SITE_WATERMARK}</span>;
+}
+
 function ThingsStory(props: SocialStoryProps) {
   const { data, opera, dataIso, lingua, isDark, sealColor, saintArtwork } = props;
   const media = getSocialMedia(props);
@@ -392,6 +397,7 @@ function ThingsStory(props: SocialStoryProps) {
         </div>
       </main>
       <StorySeal data={data} dataIso={dataIso} lingua={lingua} sealColor={sealColor} />
+      <StoryWatermark />
     </article>
   );
 }
@@ -483,6 +489,7 @@ function CarryStory(props: SocialStoryProps) {
         </section>
       </main>
       <StorySeal data={data} dataIso={dataIso} lingua={lingua} sealColor={sealColor} />
+      <StoryWatermark />
     </article>
   );
 }
