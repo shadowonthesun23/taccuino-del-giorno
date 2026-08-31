@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
+import { useRef, useState, useEffect, useCallback, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Loader2, FileDown, X } from 'lucide-react';
@@ -15,6 +15,9 @@ import { getMoonPhase, getNextFullMoonDate } from '@/lib/astronomy';
 import { isMobileChromiumBrowser, blobToDataUrl } from '@/lib/browser-utils';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork } from '@/lib/seasonal-artwork';
 
+const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
+const TICKET_EXIT_DURATION_MS = 420;
+
 export default function SeasonalBookmark({
   dataIso,
   lingua,
@@ -24,13 +27,19 @@ export default function SeasonalBookmark({
   lingua: LanguageCode;
   isDark: boolean;
 }) {
+  const bookmarkRef = useRef<HTMLElement>(null);
   const ticketRef = useRef<HTMLSpanElement>(null);
+  const ticketMotionFrameRef = useRef<number | null>(null);
+  const ticketMotionTargetRef = useRef({ x: 0, y: 0 });
+  const ticketMotionCurrentRef = useRef({ x: 0, y: 0 });
+  const ticketClosingTimerRef = useRef<number | null>(null);
   const [skyRegion, setSkyRegion] = useState<SkyRegion>('center');
   const [planetResult, setPlanetResult] = useState<{ key: string; planets: VisiblePlanet[]; daylight: string } | null>(null);
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingTicket, setExportingTicket] = useState(false);
   const [desktopTicketEnabled, setDesktopTicketEnabled] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
+  const [isTicketClosing, setIsTicketClosing] = useState(false);
   const [preparedTicketDownload, setPreparedTicketDownload] = useState<{ url: string; filename: string } | null>(null);
   const preparedTicketUrlRef = useRef<string | null>(null);
   const season = getSeason(dataIso);
@@ -101,7 +110,14 @@ export default function SeasonalBookmark({
     const updateDesktopTicket = () => {
       const enabled = desktopQuery.matches;
       setDesktopTicketEnabled(enabled);
-      if (!enabled) setIsTicketOpen(false);
+      if (!enabled) {
+        if (ticketClosingTimerRef.current !== null) {
+          window.clearTimeout(ticketClosingTimerRef.current);
+          ticketClosingTimerRef.current = null;
+        }
+        setIsTicketOpen(false);
+        setIsTicketClosing(false);
+      }
     };
     updateDesktopTicket();
     desktopQuery.addEventListener('change', updateDesktopTicket);
@@ -139,12 +155,134 @@ export default function SeasonalBookmark({
   }, []);
 
   const closeTicket = useCallback(() => {
+    if (ticketClosingTimerRef.current !== null) {
+      window.clearTimeout(ticketClosingTimerRef.current);
+      ticketClosingTimerRef.current = null;
+    }
+
+    if (!isTicketOpen || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsTicketOpen(false);
+      setIsTicketClosing(false);
+      return;
+    }
+
+    setIsTicketClosing(true);
     setIsTicketOpen(false);
-  }, []);
+  }, [isTicketOpen]);
 
   const openTicket = useCallback(() => {
-    if (desktopTicketEnabled) setIsTicketOpen(true);
+    if (!desktopTicketEnabled) return;
+    if (ticketClosingTimerRef.current !== null) {
+      window.clearTimeout(ticketClosingTimerRef.current);
+      ticketClosingTimerRef.current = null;
+    }
+    setIsTicketClosing(false);
+    setIsTicketOpen(true);
   }, [desktopTicketEnabled]);
+
+  const applyTicketMotion = useCallback((x: number, y: number) => {
+    const bookmark = bookmarkRef.current;
+    if (!bookmark) return;
+
+    bookmark.style.setProperty('--ticket-tilt-x', `${(-y * 2.8).toFixed(3)}deg`);
+    bookmark.style.setProperty('--ticket-tilt-y', `${(x * 3.4).toFixed(3)}deg`);
+    bookmark.style.setProperty('--ticket-tilt-z', `${(x * 0.28 - y * 0.12).toFixed(3)}deg`);
+    bookmark.style.setProperty('--ticket-shift-x', `${(x * 2.6).toFixed(2)}px`);
+    bookmark.style.setProperty('--ticket-shift-y', `${(y * 1.7).toFixed(2)}px`);
+    bookmark.style.setProperty('--ticket-skew-x', `${(x * 0.42).toFixed(3)}deg`);
+    bookmark.style.setProperty('--ticket-skew-y', `${(y * -0.32).toFixed(3)}deg`);
+    bookmark.style.setProperty('--ticket-radius-tl', `${clamp(8 + ((-x - y) * 1.35), 5.5, 11).toFixed(2)}px`);
+    bookmark.style.setProperty('--ticket-radius-tr', `${clamp(8 + ((x - y) * 1.35), 5.5, 11).toFixed(2)}px`);
+    bookmark.style.setProperty('--ticket-radius-br', `${clamp(8 + ((x + y) * 1.35), 5.5, 11).toFixed(2)}px`);
+    bookmark.style.setProperty('--ticket-radius-bl', `${clamp(8 + ((-x + y) * 1.35), 5.5, 11).toFixed(2)}px`);
+    bookmark.style.setProperty('--ticket-glow-x', `${((x + 1) * 50).toFixed(2)}%`);
+    bookmark.style.setProperty('--ticket-glow-y', `${((y + 1) * 50).toFixed(2)}%`);
+  }, []);
+
+  const scheduleTicketMotion = useCallback(() => {
+    if (ticketMotionFrameRef.current !== null) return;
+
+    function tick() {
+      const target = ticketMotionTargetRef.current;
+      const current = ticketMotionCurrentRef.current;
+      current.x += (target.x - current.x) * 0.16;
+      current.y += (target.y - current.y) * 0.16;
+      applyTicketMotion(current.x, current.y);
+
+      const settled = Math.abs(target.x - current.x) < 0.001 && Math.abs(target.y - current.y) < 0.001;
+      if (settled) {
+        current.x = target.x;
+        current.y = target.y;
+        applyTicketMotion(current.x, current.y);
+        ticketMotionFrameRef.current = null;
+        return;
+      }
+
+      ticketMotionFrameRef.current = window.requestAnimationFrame(tick);
+    }
+
+    ticketMotionFrameRef.current = window.requestAnimationFrame(tick);
+  }, [applyTicketMotion]);
+
+  const resetTicketMotion = useCallback(() => {
+    ticketMotionTargetRef.current = { x: 0, y: 0 };
+    scheduleTicketMotion();
+  }, [scheduleTicketMotion]);
+
+  const handleTicketPointerMove = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (!isTicketOpen || (event.pointerType && event.pointerType !== 'mouse')) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    ticketMotionTargetRef.current = {
+      x: clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1),
+      y: clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1, 1),
+    };
+    scheduleTicketMotion();
+  }, [isTicketOpen, scheduleTicketMotion]);
+
+  const handleTicketPointerLeave = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType && event.pointerType !== 'mouse') return;
+    resetTicketMotion();
+  }, [resetTicketMotion]);
+
+  useEffect(() => {
+    if (isTicketOpen || isTicketClosing) return;
+
+    if (ticketMotionFrameRef.current !== null) {
+      window.cancelAnimationFrame(ticketMotionFrameRef.current);
+      ticketMotionFrameRef.current = null;
+    }
+    ticketMotionTargetRef.current = { x: 0, y: 0 };
+    ticketMotionCurrentRef.current = { x: 0, y: 0 };
+    const bookmark = bookmarkRef.current;
+    if (!bookmark) return;
+    ['--ticket-tilt-x', '--ticket-tilt-y', '--ticket-tilt-z', '--ticket-shift-x', '--ticket-shift-y', '--ticket-skew-x', '--ticket-skew-y', '--ticket-radius-tl', '--ticket-radius-tr', '--ticket-radius-br', '--ticket-radius-bl', '--ticket-glow-x', '--ticket-glow-y']
+      .forEach((property) => bookmark.style.removeProperty(property));
+  }, [isTicketClosing, isTicketOpen]);
+
+  useEffect(() => {
+    if (!isTicketClosing) return;
+
+    ticketClosingTimerRef.current = window.setTimeout(() => {
+      ticketClosingTimerRef.current = null;
+      setIsTicketClosing(false);
+    }, TICKET_EXIT_DURATION_MS);
+
+    return () => {
+      if (ticketClosingTimerRef.current !== null) {
+        window.clearTimeout(ticketClosingTimerRef.current);
+        ticketClosingTimerRef.current = null;
+      }
+    };
+  }, [isTicketClosing]);
+
+  useEffect(() => () => {
+    if (ticketMotionFrameRef.current !== null) window.cancelAnimationFrame(ticketMotionFrameRef.current);
+    if (ticketClosingTimerRef.current !== null) window.clearTimeout(ticketClosingTimerRef.current);
+  }, []);
 
   const handleTicketClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {
     if (isTicketOpen) return;
@@ -189,9 +327,12 @@ export default function SeasonalBookmark({
     if (!ticketRef.current || exportingTicket) return;
     setExportingTicket(true);
     let exportFrame: HTMLElement | null = null;
+    let sourceBookmark: HTMLElement | null = null;
     try {
       await document.fonts.ready;
       const { toBlob, toPng } = await import('html-to-image');
+      sourceBookmark = ticketRef.current.closest<HTMLElement>('.seasonal-bookmark');
+      sourceBookmark?.classList.add('ticket-export-source');
 
       const exportOptions = {
         width: 588,
@@ -224,7 +365,6 @@ export default function SeasonalBookmark({
         return;
       }
 
-      const sourceBookmark = ticketRef.current.closest<HTMLElement>('.seasonal-bookmark');
       if (!sourceBookmark) throw new Error('Contenitore del biglietto non trovato.');
 
       const sourceFontFamily = window.getComputedStyle(sourceBookmark).fontFamily;
@@ -238,7 +378,7 @@ export default function SeasonalBookmark({
         : null;
 
       exportFrame = sourceBookmark.cloneNode(true) as HTMLElement;
-      exportFrame.classList.add(garamond.className);
+      exportFrame.classList.add(garamond.className, 'ticket-export-clone');
       exportFrame.removeAttribute('aria-hidden');
       exportFrame.removeAttribute('inert');
       exportFrame.querySelectorAll('[data-ticket-export-ignore]').forEach((node) => node.remove());
@@ -284,6 +424,7 @@ export default function SeasonalBookmark({
     } catch (error) {
       console.error('Errore durante l’esportazione delle effemeridi:', error);
     } finally {
+      sourceBookmark?.classList.remove('ticket-export-source');
       exportFrame?.remove();
       setExportingTicket(false);
     }
@@ -311,7 +452,8 @@ export default function SeasonalBookmark({
       />
       <aside
         id="effemeridi"
-        className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''} ${isTicketOpen ? 'is-open' : ''}`}
+        ref={bookmarkRef}
+        className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''} ${isTicketOpen ? 'is-open' : ''} ${isTicketClosing ? 'is-closing' : ''}`}
         aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${daylightRowLabel}: ${daylightValue || '…'}. ${planetsLabel}: ${planetSummary}`}
         aria-hidden={!desktopTicketEnabled}
         inert={!desktopTicketEnabled ? true : undefined}
@@ -321,6 +463,8 @@ export default function SeasonalBookmark({
         aria-expanded={isTicketOpen}
         onClick={handleTicketClick}
         onKeyDown={handleTicketKeyDown}
+        onPointerMove={handleTicketPointerMove}
+        onPointerLeave={handleTicketPointerLeave}
       >
         <span ref={ticketRef} className="seasonal-bookmark-ticket">
           <span className="seasonal-bookmark-stub" aria-hidden="true">
