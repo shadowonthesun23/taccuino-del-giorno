@@ -14,6 +14,7 @@ export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boo
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/Rome',
   }).format(new Date());
 
   useEffect(() => {
