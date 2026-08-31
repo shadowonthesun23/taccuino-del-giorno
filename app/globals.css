@@ -4051,7 +4051,9 @@ body.museum-room-open :is(
   .top-control-panel,
   .mobile-tools,
   .seasonal-bookmark,
-  .seasonal-bookmark-modal-backdrop
+  .seasonal-bookmark-modal-backdrop,
+  .daily-postcard,
+  .daily-postcard-modal-backdrop
 ) {
   opacity: 0 !important;
   pointer-events: none !important;
@@ -5526,6 +5528,990 @@ body.museum-room-open :is(
   box-shadow:
     inset -1px 0 rgba(216,195,160,0.14),
     inset 1px 0 rgba(255,255,255,0.045);
+}
+
+/* Cartolina del giorno: una prova alternativa al biglietto, affacciata appena sotto. */
+.daily-postcard {
+  --daily-postcard-width: 420px;
+  --daily-postcard-height: 280px;
+  --postcard-paper: #f0e6d4;
+  --postcard-paper-deep: #e6d8c0;
+  --postcard-ink: #2a241d;
+  --postcard-rule: rgba(58, 43, 28, 0.27);
+  color: var(--postcard-ink);
+  display: block;
+  filter: drop-shadow(-4px 8px 7px rgba(42,37,34,0.19));
+  height: var(--daily-postcard-height);
+  left: auto;
+  pointer-events: auto;
+  position: fixed;
+  right: calc(-1 * (var(--daily-postcard-width) - 96px));
+  top: calc(50% + 142px);
+  transition-property: right, filter;
+  transition-duration: 520ms, 420ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-out;
+  width: var(--daily-postcard-width);
+  z-index: 34;
+}
+
+.daily-postcard:hover,
+.daily-postcard:focus-within {
+  filter: drop-shadow(-7px 11px 10px rgba(42,37,34,0.24));
+  right: 18px;
+}
+
+.daily-postcard.is-open {
+  filter: none;
+  height: 0;
+  left: 0;
+  pointer-events: none;
+  right: 0;
+  top: 0;
+  width: 0;
+  z-index: 61;
+}
+
+.daily-postcard-peek {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: block;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  text-align: start;
+  width: 100%;
+}
+
+.daily-postcard-peek:focus-visible {
+  outline: 2px solid #de6b58;
+  outline-offset: 4px;
+}
+
+.daily-postcard-face {
+  backface-visibility: hidden;
+  border-radius: 7px;
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.daily-postcard-front {
+  background: var(--postcard-paper-deep);
+  box-shadow:
+    0 0 0 1px rgba(73, 53, 31, 0.22),
+    0 2px 2px rgba(57, 39, 24, 0.12),
+    0 8px 16px rgba(48, 35, 23, 0.15),
+    inset 0 1px rgba(255, 255, 255, 0.44),
+    inset 0 -1px rgba(103, 76, 42, 0.15);
+  color: #f8f0df;
+  isolation: isolate;
+  position: absolute;
+  transform: rotateY(0deg);
+}
+
+.daily-postcard-peek .daily-postcard-front {
+  height: 100%;
+  position: relative;
+}
+
+.daily-postcard-front-border {
+  border: 10px solid #ebe0cc;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,0.47),
+    inset 0 -1px rgba(78, 55, 30, 0.18);
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+}
+
+.daily-postcard-image {
+  border-radius: 2px;
+  height: calc(100% - 20px);
+  inset: 10px;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  position: absolute;
+  width: calc(100% - 20px);
+  z-index: -2;
+}
+
+.daily-postcard-front-vignette {
+  background:
+    linear-gradient(180deg, rgba(22, 19, 14, 0.05) 0%, transparent 38%, rgba(20, 14, 9, 0.16) 63%, rgba(20, 13, 8, 0.76) 100%),
+    linear-gradient(90deg, rgba(24, 16, 9, 0.18), transparent 24%, transparent 76%, rgba(24, 16, 9, 0.12));
+  inset: 10px;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.daily-postcard-front-top,
+.daily-postcard-front-bottom,
+.daily-postcard-front-hint {
+  position: absolute;
+  z-index: 2;
+}
+
+.daily-postcard-front-top {
+  align-items: baseline;
+  display: flex;
+  font-size: 0.78rem;
+  justify-content: space-between;
+  left: 28px;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  right: 28px;
+  text-shadow: 0 1px 2px rgba(23, 16, 10, 0.72), 0 0 7px rgba(20, 14, 9, 0.48);
+  text-transform: uppercase;
+  top: 22px;
+}
+
+.daily-postcard-front-top strong {
+  font-size: 0.91rem;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: none;
+}
+
+.daily-postcard-front-top span {
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.daily-postcard-front-bottom {
+  align-items: end;
+  bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+  left: 28px;
+  right: 28px;
+  text-shadow: 0 1px 2px rgba(18, 12, 8, 0.82), 0 0 8px rgba(18, 12, 8, 0.56);
+}
+
+.daily-postcard-front-artwork-copy,
+.daily-postcard-front-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-postcard-front-artwork-copy {
+  max-width: 58%;
+}
+
+.daily-postcard-front-artwork-copy strong {
+  font-size: clamp(0.95rem, 1.9vw, 1.36rem);
+  font-weight: 700;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+.daily-postcard-front-artwork-copy em {
+  font-size: clamp(0.7rem, 1.3vw, 0.88rem);
+  font-style: italic;
+  margin-top: 4px;
+  opacity: 0.95;
+}
+
+.daily-postcard-front-brand {
+  align-items: end;
+  max-width: 35%;
+  text-align: end;
+}
+
+.daily-postcard-front-brand strong {
+  font-size: clamp(0.95rem, 2.1vw, 1.35rem);
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.daily-postcard-front-brand em {
+  font-size: clamp(0.66rem, 1.2vw, 0.82rem);
+  font-style: italic;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+.daily-postcard-front-hint {
+  align-items: center;
+  bottom: 7px;
+  display: flex;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.55rem;
+  gap: 4px;
+  left: 50%;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.daily-postcard-front-hint svg {
+  height: 11px;
+  width: 11px;
+}
+
+.daily-postcard-modal-backdrop {
+  appearance: none;
+  background: rgba(43, 35, 27, 0.2);
+  border: 0;
+  cursor: default;
+  inset: 0;
+  opacity: 1;
+  padding: 0;
+  pointer-events: auto;
+  position: fixed;
+  -webkit-backdrop-filter: blur(9px) saturate(0.82);
+  backdrop-filter: blur(9px) saturate(0.82);
+  z-index: 58;
+}
+
+.daily-postcard-dialog {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  justify-content: center;
+  padding: 32px 24px 44px;
+  pointer-events: none;
+  position: fixed;
+  z-index: 62;
+}
+
+.daily-postcard-stage {
+  aspect-ratio: 15 / 10;
+  animation: dailyPostcardStageIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  max-width: 720px;
+  pointer-events: auto;
+  position: relative;
+  width: min(720px, calc(100vw - 64px));
+}
+
+@keyframes dailyPostcardStageIn {
+  from {
+    filter: blur(1px);
+    opacity: 0.2;
+    transform: translateY(14px) scale(0.96) rotate(-0.5deg);
+  }
+
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(-0.22deg);
+  }
+}
+
+.daily-postcard-card {
+  cursor: pointer;
+  height: 100%;
+  position: relative;
+  transform: rotateY(0deg) rotateZ(-0.22deg);
+  transform-style: preserve-3d;
+  transition-property: transform;
+  transition-duration: 860ms;
+  transition-timing-function: cubic-bezier(0.2, 0.78, 0.18, 1);
+  width: 100%;
+  will-change: transform;
+}
+
+.daily-postcard-card:focus-visible {
+  outline: 2px solid #de6b58;
+  outline-offset: 9px;
+}
+
+.daily-postcard-card.is-flipped {
+  transform: rotateY(180deg) rotateZ(0.22deg);
+}
+
+.daily-postcard-back {
+  background: #f2eadb url('/beige-paper.png') repeat;
+  box-shadow:
+    0 0 0 1px rgba(73, 53, 31, 0.22),
+    0 2px 2px rgba(57, 39, 24, 0.12),
+    0 8px 16px rgba(48, 35, 23, 0.15),
+    inset 0 1px rgba(255, 255, 255, 0.48),
+    inset 0 -1px rgba(103, 76, 42, 0.13);
+  color: var(--postcard-ink);
+  display: flex;
+  flex-direction: column;
+  padding: 17px 24px 14px;
+  transform: rotateY(180deg);
+}
+
+.daily-postcard-back-grain {
+  background: url('/beige-paper.png') repeat;
+  inset: 0;
+  mix-blend-mode: multiply;
+  opacity: 0.22;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.daily-postcard-back-header {
+  align-items: baseline;
+  border-bottom: 1px solid var(--postcard-rule);
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  min-height: 27px;
+  padding: 0 2px 8px;
+  text-transform: uppercase;
+}
+
+.daily-postcard-back-header strong {
+  font-size: clamp(0.79rem, 1.55vw, 1.06rem);
+  font-weight: 400;
+  letter-spacing: 0.19em;
+  line-height: 1;
+}
+
+.daily-postcard-back-header span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  opacity: 0.76;
+}
+
+.daily-postcard-back-body {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.06fr) 1px minmax(0, 0.94fr);
+  min-height: 0;
+  padding: 12px 1px 7px;
+}
+
+.daily-postcard-astronomy,
+.daily-postcard-postal {
+  min-width: 0;
+  position: relative;
+}
+
+.daily-postcard-astronomy {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.daily-postcard-section-heading {
+  align-items: center;
+  display: flex;
+  font-size: 0.66rem;
+  font-weight: 700;
+  gap: 8px;
+  letter-spacing: 0.18em;
+  opacity: 0.72;
+  text-transform: uppercase;
+}
+
+.daily-postcard-heading-rule {
+  background: var(--postcard-rule);
+  flex: 1 1 auto;
+  height: 1px;
+}
+
+.daily-postcard-astronomy-rows {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.daily-postcard-astro-row {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 23px minmax(0, 1fr);
+  min-height: 21px;
+}
+
+.daily-postcard-astro-row > span:last-child {
+  align-items: baseline;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: max-content minmax(0, 1fr);
+  min-width: 0;
+}
+
+.daily-postcard-astro-row em {
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.daily-postcard-astro-row strong {
+  font-size: 0.84rem;
+  font-weight: 400;
+  line-height: 1.06;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-postcard-astro-icon {
+  align-items: center;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.daily-postcard-astro-icon svg {
+  height: 20px;
+  width: 20px;
+}
+
+.daily-postcard-moon-icon .moon-phase-glyph {
+  height: 22px;
+  width: 22px;
+}
+
+.daily-postcard-moon-icon .moon-phase-shadow {
+  fill: #2b261f;
+  stroke: rgba(42, 36, 29, 0.42);
+  stroke-width: 1.4;
+}
+
+.daily-postcard-moon-icon .moon-phase-lit {
+  fill: #c4ad84;
+}
+
+.daily-postcard-moon-icon .moon-phase-craters {
+  fill: rgba(100, 77, 47, 0.35);
+}
+
+.daily-postcard-full-moon-icon {
+  border: 1.3px solid currentColor;
+  border-radius: 50%;
+  height: 19px;
+  margin-left: 1px;
+  width: 19px;
+}
+
+.daily-postcard-planets {
+  border-top: 1px solid var(--postcard-rule);
+  margin-top: auto;
+  padding-top: 7px;
+}
+
+.daily-postcard-planets-heading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.daily-postcard-planets-heading > span:first-child {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.67rem;
+  font-weight: 700;
+  gap: 4px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.daily-postcard-planets-heading svg {
+  height: 13px;
+  width: 13px;
+}
+
+.daily-postcard-region-switcher {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.daily-postcard-region-switcher button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 22px;
+  min-width: 22px;
+  opacity: 0.48;
+  padding: 3px;
+  position: relative;
+}
+
+.daily-postcard-region-switcher button::after {
+  background: currentColor;
+  bottom: 1px;
+  content: "";
+  height: 1px;
+  left: 3px;
+  opacity: 0;
+  position: absolute;
+  transform: scaleX(0.4);
+  transition-property: opacity, transform;
+  transition-duration: 160ms, 180ms;
+  width: calc(100% - 6px);
+}
+
+.daily-postcard-region-switcher button:hover,
+.daily-postcard-region-switcher button:focus-visible,
+.daily-postcard-region-switcher button.is-active {
+  opacity: 1;
+  outline: none;
+}
+
+.daily-postcard-region-switcher button:focus-visible::after,
+.daily-postcard-region-switcher button.is-active::after {
+  opacity: 0.72;
+  transform: scaleX(1);
+}
+
+.daily-postcard-region-city {
+  display: block;
+  font-size: 0.58rem;
+  font-style: italic;
+  margin-top: 1px;
+  opacity: 0.58;
+}
+
+.daily-postcard-planet-list {
+  display: grid;
+  gap: 3px;
+  margin-top: 5px;
+  min-height: 22px;
+}
+
+.daily-postcard-planet-row {
+  align-items: baseline;
+  display: grid;
+  font-size: 0.74rem;
+  grid-template-columns: minmax(0, 1fr) 28px 43px;
+  line-height: 1.12;
+}
+
+.daily-postcard-planet-row strong {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-postcard-planet-row > span,
+.daily-postcard-planet-list > em {
+  font-size: 0.68rem;
+  font-style: italic;
+}
+
+.daily-postcard-planet-list > em {
+  opacity: 0.7;
+}
+
+.daily-postcard-back-divider {
+  background: var(--postcard-rule);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  position: relative;
+  width: 1px;
+}
+
+.daily-postcard-back-divider svg {
+  background: var(--postcard-paper);
+  height: 21px;
+  margin-top: 48%;
+  padding: 4px 0;
+  width: 15px;
+}
+
+.daily-postcard-postal {
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-postcard-postal-top {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  min-height: 86px;
+}
+
+.daily-postcard-stamp {
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 18% 24%, rgba(255,255,255,0.12) 0 0.5px, transparent 0.85px) 0 0 / 13px 17px,
+    #9b5b47;
+  border: 1px dashed rgba(255, 239, 215, 0.78);
+  box-shadow: 0 1px 2px rgba(47, 27, 17, 0.16), inset 0 1px rgba(255,255,255,0.14);
+  color: #f7e8d2;
+  display: flex;
+  flex-direction: column;
+  min-height: 76px;
+  padding: 10px 11px 9px;
+  transform: rotate(-1.3deg);
+  width: 94px;
+}
+
+.daily-postcard-stamp span {
+  font-size: 0.6rem;
+  letter-spacing: 0.19em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.daily-postcard-stamp strong {
+  border-top: 1px solid rgba(255, 240, 218, 0.6);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 1.06rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.daily-postcard-qr-link {
+  align-items: center;
+  color: inherit;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.daily-postcard-qr {
+  align-items: center;
+  background: #f2eadb;
+  border: 1px solid rgba(42, 36, 29, 0.25);
+  box-shadow: inset 0 1px rgba(255,255,255,0.46), 0 1px 2px rgba(47, 32, 20, 0.1);
+  display: inline-flex;
+  height: 76px;
+  justify-content: center;
+  padding: 2px;
+  width: 76px;
+}
+
+.daily-postcard-qr svg {
+  display: block;
+  height: 70px;
+  width: 70px;
+}
+
+.daily-postcard-qr-link small {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  max-width: 84px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.daily-postcard-qr-link:hover .daily-postcard-qr,
+.daily-postcard-qr-link:focus-visible .daily-postcard-qr {
+  box-shadow: 0 3px 8px rgba(61,45,26,0.14), inset 0 1px rgba(255,255,255,0.55);
+  transform: translateY(-1px) rotate(0.6deg);
+}
+
+.daily-postcard-qr-link:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+
+.daily-postcard-postmark {
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--postcard-ink) 68%, transparent);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  height: 68px;
+  justify-content: center;
+  margin: -1px auto 4px;
+  opacity: 0.82;
+  padding: 8px;
+  position: relative;
+  transform: rotate(7deg);
+  width: 68px;
+}
+
+.daily-postcard-postmark::after {
+  border-bottom: 1px solid currentColor;
+  border-top: 1px solid currentColor;
+  content: "";
+  height: 14px;
+  left: -24px;
+  opacity: 0.55;
+  position: absolute;
+  top: 24px;
+  width: 110px;
+}
+
+.daily-postcard-postmark span {
+  font-size: 0.43rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+.daily-postcard-postmark strong {
+  font-size: 0.44rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  margin-top: 5px;
+  max-width: 52px;
+  text-align: center;
+}
+
+.daily-postcard-address {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 23px minmax(0, 1fr);
+  margin-top: auto;
+}
+
+.daily-postcard-address > span:first-child {
+  font-size: 0.84rem;
+  line-height: 1;
+}
+
+.daily-postcard-address-lines {
+  display: grid;
+  gap: 11px;
+  padding-top: 2px;
+}
+
+.daily-postcard-address-lines i {
+  border-bottom: 1px dotted color-mix(in srgb, var(--postcard-ink) 52%, transparent);
+  display: block;
+  height: 9px;
+}
+
+.daily-postcard-artwork-source {
+  color: inherit;
+  display: block;
+  font-size: 0.58rem;
+  font-style: italic;
+  line-height: 1.15;
+  margin-top: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-postcard-artwork-source:hover,
+.daily-postcard-artwork-source:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.daily-postcard-back-footer {
+  align-items: end;
+  border-top: 1px solid var(--postcard-rule);
+  display: grid;
+  flex: 0 0 auto;
+  font-size: 0.62rem;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  line-height: 1.2;
+  padding: 8px 2px 0;
+}
+
+.daily-postcard-back-footer > span:last-child {
+  text-align: end;
+}
+
+.daily-postcard-back-footer strong {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.daily-postcard-back-footer em {
+  display: block;
+  font-size: 0.53rem;
+  font-style: italic;
+  letter-spacing: 0;
+  margin-top: 4px;
+  opacity: 0.74;
+}
+
+.daily-postcard-turn-hint {
+  align-items: center;
+  color: #f0e5d2;
+  display: flex;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.64rem;
+  gap: 6px;
+  letter-spacing: 0.05em;
+  margin: 14px 0 0;
+  opacity: 0.82;
+  pointer-events: auto;
+  text-transform: uppercase;
+}
+
+.daily-postcard-turn-hint svg {
+  height: 14px;
+  width: 14px;
+}
+
+.daily-postcard-close {
+  align-items: center;
+  appearance: none;
+  background: rgba(242, 234, 219, 0.12);
+  border: 1px solid rgba(242, 234, 219, 0.38);
+  border-radius: 50%;
+  color: #f3e7d3;
+  cursor: pointer;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  position: fixed;
+  right: 22px;
+  top: 22px;
+  transition-property: background-color, transform;
+  transition-duration: 160ms, 180ms;
+  width: 40px;
+  z-index: 2;
+}
+
+.daily-postcard-close:hover,
+.daily-postcard-close:focus-visible {
+  background: rgba(242, 234, 219, 0.22);
+  outline: none;
+  transform: rotate(4deg) scale(1.04);
+}
+
+.daily-postcard-close:active {
+  transform: scale(0.96);
+}
+
+.daily-postcard-close svg {
+  height: 18px;
+  width: 18px;
+}
+
+.daily-postcard.is-dark {
+  --postcard-paper: #2b2926;
+  --postcard-paper-deep: #302d29;
+  --postcard-ink: #eadbc1;
+  --postcard-rule: rgba(236, 220, 193, 0.34);
+  filter: drop-shadow(-5px 8px 8px rgba(0,0,0,0.43));
+}
+
+.daily-postcard.is-dark:hover,
+.daily-postcard.is-dark:focus-within {
+  filter: drop-shadow(-7px 11px 11px rgba(0,0,0,0.52));
+}
+
+.daily-postcard.is-open,
+.daily-postcard.is-dark.is-open,
+.daily-postcard.is-dark.is-open:hover,
+.daily-postcard.is-dark.is-open:focus-within {
+  filter: none;
+}
+
+.daily-postcard.is-dark .daily-postcard-front {
+  box-shadow:
+    0 0 0 1px rgba(236, 220, 193, 0.2),
+    0 2px 2px rgba(0, 0, 0, 0.25),
+    0 8px 16px rgba(0, 0, 0, 0.36),
+    inset 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px rgba(0, 0, 0, 0.34);
+}
+
+.daily-postcard.is-dark .daily-postcard-front-border {
+  border-color: #37322c;
+  box-shadow: inset 0 1px rgba(255,255,255,0.1), inset 0 -1px rgba(0,0,0,0.42);
+}
+
+.daily-postcard.is-dark .daily-postcard-image {
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+.daily-postcard.is-dark .daily-postcard-modal-backdrop {
+  background: rgba(7, 6, 5, 0.45);
+  -webkit-backdrop-filter: blur(10px) saturate(0.7) brightness(0.68);
+  backdrop-filter: blur(10px) saturate(0.7) brightness(0.68);
+}
+
+.daily-postcard.is-dark .daily-postcard-back {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), transparent 46%),
+    #2b2926 url('/beige-paper.png') repeat;
+  background-blend-mode: normal, soft-light;
+  box-shadow:
+    0 0 0 1px rgba(236, 220, 193, 0.18),
+    0 2px 2px rgba(0, 0, 0, 0.28),
+    0 8px 16px rgba(0, 0, 0, 0.42),
+    inset 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px rgba(0, 0, 0, 0.38);
+}
+
+.daily-postcard.is-dark .daily-postcard-back-grain {
+  mix-blend-mode: soft-light;
+  opacity: 0.08;
+}
+
+.daily-postcard.is-dark .daily-postcard-back-divider svg {
+  background: var(--postcard-paper);
+}
+
+.daily-postcard.is-dark .daily-postcard-moon-icon .moon-phase-shadow {
+  fill: #151311;
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.daily-postcard.is-dark .daily-postcard-moon-icon .moon-phase-lit {
+  fill: #e8d4ac;
+}
+
+.daily-postcard.is-dark .daily-postcard-stamp {
+  background-color: #824638;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daily-postcard,
+  .daily-postcard-card,
+  .daily-postcard-region-switcher button::after,
+  .daily-postcard-qr,
+  .daily-postcard-close {
+    transition-duration: 0.01ms !important;
+  }
+
+  .daily-postcard-stage {
+    animation: none;
+  }
+
+  .daily-postcard-card {
+    will-change: auto;
+  }
+}
+
+@media (max-width: 1179px) {
+  .daily-postcard {
+    display: none !important;
+  }
 }
 
 /* Archivio come schedario */

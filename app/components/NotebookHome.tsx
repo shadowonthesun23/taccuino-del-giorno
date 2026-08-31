@@ -10,6 +10,7 @@ import AuthorExportCard from './AuthorExportCard';
 import Card from './Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import SeasonalBookmark from './SeasonalBookmark';
+import DailyPostcard from './DailyPostcard';
 import DailyCorrespondences from './DailyCorrespondences';
 import { SocialStoriesModal } from './SocialStories';
 import LoadingNotebook from './LoadingNotebook';
@@ -2113,6 +2114,12 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         {isMounted ? createPortal(
           <div className={garamond.className}>
             <SeasonalBookmark
+              dataIso={dataExLibris}
+              lingua={lingua}
+              isDark={isDark}
+            />
+            <DailyPostcard
+              key={`${dataExLibris}:${lingua}`}
               dataIso={dataExLibris}
               lingua={lingua}
               isDark={isDark}

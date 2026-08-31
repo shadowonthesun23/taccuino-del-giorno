@@ -164,14 +164,28 @@ export function getVisiblePlanets(
     .slice(0, 3);
 }
 
-export function getDaylightDuration(dataIso: string): string {
-  // Use Rome coordinates (latitude, longitude, height) as the standard observer location
+function getSolarEvents(dataIso: string) {
   const observer = new Observer(41.9028, 12.4964, 20);
   const midnight = makeRomeDate(dataIso, 0);
-
   const rise = SearchRiseSet(Body.Sun, observer, 1, midnight, 1);
   const searchStart = rise ? rise.date : midnight;
   const set = SearchRiseSet(Body.Sun, observer, -1, searchStart, 1);
+
+  return { rise, set };
+}
+
+export function getSolarDayTimes(dataIso: string, lingua: LanguageCode): { sunrise: string; sunset: string } {
+  const { rise, set } = getSolarEvents(dataIso);
+
+  return {
+    sunrise: rise ? formatTime(rise.date, lingua) : '—',
+    sunset: set ? formatTime(set.date, lingua) : '—',
+  };
+}
+
+export function getDaylightDuration(dataIso: string): string {
+  // Use Rome coordinates (latitude, longitude, height) as the standard observer location
+  const { rise, set } = getSolarEvents(dataIso);
 
   if (rise && set) {
     const diffMs = set.date.getTime() - rise.date.getTime();

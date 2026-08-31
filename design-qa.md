@@ -105,3 +105,49 @@ final result: passed
 - Removed the disliked Story 2 display title, moved the editorial grid upward, and renamed its music and sky labels to `Consiglio musicale` and `Cielo del giorno`.
 
 final result: passed
+
+## Daily Postcard QA — 1 settembre 2026
+
+### Source and comparison
+
+- Source visual truth: `/var/folders/__/s6qdj5m151dfvb21lyctlkzh0000gn/T/codex-clipboard-e5431507-a3b4-4d93-96ea-1db039d8b297.png`
+- During QA, the source front and back were compared side by side with implementation crops in `/private/tmp/daily-postcard-front-comparison.png` and `/private/tmp/daily-postcard-back-comparison.png`; those temporary files were removed after review.
+- The source is dated 31 August 2026; the live page was verified on 1 September 2026, so the artwork and day-specific astronomy values intentionally differ.
+
+### Browser states verified
+
+- Desktop viewport: 1280 × 720, DPR 2.
+- Closed state: the postcard is visible as a narrow front-facing teaser below the existing SeasonalBookmark, with a measured 27px vertical gap and no overlap.
+- Open front: local seasonal artwork, date, season/day count, artwork title/artist/year, DAY ATLAS wordmark, and turn hint are visible.
+- Flipped back: moon phase and illumination, next full moon, sunrise, sunset, daylight duration, visible planets, N/C/S sky-region switcher, stamp, postmark, QR code, address lines, artwork record link, and footer are present.
+- Dynamic behavior: clicking the card changes `aria-pressed` to `true`, toggles the front/back `aria-hidden` states, and the N region updates to Milano with its planet readings.
+- QR behavior: the QR points to `http://127.0.0.1:3000/?data=2026-09-01` in the local prototype and is labeled “Apri il giorno”.
+- Close behavior: close button removes the dialog; no horizontal overflow was introduced.
+- Theme states: front and back verified in both dark and light themes.
+- Mobile viewport: 390 × 844 hides the desktop-only teaser and dialog, with `aria-hidden="true"` and `inert` enabled.
+- Browser console: no error-level logs during the final interaction pass.
+
+### Fidelity surfaces
+
+1. Structure: landscape image and four-corner front metadata mirror the supplied postcard; the back uses a two-column ephemeris/postal composition with a central divider.
+2. Hierarchy: the artwork leads the front; the back leads with “Effemeridi”, then groups sky readings, postal marks, and the day footer.
+3. Typography: existing IM Fell Double Pica/local editorial font is reused, with restrained mono/typewriter details for small postal labels.
+4. Color and contrast: cream paper and rust stamp treatments are retained in light mode; dark mode uses deep warm charcoal paper with warm ink and readable rules.
+5. Depth and motion: paper grain, frame/shadows, blurred backdrop, entrance settle, and an 860ms 3D rotateY flip provide the requested physical-card feel.
+
+### Intentional differences
+
+- The reference presents front and back together as a static board; the prototype presents one card and reveals the back through the requested click-to-flip interaction.
+- The card remains a desktop side-rail experiment at the same 1180px boundary as the existing ticket; it does not replace or alter the current SeasonalBookmark.
+
+## Daily Postcard Ratio QA — 1 settembre 2026
+
+### Format correction
+
+- Requested physical format: 15 × 10 cm, represented as `aspect-ratio: 15 / 10` (3:2).
+- Closed side-rail teaser: computed at 420 × 280 px, with the same 27px gap below the existing ticket.
+- Open modal stage: computed at 720 × 480 px in a 1280 × 720 desktop viewport.
+- Front and back screenshots were reviewed after the ratio change; the front preserves the seasonal image-led hierarchy and the back gains the vertical room needed for the postal composition.
+- On 390 × 844, the desktop-only postcard remains `display: none`, `aria-hidden="true"`, and inert.
+
+final result: passed
