@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Sparkles, X } from 'lucide-react';
+import { Download, Loader2, Sparkles, X } from 'lucide-react';
 import type { LanguageCode, SeasonId } from '@/lib/types';
 import { t } from '@/lib/translation';
 import { formatBookmarkDate, formatExLibrisDate, getDayOfYearInfo, getSeason } from '@/lib/date-utils';
@@ -11,6 +11,7 @@ import { getLocalizedSeasonalArtwork, getSeasonalArtwork, type SeasonalArtwork }
 import { getEditorialMediaCropImageStyle, DEFAULT_EDITORIAL_MEDIA_CROP, type EditorialMediaCrop } from '@/lib/editorial-media';
 import { janeAust } from '@/lib/fonts';
 import { SITE_WATERMARK } from '@/lib/constants';
+import { downloadDailyPostcardFace, type DailyPostcardFace } from './dailyPostcardExport';
 
 const eagerImageProps = getImageLoadingProps(true);
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
@@ -33,6 +34,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
   postcardFrom: string;
   dayWord: string;
   dailyPostcard: string;
+  downloadFront: string;
+  downloadBack: string;
+  preparingFront: string;
+  preparingBack: string;
 }> = {
   IT: {
     open: 'Apri la cartolina del giorno',
@@ -45,6 +50,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     postcardFrom: 'Una cartolina dal',
     dayWord: 'giorno',
     dailyPostcard: 'Cartolina del giorno',
+    downloadFront: 'Scarica fronte · JPEG',
+    downloadBack: 'Scarica retro · JPEG',
+    preparingFront: 'Preparo il fronte…',
+    preparingBack: 'Preparo il retro…',
   },
   EN: {
     open: 'Open the postcard of the day',
@@ -57,6 +66,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     postcardFrom: 'A postcard from',
     dayWord: 'day',
     dailyPostcard: 'Postcard of the day',
+    downloadFront: 'Download front · JPEG',
+    downloadBack: 'Download back · JPEG',
+    preparingFront: 'Preparing front…',
+    preparingBack: 'Preparing back…',
   },
   FR: {
     open: 'Ouvrir la carte du jour',
@@ -69,6 +82,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     postcardFrom: 'Une carte du',
     dayWord: 'jour',
     dailyPostcard: 'Carte du jour',
+    downloadFront: 'Télécharger le recto · JPEG',
+    downloadBack: 'Télécharger le verso · JPEG',
+    preparingFront: 'Préparation du recto…',
+    preparingBack: 'Préparation du verso…',
   },
   DE: {
     open: 'Tagespostkarte öffnen',
@@ -81,6 +98,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     postcardFrom: 'Eine Postkarte vom',
     dayWord: 'Tag',
     dailyPostcard: 'Postkarte des Tages',
+    downloadFront: 'Vorderseite laden · JPEG',
+    downloadBack: 'Rückseite laden · JPEG',
+    preparingFront: 'Vorderseite wird vorbereitet…',
+    preparingBack: 'Rückseite wird vorbereitet…',
   },
   ES: {
     open: 'Abrir la postal del día',
@@ -93,6 +114,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     postcardFrom: 'Una postal del',
     dayWord: 'día',
     dailyPostcard: 'Postal del día',
+    downloadFront: 'Descargar anverso · JPEG',
+    downloadBack: 'Descargar reverso · JPEG',
+    preparingFront: 'Preparando anverso…',
+    preparingBack: 'Preparando reverso…',
   },
   PT: {
     open: 'Abrir o postal do dia',
@@ -105,6 +130,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     postcardFrom: 'Um postal do',
     dayWord: 'dia',
     dailyPostcard: 'Postal do dia',
+    downloadFront: 'Descarregar frente · JPEG',
+    downloadBack: 'Descarregar verso · JPEG',
+    preparingFront: 'A preparar a frente…',
+    preparingBack: 'A preparar o verso…',
   },
 };
 
@@ -326,6 +355,8 @@ export default function DailyPostcard({
   const [isOpen, setIsOpen] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [dayPermalink, setDayPermalink] = useState('');
+  const [exportingPostcard, setExportingPostcard] = useState<DailyPostcardFace | null>(null);
+  const postcardCardRef = useRef<HTMLDivElement>(null);
   const postcardMotionRef = useRef<HTMLDivElement>(null);
   const postcardMotionFrameRef = useRef<number | null>(null);
   const postcardMotionTargetRef = useRef({ x: 0, y: 0 });
@@ -397,6 +428,19 @@ export default function DailyPostcard({
   }, [isActive]);
 
   const postcardOpen = desktopEnabled && isActive && isOpen;
+
+  const downloadPostcard = useCallback(async (face: DailyPostcardFace) => {
+    if (!postcardOpen || !postcardCardRef.current || exportingPostcard) return;
+
+    setExportingPostcard(face);
+    try {
+      await downloadDailyPostcardFace(postcardCardRef.current, dataIso, face);
+    } catch (error) {
+      console.error('Errore durante il download della cartolina:', error);
+    } finally {
+      setExportingPostcard(null);
+    }
+  }, [dataIso, exportingPostcard, postcardOpen]);
 
   const applyPostcardMotion = useCallback((x: number, y: number) => {
     const motionLayer = postcardMotionRef.current;
@@ -496,6 +540,7 @@ export default function DailyPostcard({
             <div className="daily-postcard-stage" onPointerMove={handlePostcardPointerMove} onPointerLeave={handlePostcardPointerLeave}>
               <div ref={postcardMotionRef} className="daily-postcard-card-motion">
                 <div
+                  ref={postcardCardRef}
                   className={`daily-postcard-card ${isFlipped ? 'is-flipped' : ''}`}
                   role="button"
                   tabIndex={0}
@@ -532,6 +577,19 @@ export default function DailyPostcard({
               </div>
             </div>
             <p className="daily-postcard-turn-hint"><Sparkles aria-hidden="true" strokeWidth={1.5} />{isFlipped ? copy.flipBack : copy.flipForward}</p>
+            <button
+              type="button"
+              className="daily-postcard-download"
+              disabled={Boolean(exportingPostcard)}
+              aria-label={isFlipped ? copy.downloadBack : copy.downloadFront}
+              title={isFlipped ? copy.downloadBack : copy.downloadFront}
+              onClick={() => void downloadPostcard(isFlipped ? 'back' : 'front')}
+            >
+              {exportingPostcard ? <Loader2 aria-hidden="true" strokeWidth={1.7} /> : <Download aria-hidden="true" strokeWidth={1.7} />}
+              <span>{exportingPostcard
+                ? (exportingPostcard === 'back' ? copy.preparingBack : copy.preparingFront)
+                : (isFlipped ? copy.downloadBack : copy.downloadFront)}</span>
+            </button>
           </section>
         </>
       ) : null}
