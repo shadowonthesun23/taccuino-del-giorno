@@ -819,7 +819,7 @@ export default function EditorPage() {
           </div>
           <p className="editor-media-intro">
             Questi campi sostituiscono solo il testo scelto, senza rigenerare l’intera giornata. Lascia invariato ciò che vuoi mantenere automatico.
-            Le modifiche pubblicate valgono per tutti i visitatori.
+            Le modifiche pubblicate valgono per tutti i visitatori; quando cambi testo o autore della citazione, la vecchia fonte viene rimossa se non ne inserisci una nuova.
           </p>
 
           <div className="editor-content-grid">
@@ -848,6 +848,7 @@ export default function EditorPage() {
                     className="editor-content-input"
                     value={contentOverrides.citazione?.fonte ?? previewData?.citazione?.fonte ?? ''}
                     onChange={(event) => updateContentOverride('citazione', 'fonte', event.target.value)}
+                    placeholder="Lascia vuoto per rimuovere la fonte"
                   />
                 </label>
               </div>

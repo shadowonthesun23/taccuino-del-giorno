@@ -27,18 +27,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function normalizeText(value: unknown, field: TextField): string | undefined {
+function normalizeText(value: unknown, field: TextField, allowEmpty = false): string | undefined {
   if (typeof value !== 'string') return undefined;
-  const normalized = value.trim();
-  if (!normalized) return undefined;
-  return normalized.slice(0, MAX_TEXT_LENGTHS[field]);
+  const normalized = value.trim().slice(0, MAX_TEXT_LENGTHS[field]);
+  if (normalized || allowEmpty) return normalized;
+  return undefined;
 }
 
 function sanitizeTextGroup(value: unknown, fields: readonly TextField[]) {
   if (!isRecord(value)) return undefined;
   const entries = fields.flatMap((field) => {
-    const normalized = normalizeText(value[field], field);
-    return normalized ? [[field, normalized] as const] : [];
+    const normalized = normalizeText(value[field], field, true);
+    return normalized !== undefined ? [[field, normalized] as const] : [];
   });
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
@@ -52,7 +52,16 @@ export function sanitizeEditorialContentOverrides(value: unknown): EditorialCont
   const poesia = sanitizeTextGroup(value.poesia, ['testo', 'autore', 'fonte', 'nota']);
   const bibbia = sanitizeTextGroup(value.bibbia, ['testo', 'fonte', 'nota']);
 
-  if (citazione) result.citazione = citazione as EditorialContentOverrides['citazione'];
+  if (citazione) {
+    const citationOverride = { ...citazione };
+    const changesQuote = Object.hasOwn(citationOverride, 'testo') || Object.hasOwn(citationOverride, 'autore');
+    // Never keep attributing a manually changed quote to the automatic source.
+    // A non-empty replacement can still be supplied explicitly in `fonte`.
+    if (changesQuote && !Object.hasOwn(citationOverride, 'fonte')) {
+      citationOverride.fonte = '';
+    }
+    result.citazione = citationOverride as EditorialContentOverrides['citazione'];
+  }
   if (parola) result.parola_giorno = parola as EditorialContentOverrides['parola_giorno'];
   if (poesia) result.poesia = poesia as EditorialContentOverrides['poesia'];
   if (bibbia) result.bibbia = bibbia as EditorialContentOverrides['bibbia'];
@@ -62,7 +71,9 @@ export function sanitizeEditorialContentOverrides(value: unknown): EditorialCont
       .map((event) => normalizeText(event, 'testo'))
       .filter((event): event is string => Boolean(event))
       .slice(0, MAX_EVENTS);
-    if (events.length) result.avvenimenti = events;
+    // An explicitly empty list is meaningful: it lets the Editor hide the
+    // automatically generated events without deleting the whole override row.
+    result.avvenimenti = events;
   }
 
   return result;

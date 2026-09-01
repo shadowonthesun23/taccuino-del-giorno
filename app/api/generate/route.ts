@@ -110,6 +110,7 @@ function extractFirstJsonObject(text: string) {
 }
 
 type GeneratedDailyData = Record<string, unknown> & {
+  citazione?: { autore?: unknown };
   parola_giorno?: { parola?: unknown };
   poesia?: { autore?: unknown };
 };
@@ -194,8 +195,22 @@ function formatRecentPoemExclusions(records: RecentContentRecord[] | null): stri
   return [...unique].map((poem) => `- ${poem}`).join('\n');
 }
 
-function validateEditorialQuality(data: GeneratedDailyData, recentRows: RecentContentRecord[] | null): string[] {
+function validateEditorialQuality(
+  data: GeneratedDailyData,
+  recentRows: RecentContentRecord[] | null,
+  forcedAuthor = '',
+): string[] {
   const issues: string[] = [];
+  if (forcedAuthor) {
+    const generatedAuthor = typeof data.autore_giorno === 'string' ? data.autore_giorno.trim() : '';
+    const citationAuthor = typeof data.citazione?.autore === 'string' ? data.citazione.autore.trim() : '';
+    if (normalizeEditorialValue(generatedAuthor) !== normalizeEditorialValue(forcedAuthor)) {
+      issues.push(`l'autore obbligatorio deve essere "${forcedAuthor}"`);
+    }
+    if (normalizeEditorialValue(citationAuthor) !== normalizeEditorialValue(forcedAuthor)) {
+      issues.push(`la citazione deve appartenere a "${forcedAuthor}"`);
+    }
+  }
   const word = typeof data?.parola_giorno?.parola === 'string' ? data.parola_giorno.parola.trim() : '';
   const wordKey = normalizeEditorialValue(word);
   const recentWords = new Set((recentRows ?? [])
@@ -277,8 +292,8 @@ export async function GET(request: Request) {
 DIREZIONE EDITORIALE MANUALE — PRIORITÀ MASSIMA:
 ${forcedAuthor ? `- Autore del giorno obbligatorio: ${forcedAuthor}. Usa esattamente questo autore come "autore_giorno".` : ''}
 ${editorialNotes ? `- Note curatoriale da rispettare: ${editorialNotes}` : ''}
-- Se l'autore obbligatorio non è nato o morto in questa data, trattalo come eccezione editoriale consapevole: la "breve_descrizione" deve iniziare con "Scelta editoriale:" e spiegare in modo naturale perché oggi viene custodito questo autore.
-- La citazione deve appartenere all'autore obbligatorio, con fonte credibile quando possibile.
+- Verifica prima il giorno e il mese di nascita e di morte dell'autore obbligatorio. Se la nascita cade in questa data, la "breve_descrizione" deve iniziare con "Nato in questo giorno nel [anno],"; se la morte cade in questa data, deve iniziare con "Scomparso in questa data nel [anno],". In questi due casi NON usare "Scelta editoriale:". Usa quella formula soltanto quando nessuna delle due date coincide.
+- La citazione deve appartenere all'autore obbligatorio e deve essere restituita in ITALIANO. Se il testo originale è in un'altra lingua, usa una traduzione italiana pubblicata e indica in "fonte" l'opera o l'edizione; non restituire il testo originale in francese, inglese o altra lingua.
 `
       : '';
 
@@ -287,14 +302,15 @@ ${editorialNotes ? `- Note curatoriale da rispettare: ${editorialNotes}` : ''}
 ${manualDirection}
 
 REGOLE DI CURATELA:
-1. AUTORE: Prediligi nati oggi. Morti solo se molto più illustri.
+1. AUTORE: Scegli prima di tutto scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta. Prediligi nati oggi; morti solo se molto più illustri. Evita musicisti e compositori come autore del giorno quando esiste una figura letteraria adatta alla data.
 2. DESCRIZIONE AUTORE: **DEVE** iniziare esplicitando il motivo della scelta (es. "Nato in questo giorno nel [anno]..." oppure "Scomparso in questa data nel [anno]..."). Questa informazione è fondamentale per il contesto. Se è attiva una DIREZIONE EDITORIALE MANUALE con autore obbligatorio non legato alla data, segui invece la regola speciale indicata nella direzione manuale.
-3. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
-4. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
-5. PAROLA DEL GIORNO: scegli un lemma italiano preciso, colto ma realmente attestato, capace di aprire una sfumatura inattesa del tema. NON usare il semplice nome astratto del tema e non proporre parole generiche come libertà, responsabilità, amore, speranza, fede, verità, vita, memoria, anima, coscienza, scelta, identità, tempo o solitudine. Privilegia termini lessicalmente interessanti, con un'etimologia verificabile e una definizione comprensibile. Non ripetere parole recenti.
-6. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non usare poeti comparsi negli ultimi 45 giorni. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
-7. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente. In "chiave_ricerca" inserisci soltanto artista e titolo esatti, senza genere o commenti aggiuntivi.
-8. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
+3. CITAZIONE: Solo in ITALIANO. Usa una citazione autentica dell'autore con fonte verificabile e riporta una traduzione italiana pubblicata quando l'originale è in un'altra lingua; non lasciare la citazione in lingua originale.
+4. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
+5. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
+6. PAROLA DEL GIORNO: scegli un lemma italiano preciso, colto ma realmente attestato, capace di aprire una sfumatura inattesa del tema. NON usare il semplice nome astratto del tema e non proporre parole generiche come libertà, responsabilità, amore, speranza, fede, verità, vita, memoria, anima, coscienza, scelta, identità, tempo o solitudine. Privilegia termini lessicalmente interessanti, con un'etimologia verificabile e una definizione comprensibile. Non ripetere parole recenti.
+7. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non usare poeti comparsi negli ultimi 45 giorni. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
+8. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente. In "chiave_ricerca" inserisci soltanto artista e titolo esatti, senza genere o commenti aggiuntivi.
+9. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
 
 PAROLE RECENTI DA NON RIPETERE:
 ${recentWordExclusions || '- Nessuna parola storica disponibile: evita comunque i concetti generici elencati sopra.'}
@@ -345,7 +361,7 @@ Restituisci questo JSON:
             `Generazione Gemini (${modelName})`
           );
           const candidateData = parseGeneratedJson(attemptResult.response.text());
-          const qualityIssues = validateEditorialQuality(candidateData, recentRows);
+          const qualityIssues = validateEditorialQuality(candidateData, recentRows, forcedAuthor);
           if (qualityIssues.length > 0) {
             qualityFeedback = `\n\nLa proposta precedente è stata rifiutata perché ${qualityIssues.join('; ')}. `
               + 'Rigenera l’intero JSON correggendo rigorosamente questi problemi.';
