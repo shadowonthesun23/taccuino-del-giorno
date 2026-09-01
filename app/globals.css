@@ -16523,66 +16523,21 @@ body.museum-room-open :is(
 }
 
 .social-carry-poem-layout {
-  align-items: center;
+  align-items: flex-start;
   display: grid;
   gap: 58px;
-  grid-template-columns: 300px minmax(0, 1fr);
-  margin-top: 34px;
-  min-height: 410px;
-}
-
-.social-carry-poem-portrait {
-  margin: 0;
-  padding: 18px 18px 28px;
-  position: relative;
-  transform: rotate(-1.6deg);
-  width: 300px;
-  z-index: 1;
-}
-
-.social-carry-poem-portrait::before {
-  background: rgba(246, 239, 223, 0.88);
-  clip-path: polygon(2% 3%, 97% 0, 100% 94%, 5% 100%, 0 47%);
-  box-shadow: 0 18px 32px -24px rgba(53, 36, 25, 0.9), 0 0 0 1px rgba(81, 52, 34, 0.1);
-  content: '';
-  inset: 0;
-  position: absolute;
-  z-index: -2;
-}
-
-.social-carry-poem-portrait::after {
-  border: 1px solid rgba(105, 75, 50, 0.18);
-  border-radius: 48% 52% 46% 54% / 38% 43% 57% 62%;
-  content: '';
-  inset: 17px 18px 47px;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
+  grid-template-columns: 205px minmax(0, 1fr);
+  height: 305px;
+  margin-top: 14px;
 }
 
 .social-carry-poem-image,
 .social-carry-poem .social-story-media-empty {
-  border-radius: 49% 51% 46% 54% / 38% 43% 57% 62%;
-  box-shadow: 0 12px 22px -18px rgba(53, 36, 25, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.1);
-  display: block;
-  height: 330px;
+  border-radius: 12px 10px 13px 9px;
+  box-shadow: 0 10px 18px -16px rgba(53, 36, 25, 0.86), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  height: 202px;
   object-fit: cover;
-  object-position: 50% 18%;
-  position: relative;
-  transform: rotate(0.6deg);
-  width: 264px;
-  z-index: 1;
-}
-
-.social-carry-poem-portrait figcaption {
-  color: var(--social-muted);
-  font-size: 16px;
-  letter-spacing: 0.14em;
-  margin-top: 14px;
-  position: relative;
-  text-align: center;
-  text-transform: uppercase;
-  z-index: 3;
+  width: 205px;
 }
 
 .social-carry-poem-copy {
@@ -16650,7 +16605,7 @@ body.museum-room-open :is(
 
 .social-carry-poem-excerpt {
   color: var(--social-muted);
-  font-size: 34px;
+  font-size: 36px;
   font-style: italic;
   line-height: 1.38;
   margin: 0;
@@ -16660,10 +16615,47 @@ body.museum-room-open :is(
   white-space: pre-line;
 }
 
+.social-story-canvas:not(.is-dark) .social-carry-poem-excerpt,
+.social-story-export-root:not(.is-dark) .social-carry-poem-excerpt {
+  color: #302923;
+  text-shadow: 0 0 2px rgba(246, 239, 223, 0.98), 0 0 8px rgba(246, 239, 223, 0.9), 0 1px 3px rgba(42, 31, 24, 0.34);
+}
+
 .social-carry-seasonal {
   border-bottom: 0;
   height: 208px;
-  padding-top: 24px;
+  padding-top: 64px;
+}
+
+.social-carry-seasonal-label-highlight {
+  display: inline-block;
+  isolation: isolate;
+  max-width: 100%;
+  padding: 6px 12px 7px;
+  position: relative;
+  transform: rotate(-0.62deg);
+  z-index: 1;
+}
+
+.social-carry-seasonal-label-highlight::before,
+.social-carry-seasonal-label-highlight::after {
+  content: '';
+  inset: 5px -7px 5px -9px;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.social-carry-seasonal-label-highlight::before {
+  background: rgba(222, 184, 76, 0.68);
+  clip-path: polygon(1% 10%, 98% 0, 100% 88%, 3% 100%, 0 45%);
+  transform: rotate(0.46deg);
+}
+
+.social-carry-seasonal-label-highlight::after {
+  background: rgba(237, 202, 105, 0.38);
+  clip-path: polygon(0 20%, 97% 5%, 100% 94%, 4% 100%);
+  transform: rotate(-0.24deg) translateY(2px);
 }
 
 .social-carry-seasonal-layout {
@@ -16671,7 +16663,7 @@ body.museum-room-open :is(
   display: grid;
   gap: 44px;
   grid-template-columns: 256px minmax(0, 1fr);
-  margin-top: 14px;
+  margin-top: 22px;
 }
 
 .social-carry-seasonal-title {
@@ -16723,13 +16715,13 @@ body.museum-room-open :is(
 }
 
 .social-carry-seasonal-highlight::before {
-  background: rgba(222, 184, 76, 0.38);
+  background: rgba(222, 184, 76, 0.62);
   clip-path: polygon(1% 9%, 98% 0, 100% 88%, 3% 100%, 0 45%);
   transform: rotate(0.48deg);
 }
 
 .social-carry-seasonal-highlight::after {
-  background: rgba(237, 202, 105, 0.22);
+  background: rgba(237, 202, 105, 0.34);
   clip-path: polygon(0 20%, 97% 5%, 100% 94%, 4% 100%);
   transform: rotate(-0.22deg) translateY(2px);
 }
@@ -16911,12 +16903,22 @@ body.museum-room-open :is(
 
 .social-story-canvas.is-dark .social-carry-seasonal-highlight::before,
 .social-story-export-root.is-dark .social-carry-seasonal-highlight::before {
-  background: rgba(194, 137, 53, 0.34);
+  background: rgba(194, 137, 53, 0.5);
 }
 
 .social-story-canvas.is-dark .social-carry-seasonal-highlight::after,
 .social-story-export-root.is-dark .social-carry-seasonal-highlight::after {
-  background: rgba(224, 165, 66, 0.18);
+  background: rgba(224, 165, 66, 0.3);
+}
+
+.social-story-canvas.is-dark .social-carry-seasonal-label-highlight::before,
+.social-story-export-root.is-dark .social-carry-seasonal-label-highlight::before {
+  background: rgba(194, 137, 53, 0.56);
+}
+
+.social-story-canvas.is-dark .social-carry-seasonal-label-highlight::after,
+.social-story-export-root.is-dark .social-carry-seasonal-label-highlight::after {
+  background: rgba(224, 165, 66, 0.34);
 }
 
 @media (prefers-reduced-motion: reduce) {

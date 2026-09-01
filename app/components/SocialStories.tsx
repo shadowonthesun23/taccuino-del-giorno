@@ -421,7 +421,7 @@ function ThingsStory(props: SocialStoryProps) {
 }
 
 function CarryStory(props: SocialStoryProps) {
-  const { data, dataIso, lingua, isDark, sealColor, seasonalArtwork } = props;
+  const { data, dataIso, lingua, isDark, seasonalArtwork } = props;
   const media = getSocialMedia(props);
   const poemSource = getSocialPoemSource(data);
   const poemExcerpt = getSocialPoemExcerpt(data.poesia.testo);
@@ -434,7 +434,6 @@ function CarryStory(props: SocialStoryProps) {
       className={`${garamond.className} social-story-canvas social-story-carry${isDark ? ' is-dark' : ''}`}
       data-social-story="carry"
       data-social-story-root="true"
-      data-seal-color={sealColor}
       aria-label={t('socialStoryCarry', lingua)}
     >
       <StoryHeader dataIso={dataIso} lingua={lingua} />
@@ -451,16 +450,13 @@ function CarryStory(props: SocialStoryProps) {
         <section className="social-carry-section social-carry-poem">
           <StorySectionLabel icon={Feather}>{t('correspondencePoem', lingua)}</StorySectionLabel>
           <div className="social-carry-poem-layout">
-            <figure className="social-carry-poem-portrait">
-              <StoryImage
-                src={media.poem}
-                alt={data.poesia.autore}
-                className="social-carry-poem-image"
-                fallbackLabel={t('socialStoryImageUnavailable', lingua)}
-                fallbackIcon={Feather}
-              />
-              <figcaption>{t('authorPhoto', lingua)}</figcaption>
-            </figure>
+            <StoryImage
+              src={media.poem}
+              alt={data.poesia.autore}
+              className="social-carry-poem-image"
+              fallbackLabel={t('socialStoryImageUnavailable', lingua)}
+              fallbackIcon={Feather}
+            />
             <div className="social-carry-poem-copy">
               <h1 className={`social-carry-author ${getTextLengthClass(data.poesia.autore, [20, 32, 46])}`}>{data.poesia.autore || '—'}</h1>
               <p className="social-carry-poem-source">{poemSource}</p>
@@ -474,7 +470,9 @@ function CarryStory(props: SocialStoryProps) {
         </section>
 
         <section className="social-carry-section social-carry-seasonal">
-          <StorySectionLabel icon={ImageIcon}>{t('seasonalArtwork', lingua)}</StorySectionLabel>
+          <div className="social-carry-seasonal-label-highlight">
+            <StorySectionLabel icon={ImageIcon}>{t('seasonalArtwork', lingua)}</StorySectionLabel>
+          </div>
           <div className="social-carry-seasonal-layout">
             <div className="social-carry-seasonal-copy">
               <div className="social-carry-seasonal-highlight">
@@ -485,7 +483,6 @@ function CarryStory(props: SocialStoryProps) {
           </div>
         </section>
       </main>
-      <StorySeal data={data} dataIso={dataIso} lingua={lingua} sealColor={sealColor} />
       <StoryWatermark />
     </article>
   );
