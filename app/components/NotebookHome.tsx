@@ -2122,7 +2122,10 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               key={`${dataExLibris}:${lingua}`}
               dataIso={dataExLibris}
               lingua={lingua}
-              isDark={isDark}
+              authorName={data.autore_giorno}
+              authorImageUrl={data.foto_autore_url}
+              authorImageCrop={authorImageCrop}
+              quote={data.citazione}
             />
           </div>,
           document.body

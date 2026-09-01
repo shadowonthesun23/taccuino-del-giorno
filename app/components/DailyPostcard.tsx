@@ -5,13 +5,13 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Sparkles, Sun, Sunrise, Sunset, X } from 'lucide-react';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import type { LanguageCode, MoonPhaseId, SeasonId } from '@/lib/types';
-import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
-import { SKY_REGION_OPTIONS } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { formatBookmarkDate, formatExLibrisDate, formatUtcDate, getDayOfYearInfo, getSeason } from '@/lib/date-utils';
 import { getMoonPhase, getNextFullMoonDate } from '@/lib/astronomy';
 import { getImageLoadingProps } from '@/lib/browser-utils';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork, type SeasonalArtwork } from '@/lib/seasonal-artwork';
+import { getEditorialMediaCropImageStyle, DEFAULT_EDITORIAL_MEDIA_CROP, type EditorialMediaCrop } from '@/lib/editorial-media';
+import { janeAust } from '@/lib/fonts';
 
 const eagerImageProps = getImageLoadingProps(true);
 
@@ -44,11 +44,11 @@ const POSTCARD_COPY: Record<LanguageCode, {
   address: string;
   openSource: string;
   skyOfDay: string;
+  quoteOfDay: string;
   dayToKeep: string;
   postcardFrom: string;
   dayWord: string;
   dailyPostcard: string;
-  city: string;
 }> = {
   IT: {
     open: 'Apri la cartolina del giorno',
@@ -61,11 +61,11 @@ const POSTCARD_COPY: Record<LanguageCode, {
     address: 'A:',
     openSource: 'Apri la scheda dell’opera',
     skyOfDay: 'Cielo del giorno',
+    quoteOfDay: 'Citazione del giorno',
     dayToKeep: 'Il giorno da custodire',
     postcardFrom: 'Una cartolina dal',
     dayWord: 'giorno',
     dailyPostcard: 'Cartolina del giorno',
-    city: 'Roma',
   },
   EN: {
     open: 'Open the postcard of the day',
@@ -78,11 +78,11 @@ const POSTCARD_COPY: Record<LanguageCode, {
     address: 'To:',
     openSource: 'Open the artwork record',
     skyOfDay: 'Sky of the day',
+    quoteOfDay: 'Quote of the day',
     dayToKeep: 'A day to keep',
     postcardFrom: 'A postcard from',
     dayWord: 'day',
     dailyPostcard: 'Postcard of the day',
-    city: 'Rome',
   },
   FR: {
     open: 'Ouvrir la carte du jour',
@@ -95,11 +95,11 @@ const POSTCARD_COPY: Record<LanguageCode, {
     address: 'À:',
     openSource: 'Ouvrir la fiche de l’œuvre',
     skyOfDay: 'Ciel du jour',
+    quoteOfDay: 'Citation du jour',
     dayToKeep: 'Un jour à garder',
     postcardFrom: 'Une carte du',
     dayWord: 'jour',
     dailyPostcard: 'Carte du jour',
-    city: 'Rome',
   },
   DE: {
     open: 'Tagespostkarte öffnen',
@@ -112,11 +112,11 @@ const POSTCARD_COPY: Record<LanguageCode, {
     address: 'An:',
     openSource: 'Werkdatensatz öffnen',
     skyOfDay: 'Himmel des Tages',
+    quoteOfDay: 'Zitat des Tages',
     dayToKeep: 'Ein Tag zum Bewahren',
     postcardFrom: 'Eine Postkarte vom',
     dayWord: 'Tag',
     dailyPostcard: 'Postkarte des Tages',
-    city: 'Rom',
   },
   ES: {
     open: 'Abrir la postal del día',
@@ -129,11 +129,11 @@ const POSTCARD_COPY: Record<LanguageCode, {
     address: 'A:',
     openSource: 'Abrir la ficha de la obra',
     skyOfDay: 'Cielo del día',
+    quoteOfDay: 'Cita del día',
     dayToKeep: 'Un día para guardar',
     postcardFrom: 'Una postal del',
     dayWord: 'día',
     dailyPostcard: 'Postal del día',
-    city: 'Roma',
   },
   PT: {
     open: 'Abrir o postal do dia',
@@ -146,22 +146,16 @@ const POSTCARD_COPY: Record<LanguageCode, {
     address: 'Para:',
     openSource: 'Abrir a ficha da obra',
     skyOfDay: 'Céu do dia',
+    quoteOfDay: 'Citação do dia',
     dayToKeep: 'Um dia para guardar',
     postcardFrom: 'Um postal do',
     dayWord: 'dia',
     dailyPostcard: 'Postal do dia',
-    city: 'Roma',
   },
 };
 
 function withoutColon(value: string): string {
   return value.replace(/:\s*$/, '');
-}
-
-function getCity(region: SkyRegion, lingua: LanguageCode): string {
-  const selected = SKY_REGION_OPTIONS.find((option) => option.id === region);
-  if (!selected) return POSTCARD_COPY[lingua].city;
-  return lingua === 'IT' ? selected.cityIT : selected.cityEN;
 }
 
 function PostcardFront({
@@ -170,8 +164,7 @@ function PostcardFront({
   seasonLabel,
   day,
   total,
-  hint,
-  showHint,
+  dayToKeep,
   ariaHidden,
 }: {
   artwork?: SeasonalArtwork;
@@ -179,8 +172,7 @@ function PostcardFront({
   seasonLabel: string;
   day: number;
   total: number;
-  hint: string;
-  showHint: boolean;
+  dayToKeep: string;
   ariaHidden?: boolean;
 }) {
   return (
@@ -206,15 +198,13 @@ function PostcardFront({
       </span>
       <span className="daily-postcard-front-bottom">
         <span className="daily-postcard-front-artwork-copy">
-          <strong>{artwork?.title || 'Day Atlas'}</strong>
-          <em>{artwork ? `${artwork.artist} · ${artwork.year}` : 'Il giorno da custodire'}</em>
+          <strong>{artwork?.title || dayToKeep}</strong>
+          <em>{artwork ? `${artwork.artist} · ${artwork.year}` : dayToKeep}</em>
         </span>
         <span className="daily-postcard-front-brand">
-          <strong>DAY ATLAS</strong>
-          <em>Il giorno da custodire</em>
+          <strong className={`${janeAust.className} notebook-wordmark`}>{dayToKeep}</strong>
         </span>
       </span>
-      {showHint ? <span className="daily-postcard-front-hint"><Sparkles aria-hidden="true" strokeWidth={1.5} />{hint}</span> : null}
     </div>
   );
 }
@@ -227,15 +217,16 @@ function PostcardBack({
   dateLabel,
   day,
   total,
+  quote,
+  authorName,
+  authorImageUrl,
+  authorImageCrop,
   moonPhase,
   moonIllumination,
   moonLabel,
   nextFullMoonLabel,
   solarTimes,
   daylight,
-  planets,
-  skyRegion,
-  onSelectSkyRegion,
   ariaHidden,
 }: {
   dataIso: string;
@@ -245,15 +236,16 @@ function PostcardBack({
   dateLabel: string;
   day: number;
   total: number;
+  quote: { testo: string; autore: string; fonte: string };
+  authorName: string;
+  authorImageUrl?: string | null;
+  authorImageCrop?: EditorialMediaCrop;
   moonPhase: MoonPhaseId;
   moonIllumination: number;
   moonLabel: string;
   nextFullMoonLabel: string;
   solarTimes: { sunrise: string; sunset: string } | null;
   daylight: string | null;
-  planets: VisiblePlanet[] | null;
-  skyRegion: SkyRegion;
-  onSelectSkyRegion: (region: SkyRegion) => void;
   ariaHidden?: boolean;
 }) {
   const copy = POSTCARD_COPY[lingua];
@@ -261,16 +253,15 @@ function PostcardBack({
   const moonRowLabel = withoutColon(t('moon', lingua));
   const fullMoonRowLabel = withoutColon(t('fullMoon', lingua));
   const daylightRowLabel = withoutColon(t('daylight', lingua));
-  const planetsLabel = t('planets', lingua);
   const romanDate = formatExLibrisDate(dataIso).replaceAll(' · ', ' ');
-  const qrFallback = 'https://dayatlas.vercel.app/';
+  const qrFallback = '/';
 
   return (
     <div className="daily-postcard-face daily-postcard-back" aria-hidden={ariaHidden}>
       <span className="daily-postcard-back-grain" aria-hidden="true" />
       <header className="daily-postcard-back-header">
         <strong>{astronomyLabel} · {romanDate}</strong>
-        <span>DAY ATLAS · {day}/{total}</span>
+        <span className={`${janeAust.className} notebook-wordmark`}>{copy.dayToKeep} · {day}/{total}</span>
       </header>
 
       <div className="daily-postcard-back-body">
@@ -302,45 +293,44 @@ function PostcardBack({
             </div>
           </div>
 
-          <div className="daily-postcard-planets">
-            <div className="daily-postcard-planets-heading">
-              <span><Sparkles aria-hidden="true" strokeWidth={1.35} />{planetsLabel}</span>
-              <span className="daily-postcard-region-switcher" role="group" aria-label={copy.skyOfDay}>
-                {SKY_REGION_OPTIONS.map((region) => (
-                  <button
-                    key={region.id}
-                    type="button"
-                    className={region.id === skyRegion ? 'is-active' : ''}
-                    onClick={() => onSelectSkyRegion(region.id)}
-                  >
-                    {region.id === 'north' ? 'N' : region.id === 'south' ? 'S' : 'C'}
-                  </button>
-                ))}
-              </span>
+          <section className="daily-postcard-quote" aria-label={copy.quoteOfDay}>
+            <div className="daily-postcard-section-heading">
+              <span>{copy.quoteOfDay}</span>
+              <span className="daily-postcard-heading-rule" aria-hidden="true" />
             </div>
-            <span className="daily-postcard-region-city">{getCity(skyRegion, lingua)}</span>
-            <div className="daily-postcard-planet-list" aria-live="polite">
-              {planets === null ? (
-                <em>{t('readingSky', lingua)}</em>
-              ) : planets.length > 0 ? planets.map((planet) => (
-                <span key={planet.body} className="daily-postcard-planet-row">
-                  <strong>{planet.name}</strong>
-                  <span>{planet.direction}</span>
-                  <span>{planet.bestTime}</span>
-                </span>
-              )) : (
-                <em>{t('noPlanets', lingua)}</em>
-              )}
+            <div className="daily-postcard-quote-body">
+              <div className="daily-postcard-quote-author-frame">
+                {authorImageUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element -- the postcard needs the same editorial author image as the home */
+                  <img
+                    className="daily-postcard-quote-author-image"
+                    src={authorImageUrl}
+                    alt={authorName}
+                    draggable={false}
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority={eagerImageProps.fetchPriority}
+                    style={getEditorialMediaCropImageStyle(authorImageCrop ?? DEFAULT_EDITORIAL_MEDIA_CROP)}
+                  />
+                ) : <span className="daily-postcard-quote-author-fallback">{authorName.slice(0, 1)}</span>}
+              </div>
+              <figure className="daily-postcard-quote-copy">
+                <blockquote>“{quote.testo}”</blockquote>
+                <figcaption>
+                  <strong>{quote.autore || authorName}</strong>
+                  {quote.fonte ? <span> · {quote.fonte}</span> : null}
+                </figcaption>
+              </figure>
             </div>
-          </div>
+          </section>
         </section>
 
         <span className="daily-postcard-back-divider" aria-hidden="true"><Sparkles strokeWidth={1.25} /></span>
 
         <section className="daily-postcard-postal" aria-label={copy.dailyPostcard}>
           <div className="daily-postcard-postal-top">
-            <div className="daily-postcard-stamp" aria-label={`DAY ATLAS ${day}/${total}`}>
-              <span>DAY ATLAS</span>
+            <div className="daily-postcard-stamp" aria-label={`${copy.dayToKeep} ${day}/${total}`}>
+              <span className={`${janeAust.className} notebook-wordmark`}>{copy.dayToKeep}</span>
               <strong>{day}/{total}</strong>
             </div>
             <a className="daily-postcard-qr-link" href={sourceUrl || qrFallback} target="_blank" rel="noopener noreferrer">
@@ -351,8 +341,10 @@ function PostcardBack({
             </a>
           </div>
           <div className="daily-postcard-postmark" aria-hidden="true">
-            <span>DAY ATLAS</span>
-            <strong>{copy.dayToKeep}</strong>
+            {/* Generated as a transparent raster to keep the cancellation mark irregular and tactile. */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- generated stamp asset is intentionally layered over the paper */}
+            <img className="daily-postcard-postmark-art" src="/images/day-keep-postmark.png" alt="" draggable={false} />
+            <strong className={`${janeAust.className} notebook-wordmark`}>{copy.dayToKeep}</strong>
           </div>
           <div className="daily-postcard-address">
             <span>{copy.address}</span>
@@ -366,16 +358,15 @@ function PostcardBack({
 
       <footer className="daily-postcard-back-footer">
         <span>{lingua === 'IT' ? 'Ogni giorno è un luogo da esplorare.' : lingua === 'EN' ? 'Every day is a place to explore.' : copy.dayToKeep}</span>
-        <strong>DAY ATLAS<em>{copy.dayToKeep}</em></strong>
+        <strong className={`${janeAust.className} notebook-wordmark`}>{copy.dayToKeep}</strong>
         <span>{copy.postcardFrom} {day}° {copy.dayWord}.<em>{dateLabel}</em></span>
       </footer>
     </div>
   );
 }
 
-interface PlanetReading {
+interface DayReading {
   key: string;
-  planets: VisiblePlanet[];
   daylight: string;
   solarTimes: { sunrise: string; sunset: string };
 }
@@ -383,18 +374,23 @@ interface PlanetReading {
 export default function DailyPostcard({
   dataIso,
   lingua,
-  isDark,
+  authorName,
+  authorImageUrl,
+  authorImageCrop,
+  quote,
 }: {
   dataIso: string;
   lingua: LanguageCode;
-  isDark: boolean;
+  authorName: string;
+  authorImageUrl?: string | null;
+  authorImageCrop?: EditorialMediaCrop;
+  quote: { testo: string; autore: string; fonte: string };
 }) {
   const [desktopEnabled, setDesktopEnabled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [skyRegion, setSkyRegion] = useState<SkyRegion>('center');
   const [dayPermalink, setDayPermalink] = useState('');
-  const [planetReading, setPlanetReading] = useState<PlanetReading | null>(null);
+  const [dayReading, setDayReading] = useState<DayReading | null>(null);
 
   const season = getSeason(dataIso);
   const seasonLabel = SEASON_LABELS[season][lingua];
@@ -404,9 +400,9 @@ export default function DailyPostcard({
   const moon = getMoonPhase(dataIso);
   const moonLabel = MOON_LABELS[moon.phase][lingua];
   const nextFullMoonLabel = formatUtcDate(getNextFullMoonDate(dataIso), lingua);
-  const readingKey = `${dataIso}:${skyRegion}:${lingua}`;
-  const reading = planetReading?.key === readingKey ? planetReading : null;
-  const sourceUrl = dayPermalink || seasonalArtwork?.sourceUrl || 'https://dayatlas.vercel.app/';
+  const readingKey = `${dataIso}:${lingua}`;
+  const reading = dayReading?.key === readingKey ? dayReading : null;
+  const sourceUrl = dayPermalink || seasonalArtwork?.sourceUrl || '/';
   const copy = POSTCARD_COPY[lingua];
 
   useEffect(() => {
@@ -439,11 +435,10 @@ export default function DailyPostcard({
   useEffect(() => {
     let cancelled = false;
 
-    void import('@/lib/visible-planets').then(({ getDaylightDuration, getSolarDayTimes, getVisiblePlanets }) => {
+    void import('@/lib/visible-planets').then(({ getDaylightDuration, getSolarDayTimes }) => {
       if (cancelled) return;
-      setPlanetReading({
+      setDayReading({
         key: readingKey,
-        planets: getVisiblePlanets(dataIso, skyRegion, lingua),
         daylight: getDaylightDuration(dataIso),
         solarTimes: getSolarDayTimes(dataIso, lingua),
       });
@@ -452,7 +447,7 @@ export default function DailyPostcard({
     return () => {
       cancelled = true;
     };
-  }, [dataIso, lingua, readingKey, skyRegion]);
+  }, [dataIso, lingua, readingKey]);
 
   const closePostcard = useCallback(() => {
     setIsOpen(false);
@@ -482,13 +477,9 @@ export default function DailyPostcard({
     setIsFlipped((current) => !current);
   }, []);
 
-  const handleSelectSkyRegion = useCallback((region: SkyRegion) => {
-    setSkyRegion(region);
-  }, []);
-
   return (
     <aside
-      className={`daily-postcard ${isDark ? 'is-dark' : ''} ${isOpen ? 'is-open' : ''}`}
+      className={`daily-postcard ${isOpen ? 'is-open' : ''}`}
       aria-hidden={!desktopEnabled}
       inert={!desktopEnabled ? true : undefined}
       aria-label={copy.dailyPostcard}
@@ -501,8 +492,7 @@ export default function DailyPostcard({
             seasonLabel={seasonLabel}
             day={day}
             total={total}
-            hint={copy.flipForward}
-            showHint={false}
+            dayToKeep={copy.dayToKeep}
             ariaHidden
           />
         </button>
@@ -532,8 +522,7 @@ export default function DailyPostcard({
                   seasonLabel={seasonLabel}
                   day={day}
                   total={total}
-                  hint={copy.flipForward}
-                  showHint
+                  dayToKeep={copy.dayToKeep}
                   ariaHidden={isFlipped}
                 />
                 <PostcardBack
@@ -544,15 +533,16 @@ export default function DailyPostcard({
                   dateLabel={dateLabel}
                   day={day}
                   total={total}
+                  quote={quote}
+                  authorName={authorName}
+                  authorImageUrl={authorImageUrl}
+                  authorImageCrop={authorImageCrop}
                   moonPhase={moon.phase}
                   moonIllumination={moon.illumination}
                   moonLabel={moonLabel}
                   nextFullMoonLabel={nextFullMoonLabel}
                   solarTimes={reading?.solarTimes || null}
                   daylight={reading?.daylight || null}
-                  planets={reading?.planets || null}
-                  skyRegion={skyRegion}
-                  onSelectSkyRegion={handleSelectSkyRegion}
                   ariaHidden={!isFlipped}
                 />
               </div>
