@@ -51,6 +51,8 @@ export interface DatiTaccuino {
   poesia: { testo: string; autore: string; fonte: string; nota: string };
   musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
   foto_autore_url?: string | null;
+  autore_data_nascita?: string | null;
+  autore_data_decesso?: string | null;
 }
 
 export interface ArchivioItem {

@@ -4520,13 +4520,20 @@ body.museum-room-open :is(
   position: absolute;
 }
 
-.seasonal-bookmark:hover,
-.seasonal-bookmark:focus,
-.seasonal-bookmark:focus-within,
-.seasonal-bookmark:focus-visible {
+.seasonal-bookmark:not(.is-inactive):hover,
+.seasonal-bookmark:not(.is-inactive):focus,
+.seasonal-bookmark:not(.is-inactive):focus-within,
+.seasonal-bookmark:not(.is-inactive):focus-visible {
   outline: none;
   right: -470px;
   filter: drop-shadow(-4px 6px 5px rgba(42,37,34,0.22));
+}
+
+.seasonal-bookmark.is-inactive {
+  filter: none;
+  opacity: 0;
+  pointer-events: none;
+  right: -604px;
 }
 
 .seasonal-bookmark.is-open,
@@ -5530,10 +5537,11 @@ body.museum-room-open :is(
     inset 1px 0 rgba(255,255,255,0.045);
 }
 
-/* Cartolina del giorno: una prova alternativa al biglietto, affacciata appena sotto. */
+/* Cartolina del giorno: la superficie principale, affacciata nello stesso punto del biglietto. */
 .daily-postcard {
   --daily-postcard-width: 420px;
   --daily-postcard-height: 280px;
+  --daily-postcard-half-height: 140px;
   --postcard-paper: #f0e6d4;
   --postcard-paper-deep: #e6d8c0;
   --postcard-ink: #2a241d;
@@ -5542,32 +5550,40 @@ body.museum-room-open :is(
   display: block;
   filter: drop-shadow(4px 8px 7px rgba(42,37,34,0.19));
   height: var(--daily-postcard-height);
-  left: calc(68px - var(--daily-postcard-width));
   pointer-events: auto;
   position: fixed;
-  right: auto;
-  top: calc(50% + 142px);
-  transition-property: left, filter;
-  transition-duration: 520ms, 420ms;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-out;
+  right: calc(68px - var(--daily-postcard-width));
+  top: calc(50% - var(--daily-postcard-half-height));
+  transition-property: right, filter, opacity;
+  transition-duration: 520ms, 420ms, 420ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-out, ease-out;
   width: var(--daily-postcard-width);
   z-index: 34;
 }
 
-.daily-postcard:hover,
-.daily-postcard:focus-within {
+.daily-postcard:not(.is-inactive):hover,
+.daily-postcard:not(.is-inactive):focus-within {
   filter: drop-shadow(7px 11px 10px rgba(42,37,34,0.24));
-  left: calc(118px - var(--daily-postcard-width));
+  right: calc(118px - var(--daily-postcard-width));
 }
 
-.daily-postcard.is-open {
+.daily-postcard.is-inactive {
   filter: none;
-  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  right: calc(-16px - var(--daily-postcard-width));
+}
+
+.daily-postcard.is-open,
+.daily-postcard.is-open:hover,
+.daily-postcard.is-open:focus-within {
+  filter: none;
+  height: 100vh;
   left: 0;
   pointer-events: none;
   right: 0;
   top: 0;
-  width: 0;
+  width: 100vw;
   z-index: 61;
 }
 
@@ -5582,6 +5598,9 @@ body.museum-room-open :is(
   padding: 0;
   position: relative;
   text-align: start;
+  transform: rotate(-0.38deg);
+  transform-origin: center center;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
   width: 100%;
 }
 
@@ -5707,14 +5726,14 @@ body.museum-room-open :is(
 }
 
 .daily-postcard-front-artwork-copy strong {
-  font-size: clamp(0.95rem, 1.9vw, 1.36rem);
+  font-size: clamp(0.88rem, 1.7vw, 1.2rem);
   font-weight: 700;
   line-height: 1.06;
   text-wrap: balance;
 }
 
 .daily-postcard-front-artwork-copy em {
-  font-size: clamp(0.7rem, 1.3vw, 0.88rem);
+  font-size: clamp(0.76rem, 1.4vw, 0.96rem);
   font-style: italic;
   margin-top: 4px;
   opacity: 0.95;
@@ -5753,6 +5772,35 @@ body.museum-room-open :is(
   z-index: 58;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .daily-postcard-modal-backdrop {
+    animation: dailyPostcardBackdropIn 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes dailyPostcardBackdropIn {
+    from {
+      background: rgba(43, 35, 27, 0);
+      opacity: 0;
+      -webkit-backdrop-filter: blur(0) saturate(1);
+      backdrop-filter: blur(0) saturate(1);
+    }
+
+    55% {
+      background: rgba(43, 35, 27, 0.12);
+      opacity: 0.82;
+      -webkit-backdrop-filter: blur(5px) saturate(0.9);
+      backdrop-filter: blur(5px) saturate(0.9);
+    }
+
+    to {
+      background: rgba(43, 35, 27, 0.2);
+      opacity: 1;
+      -webkit-backdrop-filter: blur(9px) saturate(0.82);
+      backdrop-filter: blur(9px) saturate(0.82);
+    }
+  }
+}
+
 .daily-postcard-dialog {
   align-items: center;
   display: flex;
@@ -5767,8 +5815,10 @@ body.museum-room-open :is(
 
 .daily-postcard-stage {
   aspect-ratio: 15 / 10;
-  animation: dailyPostcardStageIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: dailyPostcardStageIn 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
   max-width: 720px;
+  perspective: 1500px;
+  perspective-origin: center center;
   pointer-events: auto;
   position: relative;
   width: min(720px, calc(100vw - 64px));
@@ -5776,15 +5826,78 @@ body.museum-room-open :is(
 
 @keyframes dailyPostcardStageIn {
   from {
-    filter: blur(1px);
-    opacity: 0.2;
-    transform: translateY(14px) scale(0.96) rotate(-0.5deg);
+    filter: blur(1.6px);
+    opacity: 0.55;
+    transform: translate3d(62vw, 0, 0) scale(0.62) rotate(5deg);
+  }
+
+  38% {
+    filter: blur(0.7px);
+    opacity: 0.86;
+    transform: translate3d(35vw, 0, 0) scale(0.78) rotate(3deg);
+  }
+
+  76% {
+    filter: blur(0.12px);
+    opacity: 1;
+    transform: translate3d(4vw, 0, 0) scale(0.98) rotate(0.35deg);
   }
 
   to {
     filter: blur(0);
     opacity: 1;
-    transform: translateY(0) scale(1) rotate(-0.22deg);
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+.daily-postcard-card-motion {
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .daily-postcard-card-motion {
+    transform:
+      translate3d(var(--postcard-shift-x, 0px), var(--postcard-shift-y, 0px), 0)
+      rotateX(var(--postcard-tilt-x, 0deg))
+      rotateY(var(--postcard-tilt-y, 0deg))
+      rotateZ(var(--postcard-tilt-z, 0deg));
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .daily-postcard-card-motion::before {
+    background:
+      radial-gradient(ellipse 76% 18% at var(--postcard-glow-x, 50%) 0%, rgba(255, 250, 235, 0.08), transparent 78%),
+      radial-gradient(ellipse 76% 18% at var(--postcard-glow-x, 50%) 100%, rgba(35, 25, 16, 0.1), transparent 78%);
+    content: "";
+    filter: blur(2px);
+    inset: -8% -4%;
+    mix-blend-mode: multiply;
+    opacity: 0.52;
+    pointer-events: none;
+    position: absolute;
+    transform: rotateZ(var(--postcard-tilt-z, 0deg));
+    transform-origin: center center;
+    z-index: 2;
+  }
+
+  .daily-postcard-card-motion::after {
+    background: radial-gradient(
+      ellipse 46% 105% at var(--postcard-glow-x, 50%) var(--postcard-glow-y, 38%),
+      rgba(255, 250, 235, 0.16) 0,
+      rgba(255, 250, 235, 0.04) 36%,
+      transparent 73%
+    );
+    content: "";
+    inset: 0;
+    mix-blend-mode: soft-light;
+    opacity: 0.48;
+    pointer-events: none;
+    position: absolute;
+    z-index: 2;
   }
 }
 
@@ -5793,12 +5906,14 @@ body.museum-room-open :is(
   height: 100%;
   position: relative;
   transform: rotateY(0deg) rotateZ(-0.22deg);
+  transform-origin: center center;
   transform-style: preserve-3d;
   transition-property: transform;
-  transition-duration: 860ms;
+  transition-duration: 980ms;
   transition-timing-function: cubic-bezier(0.2, 0.78, 0.18, 1);
   width: 100%;
   will-change: transform;
+  z-index: 1;
 }
 
 .daily-postcard-card:focus-visible {
@@ -5837,7 +5952,6 @@ body.museum-room-open :is(
 
 .daily-postcard-back-header {
   align-items: baseline;
-  border-bottom: 1px solid var(--postcard-rule);
   display: flex;
   flex: 0 0 auto;
   justify-content: space-between;
@@ -5874,16 +5988,10 @@ body.museum-room-open :is(
   padding: 12px 1px 7px;
 }
 
-.daily-postcard-astronomy,
+.daily-postcard-quote,
 .daily-postcard-postal {
   min-width: 0;
   position: relative;
-}
-
-.daily-postcard-astronomy {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
 }
 
 .daily-postcard-section-heading {
@@ -5897,111 +6005,28 @@ body.museum-room-open :is(
   text-transform: uppercase;
 }
 
-.daily-postcard-heading-rule {
-  background: var(--postcard-rule);
-  flex: 1 1 auto;
-  height: 1px;
-}
-
-.daily-postcard-astronomy-rows {
-  display: grid;
-  gap: 2px;
-  margin-top: 7px;
-}
-
-.daily-postcard-astro-row {
-  align-items: center;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 23px minmax(0, 1fr);
-  min-height: 18px;
-}
-
-.daily-postcard-astro-row > span:last-child {
-  align-items: baseline;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: max-content minmax(0, 1fr);
-  min-width: 0;
-}
-
-.daily-postcard-astro-row em {
-  font-size: 0.64rem;
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  line-height: 0.98;
-  text-transform: uppercase;
-}
-
-.daily-postcard-astro-row strong {
-  font-size: 0.84rem;
-  font-weight: 400;
-  line-height: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.daily-postcard-astro-icon {
-  align-items: center;
-  display: inline-flex;
-  height: 22px;
-  justify-content: center;
-  width: 22px;
-}
-
-.daily-postcard-astro-icon svg {
-  height: 20px;
-  width: 20px;
-}
-
-.daily-postcard-moon-icon .moon-phase-glyph {
-  height: 22px;
-  width: 22px;
-}
-
-.daily-postcard-moon-icon .moon-phase-shadow {
-  fill: #2b261f;
-  stroke: rgba(42, 36, 29, 0.42);
-  stroke-width: 1.4;
-}
-
-.daily-postcard-moon-icon .moon-phase-lit {
-  fill: #c4ad84;
-}
-
-.daily-postcard-moon-icon .moon-phase-craters {
-  fill: rgba(100, 77, 47, 0.35);
-}
-
-.daily-postcard-full-moon-icon {
-  border: 1.3px solid currentColor;
-  border-radius: 50%;
-  height: 19px;
-  margin-left: 1px;
-  width: 19px;
-}
-
 .daily-postcard-quote {
-  border-top: 1px solid var(--postcard-rule);
-  margin-top: 12px;
-  padding-top: 10px;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px 12px 8px 0;
 }
 
 .daily-postcard-quote .daily-postcard-section-heading {
-  font-size: 0.58rem;
-  gap: 7px;
-  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  gap: 8px;
+  letter-spacing: 0.16em;
 }
 
 .daily-postcard-quote-body {
   align-items: center;
   display: grid;
-  gap: 10px;
-  grid-template-columns: 58px minmax(0, 1fr);
-  margin-top: 8px;
+  flex: 1 1 auto;
+  gap: 16px;
+  grid-template-columns: minmax(116px, 0.82fr) minmax(0, 1.18fr);
+  margin-top: 14px;
+  min-height: 0;
 }
 
 .daily-postcard-quote-author-frame {
@@ -6010,11 +6035,11 @@ body.museum-room-open :is(
     0 1px 2px rgba(47, 32, 20, 0.16),
     inset 0 0 0 1px rgba(85, 60, 33, 0.18),
     inset 0 1px rgba(255, 255, 255, 0.62);
-  height: 76px;
+  height: 194px;
   overflow: hidden;
   position: relative;
   transform: rotate(-2deg);
-  width: 58px;
+  width: 130px;
 }
 
 .daily-postcard-quote-author-image {
@@ -6038,31 +6063,48 @@ body.museum-room-open :is(
 }
 
 .daily-postcard-quote-copy blockquote {
-  font-size: clamp(0.82rem, 1.5vw, 1.02rem);
+  font-size: clamp(1.1rem, 2.2vw, 1.48rem);
   font-style: italic;
-  line-height: 1.16;
+  line-height: 1.1;
   margin: 0;
-  max-height: 4.8em;
+  max-height: 6.6em;
   overflow: hidden;
   text-wrap: pretty;
 }
 
 .daily-postcard-quote-copy figcaption {
-  font-size: 0.58rem;
-  line-height: 1.15;
-  margin-top: 7px;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.68rem;
+  gap: 3px;
+  line-height: 1.12;
+  margin-top: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .daily-postcard-quote-copy figcaption strong {
+  font-size: 0.84rem;
   font-weight: 700;
 }
 
+.daily-postcard-quote-copy figcaption small {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
 .daily-postcard-quote-copy figcaption span {
+  font-size: 0.6rem;
   font-style: italic;
   opacity: 0.68;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .daily-postcard-back-divider {
@@ -6243,26 +6285,6 @@ body.museum-room-open :is(
   height: 13px;
 }
 
-.daily-postcard-artwork-source {
-  color: inherit;
-  display: block;
-  font-size: 0.58rem;
-  font-style: italic;
-  line-height: 1.15;
-  margin-top: auto;
-  max-width: 100%;
-  overflow: hidden;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.daily-postcard-artwork-source:hover,
-.daily-postcard-artwork-source:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 .daily-postcard-back-footer {
   align-items: end;
   border-top: 1px solid var(--postcard-rule);
@@ -6277,6 +6299,32 @@ body.museum-room-open :is(
 
 .daily-postcard-back-footer > span:last-child {
   text-align: end;
+}
+
+.daily-postcard-back-footer-exploration {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.daily-postcard-site-url {
+  color: inherit;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.48rem;
+  letter-spacing: 0.035em;
+  opacity: 0.68;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-postcard-site-url:hover,
+.daily-postcard-site-url:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .daily-postcard-back-footer strong {
@@ -6358,7 +6406,8 @@ body.museum-room-open :is(
   .daily-postcard,
   .daily-postcard-card,
   .daily-postcard-qr,
-  .daily-postcard-close {
+  .daily-postcard-close,
+  .daily-postcard-peek {
     transition-duration: 0.01ms !important;
   }
 
@@ -6372,7 +6421,8 @@ body.museum-room-open :is(
 }
 
 @media (max-width: 1179px) {
-  .daily-postcard {
+  .daily-postcard,
+  .daily-surface-switch {
     display: none !important;
   }
 }
@@ -9654,6 +9704,100 @@ body.museum-room-open :is(
   border-radius: 10px 12px 9px 11px !important;
 }
 
+.daily-surface-switch {
+  align-items: center;
+  background: rgba(244, 240, 230, 0.72);
+  border: 1px solid rgba(181, 149, 106, 0.32);
+  border-radius: 10px 13px 9px 12px;
+  box-shadow:
+    0 10px 24px -20px rgba(42, 37, 34, 0.42),
+    2px 2px 0 rgba(117, 88, 57, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  display: inline-flex;
+  gap: 2px;
+  min-height: 40px;
+  padding: 3px;
+}
+
+.daily-surface-switch-option {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px 9px 6px 8px;
+  color: #7d746d;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.58rem;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: 0.055em;
+  line-height: 1;
+  min-height: 32px;
+  padding: 0 9px;
+  text-transform: uppercase;
+  transition-property: background-color, border-color, box-shadow, color, transform;
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.daily-surface-switch-option:hover,
+.daily-surface-switch-option:focus-visible {
+  color: #9a463d;
+  outline: none;
+}
+
+.daily-surface-switch-option:focus-visible {
+  box-shadow: 0 0 0 2px rgba(222, 107, 88, 0.28);
+}
+
+.daily-surface-switch-option.is-selected {
+  background: rgba(173, 74, 63, 0.1);
+  border-color: rgba(173, 74, 63, 0.25);
+  box-shadow:
+    0 2px 4px rgba(117, 88, 57, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.54);
+  color: #8f4038;
+}
+
+.daily-surface-switch-option:active {
+  transform: scale(0.96);
+}
+
+:root.dark .daily-surface-switch,
+:root[data-theme="dark"] .daily-surface-switch {
+  background: rgba(30, 30, 30, 0.72);
+  border-color: rgba(203, 177, 139, 0.26);
+  box-shadow:
+    0 10px 24px -20px rgba(0, 0, 0, 0.66),
+    2px 2px 0 rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+:root.dark .daily-surface-switch-option,
+:root[data-theme="dark"] .daily-surface-switch-option {
+  color: #a99b86;
+}
+
+:root.dark .daily-surface-switch-option:hover,
+:root.dark .daily-surface-switch-option:focus-visible,
+:root[data-theme="dark"] .daily-surface-switch-option:hover,
+:root[data-theme="dark"] .daily-surface-switch-option:focus-visible {
+  color: #ead8ba;
+}
+
+:root.dark .daily-surface-switch-option.is-selected,
+:root[data-theme="dark"] .daily-surface-switch-option.is-selected {
+  background: rgba(181, 149, 106, 0.14);
+  border-color: rgba(203, 177, 139, 0.42);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #ead8ba;
+}
+
 .author-share-trigger,
 .author-export-action,
 .editorial-link-button,
@@ -9869,7 +10013,9 @@ body.museum-room-open :is(
   .mobile-tools,
   .mobile-tools-menu,
   .mobile-tools-trigger,
-  .top-control-panel {
+  .top-control-panel,
+  .daily-surface-switch,
+  .daily-surface-switch-option {
     transition: none !important;
   }
 

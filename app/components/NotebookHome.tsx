@@ -87,6 +87,21 @@ interface LanguageConfig {
   flag: React.ReactNode;
 }
 
+type DailySurfaceMode = 'postcard' | 'ticket';
+
+const DAILY_SURFACE_COPY: Record<LanguageCode, {
+  label: string;
+  postcard: string;
+  ticket: string;
+}> = {
+  IT: { label: 'Vista del giorno', postcard: 'Cartolina', ticket: 'Biglietto' },
+  EN: { label: 'Day view', postcard: 'Postcard', ticket: 'Ticket' },
+  FR: { label: 'Vue du jour', postcard: 'Carte', ticket: 'Billet' },
+  DE: { label: 'Tagesansicht', postcard: 'Postkarte', ticket: 'Ticket' },
+  ES: { label: 'Vista del día', postcard: 'Postal', ticket: 'Billete' },
+  PT: { label: 'Vista do dia', postcard: 'Postal', ticket: 'Bilhete' },
+};
+
 const LANGUAGES: LanguageConfig[] = [
   {
     code: 'IT',
@@ -264,6 +279,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [loading, setLoading] = useState(true);
   const [isPreloadExiting, setIsPreloadExiting] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [dailySurfaceMode, setDailySurfaceMode] = useState<DailySurfaceMode>('postcard');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
   const [savedCards, setSavedCards] = useState<SavedCardItem[]>(getSavedCards);
@@ -1229,6 +1245,29 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
+
+          <div
+            className={`daily-surface-switch ${garamond.className}`}
+            role="group"
+            aria-label={DAILY_SURFACE_COPY[lingua].label}
+          >
+            <button
+              type="button"
+              className={`daily-surface-switch-option ${dailySurfaceMode === 'postcard' ? 'is-selected' : ''}`}
+              aria-pressed={dailySurfaceMode === 'postcard'}
+              onClick={() => setDailySurfaceMode('postcard')}
+            >
+              {DAILY_SURFACE_COPY[lingua].postcard}
+            </button>
+            <button
+              type="button"
+              className={`daily-surface-switch-option ${dailySurfaceMode === 'ticket' ? 'is-selected' : ''}`}
+              aria-pressed={dailySurfaceMode === 'ticket'}
+              onClick={() => setDailySurfaceMode('ticket')}
+            >
+              {DAILY_SURFACE_COPY[lingua].ticket}
+            </button>
+          </div>
           </div>,
           document.body
         ) : null}
@@ -2117,15 +2156,19 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               dataIso={dataExLibris}
               lingua={lingua}
               isDark={isDark}
+              isActive={dailySurfaceMode === 'ticket'}
             />
             <DailyPostcard
               key={`${dataExLibris}:${lingua}`}
               dataIso={dataExLibris}
               lingua={lingua}
               authorName={data.autore_giorno}
+              authorBirthDate={data.autore_data_nascita}
+              authorDeathDate={data.autore_data_decesso}
               authorImageUrl={data.foto_autore_url}
               authorImageCrop={authorImageCrop}
               quote={data.citazione}
+              isActive={dailySurfaceMode === 'postcard'}
             />
           </div>,
           document.body

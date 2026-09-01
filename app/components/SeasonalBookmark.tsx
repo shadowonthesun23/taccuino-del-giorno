@@ -22,10 +22,12 @@ export default function SeasonalBookmark({
   dataIso,
   lingua,
   isDark,
+  isActive,
 }: {
   dataIso: string;
   lingua: LanguageCode;
   isDark: boolean;
+  isActive: boolean;
 }) {
   const bookmarkRef = useRef<HTMLElement>(null);
   const ticketRef = useRef<HTMLSpanElement>(null);
@@ -110,7 +112,7 @@ export default function SeasonalBookmark({
     const updateDesktopTicket = () => {
       const enabled = desktopQuery.matches;
       setDesktopTicketEnabled(enabled);
-      if (!enabled) {
+      if (!enabled || !isActive) {
         if (ticketClosingTimerRef.current !== null) {
           window.clearTimeout(ticketClosingTimerRef.current);
           ticketClosingTimerRef.current = null;
@@ -123,7 +125,7 @@ export default function SeasonalBookmark({
     desktopQuery.addEventListener('change', updateDesktopTicket);
 
     return () => desktopQuery.removeEventListener('change', updateDesktopTicket);
-  }, []);
+  }, [isActive]);
 
   useEffect(() => {
     let cancelled = false;
@@ -171,14 +173,14 @@ export default function SeasonalBookmark({
   }, [isTicketOpen]);
 
   const openTicket = useCallback(() => {
-    if (!desktopTicketEnabled) return;
+    if (!desktopTicketEnabled || !isActive) return;
     if (ticketClosingTimerRef.current !== null) {
       window.clearTimeout(ticketClosingTimerRef.current);
       ticketClosingTimerRef.current = null;
     }
     setIsTicketClosing(false);
     setIsTicketOpen(true);
-  }, [desktopTicketEnabled]);
+  }, [desktopTicketEnabled, isActive]);
 
   const applyTicketMotion = useCallback((x: number, y: number) => {
     const bookmark = bookmarkRef.current;
@@ -230,7 +232,7 @@ export default function SeasonalBookmark({
   }, [scheduleTicketMotion]);
 
   const handleTicketPointerMove = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    if (!isTicketOpen || (event.pointerType && event.pointerType !== 'mouse')) return;
+    if (!isActive || !isTicketOpen || (event.pointerType && event.pointerType !== 'mouse')) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
@@ -241,7 +243,7 @@ export default function SeasonalBookmark({
       y: clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1, 1),
     };
     scheduleTicketMotion();
-  }, [isTicketOpen, scheduleTicketMotion]);
+  }, [isActive, isTicketOpen, scheduleTicketMotion]);
 
   const handleTicketPointerLeave = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType && event.pointerType !== 'mouse') return;
@@ -285,18 +287,18 @@ export default function SeasonalBookmark({
   }, []);
 
   const handleTicketClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {
-    if (isTicketOpen) return;
+    if (!isActive || isTicketOpen) return;
     const target = event.target;
     if (target instanceof Element && target.closest('a, button')) return;
     openTicket();
-  }, [isTicketOpen, openTicket]);
+  }, [isActive, isTicketOpen, openTicket]);
 
   const handleTicketKeyDown = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
-    if (isTicketOpen) return;
+    if (!isActive || isTicketOpen) return;
     event.preventDefault();
     openTicket();
-  }, [isTicketOpen, openTicket]);
+  }, [isActive, isTicketOpen, openTicket]);
 
   useEffect(() => {
     const handleOpen = () => openTicket();
@@ -439,28 +441,29 @@ export default function SeasonalBookmark({
   const artworkQrLabel = seasonalArtwork?.linkKind === 'source'
     ? ({ IT: 'Apri la fonte', EN: 'View source', FR: 'Ouvrir la source', DE: 'Quelle öffnen', ES: 'Abrir la fuente', PT: 'Abrir a fonte' }[lingua] || 'View source')
     : ({ IT: 'Apri al museo', EN: 'View at museum', FR: 'Voir au musée', DE: 'Im Museum ansehen', ES: 'Ver en el museo', PT: 'Ver no museu' }[lingua] || 'View at museum');
+  const ticketOpen = isTicketOpen && isActive;
 
   return (
     <>
       <button
         type="button"
-        className={`seasonal-bookmark-modal-backdrop ${isDark ? 'is-dark' : ''} ${isTicketOpen ? 'is-open' : ''}`}
+        className={`seasonal-bookmark-modal-backdrop ${isDark ? 'is-dark' : ''} ${ticketOpen ? 'is-open' : ''}`}
         aria-label={t('close', lingua)}
-        aria-hidden={!isTicketOpen}
-        tabIndex={isTicketOpen ? 0 : -1}
+        aria-hidden={!ticketOpen}
+        tabIndex={ticketOpen ? 0 : -1}
         onClick={closeTicket}
       />
       <aside
         id="effemeridi"
         ref={bookmarkRef}
-        className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''} ${isTicketOpen ? 'is-open' : ''} ${isTicketClosing ? 'is-closing' : ''}`}
+        className={`seasonal-bookmark season-${season} month-${bookmarkMonth} ${seasonalArtwork ? `artwork-${seasonalArtwork.id} artwork-tone-${seasonalArtwork.tone}` : ''} ${isDark ? 'is-dark' : ''} ${!isActive ? 'is-inactive' : ''} ${ticketOpen ? 'is-open' : ''} ${isTicketClosing ? 'is-closing' : ''}`}
         aria-label={`${dateLabel}, ${label}. ${moonLabel}, ${moon.illumination}%. ${fullMoonAriaLabel}: ${nextFullMoonLabel}. ${daylightRowLabel}: ${daylightValue || '…'}. ${planetsLabel}: ${planetSummary}`}
-        aria-hidden={!desktopTicketEnabled}
-        inert={!desktopTicketEnabled ? true : undefined}
-        tabIndex={desktopTicketEnabled ? 0 : -1}
-        role={isTicketOpen ? 'dialog' : undefined}
-        aria-modal={isTicketOpen ? 'true' : undefined}
-        aria-expanded={isTicketOpen}
+        aria-hidden={!desktopTicketEnabled || !isActive}
+        inert={!desktopTicketEnabled || !isActive ? true : undefined}
+        tabIndex={desktopTicketEnabled && isActive ? 0 : -1}
+        role={ticketOpen ? 'dialog' : undefined}
+        aria-modal={ticketOpen ? 'true' : undefined}
+        aria-expanded={ticketOpen}
         onClick={handleTicketClick}
         onKeyDown={handleTicketKeyDown}
         onPointerMove={handleTicketPointerMove}
