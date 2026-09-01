@@ -7,6 +7,12 @@ export const DAILY_POSTCARD_EXPORT_PIXEL_RATIO = 4;
 
 const IMAGE_WAIT_TIMEOUT_MS = 8_000;
 const JPEG_QUALITY = 0.96;
+const POSTCARD_EXPORT_VARIABLES = [
+  '--postcard-paper',
+  '--postcard-paper-deep',
+  '--postcard-ink',
+  '--postcard-rule',
+] as const;
 
 export type DailyPostcardFace = 'front' | 'back';
 
@@ -87,6 +93,15 @@ function waitForNextPaint() {
   });
 }
 
+function copyPostcardVariables(sourceCard: HTMLElement, target: HTMLElement) {
+  const sourceStyle = window.getComputedStyle(sourceCard);
+  POSTCARD_EXPORT_VARIABLES.forEach((property) => {
+    const value = sourceStyle.getPropertyValue(property).trim();
+    if (value) target.style.setProperty(property, value);
+  });
+  target.style.color = sourceStyle.color;
+}
+
 function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fontFamily: string) {
   const clone = sourceCard.cloneNode(true) as HTMLElement;
   const selectedFaceClass = `daily-postcard-${face}`;
@@ -141,6 +156,10 @@ function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fon
     width: `${DAILY_POSTCARD_EXPORT_WIDTH}px`,
     zIndex: '0',
   });
+  // The live card inherits these variables from `.daily-postcard`. The
+  // export frame is mounted directly under body, so copy them explicitly or
+  // the back's ink, divider, and address rules fall back to the page theme.
+  copyPostcardVariables(sourceCard, exportFrame);
   exportFrame.appendChild(clone);
   document.body.appendChild(exportFrame);
 
@@ -180,7 +199,10 @@ export async function downloadDailyPostcardFace(
   await document.fonts.ready;
   const { getFontEmbedCSS, toJpeg } = await import('html-to-image');
   const sourceFontFamily = window.getComputedStyle(sourceCard).fontFamily;
-  const fontEmbedCSS = await getFontEmbedCSS(sourceCard, { preferredFontFormat: 'woff2' });
+  // JaneAust is shipped as a local TTF. Restricting html-to-image to WOFF2
+  // silently removes that face from the embedded stylesheet and makes the
+  // exported wordmark fall back to a browser serif/cursive font.
+  const fontEmbedCSS = await getFontEmbedCSS(sourceCard);
 
   const sourceFace = sourceCard.querySelector<HTMLElement>(`.daily-postcard-${face}`);
   if (!sourceFace) throw new Error(`Faccia ${face} della cartolina non trovata.`);
