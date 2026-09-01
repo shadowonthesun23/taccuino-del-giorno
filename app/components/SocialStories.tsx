@@ -5,7 +5,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
-  BookOpen,
   Church,
   Download,
   Feather,
@@ -145,11 +144,7 @@ function getSocialPoemExcerpt(text: string) {
   const verseBlocks = blocks.length > 1 && firstBlock.length === 1
     ? blocks.slice(1)
     : [firstBlock.length > 1 && !/[.!?,;:]$/u.test(firstBlock[0]) ? firstBlock.slice(1) : firstBlock];
-  return getSocialLineExcerpt(verseBlocks.flat().join('\n'), 420, 6);
-}
-
-function getSocialPassageExcerpt(text: string) {
-  return getSocialLineExcerpt(text, 430, 5);
+  return getSocialLineExcerpt(verseBlocks.flat().join('\n'), 1180, 16);
 }
 
 function getSocialPoemSource(data: DatiTaccuino) {
@@ -183,7 +178,6 @@ function getSocialMedia(props: SocialStoryProps) {
     musicFallback: '',
     apod: getSocialImageUrl(editorialMedia.apod || apod?.thumbnail_url || apod?.url),
     poem: getSocialImageUrl(readingMedia.poesia?.imageUrl),
-    bible: getSocialImageUrl(readingMedia.bibbia?.imageUrl),
     author: getSocialImageUrl(editorialMedia.autore || data.foto_autore_url),
     seasonal: seasonalArtwork?.imageUrl ?? '',
   };
@@ -309,7 +303,7 @@ function StoryWatermark() {
 }
 
 function ThingsStory(props: SocialStoryProps) {
-  const { data, opera, dataIso, lingua, isDark, sealColor, saintArtwork } = props;
+  const { data, opera, dataIso, lingua, isDark, sealColor, saintArtwork, apod } = props;
   const media = getSocialMedia(props);
   const saint = data.santi[0] ?? null;
   const moon = getMoonPhase(dataIso);
@@ -319,6 +313,8 @@ function ThingsStory(props: SocialStoryProps) {
   const artworkMeta = opera ? `${opera.artista}${opera.anno ? ` · ${opera.anno}` : ''}` : '—';
   const saintName = saint?.nome || '—';
   const saintRole = saint ? getSocialExcerpt(saint.ruolo, 82) : '—';
+  const apodTitle = lingua === 'IT' ? (apod?.title_it || apod?.title_en || '—') : (apod?.title_en || apod?.title_it || '—');
+  const apodCredit = apod?.copyright ? `NASA APOD · ${apod.copyright}` : 'NASA APOD';
 
   return (
     <article
@@ -399,6 +395,23 @@ function ThingsStory(props: SocialStoryProps) {
               </div>
             ) : null}
           </section>
+
+          <section className="social-things-cell social-things-apod">
+            <StorySectionLabel icon={Telescope}>{t('correspondenceApod', lingua)}</StorySectionLabel>
+            <div className="social-things-apod-layout">
+              <StoryImage
+                src={media.apod}
+                alt={apodTitle}
+                className="social-things-apod-media"
+                fallbackLabel={t('socialStoryImageUnavailable', lingua)}
+                fallbackIcon={Telescope}
+              />
+              <div className="social-things-apod-copy">
+                <h2 className={`social-things-title ${getTextLengthClass(apodTitle, [24, 38, 56])}`}>{apodTitle}</h2>
+                <p className="social-things-meta">{apodCredit}</p>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
       <StorySeal data={data} dataIso={dataIso} lingua={lingua} sealColor={sealColor} />
@@ -408,14 +421,10 @@ function ThingsStory(props: SocialStoryProps) {
 }
 
 function CarryStory(props: SocialStoryProps) {
-  const { data, dataIso, lingua, isDark, sealColor, apod, seasonalArtwork } = props;
+  const { data, dataIso, lingua, isDark, sealColor, seasonalArtwork } = props;
   const media = getSocialMedia(props);
   const poemSource = getSocialPoemSource(data);
   const poemExcerpt = getSocialPoemExcerpt(data.poesia.testo);
-  const bibleReference = normalizeText(data.bibbia.fonte) || '—';
-  const bibleExcerpt = getSocialPassageExcerpt(data.bibbia.testo) || '—';
-  const apodTitle = lingua === 'IT' ? (apod?.title_it || apod?.title_en || '—') : (apod?.title_en || apod?.title_it || '—');
-  const apodCredit = apod?.copyright ? `NASA APOD · ${apod.copyright}` : 'NASA APOD';
   const seasonalMeta = seasonalArtwork
     ? `${seasonalArtwork.artist}${seasonalArtwork.year ? ` · ${seasonalArtwork.year}` : ''}`
     : '—';
@@ -442,44 +451,25 @@ function CarryStory(props: SocialStoryProps) {
         <section className="social-carry-section social-carry-poem">
           <StorySectionLabel icon={Feather}>{t('correspondencePoem', lingua)}</StorySectionLabel>
           <div className="social-carry-poem-layout">
-            <StoryImage
-              src={media.poem}
-              alt={data.poesia.autore}
-              className="social-carry-poem-image"
-              fallbackLabel={t('socialStoryImageUnavailable', lingua)}
-              fallbackIcon={Feather}
-            />
+            <figure className="social-carry-poem-portrait">
+              <StoryImage
+                src={media.poem}
+                alt={data.poesia.autore}
+                className="social-carry-poem-image"
+                fallbackLabel={t('socialStoryImageUnavailable', lingua)}
+                fallbackIcon={Feather}
+              />
+              <figcaption>{t('authorPhoto', lingua)}</figcaption>
+            </figure>
             <div className="social-carry-poem-copy">
               <h1 className={`social-carry-author ${getTextLengthClass(data.poesia.autore, [20, 32, 46])}`}>{data.poesia.autore || '—'}</h1>
               <p className="social-carry-poem-source">{poemSource}</p>
-              <p className="social-carry-poem-excerpt">{poemExcerpt || '—'}</p>
               <StoryRule />
             </div>
           </div>
-        </section>
-
-        <section className="social-carry-section social-carry-bible">
-          <StorySectionLabel icon={BookOpen}>{t('correspondenceBible', lingua)}</StorySectionLabel>
-          <h2 className={`social-carry-bible-reference ${getTextLengthClass(bibleReference, [26, 42, 64])}`}>{bibleReference}</h2>
-          <StoryRule />
-          <p className="social-carry-bible-excerpt">{bibleExcerpt}</p>
-        </section>
-
-        <section className="social-carry-section social-carry-apod">
-          <StorySectionLabel icon={Telescope}>{t('correspondenceApod', lingua)}</StorySectionLabel>
-          <div className="social-carry-apod-layout">
-            <StoryImage
-              src={media.apod}
-              alt={apodTitle}
-              className="social-carry-apod-image"
-              fallbackLabel={t('socialStoryImageUnavailable', lingua)}
-              fallbackIcon={Telescope}
-            />
-            <div className="social-carry-apod-copy">
-              <h2 className={`social-carry-apod-title ${getTextLengthClass(apodTitle, [24, 38, 56])}`}>{apodTitle}</h2>
-              <StoryRule />
-              <p>{apodCredit}</p>
-            </div>
+          <div className="social-carry-poem-reading">
+            <span className="social-carry-poem-quote" aria-hidden="true">“</span>
+            <p className="social-carry-poem-excerpt">{poemExcerpt || '—'}</p>
           </div>
         </section>
 
@@ -487,8 +477,10 @@ function CarryStory(props: SocialStoryProps) {
           <StorySectionLabel icon={ImageIcon}>{t('seasonalArtwork', lingua)}</StorySectionLabel>
           <div className="social-carry-seasonal-layout">
             <div className="social-carry-seasonal-copy">
-              <h2 className={`social-carry-seasonal-title ${getTextLengthClass(seasonalArtwork?.title || '', [24, 38, 56])}`}>{seasonalArtwork?.title || '—'}</h2>
-              <p>{seasonalMeta}</p>
+              <div className="social-carry-seasonal-highlight">
+                <h2 className={`social-carry-seasonal-title ${getTextLengthClass(seasonalArtwork?.title || '', [24, 38, 56])}`}>{seasonalArtwork?.title || '—'}</h2>
+                <p>{seasonalMeta}</p>
+              </div>
             </div>
           </div>
         </section>
@@ -557,6 +549,10 @@ function storyLabel(variant: SocialStoryVariant, lingua: LanguageCode) {
   return t('socialStoryCarry', lingua);
 }
 
+function storyDisplayLabel(variant: SocialStoryVariant, lingua: LanguageCode) {
+  return variant === 'things' ? null : storyLabel(variant, lingua);
+}
+
 function storyFilename(variant: SocialStoryVariant, dataIso: string) {
   const prefix = variant === 'all-in-one'
     ? 'coordinate-del-giorno'
@@ -614,26 +610,29 @@ export function SocialStoriesGallery({ className = '', ...props }: SocialStories
   return (
     <div className={`social-stories-gallery ${className}`} aria-busy={Boolean(exporting)}>
       <div className="social-stories-gallery-grid">
-        {STORY_VARIANTS.map((variant) => (
-          <article className="social-story-option" key={variant}>
-            <div className="social-story-option-heading">
-              <h3>{storyLabel(variant, lingua)}</h3>
-              <span>9:16</span>
-            </div>
-            <SocialStoryPreview>
-              <SocialStorySheet variant={variant} {...props} />
-            </SocialStoryPreview>
-            <button
-              type="button"
-              className="social-story-download-button"
-              disabled={Boolean(exporting)}
-              onClick={() => void downloadVariant(variant)}
-            >
-              <Download aria-hidden="true" strokeWidth={1.65} />
-              <span>{exporting === variant ? t('socialStoryPreparing', lingua) : t('socialStoryDownload', lingua)}</span>
-            </button>
-          </article>
-        ))}
+        {STORY_VARIANTS.map((variant) => {
+          const displayLabel = storyDisplayLabel(variant, lingua);
+          return (
+            <article className="social-story-option" key={variant} aria-label={storyLabel(variant, lingua)}>
+              <div className="social-story-option-heading">
+                {displayLabel ? <h3>{displayLabel}</h3> : null}
+                <span>9:16</span>
+              </div>
+              <SocialStoryPreview>
+                <SocialStorySheet variant={variant} {...props} />
+              </SocialStoryPreview>
+              <button
+                type="button"
+                className="social-story-download-button"
+                disabled={Boolean(exporting)}
+                onClick={() => void downloadVariant(variant)}
+              >
+                <Download aria-hidden="true" strokeWidth={1.65} />
+                <span>{exporting === variant ? t('socialStoryPreparing', lingua) : t('socialStoryDownload', lingua)}</span>
+              </button>
+            </article>
+          );
+        })}
       </div>
       <button
         type="button"

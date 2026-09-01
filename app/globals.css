@@ -15425,7 +15425,7 @@ body.museum-room-open :is(
 }
 
 .correspondence-export-frame {
-  padding: 79px 36px 0 !important;
+  padding: 42px 0 0 !important;
 }
 
 .correspondence-export-frame .daily-correspondences-sheet.daily-correspondences-export.correspondence-complete-folio {
@@ -15441,8 +15441,8 @@ body.museum-room-open :is(
   max-height: none;
   min-height: 1732px;
   overflow: visible;
-  padding: 0 60px 0;
-  width: 1008px;
+  padding: 0 24px 0;
+  width: 100%;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio::before {
@@ -15458,7 +15458,7 @@ body.museum-room-open :is(
   margin-bottom: 32px;
   padding: 0;
   position: relative;
-  row-gap: 84px;
+  row-gap: 72px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-kicker {
@@ -15477,7 +15477,7 @@ body.museum-room-open :is(
   margin: 0;
   text-align: center;
   text-transform: none;
-  transform: translate(14px, 5px);
+  transform: translateY(5px);
   -webkit-text-stroke: 0.006em currentColor;
   white-space: nowrap;
 }
@@ -15529,8 +15529,8 @@ body.museum-room-open :is(
   grid-row: 2;
   letter-spacing: 0.12em;
   line-height: 1;
-  margin-left: 18px;
-  transform: translateY(-5px) scaleY(0.8);
+  margin-left: 0;
+  transform: translateY(8px) scaleY(0.8);
   transform-origin: left center;
 }
 
@@ -15542,13 +15542,13 @@ body.museum-room-open :is(
   grid-row: 2;
   letter-spacing: 0.15em;
   line-height: 1;
-  margin-right: 14px;
-  transform: translateY(-2px);
+  margin-right: 0;
+  transform: translateY(10px);
   white-space: nowrap;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-complete-body {
-  column-gap: 42px;
+  column-gap: 34px;
   display: grid;
   grid-template-areas:
     'word word'
@@ -15558,7 +15558,7 @@ body.museum-room-open :is(
     'apod poem'
     'bible seasonal';
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  margin-inline: 42px;
+  margin-inline: 0;
   position: relative;
   row-gap: 0;
 }
@@ -15577,12 +15577,12 @@ body.museum-room-open :is(
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  column-gap: 54px;
+  column-gap: 44px;
   display: grid;
   grid-area: author;
-  grid-template-columns: 325px minmax(0, 1fr);
+  grid-template-columns: 350px minmax(0, 1fr);
   grid-template-rows: auto 1fr;
-  min-height: 483px;
+  min-height: 470px;
   overflow: visible;
   padding: 28px 0 41px;
   text-align: left;
@@ -15613,8 +15613,8 @@ body.museum-room-open :is(
   grid-column: 1;
   grid-row: 2;
   height: 399px;
-  width: 325px;
-  transform: translateX(-1px);
+  width: 350px;
+  transform: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-author-caption {
@@ -15622,10 +15622,11 @@ body.museum-room-open :is(
   gap: 17px;
   grid-column: 2;
   grid-row: 2;
-  max-width: 40ch;
+  max-width: none;
   padding: 0;
   text-align: left;
   transform: translateY(10px);
+  width: 100%;
   white-space: normal;
 }
 
@@ -15648,9 +15649,9 @@ body.museum-room-open :is(
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-author-caption em {
   color: #594d45;
-  font-size: 24px;
-  line-height: 1.42;
-  max-width: 40ch;
+  font-size: 27px;
+  line-height: 1.36;
+  max-width: none;
   white-space: pre-line;
 }
 
@@ -15679,7 +15680,7 @@ body.museum-room-open :is(
   min-height: 0;
   padding: 26px 0 27px;
   text-align: left;
-  transform: translateX(-7px);
+  transform: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word .correspondence-entry-label {
@@ -15737,10 +15738,10 @@ body.museum-room-open :is(
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-word-content > span > em {
   color: #594d45;
   display: block;
-  font-size: 39px;
+  font-size: 42px;
   font-weight: 400;
   letter-spacing: 0.005em;
-  line-height: 1.28;
+  line-height: 1.25;
   max-width: 72ch;
 }
 
@@ -15755,41 +15756,42 @@ body.museum-room-open :is(
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  min-height: 154px;
-  padding: 25px 0 29px;
+  min-height: 176px;
+  overflow: visible;
+  padding: 27px 0 31px;
   position: relative;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-saint,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork {
-  min-height: 185px;
+  min-height: 202px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-saint,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-music,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-apod,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-bible {
-  transform: translateX(-7px);
+  transform: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-sky,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-poem,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal {
-  transform: translateX(-4px);
+  transform: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-music,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-sky {
-  padding-bottom: 8px;
-  padding-top: 19px;
+  padding-bottom: 10px;
+  padding-top: 21px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-apod,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-poem,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-bible,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal {
-  padding-bottom: 18px;
+  padding-bottom: 20px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio :is(.correspondence-saint, .correspondence-artwork, .correspondence-music, .correspondence-sky, .correspondence-apod, .correspondence-poem, .correspondence-bible)::before {
@@ -15805,7 +15807,7 @@ body.museum-room-open :is(
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-entry-label,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-label {
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: 0.16em;
   margin-bottom: 13px;
   white-space: nowrap;
@@ -15834,21 +15836,21 @@ body.museum-room-open :is(
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-saint-mark,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-content > img {
   border-radius: 8px 6px 9px 7px;
-  height: 88px;
-  width: 88px;
+  height: 100px;
+  width: 100px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-entry-content strong,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-content strong {
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1.06;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-entry-content em,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-content em {
   color: #665950;
-  font-size: 17px;
-  line-height: 1.3;
+  font-size: 20px;
+  line-height: 1.28;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork .correspondence-entry-content {
@@ -15859,21 +15861,21 @@ body.museum-room-open :is(
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork .correspondence-entry-content > img,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork .correspondence-entry-content > .correspondence-missing-media {
-  height: 88px;
-  width: 102px;
+  height: 100px;
+  width: 112px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork .correspondence-entry-content strong {
-  font-size: 26px;
+  font-size: 29px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork .correspondence-entry-content em {
-  font-size: 17px;
+  font-size: 20px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-saint .correspondence-entry-content > span:last-child,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-artwork .correspondence-entry-content > span:last-child {
-  max-width: 240px;
+  max-width: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-planets {
@@ -15889,39 +15891,54 @@ body.museum-room-open :is(
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-content > img {
-  height: 88px;
-  width: 88px;
+  height: 100px;
+  width: 100px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal {
   align-self: stretch;
   grid-area: seasonal;
   margin: 0;
-  min-height: 154px;
-  padding: 25px 0 20px;
+  min-height: 176px;
+  padding: 27px 0 22px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal-preview {
-  height: 88px;
-  width: 88px;
+  height: 100px;
+  width: 100px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal-label {
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: 0.16em;
   margin-bottom: 2px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal-copy strong {
-  font-size: 28px;
+  font-size: 30px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal-copy em {
-  font-size: 17px;
+  font-size: 20px;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-seasonal > small {
   display: none !important;
+}
+
+.correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio :is(
+  .correspondence-entry-content em,
+  .correspondence-reading-content em,
+  .correspondence-word-content > span > em,
+  .correspondence-author-caption em
+) {
+  display: block;
+  max-height: none;
+  overflow: visible;
+  -webkit-box-orient: initial;
+  -webkit-line-clamp: unset;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .daily-correspondences-closure {
@@ -16015,7 +16032,7 @@ body.museum-room-open :is(
   height: 1920px !important;
   justify-content: center;
   min-height: 1920px !important;
-  padding: 79px 36px 0 !important;
+  padding: 42px 0 0 !important;
   width: 1080px !important;
 }
 
@@ -16171,7 +16188,11 @@ body.museum-room-open :is(
   bottom: 231px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    'saint artwork'
+    'music sky'
+    'apod apod';
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) 0.86fr;
   left: 0;
   overflow: hidden;
   position: absolute;
@@ -16184,18 +16205,42 @@ body.museum-room-open :is(
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-  padding: 43px 42px 35px;
+  overflow: visible;
+  padding: 32px 36px 24px;
   position: relative;
   text-align: center;
 }
 
-.social-things-cell:nth-child(odd) {
+.social-things-cell {
+  border: 0;
+}
+
+.social-things-saint,
+.social-things-music {
   border-right: 1px solid rgba(155, 125, 94, 0.38);
 }
 
-.social-things-cell:nth-child(-n + 2) {
+.social-things-saint,
+.social-things-artwork,
+.social-things-music,
+.social-things-sky {
   border-bottom: 1px solid rgba(155, 125, 94, 0.38);
+}
+
+.social-things-saint {
+  grid-area: saint;
+}
+
+.social-things-artwork {
+  grid-area: artwork;
+}
+
+.social-things-music {
+  grid-area: music;
+}
+
+.social-things-sky {
+  grid-area: sky;
 }
 
 .social-things-cell .social-story-section-label {
@@ -16219,10 +16264,10 @@ body.museum-room-open :is(
   box-shadow: 0 8px 16px -15px rgba(53, 36, 25, 0.9), 0 0 0 1px rgba(81, 52, 34, 0.08);
   display: block;
   flex: 0 0 auto;
-  height: 304px;
-  margin-top: 23px;
+  height: 236px;
+  margin-top: 18px;
   object-fit: cover;
-  width: 294px;
+  width: 260px;
 }
 
 .social-things-saint .social-things-media {
@@ -16230,62 +16275,115 @@ body.museum-room-open :is(
 }
 
 .social-things-cell .social-story-media-empty {
-  height: 304px;
-  margin-top: 23px;
-  width: 294px;
+  height: 236px;
+  margin-top: 18px;
+  width: 260px;
 }
 
 .social-things-title {
   color: var(--social-ink);
-  display: -webkit-box;
+  display: block;
   flex: 0 0 auto;
-  font-size: 47px;
+  font-size: 43px;
   font-weight: 400;
   line-height: 0.96;
-  margin: 20px 0 0;
-  max-width: 355px;
-  overflow: hidden;
+  margin: 14px 0 0;
+  max-width: 320px;
+  overflow: visible;
   text-wrap: balance;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .social-things-title.is-medium {
-  font-size: 43px;
+  font-size: 39px;
 }
 
 .social-things-title.is-long {
-  font-size: 38px;
+  font-size: 34px;
 }
 
 .social-things-title.is-very-long {
-  font-size: 34px;
+  font-size: 31px;
 }
 
 .social-things-meta,
 .social-things-illumination {
   color: var(--social-muted);
-  font-size: 23px;
+  display: block;
   font-style: italic;
-  line-height: 1.2;
-  margin: 12px 0 0;
-  max-width: 350px;
-  overflow: hidden;
+  font-size: 20px;
+  line-height: 1.15;
+  margin: 8px 0 0;
+  max-width: 320px;
+  overflow: visible;
   text-wrap: balance;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  display: -webkit-box;
 }
 
 .social-things-cell > .social-story-rule:last-child {
   margin-top: auto;
 }
 
+.social-things-apod {
+  align-items: center;
+  display: block;
+  grid-area: apod;
+  padding: 34px 46px 32px;
+  text-align: left;
+}
+
+.social-things-apod > .social-story-section-label {
+  align-self: flex-start;
+  position: absolute;
+  top: 31px;
+}
+
+.social-things-apod-layout {
+  align-items: center;
+  display: grid;
+  gap: 38px;
+  grid-template-columns: 360px minmax(0, 1fr);
+  margin-top: 47px;
+  width: 100%;
+}
+
+.social-things-apod-media,
+.social-things-apod .social-story-media-empty {
+  border-radius: 12px 10px 13px 9px;
+  box-shadow: 0 10px 18px -16px rgba(53, 36, 25, 0.86), 0 0 0 1px rgba(81, 52, 34, 0.08);
+  height: 222px;
+  object-fit: cover;
+  width: 360px;
+}
+
+.social-things-apod-copy {
+  min-width: 0;
+}
+
+.social-things-apod-copy .social-things-title {
+  font-size: 54px;
+  margin-top: 0;
+  max-width: 420px;
+}
+
+.social-things-apod-copy .social-things-title.is-medium {
+  font-size: 48px;
+}
+
+.social-things-apod-copy .social-things-title.is-long,
+.social-things-apod-copy .social-things-title.is-very-long {
+  font-size: 42px;
+}
+
+.social-things-apod-copy .social-things-meta {
+  font-size: 24px;
+  margin-top: 17px;
+  max-width: 420px;
+}
+
 .social-things-music .social-things-media,
 .social-things-sky .social-things-media,
 .social-things-music .social-story-media-empty,
 .social-things-sky .social-story-media-empty {
-  height: 276px;
+  height: 196px;
 }
 
 .social-things-sky-media {
@@ -16296,8 +16394,8 @@ body.museum-room-open :is(
 }
 
 .social-things-sky-media .moon-phase-glyph {
-  height: 224px;
-  width: 224px;
+  height: 174px;
+  width: 174px;
 }
 
 .social-things-sky-media .moon-phase-shadow {
@@ -16315,10 +16413,10 @@ body.museum-room-open :is(
 }
 
 .social-things-illumination {
-  font-size: 29px;
+  font-size: 25px;
   font-style: normal;
   justify-content: center;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .social-things-planets {
@@ -16363,7 +16461,7 @@ body.museum-room-open :is(
 /* Story 3 — Da portare con sé */
 .social-carry-seasonal-background {
   bottom: 0;
-  height: 1050px;
+  height: 720px;
   left: 0;
   overflow: hidden;
   pointer-events: none;
@@ -16420,25 +16518,71 @@ body.museum-room-open :is(
 }
 
 .social-carry-poem {
-  height: 390px;
+  height: 1280px;
+  padding-top: 0;
 }
 
 .social-carry-poem-layout {
-  align-items: flex-start;
+  align-items: center;
   display: grid;
   gap: 58px;
-  grid-template-columns: 205px minmax(0, 1fr);
-  height: 305px;
-  margin-top: 14px;
+  grid-template-columns: 300px minmax(0, 1fr);
+  margin-top: 34px;
+  min-height: 410px;
+}
+
+.social-carry-poem-portrait {
+  margin: 0;
+  padding: 18px 18px 28px;
+  position: relative;
+  transform: rotate(-1.6deg);
+  width: 300px;
+  z-index: 1;
+}
+
+.social-carry-poem-portrait::before {
+  background: rgba(246, 239, 223, 0.88);
+  clip-path: polygon(2% 3%, 97% 0, 100% 94%, 5% 100%, 0 47%);
+  box-shadow: 0 18px 32px -24px rgba(53, 36, 25, 0.9), 0 0 0 1px rgba(81, 52, 34, 0.1);
+  content: '';
+  inset: 0;
+  position: absolute;
+  z-index: -2;
+}
+
+.social-carry-poem-portrait::after {
+  border: 1px solid rgba(105, 75, 50, 0.18);
+  border-radius: 48% 52% 46% 54% / 38% 43% 57% 62%;
+  content: '';
+  inset: 17px 18px 47px;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
 }
 
 .social-carry-poem-image,
 .social-carry-poem .social-story-media-empty {
-  border-radius: 12px 10px 13px 9px;
-  box-shadow: 0 10px 18px -16px rgba(53, 36, 25, 0.86), 0 0 0 1px rgba(81, 52, 34, 0.08);
-  height: 202px;
+  border-radius: 49% 51% 46% 54% / 38% 43% 57% 62%;
+  box-shadow: 0 12px 22px -18px rgba(53, 36, 25, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  display: block;
+  height: 330px;
   object-fit: cover;
-  width: 205px;
+  object-position: 50% 18%;
+  position: relative;
+  transform: rotate(0.6deg);
+  width: 264px;
+  z-index: 1;
+}
+
+.social-carry-poem-portrait figcaption {
+  color: var(--social-muted);
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  margin-top: 14px;
+  position: relative;
+  text-align: center;
+  text-transform: uppercase;
+  z-index: 3;
 }
 
 .social-carry-poem-copy {
@@ -16446,169 +16590,80 @@ body.museum-room-open :is(
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding-top: 4px;
+  padding-top: 0;
 }
 
 .social-carry-author {
   color: var(--social-ink);
-  display: -webkit-box;
-  font-size: 64px;
+  display: block;
+  font-size: 96px;
   font-weight: 400;
-  line-height: 0.95;
+  letter-spacing: -0.025em;
+  line-height: 0.9;
   margin: 0;
-  max-width: 610px;
-  overflow: hidden;
+  max-width: 540px;
+  overflow: visible;
   text-wrap: balance;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: unset;
 }
 
 .social-carry-author.is-medium {
-  font-size: 58px;
+  font-size: 82px;
 }
 
 .social-carry-author.is-long,
 .social-carry-author.is-very-long {
-  font-size: 50px;
+  font-size: 70px;
 }
 
 .social-carry-poem-source,
-.social-carry-apod-copy p,
 .social-carry-seasonal-copy p {
   color: var(--social-muted);
-  font-size: 24px;
+  font-size: 28px;
   font-style: italic;
-  line-height: 1.28;
-  margin: 18px 0 0;
-  max-width: 600px;
-}
-
-.social-carry-poem-excerpt {
-  color: var(--social-muted);
-  font-size: 22px;
-  font-style: italic;
-  line-height: 1.22;
-  margin: 12px 0 0;
-  max-height: 168px;
-  overflow: hidden;
-  white-space: pre-line;
+  line-height: 1.34;
+  margin: 28px 0 0;
+  max-width: 540px;
 }
 
 .social-carry-poem-copy .social-story-rule {
   margin-left: 0;
-  margin-top: 12px;
+  margin-top: 28px;
 }
 
-.social-carry-bible {
-  height: 407px;
-  padding-top: 35px;
-}
-
-.social-carry-bible-reference {
-  color: var(--social-ink);
-  display: -webkit-box;
-  font-size: 68px;
-  font-weight: 400;
-  line-height: 0.98;
-  margin: 34px 0 0;
-  max-width: 850px;
-  overflow: hidden;
-  text-wrap: balance;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.social-carry-bible-reference.is-medium {
-  font-size: 60px;
-}
-
-.social-carry-bible-reference.is-long,
-.social-carry-bible-reference.is-very-long {
-  font-size: 51px;
-}
-
-.social-carry-bible > .social-story-rule {
-  margin-left: 0;
-  margin-top: 22px;
-}
-
-.social-carry-bible-excerpt {
-  color: var(--social-muted);
-  font-size: 26px;
-  font-style: italic;
-  line-height: 1.28;
-  margin: 23px 0 0;
-  max-height: 180px;
-  max-width: 870px;
-  overflow: hidden;
-  text-wrap: pretty;
-  white-space: pre-line;
-}
-
-.social-carry-apod {
-  height: 365px;
-  padding-top: 34px;
-}
-
-.social-carry-apod-layout {
+.social-carry-poem-reading {
   align-items: flex-start;
   display: grid;
-  gap: 44px;
-  grid-template-columns: 256px minmax(0, 1fr);
-  margin-top: 24px;
+  gap: 24px;
+  grid-template-columns: 72px minmax(0, 1fr);
+  margin: 36px auto 0;
+  max-width: 900px;
+  position: relative;
 }
 
-.social-carry-apod-image,
-.social-carry-apod .social-story-media-empty {
-  border-radius: 11px 9px 12px 8px;
-  box-shadow: 0 8px 16px -15px rgba(53, 36, 25, 0.85), 0 0 0 1px rgba(81, 52, 34, 0.08);
-  height: 148px;
-  object-fit: cover;
-  width: 256px;
+.social-carry-poem-quote {
+  color: var(--social-accent);
+  font-size: 148px;
+  line-height: 0.56;
+  transform: translateY(-8px);
 }
 
-.social-carry-apod-copy {
-  min-width: 0;
-  padding-top: 18px;
-}
-
-.social-carry-apod-title {
-  color: var(--social-ink);
-  display: -webkit-box;
-  font-size: 59px;
-  font-weight: 400;
-  line-height: 0.98;
+.social-carry-poem-excerpt {
+  color: var(--social-muted);
+  font-size: 34px;
+  font-style: italic;
+  line-height: 1.38;
   margin: 0;
-  max-width: 365px;
-  overflow: hidden;
-  text-wrap: balance;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-.social-carry-apod-title.is-medium {
-  font-size: 53px;
-}
-
-.social-carry-apod-title.is-long,
-.social-carry-apod-title.is-very-long {
-  font-size: 45px;
-}
-
-.social-carry-apod-copy .social-story-rule {
-  margin-left: 0;
-  margin-top: 26px;
-}
-
-.social-carry-apod-copy p {
-  font-size: 23px;
-  margin-top: 20px;
+  max-height: none;
+  max-width: 804px;
+  overflow: visible;
+  white-space: pre-line;
 }
 
 .social-carry-seasonal {
   border-bottom: 0;
-  height: 326px;
-  padding-top: 31px;
+  height: 208px;
+  padding-top: 24px;
 }
 
 .social-carry-seasonal-layout {
@@ -16616,22 +16671,19 @@ body.museum-room-open :is(
   display: grid;
   gap: 44px;
   grid-template-columns: 256px minmax(0, 1fr);
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .social-carry-seasonal-title {
   color: var(--social-ink);
-  display: -webkit-box;
-  font-size: 38px;
+  display: block;
+  font-size: 32px;
   font-weight: 400;
   line-height: 1;
   margin: 0;
   max-width: 560px;
-  overflow: hidden;
-  text-shadow: 0 0 2px rgba(246, 239, 223, 0.96), 0 0 8px rgba(246, 239, 223, 0.88), 0 2px 9px rgba(42, 31, 24, 0.48);
+  overflow: visible;
   text-wrap: balance;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .social-carry-seasonal-title.is-medium {
@@ -16644,16 +16696,47 @@ body.museum-room-open :is(
 }
 
 .social-carry-seasonal-copy {
+  display: block;
   grid-column: 1 / -1;
-  padding-top: 6px;
+  max-width: 760px;
+  padding: 0;
   position: relative;
   z-index: 1;
 }
 
+.social-carry-seasonal-highlight {
+  display: inline-block;
+  isolation: isolate;
+  max-width: 100%;
+  padding: 8px 14px 10px;
+  position: relative;
+  transform: rotate(-0.32deg);
+}
+
+.social-carry-seasonal-highlight::before,
+.social-carry-seasonal-highlight::after {
+  content: '';
+  inset: 5px -7px 5px -9px;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.social-carry-seasonal-highlight::before {
+  background: rgba(222, 184, 76, 0.38);
+  clip-path: polygon(1% 9%, 98% 0, 100% 88%, 3% 100%, 0 45%);
+  transform: rotate(0.48deg);
+}
+
+.social-carry-seasonal-highlight::after {
+  background: rgba(237, 202, 105, 0.22);
+  clip-path: polygon(0 20%, 97% 5%, 100% 94%, 4% 100%);
+  transform: rotate(-0.22deg) translateY(2px);
+}
+
 .social-carry-seasonal-copy p {
-  font-size: 23px;
-  margin-top: 10px;
-  text-shadow: 0 0 2px rgba(246, 239, 223, 0.9), 0 0 7px rgba(246, 239, 223, 0.8), 0 2px 8px rgba(42, 31, 24, 0.4);
+  font-size: 20px;
+  margin-top: 6px;
 }
 
 .social-story-seal-footer {
@@ -16808,10 +16891,6 @@ body.museum-room-open :is(
 .social-story-export-root.is-dark .social-things-title,
 .social-story-canvas.is-dark .social-carry-author,
 .social-story-export-root.is-dark .social-carry-author,
-.social-story-canvas.is-dark .social-carry-bible-reference,
-.social-story-export-root.is-dark .social-carry-bible-reference,
-.social-story-canvas.is-dark .social-carry-apod-title,
-.social-story-export-root.is-dark .social-carry-apod-title,
 .social-story-canvas.is-dark .social-carry-seasonal-title,
 .social-story-export-root.is-dark .social-carry-seasonal-title {
   color: #f0e4d2;
@@ -16825,23 +16904,19 @@ body.museum-room-open :is(
 .social-story-export-root.is-dark .social-things-planet,
 .social-story-canvas.is-dark .social-carry-poem-copy p,
 .social-story-export-root.is-dark .social-carry-poem-copy p,
-.social-story-canvas.is-dark .social-carry-bible-excerpt,
-.social-story-export-root.is-dark .social-carry-bible-excerpt,
-.social-story-canvas.is-dark .social-carry-apod-copy p,
-.social-story-export-root.is-dark .social-carry-apod-copy p,
 .social-story-canvas.is-dark .social-carry-seasonal-copy p,
 .social-story-export-root.is-dark .social-carry-seasonal-copy p {
   color: #c8b7a3;
 }
 
-.social-story-canvas.is-dark .social-carry-seasonal-title,
-.social-story-export-root.is-dark .social-carry-seasonal-title {
-  text-shadow: 0 0 2px rgba(41, 35, 30, 0.96), 0 0 8px rgba(41, 35, 30, 0.9), 0 2px 10px rgba(0, 0, 0, 0.72);
+.social-story-canvas.is-dark .social-carry-seasonal-highlight::before,
+.social-story-export-root.is-dark .social-carry-seasonal-highlight::before {
+  background: rgba(194, 137, 53, 0.34);
 }
 
-.social-story-canvas.is-dark .social-carry-seasonal-copy p,
-.social-story-export-root.is-dark .social-carry-seasonal-copy p {
-  text-shadow: 0 0 2px rgba(41, 35, 30, 0.92), 0 0 7px rgba(41, 35, 30, 0.84), 0 2px 8px rgba(0, 0, 0, 0.62);
+.social-story-canvas.is-dark .social-carry-seasonal-highlight::after,
+.social-story-export-root.is-dark .social-carry-seasonal-highlight::after {
+  background: rgba(224, 165, 66, 0.18);
 }
 
 @media (prefers-reduced-motion: reduce) {

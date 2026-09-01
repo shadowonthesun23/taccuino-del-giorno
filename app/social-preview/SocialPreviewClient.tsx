@@ -183,7 +183,7 @@ export default function SocialPreviewClient() {
       <div className="social-preview-page-grid">
         {VARIANTS.map((variant) => (
           <section className="social-preview-page-option" key={variant}>
-            <h2>{variant === 'all-in-one' ? 'Story 1 · All-in-one' : variant === 'things' ? 'Story 2 · Le cose del giorno' : 'Story 3 · Da portare con sé'}</h2>
+            <h2>{variant === 'all-in-one' ? 'Story 1 · All-in-one' : variant === 'things' ? 'Story 2' : 'Story 3 · Da portare con sé'}</h2>
             <SocialStoryPreview>
               <SocialStorySheet variant={variant} {...payload} />
             </SocialStoryPreview>
