@@ -5952,6 +5952,7 @@ body.museum-room-open :is(
 
 .daily-postcard-back-header {
   align-items: baseline;
+  border-bottom: 1px solid var(--postcard-rule, rgba(58, 43, 28, 0.27));
   display: flex;
   flex: 0 0 auto;
   justify-content: space-between;
@@ -6108,10 +6109,12 @@ body.museum-room-open :is(
 }
 
 .daily-postcard-back-divider {
-  background: var(--postcard-rule);
+  align-self: stretch;
+  background: var(--postcard-rule, rgba(58, 43, 28, 0.27));
   display: flex;
-  height: 100%;
+  height: auto;
   justify-content: center;
+  margin-block: -12px -7px;
   position: relative;
   width: 1px;
 }
