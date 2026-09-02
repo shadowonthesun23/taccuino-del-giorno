@@ -7,30 +7,18 @@ import type { SeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { SkyRegion, VisiblePlanet } from '@/lib/visible-planets';
 import { getMoonPhase } from '@/lib/astronomy';
 import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-utils';
-import { getImageLoadingProps, proxiedImageUrl } from '@/lib/browser-utils';
+import { getImageLoadingProps } from '@/lib/browser-utils';
 import { OPEN_EPHEMERIS_EVENT, SITE_WATERMARK, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { TypewriterPhrase } from '@/components/ui/Typography';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
-import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
+import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle, getRenderableImageUrl } from '@/lib/editorial-media';
 
 const eagerImageProps = getImageLoadingProps(true);
 const CORRESPONDENCE_TYPEWRITER_DELAY = 520;
 const CORRESPONDENCE_TYPEWRITER_SPEED = 1.8;
-
-function getRenderableImageUrl(value: string | null | undefined) {
-  const trimmed = value?.trim() ?? '';
-  if (!trimmed) return '';
-  if (
-    trimmed.startsWith('/')
-    || trimmed.startsWith('data:image/')
-    || trimmed.startsWith('blob:')
-    || trimmed.includes('/api/image-proxy?')
-  ) return trimmed;
-  return proxiedImageUrl(trimmed);
-}
 
 function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();

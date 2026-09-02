@@ -27,6 +27,18 @@ type EditorialMediaStore = Record<string, EditorialMediaDocument>;
 const MAX_EDITORIAL_DATA_URL_LENGTH = 700_000;
 export const DEFAULT_EDITORIAL_MEDIA_CROP: EditorialMediaCrop = { x: 50, y: 50, zoom: 1 };
 
+export function getRenderableImageUrl(value: string | null | undefined): string {
+  const trimmed = value?.trim() ?? '';
+  if (!trimmed) return '';
+  if (
+    trimmed.startsWith('/')
+    || trimmed.startsWith('data:image/')
+    || trimmed.startsWith('blob:')
+    || trimmed.includes('/api/image-proxy?')
+  ) return trimmed;
+  return `/api/image-proxy?url=${encodeURIComponent(trimmed)}`;
+}
+
 function cropAxisPosition(offset: number) {
   if (offset === 0) return '50%';
   return `calc(50% ${offset > 0 ? '+' : '-'} ${Math.abs(offset).toFixed(3)}%)`;

@@ -5,7 +5,8 @@ import type { DatiTaccuino, LanguageCode, OperaGiorno } from '@/lib/types';
 import { t } from '@/lib/translation';
 import { getDisplayDate, formatExLibrisDate } from '@/lib/date-utils';
 import { getImageLoadingProps } from '@/lib/browser-utils';
-import { garamond, masterSignature } from '@/lib/fonts';
+import { garamond, janeAust } from '@/lib/fonts';
+import { getRenderableImageUrl } from '@/lib/editorial-media';
 
 export function getPassportCode(dataIso: string, initials: string): string {
   return `${dataIso.replace(/-/g, '')}-${initials || 'TDG'}`;
@@ -52,6 +53,8 @@ export default function DailyPassport({
     artworkImage: t('artworkImage', lingua),
   };
   const passportCode = getPassportCode(dataIso, initials);
+  const authorImageUrl = getRenderableImageUrl(data.foto_autore_url);
+  const artworkImageUrl = getRenderableImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
 
   return (
     <div className={`daily-passport-overlay ${garamond.className} ${isDark ? 'is-dark' : ''}`} role="dialog" aria-modal="true" aria-labelledby="daily-passport-title">
@@ -96,9 +99,9 @@ export default function DailyPassport({
               <h4>{data.autore_giorno}</h4>
               <p>{data.breve_descrizione}</p>
             </div>
-            {data.foto_autore_url && (
+            {authorImageUrl && (
               <figure className="daily-passport-author-photo">
-                <img draggable={false} src={data.foto_autore_url} alt={`${label.authorPhoto}: ${data.autore_giorno}`} {...lazyImageProps} />
+                <img draggable={false} src={authorImageUrl} alt={`${label.authorPhoto}: ${data.autore_giorno}`} {...lazyImageProps} />
               </figure>
             )}
             <p className="daily-passport-fold-hint">{label.foldHint}</p>
@@ -169,9 +172,9 @@ export default function DailyPassport({
             {opera && (
               <section>
                 <span>{label.artwork}</span>
-                {opera.immagine_url_hd || opera.immagine_url ? (
+                {artworkImageUrl ? (
                   <figure className="daily-passport-artwork">
-                    <img draggable={false} src={opera.immagine_url || opera.immagine_url_hd} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
+                    <img draggable={false} src={artworkImageUrl} alt={`${label.artworkImage}: ${opera.titolo}`} {...lazyImageProps} />
                   </figure>
                 ) : null}
                 <h4>{opera.titolo}</h4>
@@ -185,7 +188,7 @@ export default function DailyPassport({
             )}
 
             <footer className="daily-passport-signature">
-              <strong className={`${masterSignature.className} notebook-wordmark`}>{t('dayTitle', lingua)}</strong>
+              <strong className={`${janeAust.className} jane-aust-wordmark notebook-wordmark`}>{t('dayTitle', lingua)}</strong>
               <span>{t('madeWithLove', lingua)}</span>
             </footer>
           </aside>

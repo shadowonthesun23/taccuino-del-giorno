@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { IM_Fell_Double_Pica } from 'next/font/google';
-import localFont from 'next/font/local';
 import ExportJpegButton from './ExportJpegButton';
 import PrintableZineButton from './PrintableZineButton';
 import styles from './passaporto.module.css';
@@ -11,8 +10,9 @@ import {
   type Artwork,
 } from '@/lib/artwork';
 import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
-import type { EditorialMediaCrop } from '@/lib/editorial-media';
-import { getEditorialMediaCropImageStyle, sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
+import { janeAust } from '@/lib/fonts';
+import type { EditorialMediaCrop, EditorialMediaOverrides } from '@/lib/editorial-media';
+import { getEditorialMediaCropImageStyle, getRenderableImageUrl, sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,13 +22,6 @@ const garamond = IM_Fell_Double_Pica({
   weight: ['400'],
   style: ['normal', 'italic'],
   display: 'swap',
-});
-
-const masterSignature = localFont({
-  src: '../../public/fonts/MasterSignature.otf',
-  display: 'block',
-  preload: true,
-  fallback: ['serif'],
 });
 
 type OperaGiorno = Artwork;
@@ -48,6 +41,14 @@ interface DatiTaccuino {
   keyword_arte_en?: string | null;
   opera_giorno?: OperaGiorno | null;
 }
+
+type PassportPayload = {
+  data: DatiTaccuino;
+  opera: OperaGiorno | null;
+  albumCover: string | null;
+  authorCrop: EditorialMediaCrop | null;
+  editorialMedia: EditorialMediaOverrides;
+};
 
 function getInitials(name: string): string {
   return name
@@ -162,10 +163,6 @@ function summarizeEventsForZine(events: string[]) {
   return summaries.slice(0, maxItems);
 }
 
-function proxiedImageUrl(url: string | null | undefined) {
-  return url ? `/api/image-proxy?url=${encodeURIComponent(url)}` : '';
-}
-
 async function getFotoAutore(nomeAutore: string): Promise<string | null> {
   try {
     const encoded = encodeURIComponent(nomeAutore);
@@ -203,12 +200,7 @@ async function findAlbumCover(musica: DatiTaccuino['musica']): Promise<string | 
   }
 }
 
-async function getPassportData(dataIso: string): Promise<{
-  data: DatiTaccuino;
-  opera: OperaGiorno | null;
-  albumCover: string | null;
-  authorCrop: EditorialMediaCrop | null;
-}> {
+async function getPassportData(dataIso: string): Promise<PassportPayload> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -245,17 +237,25 @@ async function getPassportData(dataIso: string): Promise<{
       .eq('data', dataIso)
       .maybeSingle(),
   ]);
-  const opera = rawArtwork ? await localizeArtworkToItalian(rawArtwork) : null;
   const editorialMedia = sanitizeEditorialMediaOverrides(editorialMediaResult.data?.overrides);
   const editorialMediaCrops = sanitizeEditorialMediaCrops(editorialMediaResult.data?.crops);
   const editorialContent = sanitizeEditorialContentOverrides(editorialContentResult.data?.overrides);
   const dataWithContent = applyEditorialContentOverrides(data, editorialContent);
+  const localizedArtwork = rawArtwork ? await localizeArtworkToItalian(rawArtwork) : null;
+  const opera = localizedArtwork && editorialMedia.opera
+    ? {
+        ...localizedArtwork,
+        immagine_url: editorialMedia.opera,
+        immagine_url_hd: editorialMedia.opera,
+      }
+    : localizedArtwork;
 
   return {
     data: { ...dataWithContent, foto_autore_url: editorialMedia.autore || fotoUrl },
     opera,
-    albumCover,
+    albumCover: editorialMedia.musica || albumCover,
     authorCrop: editorialMediaCrops.autore ?? null,
+    editorialMedia,
   };
 }
 
@@ -270,12 +270,7 @@ export default async function PassportPage({
     ? dataParam
     : new Date().toISOString().split('T')[0];
 
-  let payload: {
-    data: DatiTaccuino;
-    opera: OperaGiorno | null;
-    albumCover: string | null;
-    authorCrop: EditorialMediaCrop | null;
-  };
+  let payload: PassportPayload;
   try {
     payload = await getPassportData(dataIso);
   } catch (error) {
@@ -283,14 +278,15 @@ export default async function PassportPage({
     return <main className={`${styles.error} ${garamond.className}`}>{message}</main>;
   }
 
-  const { data, opera, albumCover, authorCrop } = payload;
+  const { data, opera, albumCover, authorCrop, editorialMedia } = payload;
   const initials = getInitials(data.autore_giorno);
   const printableZineId = 'daily-zine-print-sheet';
   const digitalZineId = 'daily-zine-digital-sheet';
   const zineEvents = summarizeEventsForZine(data.avvenimenti);
-  const artworkImageUrl = proxiedImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
-  const artworkImageUrlHd = proxiedImageUrl(opera?.immagine_url_hd);
-  const albumCoverUrl = proxiedImageUrl(albumCover);
+  const authorImageUrl = getRenderableImageUrl(data.foto_autore_url);
+  const artworkImageUrl = getRenderableImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
+  const artworkImageUrlHd = editorialMedia.opera ? '' : getRenderableImageUrl(opera?.immagine_url_hd);
+  const albumCoverUrl = getRenderableImageUrl(albumCover);
   const poemNeedsExcerpt = estimatedZineLines(data.poesia.testo) > 18;
   const bibleNeedsExcerpt = estimatedZineLines(data.bibbia.testo) > 18;
   const wordSaintsNeedsCondensing = estimatedZineLines([
@@ -314,14 +310,13 @@ export default async function PassportPage({
   );
   const authorContent = (
     <>
-      <div className={`${styles.authorFeature} ${!data.foto_autore_url ? styles.authorFeatureNoPhoto : ''}`}>
-        {data.foto_autore_url && (
+      <div className={`${styles.authorFeature} ${!authorImageUrl ? styles.authorFeatureNoPhoto : ''}`}>
+        {authorImageUrl && (
           <figure className={styles.authorPhoto}>
             <div className={styles.authorPhotoFrame}>
               <img
                 draggable={false}
-                crossOrigin="anonymous"
-                src={data.foto_autore_url}
+                src={authorImageUrl}
                 alt={`Ritratto dell'autore: ${data.autore_giorno}`}
                 style={authorCrop ? getEditorialMediaCropImageStyle(authorCrop) : undefined}
               />
@@ -410,7 +405,7 @@ export default async function PassportPage({
       <p className={styles.source}>{data.musica.autore} · {data.musica.genere}</p>
       <p>{data.musica.motivo}</p>
       <footer className={styles.signature}>
-        <strong className={`${masterSignature.className} notebook-wordmark`}>Il giorno da custodire</strong>
+        <strong className={`${janeAust.className} jane-aust-wordmark notebook-wordmark`}>Il giorno da custodire</strong>
         <span>Realizzato con amore da Antonello.</span>
       </footer>
     </>
