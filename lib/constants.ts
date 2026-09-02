@@ -1,5 +1,5 @@
 import type { SkyRegion } from './visible-planets';
-import { Feather, Quote, Type, Church, Palette, CalendarDays, BookOpen, Telescope, Music, Moon } from 'lucide-react';
+import { Feather, Quote, Type, Church, Palette, CalendarDays, BookOpen, Telescope, Music } from 'lucide-react';
 
 export const SKY_REGION_OPTIONS: { id: SkyRegion; IT: string; EN: string; cityIT: string; cityEN: string }[] = [
   { id: 'north', IT: 'Nord', EN: 'North', cityIT: 'Milano', cityEN: 'Milan' },
@@ -50,6 +50,5 @@ export const notebookNavItems = [
   { id: 'bibbia', icon: BookOpen, labelIT: 'Passaggio biblico', labelEN: 'Biblical passage' },
   { id: 'opera', icon: Palette, labelIT: 'Opera del giorno', labelEN: 'Artwork of the day', optional: true },
   { id: 'musica', icon: Music, labelIT: 'Musica', labelEN: 'Music' },
-  { id: 'effemeridi', icon: Moon, labelIT: 'Cielo ed effemeridi', labelEN: 'Sky and ephemeris' },
   { id: 'apod', icon: Telescope, labelIT: 'Foto astronomica', labelEN: 'Astronomy picture', optional: true },
 ];
