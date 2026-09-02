@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI, type GenerateContentResult } from "@google/generative-ai";
+import { getEditorAuthorization } from '@/lib/editor-auth';
 
 export const maxDuration = 60;
 
@@ -237,8 +238,25 @@ function validateEditorialQuality(
   return issues;
 }
 
-export async function GET(request: Request) {
+async function handleGenerate(request: Request, allowEditorRequest: boolean) {
   try {
+    const requestUrl = new URL(request.url);
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+    const isVercelCron = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
+
+    if (!isVercelCron) {
+      if (!allowEditorRequest) {
+        return new Response('Non autorizzato', { status: 401 });
+      }
+
+      const editorAuthorization = await getEditorAuthorization(request);
+      if (!editorAuthorization.ok) {
+        return new Response(editorAuthorization.message, { status: editorAuthorization.status });
+      }
+    }
+
+    const isManualCall = !isVercelCron;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -251,17 +269,6 @@ export async function GET(request: Request) {
       throw new Error('GEMINI_API_KEY mancante.');
     }
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    const requestUrl = new URL(request.url);
-    const cronHeader = request.headers.get('x-vercel-cron');
-    const authHeader = request.headers.get('authorization');
-    const isVercelCron = cronHeader === '1';
-    const cronSecret = process.env.CRON_SECRET;
-    const isManualCall = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
-
-    if (!isVercelCron && !isManualCall) {
-      return new Response('Non autorizzato', { status: 401 });
-    }
 
     const dataParam = requestUrl.searchParams.get('data')?.trim();
     const forcedAuthor = isManualCall ? requestUrl.searchParams.get('autore')?.trim() ?? '' : '';
@@ -410,4 +417,14 @@ Restituisci questo JSON:
     console.error("Errore fatale in /api/generate:", err);
     return new Response(message, { status: 500 });
   }
+}
+
+// Vercel Cron calls this route with GET and the server-only CRON_SECRET.
+// Manual generation is POST-only so a top-level cross-site GET cannot mutate content.
+export async function GET(request: Request) {
+  return handleGenerate(request, false);
+}
+
+export async function POST(request: Request) {
+  return handleGenerate(request, true);
 }

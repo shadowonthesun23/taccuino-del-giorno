@@ -6,6 +6,7 @@ import { ExternalLink, ImagePlus, RotateCcw, Save, Upload } from 'lucide-react';
 import type { DatiTaccuino } from '@/lib/types';
 import type { EditorialContentOverrides } from '@/lib/editorial-content';
 import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
+import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   clearEditorialMediaOverrides,
   DEFAULT_EDITORIAL_MEDIA_CROP,
@@ -212,7 +213,6 @@ function readImageFile(file: File): Promise<string> {
 }
 
 export default function EditorPage() {
-  const [secret, setSecret] = useState('');
   const [date, setDate] = useState(todayInRome);
   const [author, setAuthor] = useState('');
   const [notes, setNotes] = useState('');
@@ -230,9 +230,8 @@ export default function EditorPage() {
   const [contentMessage, setContentMessage] = useState('');
 
   useEffect(() => {
-    // The editor secret is a client-only preference; hydrate it after the server render.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSecret(window.localStorage.getItem('taccuino-editor-secret') ?? '');
+    // Remove the legacy secret that older editor versions stored in localStorage.
+    window.localStorage.removeItem('taccuino-editor-secret');
   }, []);
 
   useEffect(() => {
@@ -308,13 +307,11 @@ export default function EditorPage() {
     setMessage('Salvo una copia locale e poi rigenero il giorno…');
 
     try {
-      if (!secret.trim()) throw new Error('Inserisci il CRON_SECRET.');
       if (!date.trim()) throw new Error('Inserisci una data.');
       if (!author.trim() && !notes.trim()) {
         throw new Error('Inserisci almeno un autore o una nota curatoriale.');
       }
 
-      window.localStorage.setItem('taccuino-editor-secret', secret.trim());
       const currentDay = await fetchCurrentDay();
       if (currentDay) {
         window.localStorage.setItem(snapshotKey(date.trim()), JSON.stringify({
@@ -329,9 +326,7 @@ export default function EditorPage() {
       if (notes.trim()) params.set('note', notes.trim());
 
       const response = await fetch(`/api/generate?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${secret.trim()}`,
-        },
+        method: 'POST',
       });
 
       if (!response.ok) {
@@ -352,7 +347,6 @@ export default function EditorPage() {
     setMessage('Ripristino la copia locale salvata prima della rigenerazione…');
 
     try {
-      if (!secret.trim()) throw new Error('Inserisci il CRON_SECRET.');
       const rawSnapshot = window.localStorage.getItem(snapshotKey(date.trim()));
       if (!rawSnapshot) throw new Error('Non c’è una copia locale da ripristinare per questa data.');
       const snapshot = JSON.parse(rawSnapshot) as { data?: Record<string, unknown> };
@@ -361,7 +355,6 @@ export default function EditorPage() {
       const response = await fetch('/api/editor/restore', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: date.trim(), contenuto: snapshot.data }),
@@ -439,12 +432,6 @@ export default function EditorPage() {
       return;
     }
 
-    if (!secret.trim()) {
-      setMediaStatus('error');
-      setMediaMessage('Inserisci il CRON_SECRET per pubblicare le immagini nella tavola condivisa.');
-      return;
-    }
-
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
       setMediaStatus('error');
       setMediaMessage('Inserisci una data valida prima di salvare le immagini.');
@@ -460,7 +447,6 @@ export default function EditorPage() {
       const response = await fetch('/api/editorial-media', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: date.trim(), overrides, crops }),
@@ -474,7 +460,6 @@ export default function EditorPage() {
       const result = await response.json() as { overrides?: unknown; crops?: unknown };
       const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
       const savedCrops = sanitizeEditorialMediaCrops(result.crops ?? crops);
-      window.localStorage.setItem('taccuino-editor-secret', secret.trim());
       saveEditorialMediaDocument(date.trim(), { overrides: savedOverrides, crops: savedCrops });
       setMediaOverrides(savedOverrides);
       setMediaCrops(savedCrops);
@@ -488,12 +473,6 @@ export default function EditorPage() {
 
   async function handleClearMedia() {
     if (!window.confirm(`Rimuovere tutte le immagini manuali del ${date}?`)) return;
-    if (!secret.trim()) {
-      setMediaStatus('error');
-      setMediaMessage('Inserisci il CRON_SECRET per rimuovere le immagini dalla tavola condivisa.');
-      return;
-    }
-
     setMediaStatus('loading');
     setMediaMessage('Rimuovo le immagini dalla tavola condivisa…');
 
@@ -501,7 +480,6 @@ export default function EditorPage() {
       const response = await fetch('/api/editorial-media', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: date.trim(), overrides: {}, crops: {} }),
@@ -530,12 +508,6 @@ export default function EditorPage() {
   }
 
   async function handleSaveContent() {
-    if (!secret.trim()) {
-      setContentStatus('error');
-      setContentMessage('Inserisci il CRON_SECRET per pubblicare il contenuto nella tavola condivisa.');
-      return;
-    }
-
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
       setContentStatus('error');
       setContentMessage('Inserisci una data valida prima di salvare il contenuto.');
@@ -550,7 +522,6 @@ export default function EditorPage() {
       const response = await fetch('/api/editorial-content', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: date.trim(), overrides }),
@@ -563,7 +534,6 @@ export default function EditorPage() {
 
       const result = await response.json() as { overrides?: unknown };
       const savedOverrides = sanitizeEditorialContentOverrides(result.overrides ?? overrides);
-      window.localStorage.setItem('taccuino-editor-secret', secret.trim());
       setContentOverrides(savedOverrides);
       const refreshedPreview = await refreshEditorPreview();
       if (refreshedPreview) setPreviewData(refreshedPreview);
@@ -577,12 +547,6 @@ export default function EditorPage() {
 
   async function handleClearContent() {
     if (!window.confirm(`Ripristinare il contenuto automatico del ${date}?`)) return;
-    if (!secret.trim()) {
-      setContentStatus('error');
-      setContentMessage('Inserisci il CRON_SECRET per ripristinare il contenuto automatico.');
-      return;
-    }
-
     setContentStatus('loading');
     setContentMessage('Ripristino il contenuto automatico…');
 
@@ -590,7 +554,6 @@ export default function EditorPage() {
       const response = await fetch('/api/editorial-content', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${secret.trim()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: date.trim(), overrides: {} }),
@@ -612,10 +575,24 @@ export default function EditorPage() {
     }
   }
 
+  async function handleLogout() {
+    await createSupabaseBrowserClient().auth.signOut();
+    window.location.replace('/login');
+  }
+
   return (
     <main className={`${garamond.className} min-h-screen bg-[#f8f6f0] px-5 py-10 text-[#2a2522]`}>
       <section className="mx-auto max-w-5xl rounded-[18px] border border-[#b5956a]/25 bg-[#fffdf6]/82 p-6 shadow-[0_24px_70px_-52px_rgba(42,37,34,0.42)] md:p-9">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-[#9e2a2b]">Editor</p>
+        <div className="mb-3 flex items-center justify-between gap-4">
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#9e2a2b]">Editor</p>
+          <button
+            className="text-xs font-bold uppercase tracking-[0.14em] text-[#6f614d] underline decoration-[#b5956a]/60 underline-offset-4"
+            type="button"
+            onClick={() => void handleLogout()}
+          >
+            Esci
+          </button>
+        </div>
         <h1 className="text-4xl font-bold leading-tight md:text-5xl">Direzione curatoriale del giorno</h1>
         <p className="mt-4 max-w-2xl text-lg italic leading-relaxed text-[#5f5548]">
           Usa questa pagina quando vuoi forzare o orientare l’autore del giorno senza intervenire a mano nel database.
@@ -623,17 +600,6 @@ export default function EditorPage() {
         </p>
 
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">CRON_SECRET</span>
-            <input
-              className="w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg outline-none transition focus:border-[#9e2a2b]"
-              type="password"
-              value={secret}
-              onChange={(event) => setSecret(event.target.value)}
-              placeholder="La chiave privata usata per generare"
-            />
-          </label>
-
           <div className="grid gap-5 md:grid-cols-[180px_1fr]">
             <label className="block">
               <span className="mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Data</span>

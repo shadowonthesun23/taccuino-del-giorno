@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getEditorAuthorization } from '@/lib/editor-auth';
 
 type RestorePayload = {
   data?: unknown;
@@ -10,11 +11,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export async function POST(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return new Response('Non autorizzato', { status: 401 });
+  const authorization = await getEditorAuthorization(request);
+  if (!authorization.ok) {
+    return new Response(authorization.message, { status: authorization.status });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
