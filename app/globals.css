@@ -5539,6 +5539,7 @@ body.museum-room-open :is(
 
 /* Cartolina del giorno: la superficie principale, affacciata nello stesso punto del biglietto. */
 .daily-postcard {
+  --daily-postcard-peek-reveal: 50px;
   --daily-postcard-width: 420px;
   --daily-postcard-height: 280px;
   --daily-postcard-half-height: 140px;
@@ -5546,6 +5547,7 @@ body.museum-room-open :is(
   --postcard-paper-deep: #e6d8c0;
   --postcard-ink: #2a241d;
   --postcard-rule: rgba(58, 43, 28, 0.27);
+  box-sizing: border-box;
   color: var(--postcard-ink);
   display: block;
   filter: drop-shadow(4px 8px 7px rgba(42,37,34,0.19));
@@ -5557,14 +5559,23 @@ body.museum-room-open :is(
   transition-property: right, filter, opacity;
   transition-duration: 520ms, 420ms, 420ms;
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-out, ease-out;
-  width: var(--daily-postcard-width);
+  width: calc(var(--daily-postcard-width) + var(--daily-postcard-peek-reveal));
   z-index: 34;
 }
 
 .daily-postcard:not(.is-inactive):hover,
 .daily-postcard:not(.is-inactive):focus-within {
   filter: drop-shadow(7px 11px 10px rgba(42,37,34,0.24));
-  right: calc(118px - var(--daily-postcard-width));
+}
+
+.daily-postcard:not(.is-inactive):hover .daily-postcard-peek,
+.daily-postcard:not(.is-inactive):focus-within .daily-postcard-peek {
+  transform: rotate(-0.38deg);
+}
+
+.daily-postcard:not(.is-inactive):hover .daily-postcard-peek .daily-postcard-front,
+.daily-postcard:not(.is-inactive):focus-within .daily-postcard-peek .daily-postcard-front {
+  transform: translate3d(calc(var(--daily-postcard-peek-reveal) * -1), 0, 0);
 }
 
 .daily-postcard.is-inactive {
@@ -5591,12 +5602,14 @@ body.museum-room-open :is(
   appearance: none;
   background: transparent;
   border: 0;
+  box-sizing: border-box;
   cursor: pointer;
   display: block;
   height: 100%;
+  inset: 0;
   margin: 0;
   padding: 0;
-  position: relative;
+  position: absolute;
   text-align: start;
   transform: rotate(-0.38deg);
   transform-origin: center center;
@@ -5607,6 +5620,48 @@ body.museum-room-open :is(
 .daily-postcard-peek:focus-visible {
   outline: 2px solid #de6b58;
   outline-offset: 4px;
+}
+
+/* The resting tab is a scaled editorial preview, not a second full-size card. */
+.daily-postcard-peek .daily-postcard-front-top {
+  font-size: clamp(0.42rem, 0.72vw, 0.56rem);
+  left: 17px;
+  right: 17px;
+  top: 14px;
+}
+
+.daily-postcard-peek .daily-postcard-front-top strong {
+  font-size: clamp(0.5rem, 0.84vw, 0.68rem);
+}
+
+.daily-postcard-peek .daily-postcard-front-top span {
+  font-size: clamp(0.38rem, 0.62vw, 0.5rem);
+  letter-spacing: 0.16em;
+}
+
+.daily-postcard-peek .daily-postcard-front-bottom {
+  bottom: 14px;
+  left: 17px;
+  right: 17px;
+}
+
+.daily-postcard-peek .daily-postcard-front-artwork-copy strong {
+  font-size: clamp(0.58rem, 0.95vw, 0.76rem);
+}
+
+.daily-postcard-peek .daily-postcard-front-artwork-copy em {
+  font-size: clamp(0.48rem, 0.75vw, 0.6rem);
+  margin-top: 2px;
+}
+
+.daily-postcard-peek .daily-postcard-front-brand strong {
+  font-size: clamp(0.76rem, 1.2vw, 1.04rem);
+}
+
+.daily-postcard-peek .daily-postcard-front-site-url {
+  font-size: clamp(0.3rem, 0.52vw, 0.42rem);
+  letter-spacing: 0.04em;
+  margin-top: 3px;
 }
 
 .daily-postcard-face {
@@ -5634,7 +5689,11 @@ body.museum-room-open :is(
 
 .daily-postcard-peek .daily-postcard-front {
   height: 100%;
+  margin-inline-start: var(--daily-postcard-peek-reveal);
+  pointer-events: none;
   position: relative;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: calc(100% - var(--daily-postcard-peek-reveal));
 }
 
 .daily-postcard-front-border {
@@ -5755,6 +5814,17 @@ body.museum-room-open :is(
   text-transform: none;
   text-wrap: balance;
   white-space: normal;
+}
+
+.daily-postcard-front-site-url {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(0.38rem, 0.68vw, 0.56rem);
+  letter-spacing: 0.055em;
+  line-height: 1.1;
+  margin-top: 5px;
+  opacity: 0.86;
+  text-align: end;
+  white-space: nowrap;
 }
 
 .daily-postcard-modal-backdrop {
@@ -6073,21 +6143,34 @@ body.museum-room-open :is(
   text-wrap: pretty;
 }
 
+.daily-postcard-quote-source {
+  display: block;
+  font-size: clamp(0.68rem, 0.92vw, 0.82rem);
+  font-style: italic;
+  line-height: 1.12;
+  margin-top: 7px;
+  opacity: 0.72;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .daily-postcard-quote-copy figcaption {
   display: flex;
   flex-direction: column;
   font-size: 0.68rem;
-  gap: 3px;
+  gap: 2px;
   line-height: 1.12;
-  margin-top: 12px;
+  margin-top: 7px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
 }
 
 .daily-postcard-quote-copy figcaption strong {
-  font-size: 0.84rem;
+  font-size: clamp(0.9rem, 1.12vw, 1.04rem);
   font-weight: 700;
+  line-height: 1.08;
 }
 
 .daily-postcard-quote-copy figcaption small {
@@ -6097,15 +6180,6 @@ body.museum-room-open :is(
   line-height: 1.1;
   opacity: 0.7;
   text-transform: uppercase;
-}
-
-.daily-postcard-quote-copy figcaption span {
-  font-size: 0.6rem;
-  font-style: italic;
-  opacity: 0.68;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .daily-postcard-back-divider {

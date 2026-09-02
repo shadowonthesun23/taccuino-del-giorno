@@ -206,6 +206,7 @@ function PostcardFront({
         </span>
         <span className="daily-postcard-front-brand">
           <strong className={`${janeAust.className} notebook-wordmark`}>{dayToKeep}</strong>
+          <span className="daily-postcard-front-site-url">{SITE_WATERMARK}</span>
         </span>
       </span>
     </div>
@@ -281,10 +282,10 @@ function PostcardBack({
             </div>
             <figure className="daily-postcard-quote-copy">
               <blockquote>“{quote.testo}”</blockquote>
+              {quote.fonte ? <span className="daily-postcard-quote-source">· {quote.fonte}</span> : null}
               <figcaption>
                 <strong>{authorDisplayName}</strong>
                 {authorDates ? <small>{authorDates}</small> : null}
-                {quote.fonte ? <span> · {quote.fonte}</span> : null}
               </figcaption>
             </figure>
           </div>
