@@ -2,19 +2,39 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, Loader2, Sparkles, X } from 'lucide-react';
+import { Check, Download, Loader2, PenLine, Sparkles, X } from 'lucide-react';
 import type { LanguageCode, SeasonId } from '@/lib/types';
 import { t } from '@/lib/translation';
 import { formatBookmarkDate, formatExLibrisDate, getDayOfYearInfo, getSeason } from '@/lib/date-utils';
 import { getImageLoadingProps } from '@/lib/browser-utils';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork, type SeasonalArtwork } from '@/lib/seasonal-artwork';
 import { getEditorialMediaCropImageStyle, DEFAULT_EDITORIAL_MEDIA_CROP, type EditorialMediaCrop } from '@/lib/editorial-media';
-import { janeAust } from '@/lib/fonts';
+import { caveat, janeAust } from '@/lib/fonts';
 import { SITE_WATERMARK } from '@/lib/constants';
 import { downloadDailyPostcardFace, type DailyPostcardFace } from './dailyPostcardExport';
 
 const eagerImageProps = getImageLoadingProps(true);
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
+const POSTCARD_ADDRESS_LINE_COUNT = 5;
+const POSTCARD_ADDRESS_MAX_LENGTH = 240;
+
+function fitPostcardAddressText(value: string, textarea: HTMLTextAreaElement) {
+  const maximumHeight = Math.ceil(textarea.clientHeight);
+  if (!maximumHeight) return value;
+
+  textarea.value = value;
+  if (textarea.scrollHeight <= maximumHeight + 1) return value;
+
+  let fittedValue = value;
+  while (fittedValue.length > 0) {
+    fittedValue = fittedValue.slice(0, -1);
+    textarea.value = fittedValue;
+    if (textarea.scrollHeight <= maximumHeight + 1) break;
+  }
+
+  textarea.value = fittedValue;
+  return fittedValue;
+}
 
 const SEASON_LABELS: Record<SeasonId, Record<LanguageCode, string>> = {
   spring: { IT: 'Primavera', EN: 'Spring', FR: 'Printemps', DE: 'Frühling', ES: 'Primavera', PT: 'Primavera' },
@@ -38,6 +58,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
   downloadBack: string;
   preparingFront: string;
   preparingBack: string;
+  editAddress: string;
+  finishEditing: string;
+  editingHint: string;
+  addressMessage: string;
 }> = {
   IT: {
     open: 'Apri la cartolina del giorno',
@@ -54,6 +78,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     downloadBack: 'Scarica retro · JPEG',
     preparingFront: 'Preparo il fronte…',
     preparingBack: 'Preparo il retro…',
+    editAddress: 'Compila la cartolina',
+    finishEditing: 'Termina compilazione',
+    editingHint: 'Scrivi sulle cinque righe',
+    addressMessage: 'Messaggio della cartolina',
   },
   EN: {
     open: 'Open the postcard of the day',
@@ -70,6 +98,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     downloadBack: 'Download back · JPEG',
     preparingFront: 'Preparing front…',
     preparingBack: 'Preparing back…',
+    editAddress: 'Write on the postcard',
+    finishEditing: 'Finish writing',
+    editingHint: 'Write on the five lines',
+    addressMessage: 'Postcard message',
   },
   FR: {
     open: 'Ouvrir la carte du jour',
@@ -86,6 +118,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     downloadBack: 'Télécharger le verso · JPEG',
     preparingFront: 'Préparation du recto…',
     preparingBack: 'Préparation du verso…',
+    editAddress: 'Remplir la carte',
+    finishEditing: 'Terminer la saisie',
+    editingHint: 'Écrivez sur les cinq lignes',
+    addressMessage: 'Message de la carte',
   },
   DE: {
     open: 'Tagespostkarte öffnen',
@@ -102,6 +138,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     downloadBack: 'Rückseite laden · JPEG',
     preparingFront: 'Vorderseite wird vorbereitet…',
     preparingBack: 'Rückseite wird vorbereitet…',
+    editAddress: 'Postkarte ausfüllen',
+    finishEditing: 'Eingabe beenden',
+    editingHint: 'Auf die fünf Linien schreiben',
+    addressMessage: 'Nachricht auf der Postkarte',
   },
   ES: {
     open: 'Abrir la postal del día',
@@ -118,6 +158,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     downloadBack: 'Descargar reverso · JPEG',
     preparingFront: 'Preparando anverso…',
     preparingBack: 'Preparando reverso…',
+    editAddress: 'Rellena la postal',
+    finishEditing: 'Terminar edición',
+    editingHint: 'Escribe en las cinco líneas',
+    addressMessage: 'Mensaje de la postal',
   },
   PT: {
     open: 'Abrir o postal do dia',
@@ -134,6 +178,10 @@ const POSTCARD_COPY: Record<LanguageCode, {
     downloadBack: 'Descarregar verso · JPEG',
     preparingFront: 'A preparar a frente…',
     preparingBack: 'A preparar o verso…',
+    editAddress: 'Preencher o postal',
+    finishEditing: 'Terminar preenchimento',
+    editingHint: 'Escreva nas cinco linhas',
+    addressMessage: 'Mensagem do postal',
   },
 };
 
@@ -226,6 +274,10 @@ function PostcardBack({
   authorDeathDate,
   authorImageUrl,
   authorImageCrop,
+  addressText,
+  isEditing,
+  onAddressTextChange,
+  setAddressInputRef,
   ariaHidden,
 }: {
   dataIso: string;
@@ -240,6 +292,10 @@ function PostcardBack({
   authorDeathDate?: string | null;
   authorImageUrl?: string | null;
   authorImageCrop?: EditorialMediaCrop;
+  addressText: string;
+  isEditing: boolean;
+  onAddressTextChange: (value: string, textarea: HTMLTextAreaElement) => void;
+  setAddressInputRef: (element: HTMLTextAreaElement | null) => void;
   ariaHidden?: boolean;
 }) {
   const copy = POSTCARD_COPY[lingua];
@@ -312,9 +368,30 @@ function PostcardBack({
             <img className="daily-postcard-postmark-art" src="/images/day-keep-postmark.png" alt="" draggable={false} />
             <strong className={`${janeAust.className} notebook-wordmark`}>{copy.dayToKeep}</strong>
           </div>
-          <div className="daily-postcard-address">
+          <div className={`daily-postcard-address ${isEditing ? 'is-editing' : ''}`}>
             <span>{copy.address}</span>
-            <span className="daily-postcard-address-lines" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+            <div className="daily-postcard-address-writing">
+              <span className="daily-postcard-address-lines" aria-hidden="true">
+                {Array.from({ length: POSTCARD_ADDRESS_LINE_COUNT }, (_, index) => <i key={`postcard-address-rule-${index}`} />)}
+              </span>
+              {isEditing ? (
+                <textarea
+                  ref={setAddressInputRef}
+                  className={`${caveat.className} daily-postcard-address-input`}
+                  value={addressText}
+                  maxLength={POSTCARD_ADDRESS_MAX_LENGTH}
+                  rows={POSTCARD_ADDRESS_LINE_COUNT}
+                  wrap="soft"
+                  lang={lingua.toLowerCase()}
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label={copy.addressMessage}
+                  onChange={(event) => onAddressTextChange(event.target.value, event.currentTarget)}
+                />
+              ) : addressText ? (
+                <span className={`${caveat.className} daily-postcard-address-written`}>{addressText}</span>
+              ) : null}
+            </div>
           </div>
         </section>
       </div>
@@ -357,11 +434,15 @@ export default function DailyPostcard({
   const [isFlipped, setIsFlipped] = useState(false);
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingPostcard, setExportingPostcard] = useState<DailyPostcardFace | null>(null);
+  const [addressText, setAddressText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const postcardCardRef = useRef<HTMLDivElement>(null);
   const postcardMotionRef = useRef<HTMLDivElement>(null);
   const postcardMotionFrameRef = useRef<number | null>(null);
   const postcardMotionTargetRef = useRef({ x: 0, y: 0 });
   const postcardMotionCurrentRef = useRef({ x: 0, y: 0 });
+  const addressInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const editingRequiresFlipRef = useRef(false);
 
   const season = getSeason(dataIso);
   const seasonLabel = SEASON_LABELS[season][lingua];
@@ -379,6 +460,7 @@ export default function DailyPostcard({
       if (!enabled || !isActive) {
         setIsOpen(false);
         setIsFlipped(false);
+        setIsEditing(false);
       }
     };
 
@@ -401,6 +483,7 @@ export default function DailyPostcard({
   const closePostcard = useCallback(() => {
     setIsOpen(false);
     setIsFlipped(false);
+    setIsEditing(false);
   }, []);
 
   useEffect(() => {
@@ -413,20 +496,43 @@ export default function DailyPostcard({
   }, [closePostcard, isActive, isOpen]);
 
   const handleCardClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (!isActive) return;
+    if (!isActive || isEditing) return;
     const target = event.target;
-    if (target instanceof Element && target.closest('a, button')) return;
+    if (target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable="true"]')) return;
     setIsFlipped((current) => !current);
-  }, [isActive]);
+  }, [isActive, isEditing]);
 
   const handleCardKeyDown = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (!isActive) return;
+    if (!isActive || isEditing) return;
     const target = event.target;
-    if (target instanceof Element && target.closest('a, button')) return;
+    if (target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable="true"]')) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     setIsFlipped((current) => !current);
-  }, [isActive]);
+  }, [isActive, isEditing]);
+
+  const handleAddressTextChange = useCallback((value: string, textarea: HTMLTextAreaElement) => {
+    setAddressText(fitPostcardAddressText(value, textarea));
+  }, []);
+
+  const setAddressInputRef = useCallback((element: HTMLTextAreaElement | null) => {
+    addressInputRef.current = element;
+  }, []);
+
+  const startPostcardEditing = useCallback(() => {
+    editingRequiresFlipRef.current = !isFlipped;
+    setIsFlipped(true);
+    setIsEditing(true);
+  }, [isFlipped]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const focusDelay = editingRequiresFlipRef.current ? 720 : 120;
+    editingRequiresFlipRef.current = false;
+    const focusTimer = window.setTimeout(() => addressInputRef.current?.focus(), focusDelay);
+    return () => window.clearTimeout(focusTimer);
+  }, [isEditing]);
 
   const postcardOpen = desktopEnabled && isActive && isOpen;
 
@@ -455,6 +561,18 @@ export default function DailyPostcard({
     motionLayer.style.setProperty('--postcard-glow-x', `${((x + 1) * 50).toFixed(2)}%`);
     motionLayer.style.setProperty('--postcard-glow-y', `${((y + 1) * 50).toFixed(2)}%`);
   }, []);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    postcardMotionTargetRef.current = { x: 0, y: 0 };
+    postcardMotionCurrentRef.current = { x: 0, y: 0 };
+    if (postcardMotionFrameRef.current !== null) {
+      window.cancelAnimationFrame(postcardMotionFrameRef.current);
+      postcardMotionFrameRef.current = null;
+    }
+    applyPostcardMotion(0, 0);
+  }, [applyPostcardMotion, isEditing]);
 
   const schedulePostcardMotion = useCallback(() => {
     if (postcardMotionFrameRef.current !== null) return;
@@ -487,7 +605,7 @@ export default function DailyPostcard({
   }, [schedulePostcardMotion]);
 
   const handlePostcardPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!postcardOpen || (event.pointerType && event.pointerType !== 'mouse')) return;
+    if (!postcardOpen || isEditing || (event.pointerType && event.pointerType !== 'mouse')) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
@@ -498,7 +616,7 @@ export default function DailyPostcard({
       y: clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1, 1),
     };
     schedulePostcardMotion();
-  }, [postcardOpen, schedulePostcardMotion]);
+  }, [isEditing, postcardOpen, schedulePostcardMotion]);
 
   const handlePostcardPointerLeave = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType && event.pointerType !== 'mouse') return;
@@ -538,17 +656,17 @@ export default function DailyPostcard({
             <button type="button" className="daily-postcard-close" onClick={closePostcard} aria-label={copy.close}>
               <X aria-hidden="true" strokeWidth={1.5} />
             </button>
-            <div className="daily-postcard-stage" onPointerMove={handlePostcardPointerMove} onPointerLeave={handlePostcardPointerLeave}>
+            <div className={`daily-postcard-stage ${isEditing ? 'is-editing' : ''}`} onPointerMove={handlePostcardPointerMove} onPointerLeave={handlePostcardPointerLeave}>
               <div ref={postcardMotionRef} className="daily-postcard-card-motion">
                 <div
                   ref={postcardCardRef}
                   className={`daily-postcard-card ${isFlipped ? 'is-flipped' : ''}`}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={isFlipped}
-                  aria-label={isFlipped ? copy.flipBack : copy.flipForward}
-                  onClick={handleCardClick}
-                  onKeyDown={handleCardKeyDown}
+                  role={isEditing ? undefined : 'button'}
+                  tabIndex={isEditing ? undefined : 0}
+                  aria-pressed={isEditing ? undefined : isFlipped}
+                  aria-label={isEditing ? undefined : (isFlipped ? copy.flipBack : copy.flipForward)}
+                  onClick={isEditing ? undefined : handleCardClick}
+                  onKeyDown={isEditing ? undefined : handleCardKeyDown}
                 >
                   <PostcardFront
                     artwork={seasonalArtwork}
@@ -572,12 +690,27 @@ export default function DailyPostcard({
                     authorDeathDate={authorDeathDate}
                     authorImageUrl={authorImageUrl}
                     authorImageCrop={authorImageCrop}
+                    addressText={addressText}
+                    isEditing={isEditing}
+                    onAddressTextChange={handleAddressTextChange}
+                    setAddressInputRef={setAddressInputRef}
                     ariaHidden={!isFlipped}
                   />
                 </div>
               </div>
             </div>
-            <p className="daily-postcard-turn-hint"><Sparkles aria-hidden="true" strokeWidth={1.5} />{isFlipped ? copy.flipBack : copy.flipForward}</p>
+            <p className="daily-postcard-turn-hint"><Sparkles aria-hidden="true" strokeWidth={1.5} />{isEditing ? copy.editingHint : (isFlipped ? copy.flipBack : copy.flipForward)}</p>
+            <button
+              type="button"
+              className={`daily-postcard-edit ${isEditing ? 'is-active' : ''}`}
+              disabled={Boolean(exportingPostcard)}
+              aria-label={isEditing ? copy.finishEditing : copy.editAddress}
+              aria-pressed={isEditing}
+              onClick={isEditing ? () => setIsEditing(false) : startPostcardEditing}
+            >
+              {isEditing ? <Check aria-hidden="true" strokeWidth={1.7} /> : <PenLine aria-hidden="true" strokeWidth={1.7} />}
+              <span>{isEditing ? copy.finishEditing : copy.editAddress}</span>
+            </button>
             <button
               type="button"
               className="daily-postcard-download"

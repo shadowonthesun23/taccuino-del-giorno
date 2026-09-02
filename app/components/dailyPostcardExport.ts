@@ -102,6 +102,20 @@ function copyPostcardVariables(sourceCard: HTMLElement, target: HTMLElement) {
   target.style.color = sourceStyle.color;
 }
 
+function replacePostcardAddressInputs(sourceCard: HTMLElement, clone: HTMLElement) {
+  const sourceInputs = Array.from(sourceCard.querySelectorAll<HTMLTextAreaElement>('.daily-postcard-address-input'));
+  const cloneInputs = Array.from(clone.querySelectorAll<HTMLTextAreaElement>('.daily-postcard-address-input'));
+
+  cloneInputs.forEach((cloneInput, index) => {
+    const sourceInput = sourceInputs[index];
+    const writtenValue = sourceInput?.value ?? '';
+    const writtenText = document.createElement('span');
+    writtenText.className = cloneInput.className.replace('daily-postcard-address-input', 'daily-postcard-address-written');
+    writtenText.textContent = writtenValue;
+    cloneInput.replaceWith(writtenText);
+  });
+}
+
 function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fontFamily: string) {
   const clone = sourceCard.cloneNode(true) as HTMLElement;
   const selectedFaceClass = `daily-postcard-${face}`;
@@ -119,6 +133,7 @@ function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fon
 
   clone.classList.remove('is-flipped');
   clone.classList.add('daily-postcard-export-card', garamond.className);
+  replacePostcardAddressInputs(sourceCard, clone);
   clone.removeAttribute('aria-label');
   clone.removeAttribute('aria-pressed');
   clone.removeAttribute('role');

@@ -5971,6 +5971,15 @@ body.museum-room-open :is(
   }
 }
 
+.daily-postcard-stage.is-editing .daily-postcard-card-motion {
+  transform: none;
+  will-change: auto;
+}
+
+.daily-postcard-stage.is-editing .daily-postcard-card {
+  cursor: default;
+}
+
 .daily-postcard-card {
   cursor: pointer;
   height: 100%;
@@ -6354,16 +6363,67 @@ body.museum-room-open :is(
   line-height: 1;
 }
 
+.daily-postcard-address-writing {
+  min-height: calc(5 * 27px);
+  min-width: 0;
+  position: relative;
+}
+
 .daily-postcard-address-lines {
   display: grid;
-  gap: 14px;
-  padding-top: 0;
+  grid-template-rows: repeat(5, 27px);
+  inset: 0;
+  min-width: 0;
+  pointer-events: none;
+  position: absolute;
 }
 
 .daily-postcard-address-lines i {
   border-bottom: 1px dotted color-mix(in srgb, var(--postcard-ink) 52%, transparent);
   display: block;
-  height: 13px;
+  min-width: 0;
+}
+
+.daily-postcard-address-input,
+.daily-postcard-address-written {
+  background: transparent;
+  border: 0;
+  box-sizing: border-box;
+  color: var(--postcard-ink);
+  display: block;
+  font-size: 1.05rem;
+  font-synthesis: none;
+  font-weight: 400;
+  height: calc(5 * 27px);
+  hyphens: auto;
+  letter-spacing: 0.01em;
+  line-height: 27px;
+  margin: 0;
+  max-height: calc(5 * 27px);
+  min-height: calc(5 * 27px);
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  padding: 0 2px;
+  position: relative;
+  text-overflow: clip;
+  white-space: pre-wrap;
+  width: 100%;
+  word-break: normal;
+}
+
+.daily-postcard-address-input {
+  appearance: none;
+  border-radius: 0;
+  caret-color: currentColor;
+  cursor: text;
+  outline: none;
+  resize: none;
+  z-index: 1;
+}
+
+.daily-postcard-address-input:focus-visible {
+  background: color-mix(in srgb, var(--postcard-ink) 5%, transparent);
 }
 
 .daily-postcard-back-footer {
@@ -6472,6 +6532,55 @@ body.museum-room-open :is(
   white-space: nowrap;
 }
 
+.daily-postcard-edit {
+  align-items: center;
+  appearance: none;
+  background: rgba(242, 234, 219, 0.1);
+  border: 1px solid rgba(242, 234, 219, 0.34);
+  border-radius: 999px;
+  color: #f0e5d2;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.58rem;
+  gap: 7px;
+  justify-content: center;
+  letter-spacing: 0.045em;
+  margin-top: 9px;
+  max-width: min(100%, 330px);
+  min-height: 30px;
+  padding: 6px 12px;
+  pointer-events: auto;
+  text-transform: uppercase;
+  transition-property: background-color, border-color, transform, opacity;
+  transition-duration: 160ms, 160ms, 180ms, 160ms;
+  white-space: nowrap;
+}
+
+.daily-postcard-edit svg {
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+
+.daily-postcard-edit:hover,
+.daily-postcard-edit:focus-visible,
+.daily-postcard-edit.is-active {
+  background: rgba(242, 234, 219, 0.2);
+  border-color: rgba(242, 234, 219, 0.58);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.daily-postcard-edit:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.daily-postcard-edit:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 .daily-postcard-download svg {
   flex: 0 0 auto;
   height: 14px;
@@ -6536,6 +6645,7 @@ body.museum-room-open :is(
   .daily-postcard-card,
   .daily-postcard-qr,
   .daily-postcard-close,
+  .daily-postcard-edit,
   .daily-postcard-download,
   .daily-postcard-peek {
     transition-duration: 0.01ms !important;
