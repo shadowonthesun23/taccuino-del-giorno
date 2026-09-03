@@ -18207,10 +18207,10 @@ body.museum-room-open :is(
   color: #243d5d !important;
   display: inline-flex !important;
   font-family: inherit !important;
-  font-size: 30px !important;
+  font-size: 38px !important;
   font-style: italic !important;
   font-weight: 400 !important;
-  gap: 12px !important;
+  gap: 14px !important;
   letter-spacing: 0.018em !important;
   line-height: 1 !important;
   min-width: 0 !important;
@@ -18230,8 +18230,8 @@ body.museum-room-open :is(
 .social-export-frame-word .social-export-word-masthead-title svg {
   color: #e5b869 !important;
   flex: 0 0 auto;
-  height: 30px !important;
-  width: 30px !important;
+  height: 36px !important;
+  width: 36px !important;
 }
 
 .social-export-frame-word.is-dark .social-export-word-masthead-title .section-typewriter-badge {
@@ -18432,18 +18432,22 @@ body.museum-room-open :is(
 }
 
 .social-export-card[data-social-export-variant="word"] .word-card-intro::after {
-  background: #a54b40;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 620 24' preserveAspectRatio='none'%3E%3Cpath d='M3 11 C42 7 70 14 112 10 S182 9 218 11 S290 14 326 10 S399 8 438 11 S510 13 617 8' fill='none' stroke='%23a54b40' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M18 15 C98 17 163 12 244 15 S395 16 468 13 S555 16 606 12' fill='none' stroke='%23a54b40' stroke-opacity='.35' stroke-width='1.15' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: 100% 22px;
   content: '';
   display: block;
-  height: 2px;
-  margin-top: 42px;
-  opacity: 0.72;
+  height: 22px;
+  margin-top: 30px;
+  opacity: 0.9;
   transform: rotate(-0.22deg);
-  width: 46%;
+  width: 54%;
 }
 
 .social-export-card[data-social-export-variant="word"].is-dark .word-card-intro::after {
-  background: #dfb58c;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 620 24' preserveAspectRatio='none'%3E%3Cpath d='M3 11 C42 7 70 14 112 10 S182 9 218 11 S290 14 326 10 S399 8 438 11 S510 13 617 8' fill='none' stroke='%23dfb58c' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M18 15 C98 17 163 12 244 15 S395 16 468 13 S555 16 606 12' fill='none' stroke='%23dfb58c' stroke-opacity='.35' stroke-width='1.15' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 .social-export-card[data-social-export-variant="word"] .word-card-word {
@@ -18536,22 +18540,25 @@ body.museum-room-open :is(
   align-items: flex-start;
   color: inherit !important;
   display: flex !important;
-  font-size: 31px !important;
+  font-size: 38px !important;
   gap: 12px;
   line-height: 1.24 !important;
   margin: 24px 8px 0 auto !important;
-  max-width: 650px;
+  max-width: 760px;
   opacity: 0.74;
-  overflow: hidden;
+  overflow: visible;
   text-align: right;
+  text-wrap: pretty;
   transform: rotate(-0.7deg);
 }
 
 .social-export-card[data-social-export-variant="word"] .margin-note span {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  display: block;
+  font-size: 38px !important;
+  line-height: 1.2 !important;
+  max-width: 100%;
+  overflow: visible;
+  text-wrap: pretty;
 }
 
 .social-export-card[data-social-export-variant="word"][data-social-export-layout="balanced"] .word-card-intro {
@@ -18606,6 +18613,22 @@ body.museum-room-open :is(
   font-size: 34px !important;
   margin-left: 10px !important;
   -webkit-line-clamp: 3;
+}
+
+.social-export-card[data-social-export-variant="word"][data-social-export-layout="balanced"] .margin-note {
+  font-size: 36px !important;
+}
+
+.social-export-card[data-social-export-variant="word"][data-social-export-layout="balanced"] .margin-note span {
+  font-size: 36px !important;
+}
+
+.social-export-card[data-social-export-variant="word"][data-social-export-layout="compact"] .margin-note {
+  font-size: 34px !important;
+}
+
+.social-export-card[data-social-export-variant="word"][data-social-export-layout="compact"] .margin-note span {
+  font-size: 34px !important;
 }
 
 .social-export-card[data-social-export-variant="word"][data-social-export-layout="airy"][data-social-export-word-tier="medium"] .word-card-word {
