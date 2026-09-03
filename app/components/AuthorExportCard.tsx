@@ -280,7 +280,6 @@ export default function AuthorExportCard({
                   crossOrigin="anonymous"
                   style={{
                     ...getEditorialMediaCropImageStyle(authorImageCrop),
-                    filter: isDark ? 'grayscale(100%) contrast(94%) brightness(1.02)' : 'grayscale(100%) contrast(94%) brightness(1.04)',
                   }}
                 />
               ) : (
