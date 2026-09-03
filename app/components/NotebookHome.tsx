@@ -7,6 +7,8 @@ import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHor
 
 // Custom components
 import AuthorExportCard from './AuthorExportCard';
+import SaintExportCard, { type SaintExportCardHandle } from './SaintExportCard';
+import ReadingExportCard, { type ReadingExportCardHandle } from './ReadingExportCard';
 import Card from './Card';
 import ParallaxBackground from '@/components/ui/ParallaxBackground';
 import SeasonalBookmark from './SeasonalBookmark';
@@ -40,6 +42,7 @@ import {
   DEFAULT_EDITORIAL_MEDIA_CROP,
   getEditorialMediaCropImageStyle,
   getEditorialMediaDocument,
+  getRenderableImageUrl,
   sanitizeEditorialMediaCrops,
   sanitizeEditorialMediaOverrides,
 } from '@/lib/editorial-media';
@@ -325,6 +328,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const archiveSearchRef = useRef<HTMLInputElement>(null);
   const wasPopoverOpenRef = useRef(false);
   const footerRef = useRef<HTMLElement>(null);
+  const saintExportCardRef = useRef<SaintExportCardHandle>(null);
+  const poemExportCardRef = useRef<ReadingExportCardHandle>(null);
+  const bibleExportCardRef = useRef<ReadingExportCardHandle>(null);
 
   const oggi = getRomeDateIso();
 
@@ -910,6 +916,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     && (data?.santi.length === 1 || Boolean(editorialMedia.santi))
     && saintArtwork.saintName === dataOriginale?.santi[0]?.nome
   ) ? saintArtwork : null;
+  const saintImageUrl = visibleSaintArtwork
+    ? getRenderableImageUrl(editorialMedia.santi || visibleSaintArtwork.imageUrl)
+    : null;
   const isCardSaved = (section: SavedSectionId) => savedCards.some((item) => item.id === `${dataExLibris}:${section}`);
   const saveCard = (section: SavedSectionId, title: string, excerpt: string, source?: string) => {
     toggleSavedCard({ date: dataExLibris, section, title, excerpt, source });
@@ -1671,8 +1680,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             </Card>
 
             <Card key={`${dataExLibris}:santi`} id="santi" title={t('saintsCard', lingua)} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
-              filename="santi"
-              exportDate={formatExLibrisDate(dataExLibris)}
+              onExport={async () => {
+                await saintExportCardRef.current?.exportImage();
+              }}
               isSaved={isCardSaved('santi')}
               onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
               <div className={`saints-card-layout ${data.santi.length > 1 ? 'has-multiple-saints' : 'has-single-saint'}`}>
@@ -1715,6 +1725,19 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               </div>
             </Card>
 
+            <div className="saint-export-render-source" aria-hidden="true">
+              <SaintExportCard
+                ref={saintExportCardRef}
+                santi={data.santi}
+                fotoSantoUrl={saintImageUrl}
+                dataOdierna={getDisplayDate(data, lingua, dataSelezionata)}
+                dataIso={dataExLibris}
+                isDark={isDark}
+                saveImageLabel={t('save', lingua)}
+                lingua={lingua}
+              />
+            </div>
+
             <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('avvenimenti')}
@@ -1733,8 +1756,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             </Card>
 
             <Card key={`${dataExLibris}:poesia`} id="poesia" title={t('poemCard', lingua)} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
-              filename={`poesia-${data.poesia.autore.toLowerCase().replace(/\s+/g, '-')}`}
-              exportDate={formatExLibrisDate(dataExLibris)}
+              onExport={async () => {
+                await poemExportCardRef.current?.exportImage();
+              }}
               isSaved={isCardSaved('poesia')}
               onToggleSaved={() => saveCard('poesia', data.poesia.fonte || t('poemCard', lingua), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
               <div className={`reading-card-layout ${poemImageUrl ? 'has-image' : ''}`}>
@@ -1782,8 +1806,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               </Card>
 
             <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={t('bibleCard', lingua)} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
-              filename="bibbia"
-              exportDate={formatExLibrisDate(dataExLibris)}
+              onExport={async () => {
+                await bibleExportCardRef.current?.exportImage();
+              }}
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
               <div className={`reading-card-layout ${bibleImageUrl ? 'has-image' : ''}`}>
@@ -1827,6 +1852,36 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 </div>
               </div>
             </Card>
+
+            <div className="reading-social-render-source reading-social-render-source-poesia" aria-hidden="true">
+              <ReadingExportCard
+                ref={poemExportCardRef}
+                kind="poesia"
+                testo={data.poesia.testo}
+                autore={data.poesia.autore}
+                fonte={data.poesia.fonte}
+                fotoUrl={poemImageUrl}
+                dataOdierna={getDisplayDate(data, lingua, dataSelezionata)}
+                dataIso={dataExLibris}
+                isDark={isDark}
+                saveImageLabel={t('save', lingua)}
+                lingua={lingua}
+              />
+            </div>
+
+            <div className="reading-social-render-source reading-social-render-source-bibbia" aria-hidden="true">
+              <ReadingExportCard
+                ref={bibleExportCardRef}
+                kind="bibbia"
+                testo={data.bibbia.testo}
+                fonte={data.bibbia.fonte}
+                dataOdierna={getDisplayDate(data, lingua, dataSelezionata)}
+                dataIso={dataExLibris}
+                isDark={isDark}
+                saveImageLabel={t('save', lingua)}
+                lingua={lingua}
+              />
+            </div>
 
             {opera && (
               <Card

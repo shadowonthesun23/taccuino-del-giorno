@@ -52,6 +52,7 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   filename?: string;
+  onExport?: () => void | Promise<void>;
   isSaved?: boolean;
   onToggleSaved?: () => void;
   saveLabel?: string;
@@ -68,6 +69,7 @@ export default function Card({
   children,
   className = '',
   filename,
+  onExport,
   isSaved = false,
   onToggleSaved,
   saveLabel = 'Custodisci questa scheda',
@@ -78,9 +80,24 @@ export default function Card({
   const sectionRef = useRef<HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
   const isWordExport = socialExportVariant === 'word';
+  const hasExport = Boolean(filename || onExport);
 
   const handleExport = useCallback(async () => {
-    if (!sectionRef.current || exporting) return;
+    if (exporting) return;
+
+    if (onExport) {
+      setExporting(true);
+      try {
+        await onExport();
+      } catch (err) {
+        console.error('Errore export card:', err);
+      } finally {
+        setExporting(false);
+      }
+      return;
+    }
+
+    if (!sectionRef.current) return;
     setExporting(true);
     let exportFrame: HTMLDivElement | null = null;
 
@@ -326,7 +343,7 @@ export default function Card({
       exportFrame?.remove();
       setExporting(false);
     }
-  }, [exportDate, exporting, filename, id, isDark, isWordExport, socialExportLayout, socialExportVariant]);
+  }, [exportDate, exporting, filename, id, isDark, isWordExport, onExport, socialExportLayout, socialExportVariant]);
 
   return (
     <div id={id} className={className}>
@@ -337,7 +354,7 @@ export default function Card({
         } border rounded-2xl p-6 md:p-8 card-paper-shadow editorial-card relative group h-full ${id ? `card-section-${id}` : ''}`}
       >
 
-        {filename && (
+        {hasExport && (
           <button
             data-export-ignore
             onClick={handleExport}
@@ -364,7 +381,7 @@ export default function Card({
             aria-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
             data-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
             aria-pressed={isSaved}
-            className={`card-save-button notebook-action notebook-action-compact notebook-action-icon ${filename ? 'has-export' : ''} ${isDark ? 'is-dark' : ''} ${isSaved ? 'is-saved' : ''}`}
+            className={`card-save-button notebook-action notebook-action-compact notebook-action-icon ${hasExport ? 'has-export' : ''} ${isDark ? 'is-dark' : ''} ${isSaved ? 'is-saved' : ''}`}
           >
             {isSaved ? (
               <BookmarkCheck className="w-3.5 h-3.5" aria-hidden="true" />

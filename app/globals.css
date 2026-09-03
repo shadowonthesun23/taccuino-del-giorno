@@ -2756,8 +2756,7 @@ body {
 
 .card-save-button:hover::after,
 .card-save-button:focus-visible::after {
-  /* Compensa la lieve rotazione decorativa del segnalibro. */
-  transform: translateY(0) rotate(3deg);
+  transform: translateY(0);
 }
 
 .card-export-button.is-dark::after,
@@ -18176,6 +18175,297 @@ body.museum-room-open :is(
   background: var(--notebook-button-primary-hover) !important;
   border-color: var(--notebook-button-primary-hover) !important;
   color: var(--notebook-button-primary-ink) !important;
+}
+
+/* ── Saint social folio: the first saint leads, the others follow below ── */
+.saint-export-render-source {
+  height: 640px;
+  left: -10000px;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 360px;
+}
+
+.saint-social-export-card .saint-social-name {
+  color: inherit !important;
+  display: block;
+  font-family: inherit !important;
+  font-style: normal;
+  font-weight: 400 !important;
+  letter-spacing: -0.042em;
+  line-height: 1.06;
+  margin: 0 !important;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-align: left;
+  text-wrap: balance;
+  white-space: normal;
+  text-shadow:
+    0 1px 0 rgba(244, 240, 230, 0.92),
+    0 0 5px rgba(244, 240, 230, 0.46),
+    0 5px 12px rgba(42, 37, 34, 0.24);
+}
+
+.saint-social-export-card.is-dark .saint-social-name {
+  text-shadow:
+    0 1px 0 rgba(43, 38, 31, 0.92),
+    0 0 5px rgba(43, 38, 31, 0.6),
+    0 5px 12px rgba(0, 0, 0, 0.46);
+}
+
+.saint-social-primary-meta {
+  color: #a54b40 !important;
+  display: -webkit-box;
+  font-family: inherit !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  letter-spacing: 0.006em;
+  margin: 0 !important;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: left;
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+}
+
+.saint-social-export-card.is-dark .saint-social-primary-meta {
+  color: #dfb58c !important;
+}
+
+.saint-social-primary-description {
+  color: inherit !important;
+  display: -webkit-box;
+  font-family: inherit !important;
+  font-style: normal;
+  font-weight: 400 !important;
+  letter-spacing: 0.003em;
+  margin: 0 !important;
+  opacity: 0.92;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: left;
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+}
+
+.saint-social-secondary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.saint-social-secondary {
+  border-top: 2px solid rgba(165, 75, 64, 0.48);
+  box-sizing: border-box;
+  color: inherit;
+  overflow: hidden;
+  padding: 14px 0 12px;
+}
+
+.saint-social-export-card.is-dark .saint-social-secondary {
+  border-top-color: rgba(223, 181, 140, 0.46);
+}
+
+.saint-social-secondary-name {
+  color: inherit !important;
+  display: -webkit-box;
+  font-family: inherit !important;
+  font-style: normal;
+  font-weight: 400 !important;
+  letter-spacing: -0.026em;
+  margin: 0 0 7px !important;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: left;
+  text-wrap: balance;
+  -webkit-box-orient: vertical;
+}
+
+.saint-social-secondary-meta {
+  color: #a54b40 !important;
+  display: -webkit-box;
+  font-family: inherit !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  letter-spacing: 0.004em;
+  margin: 0 0 8px !important;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: left;
+  -webkit-box-orient: vertical;
+}
+
+.saint-social-export-card.is-dark .saint-social-secondary-meta {
+  color: #dfb58c !important;
+}
+
+.saint-social-secondary-description {
+  color: inherit !important;
+  display: -webkit-box;
+  font-family: inherit !important;
+  font-style: normal;
+  font-weight: 400 !important;
+  letter-spacing: 0.002em;
+  margin: 0 !important;
+  opacity: 0.9;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: left;
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+}
+
+/* ── Reading social folios: text leads, imagery stays a quiet marginal note ── */
+.reading-social-render-source {
+  height: 640px;
+  left: -10000px;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 360px;
+}
+
+.reading-social-render-source-bibbia {
+  left: -11000px;
+}
+
+.reading-social-export-card .reading-social-heading {
+  color: inherit !important;
+  font-family: inherit !important;
+  font-style: normal;
+  font-weight: 400 !important;
+  letter-spacing: -0.034em;
+  margin: 0 !important;
+  text-align: left;
+  text-wrap: balance;
+  text-shadow:
+    0 1px 0 rgba(244, 240, 230, 0.88),
+    0 0 6px rgba(244, 240, 230, 0.38),
+    0 5px 12px rgba(42, 37, 34, 0.22);
+}
+
+.reading-social-export-card.is-dark .reading-social-heading {
+  text-shadow:
+    0 1px 0 rgba(43, 38, 31, 0.92),
+    0 0 6px rgba(43, 38, 31, 0.56),
+    0 5px 12px rgba(0, 0, 0, 0.44);
+}
+
+.reading-social-export-card .reading-social-source {
+  color: #a54b40 !important;
+  font-family: inherit !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  letter-spacing: 0.008em;
+  margin: 0 !important;
+  text-align: left;
+  text-wrap: pretty;
+}
+
+.reading-social-export-card.is-dark .reading-social-source {
+  color: #dfb58c !important;
+}
+
+.reading-social-body-rule {
+  background: #a54b40;
+  display: block;
+  height: 2px;
+  opacity: 0.68;
+  transform: rotate(-0.28deg);
+  transform-origin: left center;
+}
+
+.reading-social-export-card.is-dark .reading-social-body-rule {
+  background: #dfb58c;
+  opacity: 0.62;
+}
+
+.reading-social-export-card .reading-social-body {
+  color: inherit !important;
+  display: block;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  letter-spacing: -0.012em;
+  line-height: inherit !important;
+  margin: 0 !important;
+  max-width: none !important;
+  overflow: visible;
+  text-align: left;
+  text-wrap: pretty;
+}
+
+.reading-social-export-card.reading-social-export-bibbia .reading-social-body {
+  font-style: normal;
+  letter-spacing: 0.002em;
+}
+
+.reading-social-body-copy {
+  white-space: pre-wrap;
+}
+
+.reading-social-export-card .reading-social-dropcap {
+  color: #24478f !important;
+  font-size: 1.86em !important;
+  font-style: normal !important;
+  line-height: 0.72 !important;
+  margin-right: 0.14em !important;
+  vertical-align: -0.08em !important;
+}
+
+.reading-social-export-card.reading-social-export-bibbia .reading-social-dropcap {
+  color: #9e2a2b !important;
+}
+
+.reading-social-export-card.is-dark .reading-social-dropcap,
+.reading-social-export-card.is-dark.reading-social-export-bibbia .reading-social-dropcap {
+  color: #d6bf9b !important;
+}
+
+.reading-social-export-card .reading-social-photo {
+  background: #fdfcf8 !important;
+  border-radius: 4px 6px 5px 7px;
+  box-shadow:
+    0 26px 42px -29px rgba(42, 37, 34, 0.68),
+    0 8px 16px -14px rgba(42, 37, 34, 0.42);
+}
+
+.reading-social-export-card.is-dark .reading-social-photo {
+  background: #f1e7d8 !important;
+  box-shadow:
+    0 28px 46px -28px rgba(0, 0, 0, 0.88),
+    0 8px 16px -14px rgba(0, 0, 0, 0.64);
+}
+
+.reading-social-photo-frame {
+  background: #c6c0b7;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.reading-social-photo-image {
+  filter: none !important;
+  height: 100% !important;
+  mix-blend-mode: normal !important;
+  object-fit: cover;
+  width: 100% !important;
+}
+
+.reading-social-photo-tape {
+  height: 42px !important;
+  left: 74px !important;
+  opacity: 0.76;
+  top: -24px !important;
+  transform: rotate(-2.6deg) !important;
+  width: 132px !important;
+}
+
+.reading-social-footer .author-social-footer-rule {
+  opacity: 0.58;
 }
 
 /* ── Word social folio: the word replaces the photograph as the focal point ── */
