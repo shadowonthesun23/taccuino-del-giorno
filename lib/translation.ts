@@ -43,7 +43,7 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     IT: 'La parola di oggi è', EN: 'Today’s word is', FR: 'Le mot du jour est', DE: 'Das Wort des Tages ist', ES: 'La palabra de hoy es', PT: 'A palavra de hoje é'
   },
   correspondencesCopy: {
-    IT: 'Un piccolo atlante di parole, immagini e storie: scegli da dove iniziare a leggere questa giornata.', EN: 'A small atlas of words, images, and stories: choose where to begin reading this day.', FR: 'Un petit atlas de mots, d’images et d’histoires : choisissez par où commencer à lire cette journée.', DE: 'Ein kleiner Atlas aus Worten, Bildern und Geschichten: Wählen Sie, wo Sie mit dem Lesen dieses Tages beginnen.', ES: 'Un pequeño atlas de palabras, imágenes e historias: elige por dónde empezar a leer este día.', PT: 'Um pequeno atlas de palavras, imagens e histórias: escolha por onde começar a ler este dia.'
+    IT: 'Un piccolo atlante di parole, immagini e storie: tutto il giorno prende forma intorno a questa parola.', EN: 'A small atlas of words, images, and stories: the whole day takes shape around this word.', FR: 'Un petit atlas de mots, d’images et d’histoires : toute la journée prend forme autour de ce mot.', DE: 'Ein kleiner Atlas aus Worten, Bildern und Geschichten: Alles an diesem Tag nimmt um dieses Wort herum Gestalt an.', ES: 'Un pequeño atlas de palabras, imágenes e historias: todo el día cobra forma alrededor de esta palabra.', PT: 'Um pequeno atlas de palavras, imagens e histórias: todo o dia ganha forma em torno desta palavra.'
   },
   correspondencesFollow: {
     IT: 'Inizia a leggere', EN: 'Start reading', FR: 'Commencer la lecture', DE: 'Jetzt lesen', ES: 'Empieza a leer', PT: 'Começar a ler'

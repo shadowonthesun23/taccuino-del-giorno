@@ -11009,7 +11009,7 @@ body.museum-room-open :is(
 
 .daily-correspondences-copy {
   color: #6d6159;
-  font-size: clamp(0.98rem, 1.8vw, 1.1rem);
+  font-size: clamp(1.06rem, 2vw, 1.24rem);
   font-style: italic;
   line-height: 1.45;
   margin: 16px auto 0;
