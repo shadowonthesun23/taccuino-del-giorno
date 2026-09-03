@@ -18303,6 +18303,20 @@ body.museum-room-open :is(
   color: var(--notebook-button-primary-ink) !important;
 }
 
+/* Keep the footer passport CTA readable when the seasonal reveal skin is active. */
+.daily-passport-open-button.notebook-action-primary:not(.is-dark) {
+  background: var(--notebook-button-primary) !important;
+  border-color: var(--notebook-button-primary) !important;
+  color: var(--notebook-button-primary-ink) !important;
+  text-shadow: none !important;
+}
+
+.daily-passport-open-button.notebook-action-primary:not(.is-dark):is(:hover, :focus-visible) {
+  background: var(--notebook-button-primary-hover) !important;
+  border-color: var(--notebook-button-primary-hover) !important;
+  color: var(--notebook-button-primary-ink) !important;
+}
+
 /* ── Saint social folio: the first saint leads, the others follow below ── */
 .saint-export-render-source {
   height: 640px;

@@ -1171,7 +1171,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       {loadingScreen}
       <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className} language={lingua} sealColor={currentSealColor}>
       <div
-        className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} py-6 md:py-7 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
+        className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} pt-6 md:pt-7 pb-0 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
         style={{
           ...ambientLightStyle,
           '--daily-accent': dailyAccent.color,
