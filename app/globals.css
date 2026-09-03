@@ -18420,7 +18420,7 @@ body.museum-room-open :is(
 }
 
 .social-export-card[data-social-export-variant="word"] .word-card-intro {
-  margin: 0 0 78px !important;
+  margin: 0 0 36px !important;
   max-width: 820px;
   padding: 0 10px;
   text-align: left !important;
@@ -18435,11 +18435,14 @@ body.museum-room-open :is(
   content: '';
   display: block;
   height: 16px;
-  margin-inline: auto;
-  margin-top: 26px;
+  margin-inline-end: auto;
+  margin-inline-start: 0;
+  margin-top: 36px;
   opacity: 0.9;
+  position: relative;
   transform: rotate(-0.22deg);
   width: 54%;
+  z-index: 1;
 }
 
 .social-export-card[data-social-export-variant="word"].is-dark .word-card-intro::after {
@@ -18482,6 +18485,7 @@ body.museum-room-open :is(
 }
 
 .social-export-card[data-social-export-variant="word"] .word-card-definition {
+  border-top: 0 !important;
   color: inherit !important;
   display: -webkit-box !important;
   font-size: 46px !important;
@@ -18558,7 +18562,7 @@ body.museum-room-open :is(
 }
 
 .social-export-card[data-social-export-variant="word"][data-social-export-layout="balanced"] .word-card-intro {
-  margin-bottom: 62px !important;
+  margin-bottom: 36px !important;
 }
 
 .social-export-card[data-social-export-variant="word"][data-social-export-layout="balanced"] .word-card-word {
@@ -18587,7 +18591,7 @@ body.museum-room-open :is(
 }
 
 .social-export-card[data-social-export-variant="word"][data-social-export-layout="compact"] .word-card-intro {
-  margin-bottom: 48px !important;
+  margin-bottom: 36px !important;
 }
 
 .social-export-card[data-social-export-variant="word"][data-social-export-layout="compact"] .word-card-word {

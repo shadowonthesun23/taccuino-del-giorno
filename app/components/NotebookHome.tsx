@@ -1571,7 +1571,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         icon={Quote}
         isDark={isDark}
         className="scroll-mt-28"
-        filename={`citazione-${data.autore_giorno.toLowerCase().replace(/\s+/g, '-')}`}
         exportDate={formatExLibrisDate(dataExLibris)}
         isSaved={isCardSaved('citazione')}
         onToggleSaved={() => saveCard('citazione', `${{ IT: 'Citazione di', EN: 'Quote by', FR: 'Citation de', DE: 'Zitat von', ES: 'Cita de', PT: 'Citação de' }[lingua] || 'Quote by'} ${data.citazione.autore}`, data.citazione.testo, data.citazione.fonte)}
@@ -1717,7 +1716,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             </Card>
 
             <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
-              filename="avvenimenti"
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('avvenimenti')}
               onToggleSaved={() => saveCard('avvenimenti', t('eventsCard', lingua), data.avvenimenti[0] ?? '')}>
@@ -1901,7 +1899,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               icon={Music}
               isDark={isDark}
               className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
-              filename={`musica-${data.musica.brano.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('musica')}
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
@@ -1973,7 +1970,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 icon={Telescope}
                 isDark={isDark}
                 className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-10"
-                filename={apod ? `apod-${dataExLibris}` : undefined}
                 exportDate={formatExLibrisDate(dataExLibris)}
                 isSaved={isCardSaved('apod')}
                 onToggleSaved={
