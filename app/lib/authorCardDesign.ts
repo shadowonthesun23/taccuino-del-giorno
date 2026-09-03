@@ -66,6 +66,44 @@ export interface AuthorCardLayout {
   maxCitationChars: number;
 }
 
+export interface AuthorSocialCardLayout {
+  variant: 'airy' | 'balanced' | 'compact';
+  dateFontSize: number;
+  dateWidth: number;
+  badgeWidth: number;
+  badgeHeight: number;
+  photoTop: number;
+  photoRight: number;
+  photoWidth: number;
+  photoHeight: number;
+  photoPadding: number;
+  photoAngle: number;
+  nameTop: number;
+  nameLeft: number;
+  nameWidth: number;
+  nameFontSize: number;
+  nameLineHeight: number;
+  nameMaxLines: number;
+  descriptionTop: number;
+  descriptionLeft: number;
+  descriptionWidth: number;
+  descriptionFontSize: number;
+  descriptionLineHeight: number;
+  quoteTop: number;
+  quoteLeft: number;
+  quoteWidth: number;
+  quoteFontSize: number;
+  quoteLineHeight: number;
+  quoteMaxLines: number;
+  quoteMaxChars: number;
+  quoteRuleWidth: number;
+  attributionFontSize: number;
+  attributionGap: number;
+  footerBottom: number;
+  footerSignatureFontSize: number;
+  footerUrlFontSize: number;
+}
+
 const ROMAN_MONTHS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
 export function formatAuthorCardDate(dataIso?: string, fallback = ''): string {
@@ -78,6 +116,105 @@ export function formatAuthorCardDate(dataIso?: string, fallback = ''): string {
 export function getAuthorDateTapeWidth(label: string): number {
   const compactLength = label.replace(/\s+/g, ' ').trim().length;
   return Math.max(244, Math.min(360, 112 + compactLength * 18));
+}
+
+function clampNumber(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function normalizedAuthorCardText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Deterministic geometry for the social author folio.
+ *
+ * The client preview and any future renderer can use the same content tiers:
+ * short, medium and long copy change type scale and photo density together,
+ * while the canvas remains a stable 1080×1920 composition.
+ */
+export function getAuthorSocialCardLayout(
+  citation: string,
+  description: string,
+  author = '',
+  hasPhoto = true,
+  date = '',
+): AuthorSocialCardLayout {
+  const citationLength = normalizedAuthorCardText(citation).length;
+  const authorLength = normalizedAuthorCardText(author).length;
+  const descriptionLength = normalizedAuthorCardText(description).length;
+  const dateLength = normalizedAuthorCardText(date).length;
+
+  const citationTier = citationLength <= 120 ? 'short' : citationLength <= 250 ? 'medium' : 'long';
+  const authorTier = authorLength <= 24 ? 'short' : authorLength <= 38 ? 'medium' : 'long';
+  const isDescriptionDense = descriptionLength > 320;
+  const variant = citationTier === 'long' || isDescriptionDense
+    ? 'compact'
+    : citationTier === 'medium' || authorTier === 'long'
+      ? 'balanced'
+      : 'airy';
+
+  const photoWidth = variant === 'airy' ? 520 : variant === 'balanced' ? 498 : 474;
+  const photoHeight = variant === 'airy' ? 650 : variant === 'balanced' ? 622 : 592;
+  const nameBaseSize = variant === 'airy' ? 150 : variant === 'balanced' ? 128 : 108;
+  const nameFontSize = authorLength > 46
+    ? nameBaseSize - 16
+    : authorLength > 38
+      ? nameBaseSize - 11
+      : authorLength > 28
+      ? nameBaseSize - 5
+        : nameBaseSize;
+  const quoteFontSize = citationTier === 'short'
+    ? citationLength <= 70 ? 78 : 72
+    : citationTier === 'medium'
+      ? citationLength <= 180 ? 64 : 59
+      : citationLength <= 360 ? 50 : 46;
+  const descriptionTop = variant === 'airy' ? 756 : variant === 'balanced' ? 748 : 730;
+  const descriptionWidth = variant === 'airy' ? 500 : variant === 'balanced' ? 540 : 580;
+  const descriptionFontSize = variant === 'airy' ? 36 : variant === 'balanced' ? 33 : 30;
+  const descriptionLineHeight = 1.32;
+  const estimatedDescriptionCharsPerLine = Math.max(24, Math.floor(descriptionWidth / (descriptionFontSize * 0.43)));
+  const estimatedDescriptionLines = Math.max(1, Math.ceil(Math.max(descriptionLength, 1) / estimatedDescriptionCharsPerLine));
+  const descriptionBottom = descriptionTop + estimatedDescriptionLines * descriptionFontSize * descriptionLineHeight;
+  const baseQuoteTop = variant === 'airy' ? 1004 : variant === 'balanced' ? 978 : 948;
+
+  return {
+    variant,
+    dateFontSize: dateLength > 28 ? 42 : dateLength > 18 ? 48 : 54,
+    dateWidth: clampNumber(250 + dateLength * 12, 290, 440),
+    badgeWidth: 380,
+    badgeHeight: 72,
+    photoTop: variant === 'airy' ? 244 : variant === 'balanced' ? 232 : 220,
+    photoRight: 76,
+    photoWidth,
+    photoHeight,
+    photoPadding: variant === 'compact' ? 18 : 20,
+    photoAngle: hasPhoto ? -2.2 : 1.1,
+    nameTop: variant === 'airy' ? 424 : variant === 'balanced' ? 410 : 392,
+    nameLeft: 76,
+    nameWidth: variant === 'airy' ? 620 : variant === 'balanced' ? 610 : 594,
+    nameFontSize,
+    nameLineHeight: authorLength > 46 ? 0.94 : 0.98,
+    nameMaxLines: authorLength > 46 ? 3 : 2,
+    descriptionTop,
+    descriptionLeft: 82,
+    descriptionWidth,
+    descriptionFontSize,
+    descriptionLineHeight,
+    quoteTop: Math.max(baseQuoteTop, Math.round(descriptionBottom + 64)),
+    quoteLeft: 82,
+    quoteWidth: 916,
+    quoteFontSize,
+    quoteLineHeight: citationTier === 'short' ? 1.13 : citationTier === 'medium' ? 1.2 : 1.24,
+    quoteMaxLines: citationTier === 'short' ? 4 : citationTier === 'medium' ? 7 : 10,
+    quoteMaxChars: citationTier === 'short' ? 220 : citationTier === 'medium' ? 320 : 420,
+    quoteRuleWidth: citationTier === 'short' ? 194 : 156,
+    attributionFontSize: variant === 'airy' ? 34 : variant === 'balanced' ? 31 : 29,
+    attributionGap: citationTier === 'short' ? 30 : 24,
+    footerBottom: 70,
+    footerSignatureFontSize: 64,
+    footerUrlFontSize: 22,
+  };
 }
 
 export function getAuthorNameFontSize(name: string, baseSize: number): number {
