@@ -18162,3 +18162,18 @@ body.museum-room-open :is(
   opacity: 0.68;
   white-space: nowrap;
 }
+
+/* The seasonal reveal skin also styles export actions; keep the light primary
+   action's semantic red surface so its pale label remains readable. */
+.author-export-actions .author-export-action.notebook-action-primary:not(.is-dark) {
+  background: var(--notebook-button-primary) !important;
+  border-color: var(--notebook-button-primary) !important;
+  color: var(--notebook-button-primary-ink) !important;
+  text-shadow: none !important;
+}
+
+.author-export-actions .author-export-action.notebook-action-primary:not(.is-dark):is(:hover, :focus-visible) {
+  background: var(--notebook-button-primary-hover) !important;
+  border-color: var(--notebook-button-primary-hover) !important;
+  color: var(--notebook-button-primary-ink) !important;
+}
