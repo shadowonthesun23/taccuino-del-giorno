@@ -457,12 +457,12 @@ export default function DailyCorrespondences({
             </div>
           </footer>
           <div className="daily-correspondences-actions" data-export-ignore>
-            <button type="button" className="daily-correspondences-follow" onClick={() => scrollTo('autore')}>
+            <button type="button" className="daily-correspondences-follow notebook-action notebook-action-primary" onClick={() => scrollTo('autore')}>
               <span>{t('correspondencesFollow', lingua)}</span>
               <BookOpen aria-hidden="true" strokeWidth={1.7} />
             </button>
             {onOpenStories ? (
-              <button type="button" className="daily-correspondences-download daily-correspondences-stories" onClick={onOpenStories}>
+              <button type="button" className="daily-correspondences-download notebook-action notebook-action-secondary daily-correspondences-stories" onClick={onOpenStories}>
                 <Images aria-hidden="true" strokeWidth={1.65} />
                 <span>{t('socialStories', lingua)}</span>
               </button>

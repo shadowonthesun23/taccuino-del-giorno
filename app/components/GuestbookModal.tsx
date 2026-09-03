@@ -146,7 +146,7 @@ export default function GuestbookModal({
         <button
           type="button"
           onClick={onClose}
-          className="guestbook-close"
+          className="guestbook-close notebook-action notebook-action-icon"
           aria-label={t('close', lingua)}
         >
           <X className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
@@ -212,7 +212,7 @@ export default function GuestbookModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="guestbook-submit-btn w-full py-2.5 flex items-center justify-center gap-2 rounded text-base font-bold transition-all focus:outline-none"
+              className="guestbook-submit-btn notebook-action notebook-action-primary w-full py-2.5 flex items-center justify-center gap-2 rounded text-base font-bold transition-all focus:outline-none"
             >
               <Send className="h-4 w-4" strokeWidth={1.7} />
               <span>{isSubmitting ? t('sendingButton', lingua) : t('sendButton', lingua)}</span>

@@ -62,7 +62,7 @@ export default function ExportJpegButton({ targetId, filename, children }: Expor
   }
 
   return (
-    <button className={styles.exportButton} type="button" onClick={handleDownload} disabled={isExporting}>
+    <button className={`${styles.exportButton} notebook-action notebook-action-primary`} type="button" onClick={handleDownload} disabled={isExporting}>
       <Download aria-hidden="true" size={18} strokeWidth={1.8} />
       <span>{isExporting ? 'Preparo JPEG' : children ?? 'Scarica JPEG'}</span>
     </button>

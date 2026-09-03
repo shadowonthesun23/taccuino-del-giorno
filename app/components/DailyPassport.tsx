@@ -70,11 +70,11 @@ export default function DailyPassport({
           <p>{label.subtitle}</p>
         </div>
         <div className="daily-passport-actions">
-          <button type="button" className="daily-passport-print-button" onClick={() => window.print()}>
+          <button type="button" className="daily-passport-print-button notebook-action notebook-action-primary" onClick={() => window.print()}>
             <FileDown className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
             <span>{label.download}</span>
           </button>
-          <button type="button" className="daily-passport-close-button" onClick={onClose} aria-label={label.close}>
+          <button type="button" className="daily-passport-close-button notebook-action notebook-action-icon" onClick={onClose} aria-label={label.close}>
             <X className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
           </button>
         </div>
@@ -198,7 +198,7 @@ export default function DailyPassport({
       </div>
 
       <div className="daily-passport-mobile-actions">
-        <button type="button" className="daily-passport-print-button" onClick={() => window.print()}>
+        <button type="button" className="daily-passport-print-button notebook-action notebook-action-primary" onClick={() => window.print()}>
           <Printer className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
           <span>{label.print}</span>
         </button>

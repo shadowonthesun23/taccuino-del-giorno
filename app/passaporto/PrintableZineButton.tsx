@@ -84,7 +84,7 @@ export default function PrintableZineButton({ targetId, filename }: PrintableZin
   return (
     <>
       <div className={styles.printableAction}>
-        <button className={styles.exportButton} type="button" onClick={handlePrintableClick} disabled={isExporting}>
+        <button className={`${styles.exportButton} notebook-action notebook-action-primary`} type="button" onClick={handlePrintableClick} disabled={isExporting}>
           <FileText aria-hidden="true" size={18} strokeWidth={1.8} />
           <span>{isExporting ? 'Preparo il PDF' : 'Crea il libricino A4'}</span>
         </button>
@@ -98,7 +98,7 @@ export default function PrintableZineButton({ targetId, filename }: PrintableZin
           if (event.target === event.currentTarget) setGuideOpen(false);
         }}>
           <section className={styles.guideDialog} role="dialog" aria-modal="true" aria-labelledby="zine-guide-title">
-            <button className={styles.guideClose} type="button" onClick={() => setGuideOpen(false)} aria-label="Chiudi la guida">
+            <button className={`${styles.guideClose} notebook-action notebook-action-icon`} type="button" onClick={() => setGuideOpen(false)} aria-label="Chiudi la guida">
               <X aria-hidden="true" />
             </button>
 
@@ -135,7 +135,7 @@ export default function PrintableZineButton({ targetId, filename }: PrintableZin
                 />
                 <span>La prossima volta scarica direttamente</span>
               </label>
-              <button className={styles.guideDownload} type="button" onClick={handleConfirmedDownload} disabled={isExporting}>
+              <button className={`${styles.guideDownload} notebook-action notebook-action-primary`} type="button" onClick={handleConfirmedDownload} disabled={isExporting}>
                 {isExporting ? <span>Preparo il PDF…</span> : (
                   <>
                     <Download aria-hidden="true" />

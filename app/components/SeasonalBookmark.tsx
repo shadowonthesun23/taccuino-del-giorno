@@ -533,7 +533,7 @@ export default function SeasonalBookmark({
             </span>
             <button
               type="button"
-              className="seasonal-bookmark-download"
+              className="seasonal-bookmark-download notebook-action notebook-action-compact notebook-action-secondary"
               data-ticket-export-ignore="true"
               disabled={exportingTicket}
               aria-label={t('downloadTicketAria', lingua)}
@@ -677,7 +677,7 @@ export default function SeasonalBookmark({
           <div className="ticket-download-ready-card">
             <button
               type="button"
-              className="ticket-download-ready-close"
+              className="ticket-download-ready-close notebook-action notebook-action-icon"
               onClick={dismissPreparedTicket}
               aria-label={t('close', lingua)}
             >
@@ -693,6 +693,7 @@ export default function SeasonalBookmark({
             <a
               href={preparedTicketDownload.url}
               download={preparedTicketDownload.filename}
+              className="notebook-action notebook-action-primary"
               onClick={() => window.setTimeout(dismissPreparedTicket, 2_000)}
             >
               {t('saveTicket', lingua)}

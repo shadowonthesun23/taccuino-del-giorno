@@ -653,7 +653,7 @@ export default function DailyPostcard({
           <button type="button" className="daily-postcard-modal-backdrop" aria-label={copy.close} onClick={closePostcard} />
           <section className="daily-postcard-dialog" role="dialog" aria-modal="true" aria-labelledby="daily-postcard-title">
             <h2 id="daily-postcard-title" className="sr-only">{copy.dailyPostcard}: {dateLabel}</h2>
-            <button type="button" className="daily-postcard-close" onClick={closePostcard} aria-label={copy.close}>
+            <button type="button" className="daily-postcard-close notebook-action notebook-action-icon" onClick={closePostcard} aria-label={copy.close}>
               <X aria-hidden="true" strokeWidth={1.5} />
             </button>
             <div className={`daily-postcard-stage ${isEditing ? 'is-editing' : ''}`} onPointerMove={handlePostcardPointerMove} onPointerLeave={handlePostcardPointerLeave}>
@@ -702,7 +702,7 @@ export default function DailyPostcard({
             <p className="daily-postcard-turn-hint"><Sparkles aria-hidden="true" strokeWidth={1.5} />{isEditing ? copy.editingHint : (isFlipped ? copy.flipBack : copy.flipForward)}</p>
             <button
               type="button"
-              className={`daily-postcard-edit ${isEditing ? 'is-active' : ''}`}
+              className={`daily-postcard-edit notebook-action notebook-action-compact notebook-action-secondary ${isEditing ? 'is-active' : ''}`}
               disabled={Boolean(exportingPostcard)}
               aria-label={isEditing ? copy.finishEditing : copy.editAddress}
               aria-pressed={isEditing}
@@ -713,7 +713,7 @@ export default function DailyPostcard({
             </button>
             <button
               type="button"
-              className="daily-postcard-download"
+              className="daily-postcard-download notebook-action notebook-action-compact notebook-action-secondary"
               disabled={Boolean(exportingPostcard)}
               aria-label={isFlipped ? copy.downloadBack : copy.downloadFront}
               title={isFlipped ? copy.downloadBack : copy.downloadFront}

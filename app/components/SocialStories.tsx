@@ -620,7 +620,7 @@ export function SocialStoriesGallery({ className = '', ...props }: SocialStories
               </SocialStoryPreview>
               <button
                 type="button"
-                className="social-story-download-button"
+                className="social-story-download-button notebook-action notebook-action-secondary"
                 disabled={Boolean(exporting)}
                 onClick={() => void downloadVariant(variant)}
               >
@@ -633,7 +633,7 @@ export function SocialStoriesGallery({ className = '', ...props }: SocialStories
       </div>
       <button
         type="button"
-        className="social-stories-download-all"
+        className="social-stories-download-all notebook-action notebook-action-primary"
         disabled={Boolean(exporting)}
         onClick={() => void downloadAll()}
       >
@@ -676,7 +676,7 @@ export function SocialStoriesModal({
             <p className="social-stories-dialog-kicker">9:16 · PNG</p>
             <h2 id="social-stories-dialog-title">{title}</h2>
           </div>
-          <button type="button" className="social-stories-close" aria-label={t('close', props.lingua)} onClick={onClose}>
+          <button type="button" className="social-stories-close notebook-action notebook-action-icon" aria-label={t('close', props.lingua)} onClick={onClose}>
             <X aria-hidden="true" strokeWidth={1.45} />
           </button>
         </header>

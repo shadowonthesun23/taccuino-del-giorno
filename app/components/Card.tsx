@@ -296,7 +296,7 @@ export default function Card({
             disabled={exporting}
             aria-label="Scarica come immagine"
             data-label="Scarica come immagine"
-            className={`card-export-button ${isDark ? 'is-dark' : ''}`}
+            className={`card-export-button notebook-action notebook-action-compact notebook-action-icon ${isDark ? 'is-dark' : ''}`}
           >
             {exporting ? (
               <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -315,7 +315,8 @@ export default function Card({
             onClick={onToggleSaved}
             aria-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
             data-label={isSaved ? 'Rimuovi dalle cose custodite' : saveLabel}
-            className={`card-save-button ${filename ? 'has-export' : ''} ${isDark ? 'is-dark' : ''} ${isSaved ? 'is-saved' : ''}`}
+            aria-pressed={isSaved}
+            className={`card-save-button notebook-action notebook-action-compact notebook-action-icon ${filename ? 'has-export' : ''} ${isDark ? 'is-dark' : ''} ${isSaved ? 'is-saved' : ''}`}
           >
             {isSaved ? (
               <BookmarkCheck className="w-3.5 h-3.5" aria-hidden="true" />

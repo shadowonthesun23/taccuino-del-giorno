@@ -209,7 +209,7 @@ function LanguageSelector({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`top-control-button tab-language p-2 rounded-full border backdrop-blur-sm transition-colors ${
+        className={`top-control-button notebook-action notebook-action-icon tab-language p-2 rounded-full border backdrop-blur-sm transition-colors ${
           isOpen
             ? 'border-[#DE6B58] text-[#DE6B58]'
             : isDark
@@ -946,7 +946,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           <CalendarDays className="archive-heading-icon" strokeWidth={1.45} aria-hidden="true" />
           <span className={`${garamond.className} italic font-bold archive-heading-title`}>{t('archiveTitle', lingua)}</span>
         </div>
-        <button onClick={() => setPopoverOpen(false)} className="archive-close" aria-label="Chiudi archivio"><X aria-hidden="true" /></button>
+        <button onClick={() => setPopoverOpen(false)} className="archive-close notebook-action notebook-action-compact notebook-action-icon" aria-label="Chiudi archivio"><X aria-hidden="true" /></button>
       </div>
       {dataSelezionata && dataSelezionata !== oggi && (
         <div className="archive-today-row">
@@ -1041,7 +1041,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           <span className="saved-cards-kicker">{{ IT: 'Il tuo cassetto', EN: 'Your drawer', FR: 'Votre tiroir', DE: 'Deine Schublade', ES: 'Tu cajón', PT: 'Sua gaveta' }[lingua] || 'Your drawer'}</span>
           <h2 className={`${garamond.className} italic font-bold`}>{t('savedPages', lingua)}</h2>
         </div>
-        <button type="button" onClick={() => setSavedDrawerOpen(false)} aria-label={t('close', lingua)}>
+        <button type="button" className="notebook-action notebook-action-compact notebook-action-icon" onClick={() => setSavedDrawerOpen(false)} aria-label={t('close', lingua)}>
           <X aria-hidden="true" />
         </button>
       </header>
@@ -1129,7 +1129,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           <button
             ref={desktopArchiveTriggerRef}
             onClick={(event) => toggleArchive(event.currentTarget)}
-            className="mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
+            className="notebook-action notebook-action-secondary mt-6 inline-flex items-center gap-2 border-2 border-[#DE6B58] text-[#DE6B58] px-6 py-3 rounded-full uppercase tracking-widest text-sm font-bold hover:bg-[#DE6B58] hover:text-white transition-colors"
           >
             <CalendarDays className="w-4 h-4" />Vedi giorni precedenti
           </button>
@@ -1198,7 +1198,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             <button
               ref={desktopArchiveTriggerRef}
               onClick={(event) => toggleArchive(event.currentTarget)}
-              className={`top-control-button tab-archive p-2 rounded-full border backdrop-blur-sm transition-colors ${
+              className={`top-control-button notebook-action notebook-action-icon tab-archive p-2 rounded-full border backdrop-blur-sm transition-colors ${
                 popoverOpen
                   ? 'border-[#DE6B58] text-[#DE6B58]'
                   : isDark
@@ -1220,7 +1220,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             onClick={(event) => {
               toggleSavedDrawer(event.currentTarget);
             }}
-            className={`top-control-button tab-saved p-2 rounded-full border backdrop-blur-sm transition-colors ${
+            className={`top-control-button notebook-action notebook-action-icon tab-saved p-2 rounded-full border backdrop-blur-sm transition-colors ${
               savedDrawerOpen
                 ? 'border-[#DE6B58] text-[#DE6B58]'
                 : isDark
@@ -1237,7 +1237,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
           <button
             onClick={toggleTheme}
-            className={`top-control-button tab-theme p-2 rounded-full border backdrop-blur-sm transition-colors ${
+            className={`top-control-button notebook-action notebook-action-icon tab-theme p-2 rounded-full border backdrop-blur-sm transition-colors ${
               isDark
                 ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
                 : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
@@ -1249,10 +1249,11 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           </button>
 
           <div
-            className={`daily-surface-switch ${garamond.className}`}
+            className={`daily-surface-switch ${dailySurfaceMode === 'ticket' ? 'is-ticket' : 'is-postcard'} ${garamond.className}`}
             role="group"
             aria-label={DAILY_SURFACE_COPY[lingua].label}
           >
+            <span className="daily-surface-switch-thumb" aria-hidden="true" />
             <button
               type="button"
               className={`daily-surface-switch-option ${dailySurfaceMode === 'postcard' ? 'is-selected' : ''}`}
@@ -1400,7 +1401,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           <button
             ref={mobileToolsTriggerRef}
             type="button"
-            className="mobile-tools-trigger"
+            className="mobile-tools-trigger notebook-action notebook-action-icon"
             aria-label={{ IT: 'Apri strumenti', EN: 'Open tools', FR: 'Ouvrir les outils', DE: 'Werkzeuge öffnen', ES: 'Abrir herramientas', PT: 'Abrir ferramentas' }[lingua] || 'Open tools'}
             aria-expanded={mobileToolsOpen}
             aria-controls="mobile-tools-menu"
@@ -1581,7 +1582,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       {!showExportCard && (
         <button
           onClick={() => setShowExportCard(true)}
-          className={`author-share-trigger ${isDark ? 'is-dark' : ''}`}
+          className={`author-share-trigger notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
         >
           <Sparkles className="h-3.5 w-3.5" />
           {{ IT: 'Esporta come immagine', EN: 'Export as image', FR: 'Exporter comme image', DE: 'Als Bild exportieren', ES: 'Exportar como imagen', PT: 'Exportar como imagem' }[lingua] || 'Export as image'}
@@ -1841,7 +1842,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     {(operaMedium || operaDepartment) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[operaMedium, operaDepartment].filter(Boolean).join(' · ')}</p>}
                     {operaSourceUrl && (
                       <div className="flex flex-wrap items-center gap-4 pt-1">
-                        <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}>
+                        <a href={operaSourceUrl} target="_blank" rel="noopener noreferrer" className={`editorial-link-button notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}>
                           <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                           <span>{{ IT: 'Vedi al museo', EN: 'View at the museum', FR: 'Voir au musée', DE: 'Im Museum ansehen', ES: 'Ver en el museo', PT: 'Ver no museu' }[lingua] || 'View at the museum'}</span>
                         </a>
@@ -1934,7 +1935,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     <a
                       href={`https://open.spotify.com/search/${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                      className={`editorial-link-button notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
                     >
                       <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                       <span>Spotify</span>
@@ -1942,7 +1943,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                     <a
                       href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                      className={`editorial-link-button notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
                     >
                       <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                       <span>YouTube</span>
@@ -2074,7 +2075,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                             href={apod.hdurl || apod.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`editorial-link-button ${isDark ? 'is-dark' : ''}`}
+                            className={`editorial-link-button notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
                           >
                             <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                             <span>
@@ -2116,22 +2117,22 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 {t('madeWithLove', lingua)}
               </p>
               <nav className="journal-footer-socials" aria-label={t('socialLinks', lingua)}>
-                <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="X (Twitter)">
+                <a href="https://x.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link notebook-action notebook-action-compact notebook-action-secondary" aria-label="X (Twitter)">
                   <XIcon className="w-4 h-4" />
                   <span>X</span>
                 </a>
-                <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="Instagram">
+                <a href="https://www.instagram.com/antonelloan23/" target="_blank" rel="noopener noreferrer" className="journal-footer-link notebook-action notebook-action-compact notebook-action-secondary" aria-label="Instagram">
                   <InstagramIcon className="w-4 h-4" />
                   <span>Instagram</span>
                 </a>
-                <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link" aria-label="Buy Me a Coffee">
+                <a href="https://buymeacoffee.com/antonello23" target="_blank" rel="noopener noreferrer" className="journal-footer-link notebook-action notebook-action-compact notebook-action-secondary" aria-label="Buy Me a Coffee">
                   <CoffeeIcon className="w-4 h-4" />
                   <span>{t('support', lingua)}</span>
                 </a>
                 <button
                   type="button"
                   onClick={() => setGuestbookOpen(true)}
-                  className="journal-footer-link"
+                  className="journal-footer-link notebook-action notebook-action-compact notebook-action-secondary"
                   aria-label={t('leaveAPenny', lingua)}
                 >
                   <Mail className="w-4 h-4" />
@@ -2139,7 +2140,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 </button>
               </nav>
               <a
-                className={`daily-passport-open-button ${isDark ? 'is-dark' : ''}`}
+                className={`daily-passport-open-button notebook-action notebook-action-primary ${isDark ? 'is-dark' : ''}`}
                 href={`/passaporto?data=${encodeURIComponent(dataExLibris)}`}
                 target="_blank"
                 rel="noopener noreferrer"

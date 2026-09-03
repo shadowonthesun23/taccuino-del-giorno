@@ -126,7 +126,7 @@ export default function AuthorExportCard({
             onClick={onHidePreview}
             title={hidePreviewLabel}
             aria-label={hidePreviewLabel}
-            className={`author-export-action ${isDark ? 'is-dark' : ''}`}
+            className={`author-export-action notebook-action notebook-action-compact notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
           >
             <EyeOff className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{hidePreviewLabel}</span>
@@ -137,7 +137,7 @@ export default function AuthorExportCard({
           disabled={exporting}
           title={saveImageLabel}
           aria-label={saveImageLabel}
-          className={`author-export-action is-primary ${isDark ? 'is-dark' : ''}`}
+          className={`author-export-action notebook-action notebook-action-compact notebook-action-primary is-primary ${isDark ? 'is-dark' : ''}`}
         >
           {exporting ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" /> : <Download className="h-3.5 w-3.5 shrink-0" />}
           <span className="truncate">{exporting ? 'Generando' : saveImageLabel}</span>
