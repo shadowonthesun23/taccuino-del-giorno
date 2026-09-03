@@ -1666,7 +1666,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               {data.parola_giorno.nota && (
                 <aside className={`margin-note ${isDark ? 'is-dark' : ''}`}>
                   <DoodleArrow isDark={isDark} />
-                  <span className={caveat.className}>{getMarginalia(data.parola_giorno.nota)}</span>
+                  <span className={`${caveat.className} word-card-margin-note-text`}>{getMarginalia(data.parola_giorno.nota)}</span>
                 </aside>
               )}
             </Card>

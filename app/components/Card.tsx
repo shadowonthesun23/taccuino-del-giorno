@@ -105,6 +105,7 @@ export default function Card({
         '.music-link-actions',
         '.saint-card-credit',
         '.reading-note',
+        ...(isWordExport ? ['.card-export-watermark'] : []),
         ...(isWordExport ? [] : ['.quote-example-note', '.margin-note']),
         '.editorial-link-button',
         '.opera-postcard-source-label',
@@ -194,6 +195,18 @@ export default function Card({
       exportDateLabel.style.opacity = '0.76';
 
       exportMasthead.append(exportWordmark, exportDateLabel);
+
+      if (isWordExport) {
+        const sectionHeading = clone.querySelector('.card-section-heading');
+        const sectionBadge = sectionHeading?.querySelector('.section-typewriter-badge');
+        if (sectionBadge) {
+          const wordMastheadTitle = document.createElement('div');
+          wordMastheadTitle.className = 'social-export-word-masthead-title';
+          wordMastheadTitle.appendChild(sectionBadge.cloneNode(true));
+          exportMasthead.appendChild(wordMastheadTitle);
+        }
+        sectionHeading?.remove();
+      }
 
       const exportSignature = document.createElement('div');
       exportSignature.className = isWordExport ? 'social-export-word-branding' : 'social-export-signature';

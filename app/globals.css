@@ -14430,7 +14430,7 @@ body.museum-room-open :is(
 .social-export-card.editorial-card .card-section-heading,
 .social-export-card.editorial-card .card-section-heading *,
 .social-export-card.editorial-card .card-content,
-.social-export-card.editorial-card .card-content :not(.decorative-initial) {
+.social-export-card.editorial-card .card-content :not(.decorative-initial):not(.word-card-margin-note-text) {
   font-family: inherit !important;
 }
 
@@ -18180,12 +18180,62 @@ body.museum-room-open :is(
 
 /* ── Word social folio: the word replaces the photograph as the focal point ── */
 .social-export-frame-word .social-export-masthead {
-  align-items: flex-start !important;
-  justify-content: flex-start !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
 }
 
 .social-export-frame-word .social-export-masthead-wordmark {
   display: none !important;
+}
+
+/* Keep the section label in the same editorial header as the date. It is a
+   secondary signal, but no longer floats inside the content column. */
+.social-export-frame-word .social-export-word-masthead-title {
+  align-items: flex-end;
+  display: flex;
+  margin-left: auto;
+  max-width: 52%;
+  text-align: right;
+}
+
+.social-export-frame-word .social-export-word-masthead-title .section-typewriter-badge {
+  align-items: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #243d5d !important;
+  display: inline-flex !important;
+  font-family: inherit !important;
+  font-size: 30px !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  gap: 12px !important;
+  letter-spacing: 0.018em !important;
+  line-height: 1 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.social-export-frame-word .social-export-word-masthead-title .badge-tape-bg {
+  display: none !important;
+}
+
+.social-export-frame-word .social-export-word-masthead-title .section-typewriter-badge span:not(.badge-tape-bg) {
+  color: currentColor !important;
+}
+
+.social-export-frame-word .social-export-word-masthead-title svg {
+  color: #e5b869 !important;
+  flex: 0 0 auto;
+  height: 30px !important;
+  width: 30px !important;
+}
+
+.social-export-frame-word.is-dark .social-export-word-masthead-title .section-typewriter-badge {
+  color: #dfb58c !important;
 }
 
 .social-export-frame-word .social-export-masthead-date {
