@@ -34,6 +34,7 @@ import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-tran
 import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { garamond, caveat, janeAust, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
+import { getWordSocialCardLayout } from '@/app/lib/wordCardDesign';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import {
   DEFAULT_EDITORIAL_MEDIA_CROP,
@@ -1143,6 +1144,13 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   if (!data) return null;
 
   const authorDescription = sanitizeAuthorDescription(data.breve_descrizione);
+  const wordSocialLayout = getWordSocialCardLayout(
+    data.parola_giorno.parola,
+    data.parola_giorno.etimologia,
+    data.parola_giorno.definizione,
+    data.parola_giorno.esempio,
+    data.parola_giorno.nota,
+  );
   const localSeasonPreview = process.env.NODE_ENV === 'development' && isMounted
     ? new URLSearchParams(window.location.search).get('season')
     : null;
@@ -1635,10 +1643,12 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
               exportDate={formatExLibrisDate(dataExLibris)}
+              socialExportVariant="word"
+              socialExportLayout={wordSocialLayout}
               isSaved={isCardSaved('parola')}
               onToggleSaved={() => saveCard('parola', data.parola_giorno.parola, data.parola_giorno.definizione, data.parola_giorno.etimologia)}>
-              <div className="text-center mb-6">
-                <h4 className={`card-primary-title text-4xl font-bold text-[#DE6B58] mb-2 ${
+              <div className="word-card-intro text-center mb-6">
+                <h4 className={`word-card-word card-primary-title text-4xl font-bold text-[#DE6B58] mb-2 ${
                   data.parola_giorno.parola.trim().length > 24
                     ? 'is-extra-long-word'
                     : data.parola_giorno.parola.trim().length > 16
@@ -1647,11 +1657,11 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                         ? 'is-wide-word'
                         : ''
                 }`}>{data.parola_giorno.parola}</h4>
-                <p className={`card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
+                <p className={`word-card-etymology card-secondary-meta ${themeClasses.textMuted} italic font-medium text-lg`}>{data.parola_giorno.etimologia}</p>
               </div>
-              <p className="card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{{ IT: 'Definizione', EN: 'Definition', FR: 'Définition', DE: 'Definition', ES: 'Definición', PT: 'Definição' }[lingua] || 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
+              <p className="word-card-definition card-body-copy text-xl font-medium mb-4"><strong className="font-bold">{{ IT: 'Definizione', EN: 'Definition', FR: 'Définition', DE: 'Definition', ES: 'Definición', PT: 'Definição' }[lingua] || 'Definition'}:</strong> {data.parola_giorno.definizione}</p>
               {data.parola_giorno.esempio && data.parola_giorno.esempio.trim() !== '' && data.parola_giorno.esempio !== 'null' && (
-                <p className={`text-lg font-medium italic quote-example-note ${isDark ? 'is-dark' : ''}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
+                <p className={`word-card-example text-lg font-medium italic quote-example-note ${isDark ? 'is-dark' : ''}`}>&quot;{data.parola_giorno.esempio}&quot;</p>
               )}
               {data.parola_giorno.nota && (
                 <aside className={`margin-note ${isDark ? 'is-dark' : ''}`}>

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 import { Bookmark, BookmarkCheck, Download } from 'lucide-react';
-import { garamond, masterSignature } from '@/lib/fonts';
+import { garamond, janeAust, masterSignature } from '@/lib/fonts';
 import { SITE_WATERMARK } from '@/lib/constants';
 
 
@@ -36,6 +36,14 @@ const SOCIAL_EXPORT_TARGET_HEIGHTS: Record<string, number> = {
   apod: 1460,
 };
 
+interface SocialExportLayoutHint {
+  variant: string;
+  wordTier?: string;
+  wordMaxLines?: number;
+  definitionMaxLines?: number;
+  exampleMaxLines?: number;
+}
+
 interface CardProps {
   id?: string;
   title?: React.ReactNode;
@@ -48,6 +56,8 @@ interface CardProps {
   onToggleSaved?: () => void;
   saveLabel?: string;
   exportDate?: string;
+  socialExportVariant?: 'default' | 'word';
+  socialExportLayout?: SocialExportLayoutHint;
 }
 
 export default function Card({
@@ -62,9 +72,12 @@ export default function Card({
   onToggleSaved,
   saveLabel = 'Custodisci questa scheda',
   exportDate,
+  socialExportVariant = 'default',
+  socialExportLayout,
 }: CardProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
+  const isWordExport = socialExportVariant === 'word';
 
   const handleExport = useCallback(async () => {
     if (!sectionRef.current || exporting) return;
@@ -86,23 +99,21 @@ export default function Card({
 
       const source = sectionRef.current;
       const clone = source.cloneNode(true) as HTMLElement;
-      clone.querySelectorAll(
-        [
-          '[data-export-ignore]',
-          'button',
-          '.music-link-actions',
-          '.saint-card-credit',
-          '.reading-note',
-          '.quote-example-note',
-          '.margin-note',
-          '.editorial-link-button',
-          '.opera-postcard-source-label',
-          '.apod-postcard-source-label',
-        ].join(', ')
-      ).forEach((node) => node.remove());
+      const exportIgnoreSelectors = [
+        '[data-export-ignore]',
+        'button',
+        '.music-link-actions',
+        '.saint-card-credit',
+        '.reading-note',
+        ...(isWordExport ? [] : ['.quote-example-note', '.margin-note']),
+        '.editorial-link-button',
+        '.opera-postcard-source-label',
+        '.apod-postcard-source-label',
+      ];
+      clone.querySelectorAll(exportIgnoreSelectors.join(', ')).forEach((node) => node.remove());
 
       exportFrame = document.createElement('div');
-      exportFrame.className = `${garamond.className} social-export-frame${isDark ? ' is-dark' : ''}`;
+      exportFrame.className = `${garamond.className} social-export-frame${isDark ? ' is-dark' : ''}${isWordExport ? ' social-export-frame-word' : ''}`;
       exportFrame.style.position = 'fixed';
       exportFrame.style.left = '0';
       exportFrame.style.top = '0';
@@ -119,8 +130,8 @@ export default function Card({
       exportFrame.style.backgroundColor = isDark ? '#201d19' : '#eee5d3';
       exportFrame.style.backgroundImage = [
         isDark
-          ? 'linear-gradient(160deg, rgba(32, 29, 25, 0.94), rgba(42, 37, 32, 0.9))'
-          : 'linear-gradient(160deg, rgba(246, 239, 226, 0.8), rgba(238, 229, 211, 0.88))',
+          ? `linear-gradient(160deg, rgba(32, 29, 25, ${isWordExport ? '0.97' : '0.94'}), rgba(42, 37, 32, ${isWordExport ? '0.95' : '0.9'}))`
+          : `linear-gradient(160deg, rgba(246, 239, 226, ${isWordExport ? '0.95' : '0.8'}), rgba(238, 229, 211, ${isWordExport ? '0.96' : '0.88'}))`,
         'url("/images/sfondo-taccuino.webp")',
         isDark
           ? 'radial-gradient(ellipse 80% 45% at 50% 16%, rgba(222, 183, 133, 0.12), transparent 70%)'
@@ -148,6 +159,7 @@ export default function Card({
       exportVignette.style.zIndex = '0';
 
       const exportMasthead = document.createElement('div');
+      exportMasthead.className = `social-export-masthead${isWordExport ? ' social-export-masthead-word' : ''}`;
       exportMasthead.style.position = 'absolute';
       exportMasthead.style.top = '62px';
       exportMasthead.style.left = '72px';
@@ -164,7 +176,7 @@ export default function Card({
       exportMasthead.style.zIndex = '3';
 
       const exportWordmark = document.createElement('span');
-      exportWordmark.className = masterSignature.className;
+      exportWordmark.className = `${masterSignature.className} social-export-masthead-wordmark`;
       exportWordmark.textContent = 'Il giorno da custodire';
       exportWordmark.style.fontSize = '48px';
       exportWordmark.style.lineHeight = '0.88';
@@ -172,30 +184,45 @@ export default function Card({
       exportWordmark.style.transform = 'translateY(2px) rotate(-0.3deg)';
 
       const exportDateLabel = document.createElement('span');
+      exportDateLabel.className = 'social-export-masthead-date';
       exportDateLabel.textContent = exportDate || 'Edizione quotidiana';
-      exportDateLabel.style.fontSize = '19px';
+      exportDateLabel.style.fontSize = isWordExport ? '48px' : '19px';
       exportDateLabel.style.fontStyle = 'normal';
-      exportDateLabel.style.letterSpacing = '0.13em';
-      exportDateLabel.style.textTransform = 'uppercase';
+      exportDateLabel.style.letterSpacing = isWordExport ? '0.025em' : '0.13em';
+      exportDateLabel.style.textTransform = isWordExport ? 'none' : 'uppercase';
       exportDateLabel.style.whiteSpace = 'nowrap';
       exportDateLabel.style.opacity = '0.76';
 
       exportMasthead.append(exportWordmark, exportDateLabel);
 
       const exportSignature = document.createElement('div');
-      exportSignature.textContent = 'Un foglio quotidiano di cultura, memoria e ascolto';
+      exportSignature.className = isWordExport ? 'social-export-word-branding' : 'social-export-signature';
       exportSignature.style.position = 'absolute';
       exportSignature.style.left = '0';
       exportSignature.style.right = '0';
       exportSignature.style.bottom = '56px';
       exportSignature.style.color = isDark ? 'rgba(238,229,211,0.48)' : 'rgba(79,59,45,0.48)';
-      exportSignature.style.fontSize = '19px';
-      exportSignature.style.fontStyle = 'italic';
-      exportSignature.style.letterSpacing = '0.09em';
+      exportSignature.style.fontSize = isWordExport ? '64px' : '19px';
+      exportSignature.style.fontStyle = isWordExport ? 'normal' : 'italic';
+      exportSignature.style.letterSpacing = isWordExport ? '0.022em' : '0.09em';
       exportSignature.style.lineHeight = '1';
       exportSignature.style.textAlign = 'center';
-      exportSignature.style.transform = 'rotate(-0.5deg)';
+      exportSignature.style.transform = isWordExport ? 'rotate(-0.3deg)' : 'rotate(-0.5deg)';
       exportSignature.style.pointerEvents = 'none';
+
+      if (isWordExport) {
+        const wordmark = document.createElement('span');
+        wordmark.className = `${janeAust.className} social-export-word-branding-mark`;
+        wordmark.textContent = 'Il giorno da custodire';
+
+        const site = document.createElement('span');
+        site.className = 'social-export-word-branding-site';
+        site.textContent = SITE_WATERMARK;
+
+        exportSignature.append(wordmark, site);
+      } else {
+        exportSignature.textContent = 'Un foglio quotidiano di cultura, memoria e ascolto';
+      }
 
       const contentMaxWidth = SOCIAL_EXPORT_WIDTH - SOCIAL_EXPORT_SIDE_PADDING * 2;
       const contentMaxHeight = SOCIAL_EXPORT_HEIGHT - SOCIAL_EXPORT_TOP_PADDING - SOCIAL_EXPORT_BOTTOM_PADDING;
@@ -221,6 +248,14 @@ export default function Card({
       clone.classList.add(garamond.className, 'social-export-card');
       if (isDark) clone.classList.add('is-dark');
       if (id) clone.dataset.socialExportSection = id;
+      if (socialExportVariant !== 'default') clone.dataset.socialExportVariant = socialExportVariant;
+      if (socialExportLayout) {
+        clone.dataset.socialExportLayout = socialExportLayout.variant;
+        if (socialExportLayout.wordTier) clone.dataset.socialExportWordTier = socialExportLayout.wordTier;
+        if (socialExportLayout.wordMaxLines) clone.dataset.socialExportWordLines = String(socialExportLayout.wordMaxLines);
+        if (socialExportLayout.definitionMaxLines) clone.dataset.socialExportDefinitionLines = String(socialExportLayout.definitionMaxLines);
+        if (socialExportLayout.exampleMaxLines) clone.dataset.socialExportExampleLines = String(socialExportLayout.exampleMaxLines);
+      }
       measureWrap.appendChild(clone);
       document.body.appendChild(measureWrap);
 
@@ -278,7 +313,7 @@ export default function Card({
       exportFrame?.remove();
       setExporting(false);
     }
-  }, [exportDate, exporting, filename, id, isDark]);
+  }, [exportDate, exporting, filename, id, isDark, isWordExport, socialExportLayout, socialExportVariant]);
 
   return (
     <div id={id} className={className}>
