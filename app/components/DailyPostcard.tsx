@@ -17,6 +17,7 @@ const eagerImageProps = getImageLoadingProps(true);
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
 const POSTCARD_ADDRESS_LINE_COUNT = 5;
 const POSTCARD_ADDRESS_MAX_LENGTH = 240;
+const POSTCARD_EXIT_DURATION_MS = 460;
 
 function fitPostcardAddressText(value: string, textarea: HTMLTextAreaElement) {
   const maximumHeight = Math.ceil(textarea.clientHeight);
@@ -431,6 +432,7 @@ export default function DailyPostcard({
 }) {
   const [desktopEnabled, setDesktopEnabled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingPostcard, setExportingPostcard] = useState<DailyPostcardFace | null>(null);
@@ -439,6 +441,7 @@ export default function DailyPostcard({
   const postcardCardRef = useRef<HTMLDivElement>(null);
   const postcardMotionRef = useRef<HTMLDivElement>(null);
   const postcardMotionFrameRef = useRef<number | null>(null);
+  const postcardClosingTimerRef = useRef<number | null>(null);
   const postcardMotionTargetRef = useRef({ x: 0, y: 0 });
   const postcardMotionCurrentRef = useRef({ x: 0, y: 0 });
   const addressInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -458,7 +461,12 @@ export default function DailyPostcard({
       const enabled = desktopQuery.matches;
       setDesktopEnabled(enabled);
       if (!enabled || !isActive) {
+        if (postcardClosingTimerRef.current !== null) {
+          window.clearTimeout(postcardClosingTimerRef.current);
+          postcardClosingTimerRef.current = null;
+        }
         setIsOpen(false);
+        setIsClosing(false);
         setIsFlipped(false);
         setIsEditing(false);
       }
@@ -480,11 +488,48 @@ export default function DailyPostcard({
     return () => window.cancelAnimationFrame(frame);
   }, [dataIso]);
 
+  const openPostcard = useCallback(() => {
+    if (!desktopEnabled || !isActive) return;
+    if (postcardClosingTimerRef.current !== null) {
+      window.clearTimeout(postcardClosingTimerRef.current);
+      postcardClosingTimerRef.current = null;
+    }
+    setIsClosing(false);
+    setIsOpen(true);
+  }, [desktopEnabled, isActive]);
+
   const closePostcard = useCallback(() => {
-    setIsOpen(false);
-    setIsFlipped(false);
-    setIsEditing(false);
-  }, []);
+    if (!isOpen || isClosing) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsOpen(false);
+      setIsClosing(false);
+      setIsFlipped(false);
+      setIsEditing(false);
+      return;
+    }
+
+    setIsClosing(true);
+  }, [isClosing, isOpen]);
+
+  useEffect(() => {
+    if (!isClosing) return;
+
+    postcardClosingTimerRef.current = window.setTimeout(() => {
+      postcardClosingTimerRef.current = null;
+      setIsClosing(false);
+      setIsOpen(false);
+      setIsFlipped(false);
+      setIsEditing(false);
+    }, POSTCARD_EXIT_DURATION_MS);
+
+    return () => {
+      if (postcardClosingTimerRef.current !== null) {
+        window.clearTimeout(postcardClosingTimerRef.current);
+        postcardClosingTimerRef.current = null;
+      }
+    };
+  }, [isClosing]);
 
   useEffect(() => {
     if (!isOpen || !isActive) return;
@@ -496,20 +541,20 @@ export default function DailyPostcard({
   }, [closePostcard, isActive, isOpen]);
 
   const handleCardClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (!isActive || isEditing) return;
+    if (!isActive || isEditing || isClosing) return;
     const target = event.target;
     if (target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable="true"]')) return;
     setIsFlipped((current) => !current);
-  }, [isActive, isEditing]);
+  }, [isActive, isClosing, isEditing]);
 
   const handleCardKeyDown = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (!isActive || isEditing) return;
+    if (!isActive || isEditing || isClosing) return;
     const target = event.target;
     if (target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable="true"]')) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     setIsFlipped((current) => !current);
-  }, [isActive, isEditing]);
+  }, [isActive, isClosing, isEditing]);
 
   const handleAddressTextChange = useCallback((value: string, textarea: HTMLTextAreaElement) => {
     setAddressText(fitPostcardAddressText(value, textarea));
@@ -537,7 +582,7 @@ export default function DailyPostcard({
   const postcardOpen = desktopEnabled && isActive && isOpen;
 
   const downloadPostcard = useCallback(async (face: DailyPostcardFace) => {
-    if (!postcardOpen || !postcardCardRef.current || exportingPostcard) return;
+    if (!postcardOpen || isClosing || !postcardCardRef.current || exportingPostcard) return;
 
     setExportingPostcard(face);
     try {
@@ -547,7 +592,7 @@ export default function DailyPostcard({
     } finally {
       setExportingPostcard(null);
     }
-  }, [dataIso, exportingPostcard, postcardOpen]);
+  }, [dataIso, exportingPostcard, isClosing, postcardOpen]);
 
   const applyPostcardMotion = useCallback((x: number, y: number) => {
     const motionLayer = postcardMotionRef.current;
@@ -604,8 +649,20 @@ export default function DailyPostcard({
     schedulePostcardMotion();
   }, [schedulePostcardMotion]);
 
+  useEffect(() => {
+    if (!isClosing) return;
+
+    postcardMotionTargetRef.current = { x: 0, y: 0 };
+    postcardMotionCurrentRef.current = { x: 0, y: 0 };
+    if (postcardMotionFrameRef.current !== null) {
+      window.cancelAnimationFrame(postcardMotionFrameRef.current);
+      postcardMotionFrameRef.current = null;
+    }
+    applyPostcardMotion(0, 0);
+  }, [applyPostcardMotion, isClosing]);
+
   const handlePostcardPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!postcardOpen || isEditing || (event.pointerType && event.pointerType !== 'mouse')) return;
+    if (!postcardOpen || isClosing || isEditing || (event.pointerType && event.pointerType !== 'mouse')) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
@@ -616,7 +673,7 @@ export default function DailyPostcard({
       y: clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1, 1),
     };
     schedulePostcardMotion();
-  }, [isEditing, postcardOpen, schedulePostcardMotion]);
+  }, [isClosing, isEditing, postcardOpen, schedulePostcardMotion]);
 
   const handlePostcardPointerLeave = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType && event.pointerType !== 'mouse') return;
@@ -625,17 +682,18 @@ export default function DailyPostcard({
 
   useEffect(() => () => {
     if (postcardMotionFrameRef.current !== null) window.cancelAnimationFrame(postcardMotionFrameRef.current);
+    if (postcardClosingTimerRef.current !== null) window.clearTimeout(postcardClosingTimerRef.current);
   }, []);
 
   return (
     <aside
-      className={`daily-postcard ${!isActive ? 'is-inactive' : ''} ${postcardOpen ? 'is-open' : ''}`}
+      className={`daily-postcard ${!isActive ? 'is-inactive' : ''} ${postcardOpen ? 'is-open' : ''} ${isClosing ? 'is-closing' : ''}`}
       aria-hidden={!desktopEnabled || !isActive}
       inert={!desktopEnabled || !isActive ? true : undefined}
       aria-label={copy.dailyPostcard}
     >
       {!postcardOpen ? (
-        <button type="button" className="daily-postcard-peek" onClick={() => setIsOpen(true)} aria-label={copy.open}>
+        <button type="button" className="daily-postcard-peek" onClick={openPostcard} aria-label={copy.open}>
           <PostcardFront
             artwork={seasonalArtwork}
             dateLabel={dateLabel}
@@ -656,17 +714,21 @@ export default function DailyPostcard({
             <button type="button" className="daily-postcard-close notebook-action notebook-action-icon" onClick={closePostcard} aria-label={copy.close}>
               <X aria-hidden="true" strokeWidth={1.5} />
             </button>
-            <div className={`daily-postcard-stage ${isEditing ? 'is-editing' : ''}`} onPointerMove={handlePostcardPointerMove} onPointerLeave={handlePostcardPointerLeave}>
+            <div
+              className={`daily-postcard-stage ${isEditing ? 'is-editing' : ''}`}
+              role={isEditing ? undefined : 'button'}
+              tabIndex={isEditing ? undefined : 0}
+              aria-pressed={isEditing ? undefined : isFlipped}
+              aria-label={isEditing ? undefined : (isFlipped ? copy.flipBack : copy.flipForward)}
+              onClick={isEditing ? undefined : handleCardClick}
+              onKeyDown={isEditing ? undefined : handleCardKeyDown}
+              onPointerMove={handlePostcardPointerMove}
+              onPointerLeave={handlePostcardPointerLeave}
+            >
               <div ref={postcardMotionRef} className="daily-postcard-card-motion">
                 <div
                   ref={postcardCardRef}
                   className={`daily-postcard-card ${isFlipped ? 'is-flipped' : ''}`}
-                  role={isEditing ? undefined : 'button'}
-                  tabIndex={isEditing ? undefined : 0}
-                  aria-pressed={isEditing ? undefined : isFlipped}
-                  aria-label={isEditing ? undefined : (isFlipped ? copy.flipBack : copy.flipForward)}
-                  onClick={isEditing ? undefined : handleCardClick}
-                  onKeyDown={isEditing ? undefined : handleCardKeyDown}
                 >
                   <PostcardFront
                     artwork={seasonalArtwork}

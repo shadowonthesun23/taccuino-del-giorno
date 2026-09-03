@@ -5562,6 +5562,10 @@ body.museum-room-open :is(
   z-index: 34;
 }
 
+.daily-postcard.is-closing {
+  pointer-events: none;
+}
+
 .daily-postcard:not(.is-inactive):hover,
 .daily-postcard:not(.is-inactive):focus-within {
   filter: drop-shadow(7px 11px 10px rgba(42,37,34,0.24));
@@ -5843,7 +5847,11 @@ body.museum-room-open :is(
 
 @media (prefers-reduced-motion: no-preference) {
   .daily-postcard-modal-backdrop {
-    animation: dailyPostcardBackdropIn 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: dailyPostcardBackdropIn 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .daily-postcard.is-closing .daily-postcard-modal-backdrop {
+    animation: dailyPostcardBackdropOut 420ms cubic-bezier(0.4, 0, 1, 1) both;
   }
 
   @keyframes dailyPostcardBackdropIn {
@@ -5868,6 +5876,77 @@ body.museum-room-open :is(
       backdrop-filter: blur(9px) saturate(0.82);
     }
   }
+
+  @keyframes dailyPostcardBackdropOut {
+    from {
+      background: rgba(43, 35, 27, 0.2);
+      opacity: 1;
+      -webkit-backdrop-filter: blur(9px) saturate(0.82);
+      backdrop-filter: blur(9px) saturate(0.82);
+    }
+
+    to {
+      background: rgba(43, 35, 27, 0);
+      opacity: 0;
+      -webkit-backdrop-filter: blur(0) saturate(1);
+      backdrop-filter: blur(0) saturate(1);
+    }
+  }
+
+  .daily-postcard-dialog > .daily-postcard-close,
+  .daily-postcard-dialog > .daily-postcard-turn-hint,
+  .daily-postcard-dialog > .daily-postcard-edit,
+  .daily-postcard-dialog > .daily-postcard-download {
+    animation: dailyPostcardChromeIn 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .daily-postcard-dialog > .daily-postcard-close {
+    animation-delay: 90ms;
+  }
+
+  .daily-postcard-dialog > .daily-postcard-turn-hint {
+    animation-delay: 250ms;
+  }
+
+  .daily-postcard-dialog > .daily-postcard-edit {
+    animation-delay: 330ms;
+  }
+
+  .daily-postcard-dialog > .daily-postcard-download {
+    animation-delay: 380ms;
+  }
+
+  .daily-postcard.is-closing .daily-postcard-dialog > .daily-postcard-close,
+  .daily-postcard.is-closing .daily-postcard-dialog > .daily-postcard-turn-hint,
+  .daily-postcard.is-closing .daily-postcard-dialog > .daily-postcard-edit,
+  .daily-postcard.is-closing .daily-postcard-dialog > .daily-postcard-download {
+    animation: dailyPostcardChromeOut 180ms cubic-bezier(0.4, 0, 1, 1) both;
+    pointer-events: none;
+  }
+
+  @keyframes dailyPostcardChromeIn {
+    from {
+      filter: blur(4px);
+      opacity: 0;
+    }
+
+    to {
+      filter: blur(0);
+      opacity: var(--postcard-control-opacity, 1);
+    }
+  }
+
+  @keyframes dailyPostcardChromeOut {
+    from {
+      filter: blur(0);
+      opacity: var(--postcard-control-opacity, 1);
+    }
+
+    to {
+      filter: blur(4px);
+      opacity: 0;
+    }
+  }
 }
 
 .daily-postcard-dialog {
@@ -5884,7 +5963,8 @@ body.museum-room-open :is(
 
 .daily-postcard-stage {
   aspect-ratio: 15 / 10;
-  animation: dailyPostcardStageIn 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: dailyPostcardStageIn 740ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  cursor: pointer;
   max-width: 720px;
   perspective: 1500px;
   perspective-origin: center center;
@@ -5895,27 +5975,47 @@ body.museum-room-open :is(
 
 @keyframes dailyPostcardStageIn {
   from {
-    filter: blur(1.6px);
-    opacity: 0.55;
-    transform: translate3d(62vw, 0, 0) scale(0.62) rotate(5deg);
+    filter: blur(1.8px);
+    opacity: 0.18;
+    transform: translate3d(38vw, 16px, 0) scale(0.88) rotate(3.2deg);
   }
 
-  38% {
-    filter: blur(0.7px);
-    opacity: 0.86;
-    transform: translate3d(35vw, 0, 0) scale(0.78) rotate(3deg);
+  44% {
+    filter: blur(0.42px);
+    opacity: 0.92;
+    transform: translate3d(9vw, 4px, 0) scale(0.98) rotate(0.65deg);
   }
 
-  76% {
-    filter: blur(0.12px);
+  78% {
+    filter: blur(0);
     opacity: 1;
-    transform: translate3d(4vw, 0, 0) scale(0.98) rotate(0.35deg);
+    transform: translate3d(-0.7vw, 0, 0) scale(1.008) rotate(-0.12deg);
   }
 
   to {
     filter: blur(0);
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes dailyPostcardStageOut {
+  from {
+    filter: blur(0);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+
+  48% {
+    filter: blur(0.08px);
+    opacity: 0.94;
+    transform: translate3d(5vw, -3px, 0) scale(0.985) rotate(-0.55deg);
+  }
+
+  to {
+    filter: blur(1.8px);
+    opacity: 0;
+    transform: translate3d(36vw, 15px, 0) scale(0.88) rotate(3.2deg);
   }
 }
 
@@ -5975,8 +6075,32 @@ body.museum-room-open :is(
   will-change: auto;
 }
 
+.daily-postcard-stage.is-editing {
+  cursor: default;
+}
+
 .daily-postcard-stage.is-editing .daily-postcard-card {
   cursor: default;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .daily-postcard.is-closing .daily-postcard-stage {
+    animation: dailyPostcardStageOut 460ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+}
+
+.daily-postcard.is-closing .daily-postcard-modal-backdrop,
+.daily-postcard.is-closing .daily-postcard-stage,
+.daily-postcard.is-closing .daily-postcard-close,
+.daily-postcard.is-closing .daily-postcard-turn-hint,
+.daily-postcard.is-closing .daily-postcard-edit,
+.daily-postcard.is-closing .daily-postcard-download {
+  pointer-events: none;
+}
+
+.daily-postcard.is-closing .daily-postcard-card-motion {
+  transform: none;
+  will-change: auto;
 }
 
 .daily-postcard-card {
@@ -5994,7 +6118,7 @@ body.museum-room-open :is(
   z-index: 1;
 }
 
-.daily-postcard-card:focus-visible {
+.daily-postcard-stage:focus-visible {
   outline: 2px solid #de6b58;
   outline-offset: 9px;
 }
@@ -6497,6 +6621,7 @@ body.museum-room-open :is(
   letter-spacing: 0.05em;
   margin: 14px 0 0;
   opacity: 0.82;
+  --postcard-control-opacity: 0.82;
   pointer-events: auto;
   text-transform: uppercase;
 }
@@ -6614,6 +6739,7 @@ body.museum-room-open :is(
   display: flex;
   height: 40px;
   justify-content: center;
+  pointer-events: auto;
   position: fixed;
   right: 22px;
   top: 22px;
