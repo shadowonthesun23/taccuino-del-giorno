@@ -127,6 +127,35 @@ function normalizedAuthorCardText(value: string): string {
 }
 
 /**
+ * Keeps the social-card author lockup on two deliberate levels instead of
+ * leaving the browser to choose an incidental wrap point. For compound names
+ * the split nearest to a balanced measure keeps both levels visually stable.
+ */
+export function splitAuthorNameForSocialCard(value: string): string[] {
+  const normalized = normalizedAuthorCardText(value);
+  if (!normalized) return [];
+
+  const words = normalized.split(' ');
+  if (words.length <= 1) return words;
+
+  let bestSplit = 1;
+  let bestImbalance = Number.POSITIVE_INFINITY;
+
+  for (let split = 1; split < words.length; split += 1) {
+    const firstLine = words.slice(0, split).join(' ');
+    const secondLine = words.slice(split).join(' ');
+    const imbalance = Math.abs(firstLine.length - secondLine.length);
+
+    if (imbalance < bestImbalance) {
+      bestImbalance = imbalance;
+      bestSplit = split;
+    }
+  }
+
+  return [words.slice(0, bestSplit).join(' '), words.slice(bestSplit).join(' ')];
+}
+
+/**
  * Deterministic geometry for the social author folio.
  *
  * The client preview and any future renderer can use the same content tiers:
@@ -144,6 +173,7 @@ export function getAuthorSocialCardLayout(
   const authorLength = normalizedAuthorCardText(author).length;
   const descriptionLength = normalizedAuthorCardText(description).length;
   const dateLength = normalizedAuthorCardText(date).length;
+  const authorNameLines = splitAuthorNameForSocialCard(author);
 
   const citationTier = citationLength <= 120 ? 'short' : citationLength <= 250 ? 'medium' : 'long';
   const authorTier = authorLength <= 24 ? 'short' : authorLength <= 38 ? 'medium' : 'long';
@@ -195,7 +225,7 @@ export function getAuthorSocialCardLayout(
     nameWidth: variant === 'airy' ? 620 : variant === 'balanced' ? 610 : 594,
     nameFontSize,
     nameLineHeight: authorLength > 46 ? 0.94 : 0.98,
-    nameMaxLines: authorLength > 46 ? 3 : 2,
+    nameMaxLines: authorNameLines.length > 1 ? 2 : 1,
     descriptionTop,
     descriptionLeft: 82,
     descriptionWidth,

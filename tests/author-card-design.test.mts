@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getAuthorSocialCardLayout } from '../app/lib/authorCardDesign.ts';
+import { getAuthorSocialCardLayout, splitAuthorNameForSocialCard } from '../app/lib/authorCardDesign.ts';
 
 test('keeps short author cards airy and gives short quotes generous type', () => {
   const layout = getAuthorSocialCardLayout(
@@ -28,13 +28,20 @@ test('reduces density progressively for long names and long quotes', () => {
   );
 
   assert.equal(layout.variant, 'compact');
-  assert.equal(layout.nameMaxLines, 3);
+  assert.equal(layout.nameMaxLines, 2);
   assert.ok(layout.nameFontSize < 128);
   assert.ok(layout.quoteFontSize <= 50);
   assert.equal(layout.quoteMaxLines, 10);
   assert.equal(layout.photoWidth, 474);
   assert.ok(layout.descriptionFontSize >= 30);
   assert.ok(layout.quoteTop > layout.descriptionTop);
+});
+
+test('splits social author names into two deliberate levels', () => {
+  assert.deepEqual(splitAuthorNameForSocialCard('Joseph Roth'), ['Joseph', 'Roth']);
+  assert.deepEqual(splitAuthorNameForSocialCard('Eduardo Galeano'), ['Eduardo', 'Galeano']);
+  assert.deepEqual(splitAuthorNameForSocialCard('Gabriel García Márquez'), ['Gabriel', 'García Márquez']);
+  assert.deepEqual(splitAuthorNameForSocialCard('Mononym'), ['Mononym']);
 });
 
 test('keeps missing-photo geometry deterministic while switching to initials', () => {

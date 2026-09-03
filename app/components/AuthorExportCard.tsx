@@ -11,6 +11,7 @@ import {
   formatAuthorCardDate,
   getAuthorInitials,
   getAuthorSocialCardLayout,
+  splitAuthorNameForSocialCard,
 } from '@/app/lib/authorCardDesign';
 import type { EditorialMediaCrop } from '@/lib/editorial-media';
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
@@ -81,6 +82,7 @@ export default function AuthorExportCard({
   );
   const citationText = clampText(citazione.testo, layout.quoteMaxChars);
   const descriptionText = authorDescription;
+  const authorNameLines = splitAuthorNameForSocialCard(authorName);
   const initials = getAuthorInitials(authorName).slice(0, 3) || 'TDG';
   const firstLetterIndex = citationText.search(/\p{L}/u);
   const quoteInitialIndex = firstLetterIndex >= 0 ? firstLetterIndex : citationText ? 0 : -1;
@@ -133,10 +135,9 @@ export default function AuthorExportCard({
   const nameStyle: CSSProperties = {
     fontSize: `${layout.nameFontSize}px`,
     lineHeight: layout.nameLineHeight,
-    maxHeight: `${layout.nameFontSize * layout.nameLineHeight * layout.nameMaxLines + 16}px`,
     width: `${layout.nameWidth}px`,
-    WebkitBoxOrient: 'vertical',
-    WebkitLineClamp: layout.nameMaxLines,
+    display: 'block',
+    overflow: 'visible',
   };
 
   const descriptionStyle: CSSProperties = {
@@ -300,7 +301,11 @@ export default function AuthorExportCard({
               ...nameStyle,
             }}
           >
-            {authorName}
+            {authorNameLines.map((line, index) => (
+              <span key={`${line}-${index}`} style={{ display: 'block' }}>
+                {line}
+              </span>
+            ))}
           </h2>
 
           <p
