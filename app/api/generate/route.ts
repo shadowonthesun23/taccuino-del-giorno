@@ -1,11 +1,126 @@
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI, type GenerateContentResult } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  GoogleGenerativeAIAbortError,
+  GoogleGenerativeAIFetchError,
+  GoogleGenerativeAIResponseError,
+  type GenerateContentResult,
+  type GenerativeModel,
+} from "@google/generative-ai";
 import { getEditorAuthorization } from '@/lib/editor-auth';
 
 export const maxDuration = 60;
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
+const GEMINI_ATTEMPT_TIMEOUT_MS = 20_000;
+const GEMINI_GENERATION_BUDGET_MS = 52_000;
+const GEMINI_BUDGET_RESERVE_MS = 500;
+const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
+const MAX_FULL_GENERATION_ATTEMPTS = 2;
+const MAX_WORD_REPAIR_ATTEMPTS = 2;
+const RETRY_BACKOFF_MS = 250;
+
+class GenerationBudgetError extends Error {}
+
+class InvalidGeneratedJsonError extends Error {}
+
+class MissingGeneratedResponseError extends Error {}
+
+class EditorialQualityError extends Error {
+  readonly issues: string[];
+
+  constructor(issues: string[]) {
+    super(`Controllo editoriale fallito: ${issues.join('; ')}`);
+    this.issues = issues;
+  }
+}
+
+type TechnicalErrorKind = 'timeout' | 'network' | 'api' | 'json' | 'response' | 'budget';
+
+function getElapsedGenerationMs(startedAt: number): number {
+  return Math.max(0, Date.now() - startedAt);
+}
+
+function getRemainingGenerationMs(startedAt: number): number {
+  return Math.max(0, GEMINI_GENERATION_BUDGET_MS - getElapsedGenerationMs(startedAt));
+}
+
+function getGenerationTiming(startedAt: number): string {
+  return `trascorsi ${getElapsedGenerationMs(startedAt)}ms, budget residuo ${getRemainingGenerationMs(startedAt)}ms`;
+}
+
+function getGeminiAttemptTimeout(startedAt: number): number | null {
+  const availableMs = getRemainingGenerationMs(startedAt) - GEMINI_BUDGET_RESERVE_MS;
+  if (availableMs < GEMINI_MIN_REQUEST_TIMEOUT_MS) return null;
+  return Math.min(GEMINI_ATTEMPT_TIMEOUT_MS, availableMs);
+}
+
+function createGenerationBudgetError(operation: string, startedAt: number): GenerationBudgetError {
+  return new GenerationBudgetError(`${operation} interrotta: budget Gemini esaurito (${getGenerationTiming(startedAt)}).`);
+}
+
+function getSafeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : 'errore sconosciuto';
+  return message
+    .replace(/AIza[0-9A-Za-z_-]+/gu, '[redacted]')
+    .slice(0, 240);
+}
+
+function classifyTechnicalError(error: unknown): TechnicalErrorKind {
+  if (error instanceof GenerationBudgetError) return 'budget';
+  if (error instanceof InvalidGeneratedJsonError) return 'json';
+  if (error instanceof MissingGeneratedResponseError || error instanceof GoogleGenerativeAIResponseError) return 'response';
+  if (
+    error instanceof GoogleGenerativeAIAbortError
+    || (error instanceof Error && /abort|timeout|timed out|oltre \d+(?:\.\d+)?s/iu.test(error.message))
+  ) {
+    return 'timeout';
+  }
+  if (
+    error instanceof GoogleGenerativeAIFetchError
+    || (error instanceof Error && /fetch|network|econn|etimedout|enotfound|socket/iu.test(error.message))
+  ) {
+    return 'network';
+  }
+  return 'api';
+}
+
+function logTechnicalError(operation: string, modelName: string, error: unknown, startedAt: number) {
+  const kind = classifyTechnicalError(error);
+  console.warn(
+    `Errore tecnico Gemini (${kind}) — ${operation}, modello ${modelName}; ${getGenerationTiming(startedAt)}: ${getSafeErrorMessage(error)}`,
+  );
+}
+
+async function waitBeforeRetry(startedAt: number) {
+  const remainingMs = getRemainingGenerationMs(startedAt);
+  const delayMs = Math.min(RETRY_BACKOFF_MS, Math.max(0, remainingMs - GEMINI_BUDGET_RESERVE_MS - GEMINI_MIN_REQUEST_TIMEOUT_MS));
+  if (delayMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+}
+
+async function generateWithBudget(
+  model: GenerativeModel,
+  modelName: string,
+  prompt: string,
+  startedAt: number,
+  operation: string,
+): Promise<GenerateContentResult> {
+  const timeoutMs = getGeminiAttemptTimeout(startedAt);
+  if (timeoutMs === null) {
+    throw createGenerationBudgetError(operation, startedAt);
+  }
+
+  console.info(`${operation} modello ${modelName}, timeout ${timeoutMs}ms; ${getGenerationTiming(startedAt)}.`);
+  const controller = new AbortController();
+
+  try {
+    return await model.generateContent(prompt, { timeout: timeoutMs, signal: controller.signal });
+  } finally {
+    controller.abort();
+  }
+}
 
 function getRomeDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -42,21 +157,6 @@ function uniqueModelCandidates(primaryModel?: string) {
   return [primaryModel?.trim(), DEFAULT_GEMINI_MODEL, 'gemini-flash-latest']
     .filter((model): model is string => Boolean(model))
     .filter((model, index, models) => models.indexOf(model) === index);
-}
-
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        timeout = setTimeout(() => reject(new Error(`${label} oltre ${timeoutMs / 1000}s`)), timeoutMs);
-      }),
-    ]);
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
 }
 
 function stripJsonCodeFences(text: string) {
@@ -118,14 +218,43 @@ type GeneratedDailyData = Record<string, unknown> & {
 
 function parseGeneratedJson(responseText: string): GeneratedDailyData {
   const cleanedText = stripJsonCodeFences(responseText);
-  const jsonText = extractFirstJsonObject(cleanedText);
-
   try {
-    return JSON.parse(jsonText) as GeneratedDailyData;
+    const jsonText = extractFirstJsonObject(cleanedText);
+    const parsed = JSON.parse(jsonText);
+    if (!isRecord(parsed)) {
+      throw new Error('Il JSON generato non è un oggetto.');
+    }
+    return parsed as GeneratedDailyData;
   } catch (err) {
-    console.error('Risposta Gemini non parsabile:', cleanedText.slice(0, 1000));
-    throw err;
+    throw new InvalidGeneratedJsonError(
+      `Risposta Gemini non parsabile: ${getSafeErrorMessage(err)}`,
+    );
   }
+}
+
+function getGeneratedResponseText(result: GenerateContentResult): string {
+  const responseText = result.response.text();
+  if (!responseText.trim()) {
+    throw new MissingGeneratedResponseError('Gemini ha restituito una risposta vuota.');
+  }
+  return responseText;
+}
+
+function parseGeneratedDailyWord(responseText: string): GeneratedDailyWord {
+  const parsed = parseGeneratedJson(responseText);
+  const fields: Array<keyof GeneratedDailyWord> = ['parola', 'definizione', 'etimologia', 'esempio', 'nota'];
+
+  if (fields.some((field) => typeof parsed[field] !== 'string')) {
+    throw new InvalidGeneratedJsonError('La risposta per parola_giorno non contiene tutti i campi testuali richiesti.');
+  }
+
+  return {
+    parola: parsed.parola as string,
+    definizione: parsed.definizione as string,
+    etimologia: parsed.etimologia as string,
+    esempio: parsed.esempio as string,
+    nota: parsed.nota as string,
+  };
 }
 
 type RecentContentRecord = {
@@ -149,6 +278,20 @@ const GENERIC_DAILY_WORDS = new Set([
   'giustizia', 'identita', 'liberta', 'memoria', 'responsabilita', 'scelta',
   'speranza', 'tempo', 'verita', 'vita', 'solitudine',
 ]);
+
+const DAILY_WORD_EDITORIAL_RULES = `PAROLA DEL GIORNO: scegli un lemma italiano preciso, colto ma realmente attestato, capace di aprire una sfumatura inattesa del tema. NON usare il semplice nome astratto del tema e non proporre parole generiche come libertà, responsabilità, amore, speranza, fede, verità, vita, memoria, anima, coscienza, scelta, identità, tempo o solitudine. Privilegia termini lessicalmente interessanti, con un'etimologia verificabile e una definizione comprensibile. Non ripetere parole recenti.`;
+
+type GeneratedDailyWord = {
+  parola: string;
+  definizione: string;
+  etimologia: string;
+  esempio: string;
+  nota: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
 
 function normalizeEditorialValue(value: string): string {
   return value
@@ -238,7 +381,139 @@ function validateEditorialQuality(
   return issues;
 }
 
+function isDailyWordIssue(issue: string): boolean {
+  return issue === 'la parola del giorno è assente'
+    || /^la parola "[^"]*" è (?:troppo generica|già stata usata di recente)$/u.test(issue);
+}
+
+function isWordOnlyQualityIssue(issues: string[]): boolean {
+  return issues.length > 0 && issues.every(isDailyWordIssue);
+}
+
+function formatGeneratedContentContext(data: GeneratedDailyData): string {
+  return JSON.stringify({
+    data_odierna: data.data_odierna,
+    autore_giorno: data.autore_giorno,
+    breve_descrizione: data.breve_descrizione,
+    citazione: data.citazione,
+    avvenimenti: data.avvenimenti,
+    santi: data.santi,
+    bibbia: data.bibbia,
+    poesia: data.poesia,
+    musica: data.musica,
+  }, null, 2).slice(0, 16_000);
+}
+
+function buildDailyWordRepairPrompt(
+  candidateData: GeneratedDailyData,
+  dataDiOggiStr: string,
+  recentWordExclusions: string,
+  rejectedWords: string[],
+): string {
+  const latestRejectedWord = rejectedWords[rejectedWords.length - 1] ?? '';
+  const rejectedWordList = rejectedWords.length > 0
+    ? rejectedWords.map((word) => `- ${word}`).join('\n')
+    : '- Nessuna parola specifica: controlla comunque tutte le regole.';
+
+  return `Il JSON completo per il ${dataDiOggiStr} è già stato generato e ha superato tutti i controlli editoriali tranne quelli relativi alla parola del giorno. Non rigenerare né modificare nessun altro campo.
+
+CONTESTO DEL CONTENUTO APPENA GENERATO:
+${formatGeneratedContentContext(candidateData)}
+
+PAROLE RECENTI DA NON RIPETERE:
+${recentWordExclusions || '- Nessuna parola storica disponibile.'}
+
+PAROLE RIFIUTATE IN QUESTA GENERAZIONE:
+${rejectedWordList}
+${latestRejectedWord ? `\nL'ultima parola proposta e rifiutata è "${latestRejectedWord}".` : ''}
+
+REGOLE EDITORIALI:
+${DAILY_WORD_EDITORIAL_RULES}
+Mantieni la nuova parola coerente con il tema e il contesto appena generati. Restituisci esclusivamente un unico piccolo oggetto JSON valido, senza testo prima o dopo, con esattamente questa forma:
+{
+  "parola": "...",
+  "definizione": "...",
+  "etimologia": "...",
+  "esempio": "...",
+  "nota": "..."
+}`;
+}
+
+async function regenerateDailyWord(
+  model: GenerativeModel,
+  modelName: string,
+  candidateData: GeneratedDailyData,
+  dataDiOggiStr: string,
+  recentWordExclusions: string,
+  recentRows: RecentContentRecord[] | null,
+  forcedAuthor: string,
+  rejectedWord: string,
+  startedAt: number,
+): Promise<GeneratedDailyData> {
+  const rejectedWords = new Set<string>();
+  if (rejectedWord) rejectedWords.add(rejectedWord);
+
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= MAX_WORD_REPAIR_ATTEMPTS; attempt++) {
+    try {
+      const repairPrompt = buildDailyWordRepairPrompt(
+        candidateData,
+        dataDiOggiStr,
+        recentWordExclusions,
+        [...rejectedWords],
+      );
+      const attemptResult = await generateWithBudget(
+        model,
+        modelName,
+        repairPrompt,
+        startedAt,
+        'Rigenerazione mirata parola_giorno...',
+      );
+      const replacementWord = parseGeneratedDailyWord(getGeneratedResponseText(attemptResult));
+      const repairedData: GeneratedDailyData = {
+        ...candidateData,
+        parola_giorno: replacementWord,
+      };
+      const qualityIssues = validateEditorialQuality(repairedData, recentRows, forcedAuthor);
+
+      if (qualityIssues.length === 0) {
+        console.info(`Parola sostitutiva accettata (${replacementWord.parola.trim()}); ${getGenerationTiming(startedAt)}.`);
+        return repairedData;
+      }
+
+      lastError = new EditorialQualityError(qualityIssues);
+      if (replacementWord.parola.trim()) rejectedWords.add(replacementWord.parola.trim());
+      console.warn(`Rifiuto editoriale: ${qualityIssues.join('; ')}; ${getGenerationTiming(startedAt)}.`);
+      if (!isWordOnlyQualityIssue(qualityIssues)) break;
+    } catch (error) {
+      lastError = error;
+      if (error instanceof GenerationBudgetError) {
+        console.warn(`Budget Gemini esaurito durante la rigenerazione mirata; ${getGenerationTiming(startedAt)}.`);
+        break;
+      }
+      if (!(error instanceof EditorialQualityError)) {
+        logTechnicalError('rigenerazione mirata parola_giorno', modelName, error, startedAt);
+      }
+    }
+
+    if (attempt < MAX_WORD_REPAIR_ATTEMPTS) {
+      if (getGeminiAttemptTimeout(startedAt) === null) {
+        lastError = createGenerationBudgetError('Rigenerazione mirata parola_giorno', startedAt);
+        break;
+      }
+      await waitBeforeRetry(startedAt);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Nessuna parola sostitutiva ricevuta dal modello.');
+}
+
 async function handleGenerate(request: Request, allowEditorRequest: boolean) {
+  const generationStartedAt = Date.now();
+
   try {
     const requestUrl = new URL(request.url);
     const authHeader = request.headers.get('authorization');
@@ -299,7 +574,7 @@ async function handleGenerate(request: Request, allowEditorRequest: boolean) {
 DIREZIONE EDITORIALE MANUALE — PRIORITÀ MASSIMA:
 ${forcedAuthor ? `- Autore del giorno obbligatorio: ${forcedAuthor}. Usa esattamente questo autore come "autore_giorno".` : ''}
 ${editorialNotes ? `- Note curatoriale da rispettare: ${editorialNotes}` : ''}
-- Verifica prima il giorno e il mese di nascita e di morte dell'autore obbligatorio. Se la nascita cade in questa data, la "breve_descrizione" deve iniziare con "Nato in questo giorno nel [anno],"; se la morte cade in questa data, deve iniziare con "Scomparso in questa data nel [anno],". In questi due casi NON usare "Scelta editoriale:". Usa quella formula soltanto quando nessuna delle due date coincide.
+${forcedAuthor ? '- Verifica prima il giorno e il mese di nascita e di morte dell’autore obbligatorio. Se la nascita cade in questa data, la "breve_descrizione" deve iniziare con "Nato in questo giorno nel [anno],"; se la morte cade in questa data, deve iniziare con "Scomparso in questa data nel [anno],". Se nessuna delle due date coincide, inizia direttamente con una normale frase biografica o editoriale, senza prefissi speciali.' : ''}
 - La citazione deve appartenere all'autore obbligatorio e deve essere restituita in ITALIANO. Se il testo originale è in un'altra lingua, usa una traduzione italiana pubblicata e indica in "fonte" l'opera o l'edizione; non restituire il testo originale in francese, inglese o altra lingua.
 `
       : '';
@@ -310,11 +585,11 @@ ${manualDirection}
 
 REGOLE DI CURATELA:
 1. AUTORE: Scegli prima di tutto scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta. Prediligi nati oggi; morti solo se molto più illustri. Evita musicisti e compositori come autore del giorno quando esiste una figura letteraria adatta alla data.
-2. DESCRIZIONE AUTORE: **DEVE** iniziare esplicitando il motivo della scelta (es. "Nato in questo giorno nel [anno]..." oppure "Scomparso in questa data nel [anno]..."). Questa informazione è fondamentale per il contesto. Se è attiva una DIREZIONE EDITORIALE MANUALE con autore obbligatorio non legato alla data, segui invece la regola speciale indicata nella direzione manuale.
+2. DESCRIZIONE AUTORE: Se la nascita dell'autore cade nel giorno e mese della data curata, la "breve_descrizione" deve iniziare con "Nato in questo giorno nel [anno],"; se la morte coincide, deve iniziare con "Scomparso in questa data nel [anno],". Se nessuna delle due date coincide, inizia direttamente con una normale frase biografica o editoriale, senza prefissi o etichette sulla selezione dell'autore.
 3. CITAZIONE: Solo in ITALIANO. Usa una citazione autentica dell'autore con fonte verificabile e riporta una traduzione italiana pubblicata quando l'originale è in un'altra lingua; non lasciare la citazione in lingua originale.
 4. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
 5. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
-6. PAROLA DEL GIORNO: scegli un lemma italiano preciso, colto ma realmente attestato, capace di aprire una sfumatura inattesa del tema. NON usare il semplice nome astratto del tema e non proporre parole generiche come libertà, responsabilità, amore, speranza, fede, verità, vita, memoria, anima, coscienza, scelta, identità, tempo o solitudine. Privilegia termini lessicalmente interessanti, con un'etimologia verificabile e una definizione comprensibile. Non ripetere parole recenti.
+6. ${DAILY_WORD_EDITORIAL_RULES}
 7. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non usare poeti comparsi negli ultimi 45 giorni. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 8. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente. In "chiave_ricerca" inserisci soltanto artista e titolo esatti, senza genere o commenti aggiuntivi.
 9. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
@@ -345,13 +620,19 @@ Restituisci questo JSON:
   "keyword_arte_en": "..."
 }`;
 
-    let result: GenerateContentResult | null = null;
     let generatedData: GeneratedDailyData | null = null;
     let lastGenerationError: unknown = null;
     let qualityFeedback = '';
+    let fullGenerationAttempts = 0;
+    let modelIndex = 0;
     const modelCandidates = uniqueModelCandidates(process.env.GEMINI_MODEL);
 
-    for (const modelName of modelCandidates) {
+    while (
+      !generatedData
+      && fullGenerationAttempts < MAX_FULL_GENERATION_ATTEMPTS
+      && modelIndex < modelCandidates.length
+    ) {
+      const modelName = modelCandidates[modelIndex];
       const model = genAI.getGenerativeModel({
         model: modelName,
         generationConfig: {
@@ -359,46 +640,93 @@ Restituisci questo JSON:
         },
       });
 
-      const maxRetries = 2;
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const attemptResult = await withTimeout(
-            model.generateContent(`${prompt}${qualityFeedback}`),
-            GEMINI_ATTEMPT_TIMEOUT_MS,
-            `Generazione Gemini (${modelName})`
-          );
-          const candidateData = parseGeneratedJson(attemptResult.response.text());
-          const qualityIssues = validateEditorialQuality(candidateData, recentRows, forcedAuthor);
-          if (qualityIssues.length > 0) {
-            qualityFeedback = `\n\nLa proposta precedente è stata rifiutata perché ${qualityIssues.join('; ')}. `
-              + 'Rigenera l’intero JSON correggendo rigorosamente questi problemi.';
-            throw new Error(`Controllo editoriale fallito: ${qualityIssues.join('; ')}`);
-          }
-          result = attemptResult;
-          generatedData = candidateData;
-          console.info(`Contenuto generato con ${modelName} al tentativo ${i + 1}.`);
-          break;
-        } catch (err) {
-          lastGenerationError = err;
-          console.warn(`Tentativo Gemini fallito (${modelName}, ${i + 1}/${maxRetries}):`, err);
-          if (i < maxRetries - 1) {
-            await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
-          }
-        }
-      }
+      const fullAttemptNumber = fullGenerationAttempts + 1;
+      fullGenerationAttempts = fullAttemptNumber;
 
-      if (result) {
-        break;
+      try {
+        const attemptResult = await generateWithBudget(
+          model,
+          modelName,
+          `${prompt}${qualityFeedback}`,
+          generationStartedAt,
+          'Generazione completa Gemini...',
+        );
+        const candidateData = parseGeneratedJson(getGeneratedResponseText(attemptResult));
+        const qualityIssues = validateEditorialQuality(candidateData, recentRows, forcedAuthor);
+
+        if (qualityIssues.length > 0) {
+          console.warn(`Rifiuto editoriale: ${qualityIssues.join('; ')}; ${getGenerationTiming(generationStartedAt)}.`);
+
+          if (isWordOnlyQualityIssue(qualityIssues)) {
+            try {
+              generatedData = await regenerateDailyWord(
+                model,
+                modelName,
+                candidateData,
+                dataDiOggiStr,
+                recentWordExclusions,
+                recentRows,
+                forcedAuthor,
+                typeof candidateData.parola_giorno?.parola === 'string'
+                  ? candidateData.parola_giorno.parola.trim()
+                  : '',
+                generationStartedAt,
+              );
+            } catch (error) {
+              lastGenerationError = error;
+              break;
+            }
+            console.info(`Contenuto completo mantenuto con parola_giorno sostitutiva; ${getGenerationTiming(generationStartedAt)}.`);
+            break;
+          }
+
+          lastGenerationError = new EditorialQualityError(qualityIssues);
+          if (
+            fullGenerationAttempts >= MAX_FULL_GENERATION_ATTEMPTS
+            || getGeminiAttemptTimeout(generationStartedAt) === null
+          ) {
+            break;
+          }
+
+          qualityFeedback = `\n\nLa proposta precedente è stata rifiutata perché ${qualityIssues.join('; ')}. `
+            + 'Rigenera l’intero JSON correggendo rigorosamente questi problemi.';
+          await waitBeforeRetry(generationStartedAt);
+          continue;
+        }
+
+        generatedData = candidateData;
+        console.info(`Contenuto generato con ${modelName} al tentativo completo ${fullAttemptNumber}; ${getGenerationTiming(generationStartedAt)}.`);
+      } catch (error) {
+        lastGenerationError = error;
+        if (error instanceof GenerationBudgetError) {
+          console.warn(`Budget Gemini esaurito prima di un nuovo tentativo; ${getGenerationTiming(generationStartedAt)}.`);
+          break;
+        }
+
+        logTechnicalError('generazione completa', modelName, error, generationStartedAt);
+        const fallbackModel = modelCandidates[modelIndex + 1];
+        if (
+          fullGenerationAttempts >= MAX_FULL_GENERATION_ATTEMPTS
+          || !fallbackModel
+          || getGeminiAttemptTimeout(generationStartedAt) === null
+        ) {
+          break;
+        }
+
+        modelIndex += 1;
+        qualityFeedback = '';
+        console.info(`Tentativo fallback Gemini... modello ${fallbackModel}; ${getGenerationTiming(generationStartedAt)}.`);
+        await waitBeforeRetry(generationStartedAt);
       }
     }
 
-    if (!result) {
+    if (!generatedData) {
       throw lastGenerationError instanceof Error
         ? lastGenerationError
         : new Error('Nessuna risposta ricevuta dal modello.');
     }
 
-    const data = generatedData ?? parseGeneratedJson(result.response.text());
+    const data = generatedData;
 
     const { error } = await supabase.from('contenuti_giornalieri').upsert(
       { ...data, data: dataIso },

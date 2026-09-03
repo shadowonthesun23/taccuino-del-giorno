@@ -6,6 +6,7 @@ import path from 'path';
 import React from 'react';
 import { MAX_REMOTE_IMAGE_BYTES, isImageContentType, trustedImageUrl } from '@/lib/remote-images';
 import { rateLimit } from '@/lib/request-guard';
+import { sanitizeAuthorDescription } from '@/lib/author-description';
 import {
   clampText,
   formatAuthorCardDate,
@@ -42,11 +43,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payload non valido' }, { status: 400 });
     }
     const citation = citazione as CitationPayload;
+    const authorDescription = sanitizeAuthorDescription(breveDescrizione);
 
     const palette = getAuthorCardPalette(Boolean(isDark));
-    const layout = getAuthorCardLayout(citation.testo, breveDescrizione, autoreGiorno);
+    const layout = getAuthorCardLayout(citation.testo, authorDescription, autoreGiorno);
     const citTesto = clampText(citation.testo, layout.maxCitationChars);
-    const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
+    const descTesto = clampText(authorDescription, layout.maxDescriptionChars);
     const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
     const dateTapeWidth = getAuthorDateTapeWidth(dataOdierna);
     const dateTapeHeight = 76;

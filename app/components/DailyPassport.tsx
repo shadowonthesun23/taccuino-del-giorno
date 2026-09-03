@@ -5,6 +5,7 @@ import type { DatiTaccuino, LanguageCode, OperaGiorno } from '@/lib/types';
 import { t } from '@/lib/translation';
 import { getDisplayDate, formatExLibrisDate } from '@/lib/date-utils';
 import { getImageLoadingProps } from '@/lib/browser-utils';
+import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { garamond, janeAust } from '@/lib/fonts';
 import { getRenderableImageUrl } from '@/lib/editorial-media';
 
@@ -54,6 +55,7 @@ export default function DailyPassport({
   };
   const passportCode = getPassportCode(dataIso, initials);
   const authorImageUrl = getRenderableImageUrl(data.foto_autore_url);
+  const authorDescription = sanitizeAuthorDescription(data.breve_descrizione);
   const artworkImageUrl = getRenderableImageUrl(opera?.immagine_url || opera?.immagine_url_hd);
 
   return (
@@ -97,7 +99,7 @@ export default function DailyPassport({
             <div className="daily-passport-cover-author">
               <span>{label.author}</span>
               <h4>{data.autore_giorno}</h4>
-              <p>{data.breve_descrizione}</p>
+              <p>{authorDescription}</p>
             </div>
             {authorImageUrl && (
               <figure className="daily-passport-author-photo">

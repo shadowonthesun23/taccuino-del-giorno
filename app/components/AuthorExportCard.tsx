@@ -15,6 +15,7 @@ import {
 import type { EditorialMediaCrop } from '@/lib/editorial-media';
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle } from '@/lib/editorial-media';
 import { SITE_WATERMARK } from '@/lib/constants';
+import { sanitizeAuthorDescription } from '@/lib/author-description';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -102,9 +103,10 @@ export default function AuthorExportCard({
   };
 
   const palette = getAuthorCardPalette(isDark);
-  const layout = getAuthorCardLayout(citazione.testo, breveDescrizione, autoreGiorno);
+  const authorDescription = sanitizeAuthorDescription(breveDescrizione);
+  const layout = getAuthorCardLayout(citazione.testo, authorDescription, autoreGiorno);
   const citTesto = clampText(citazione.testo, layout.maxCitationChars);
-  const descTesto = clampText(breveDescrizione, layout.maxDescriptionChars);
+  const descTesto = clampText(authorDescription, layout.maxDescriptionChars);
   const initials = getAuthorInitials(autoreGiorno).slice(0, 3) || 'TDG';
   const dateTapeHeight = 76;
   const dateFontSize = Math.max(46, layout.dateFontSize);

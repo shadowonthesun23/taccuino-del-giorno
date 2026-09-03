@@ -31,6 +31,7 @@ import { formatDataItaliana, getRomeDateIso, getSavedVisitedDates, getMonthNumbe
 import { getAmbientLightStyle, applyBrowserTheme, runWhenIdle, getImageLoadingProps, uniqueImageCandidates, proxiedImageUrl } from '@/lib/browser-utils';
 import { getSavedCards, persistSavedCards, groupByMonth, getArchiveMonthMood, getArchiveEntryMark } from '@/lib/archive-utils';
 import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-translation';
+import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { garamond, caveat, janeAust, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
@@ -1141,6 +1142,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
   if (!data) return null;
 
+  const authorDescription = sanitizeAuthorDescription(data.breve_descrizione);
   const localSeasonPreview = process.env.NODE_ENV === 'development' && isMounted
     ? new URLSearchParams(window.location.search).get('season')
     : null;
@@ -1546,7 +1548,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 : '0 1px 1px rgba(255,252,242,0.75)',
             }}
           >
-            {data.breve_descrizione}
+            {authorDescription}
           </p>
         </div>
       </div>
@@ -1609,7 +1611,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         <div className={`author-export-shell ${isDark ? 'is-dark' : ''}`}>
           <AuthorExportCard
             autoreGiorno={data.autore_giorno}
-            breveDescrizione={data.breve_descrizione}
+            breveDescrizione={authorDescription}
             fotoAutoreUrl={data.foto_autore_url}
             fotoAutoreCrop={authorImageCrop}
             citazione={data.citazione}

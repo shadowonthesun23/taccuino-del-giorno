@@ -10,6 +10,7 @@ import {
   type Artwork,
 } from '@/lib/artwork';
 import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
+import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { janeAust } from '@/lib/fonts';
 import type { EditorialMediaCrop, EditorialMediaOverrides } from '@/lib/editorial-media';
 import { getEditorialMediaCropImageStyle, getRenderableImageUrl, sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
@@ -279,6 +280,7 @@ export default async function PassportPage({
   }
 
   const { data, opera, albumCover, authorCrop, editorialMedia } = payload;
+  const authorDescription = sanitizeAuthorDescription(data.breve_descrizione);
   const initials = getInitials(data.autore_giorno);
   const printableZineId = 'daily-zine-print-sheet';
   const digitalZineId = 'daily-zine-digital-sheet';
@@ -325,7 +327,7 @@ export default async function PassportPage({
         )}
         <div className={styles.authorBio}>
           <h2>{data.autore_giorno}</h2>
-          <p>{data.breve_descrizione}</p>
+          <p>{authorDescription}</p>
         </div>
       </div>
       <div className={styles.quoteBlock}>
