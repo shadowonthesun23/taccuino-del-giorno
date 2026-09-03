@@ -17713,3 +17713,25 @@ body.museum-room-open :is(
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Sul desktop il gesto è più preciso: lasciamo aria al layout senza perdere
+   una superficie di interazione comoda per i controlli principali. */
+@media (min-width: 1180px) {
+  .notebook-action:not(.notebook-action-compact) {
+    font-size: 0.88rem !important;
+    min-height: 40px !important;
+    padding: 0 14px !important;
+  }
+
+  .notebook-action-icon:not(.notebook-action-compact) {
+    height: 40px !important;
+    min-height: 40px !important;
+    min-width: 40px !important;
+    width: 40px !important;
+  }
+
+  .notebook-action-compact {
+    font-size: 0.8rem !important;
+    padding: 0 10px !important;
+  }
+}
