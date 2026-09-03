@@ -16,6 +16,21 @@ test('keeps short author cards airy and gives short quotes generous type', () =>
   assert.equal(layout.quoteFontSize, 78);
   assert.equal(layout.quoteMaxLines, 4);
   assert.equal(layout.photoWidth, 520);
+  assert.ok(layout.nameFontSize >= 150);
+});
+
+test('keeps a short author name prominent when the description is dense', () => {
+  const layout = getAuthorSocialCardLayout(
+    'La libertà comincia quando smettiamo di avere paura.',
+    'Nato in questo giorno nel 1894, Joseph Roth fu un prolifico scrittore e giornalista austriaco, tra le voci più acute e malinconiche della letteratura mitteleuropea del Novecento. La sua opera, profondamente segnata dalla caduta dell’Impero austro-ungarico e dall’esilio, è una commovente elegia per un mondo perduto, intrisa di nostalgia e di una lucidità disincantata nell’osservare la dissoluzione di un’epoca.',
+    'Joseph Roth',
+    true,
+    '2 · IX · 2026',
+  );
+
+  assert.equal(layout.variant, 'compact');
+  assert.ok(layout.nameFontSize >= 150);
+  assert.ok(layout.nameFontSize <= 160);
 });
 
 test('reduces density progressively for long names and long quotes', () => {

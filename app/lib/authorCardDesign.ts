@@ -186,20 +186,27 @@ export function getAuthorSocialCardLayout(
 
   const photoWidth = variant === 'airy' ? 520 : variant === 'balanced' ? 498 : 474;
   const photoHeight = variant === 'airy' ? 650 : variant === 'balanced' ? 622 : 592;
-  const nameBaseSize = variant === 'airy' ? 150 : variant === 'balanced' ? 128 : 108;
-  const nameFontSize = authorLength > 46
-    ? nameBaseSize - 16
-    : authorLength > 38
-      ? nameBaseSize - 11
-      : authorLength > 28
-      ? nameBaseSize - 5
-        : nameBaseSize;
+  const nameTop = variant === 'airy' ? 424 : variant === 'balanced' ? 410 : 392;
+  const nameWidth = variant === 'airy' ? 620 : variant === 'balanced' ? 610 : 594;
+  const nameLineHeight = authorLength > 46 ? 0.94 : 0.98;
+  const nameLineCount = Math.max(1, Math.min(2, authorNameLines.length));
+  const descriptionTop = variant === 'airy' ? 756 : variant === 'balanced' ? 748 : 730;
+  const longestAuthorLineLength = Math.max(
+    1,
+    ...authorNameLines.map((line) => line.length),
+  );
+  const nameFontSizeByWidth = nameWidth / (longestAuthorLineLength * 0.5);
+  const nameFontSizeByHeight = (descriptionTop - nameTop - 24) / (nameLineHeight * nameLineCount);
+  const nameFontSize = clampNumber(
+    Math.floor(Math.min(160, nameFontSizeByWidth, nameFontSizeByHeight)),
+    84,
+    160,
+  );
   const quoteFontSize = citationTier === 'short'
     ? citationLength <= 70 ? 78 : 72
     : citationTier === 'medium'
       ? citationLength <= 180 ? 64 : 59
       : citationLength <= 360 ? 50 : 46;
-  const descriptionTop = variant === 'airy' ? 756 : variant === 'balanced' ? 748 : 730;
   const descriptionWidth = variant === 'airy' ? 500 : variant === 'balanced' ? 540 : 580;
   const descriptionFontSize = variant === 'airy' ? 36 : variant === 'balanced' ? 33 : 30;
   const descriptionLineHeight = 1.32;
@@ -220,11 +227,11 @@ export function getAuthorSocialCardLayout(
     photoHeight,
     photoPadding: variant === 'compact' ? 18 : 20,
     photoAngle: hasPhoto ? -2.2 : 1.1,
-    nameTop: variant === 'airy' ? 424 : variant === 'balanced' ? 410 : 392,
+    nameTop,
     nameLeft: 76,
-    nameWidth: variant === 'airy' ? 620 : variant === 'balanced' ? 610 : 594,
+    nameWidth,
     nameFontSize,
-    nameLineHeight: authorLength > 46 ? 0.94 : 0.98,
+    nameLineHeight,
     nameMaxLines: authorNameLines.length > 1 ? 2 : 1,
     descriptionTop,
     descriptionLeft: 82,
