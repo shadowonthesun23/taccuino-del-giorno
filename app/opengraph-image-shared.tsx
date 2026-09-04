@@ -16,7 +16,7 @@ const OPEN_GRAPH_COPY: Record<OpenGraphLocale, OpenGraphCopy> = {
   IT: {
     eyebrow: 'Cultura quotidiana',
     titleLines: ['Il giorno da', 'custodire'],
-    titleFontSize: 122,
+    titleFontSize: 134,
     summaryLines: [
       'Una frase, una poesia, un’immagine, una parola e una memoria.',
       'Un passaggio di fede. Da custodire sulla carta o nel cuore.',
@@ -26,7 +26,7 @@ const OPEN_GRAPH_COPY: Record<OpenGraphLocale, OpenGraphCopy> = {
   EN: {
     eyebrow: 'Daily culture',
     titleLines: ['A day to', 'keep'],
-    titleFontSize: 132,
+    titleFontSize: 144,
     summaryLines: [
       'A line, a poem, an image, a word and a memory.',
       'A passage of faith. To keep on paper or in the heart.',
@@ -36,7 +36,7 @@ const OPEN_GRAPH_COPY: Record<OpenGraphLocale, OpenGraphCopy> = {
   FR: {
     eyebrow: 'Culture quotidienne',
     titleLines: ['Un jour à', 'garder'],
-    titleFontSize: 124,
+    titleFontSize: 136,
     summaryLines: [
       'Une phrase, un poème, une image, un mot et un souvenir.',
       'Un passage de foi. À garder sur papier ou dans le cœur.',
@@ -46,7 +46,7 @@ const OPEN_GRAPH_COPY: Record<OpenGraphLocale, OpenGraphCopy> = {
   DE: {
     eyebrow: 'Tägliche Kultur',
     titleLines: ['Ein Tag zum', 'Bewahren'],
-    titleFontSize: 118,
+    titleFontSize: 130,
     summaryLines: [
       'Eine Zeile, ein Gedicht, ein Bild, ein Wort und eine Erinnerung.',
       'Eine Glaubenspassage. Auf Papier oder im Herzen zu bewahren.',
@@ -56,7 +56,7 @@ const OPEN_GRAPH_COPY: Record<OpenGraphLocale, OpenGraphCopy> = {
   ES: {
     eyebrow: 'Cultura diaria',
     titleLines: ['Un día para', 'guardar'],
-    titleFontSize: 120,
+    titleFontSize: 132,
     summaryLines: [
       'Una frase, un poema, una imagen, una palabra y un recuerdo.',
       'Un pasaje de fe. Para guardar en papel o en el corazón.',
@@ -66,7 +66,7 @@ const OPEN_GRAPH_COPY: Record<OpenGraphLocale, OpenGraphCopy> = {
   PT: {
     eyebrow: 'Cultura quotidiana',
     titleLines: ['Um dia para', 'guardar'],
-    titleFontSize: 116,
+    titleFontSize: 128,
     summaryLines: [
       'Uma frase, um poema, uma imagem, uma palavra e uma memória.',
       'Uma passagem de fé. Para guardar no papel ou no coração.',
@@ -168,7 +168,7 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                   color: '#754f40',
                   display: 'flex',
                   fontFamily: 'IM Fell Double Pica',
-                  fontSize: 19,
+                  fontSize: 22,
                   letterSpacing: '0.19em',
                 }}
               >
@@ -190,7 +190,7 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                 color: '#8b604b',
                 display: 'flex',
                 fontFamily: 'IM Fell Double Pica',
-                fontSize: 18,
+                fontSize: 21,
                 letterSpacing: '0.13em',
                 textTransform: 'uppercase',
               }}
@@ -220,7 +220,7 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                 fontFamily: 'JaneAusten',
                 fontSize: copy.titleFontSize,
                 letterSpacing: '0.012em',
-                lineHeight: 0.86,
+                lineHeight: 0.82,
                 textAlign: 'center',
                 whiteSpace: 'nowrap',
               }}
@@ -237,8 +237,8 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                 display: 'flex',
                 height: 10,
                 justifyContent: 'center',
-                marginBottom: 18,
-                marginTop: 18,
+                marginBottom: 16,
+                marginTop: 16,
                 width: 250,
               }}
             >
@@ -280,9 +280,9 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                 display: 'flex',
                 flexDirection: 'column',
                 fontFamily: 'IM Fell Double Pica',
-                fontSize: 30,
+                fontSize: 34,
                 fontStyle: 'italic',
-                lineHeight: 1.22,
+                lineHeight: 1.16,
                 textAlign: 'center',
                 width: '1000px',
               }}
@@ -310,7 +310,7 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                 color: '#715f53',
                 display: 'flex',
                 fontFamily: 'IM Fell Double Pica',
-                fontSize: 17,
+                fontSize: 20,
                 fontStyle: 'italic',
               }}
             >
@@ -321,7 +321,7 @@ export function renderOpenGraphImage(locale: OpenGraphLocale) {
                 color: '#87694d',
                 display: 'flex',
                 fontFamily: 'IM Fell Double Pica',
-                fontSize: 15,
+                fontSize: 18,
                 letterSpacing: '0.1em',
               }}
             >
