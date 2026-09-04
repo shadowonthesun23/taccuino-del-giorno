@@ -12,7 +12,7 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 export const maxDuration = 60;
 
 const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
-const FALLBACK_GEMINI_MODEL = 'gemini-3.6-flash';
+const FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash';
 // Keep enough of the global budget for a meaningful fallback attempt.
 const GEMINI_ATTEMPT_TIMEOUT_MS = 30_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
