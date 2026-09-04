@@ -17971,6 +17971,25 @@ body.museum-room-open :is(
   }
 }
 
+/* Keep the utility buttons clear of the editorial card on medium desktop
+   widths. The four compact controls stay together above the wider surface
+   selector, which remains aligned to the panel's right edge. */
+@media (min-width: 1180px) and (max-width: 1660px) {
+  .top-control-panel {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    width: 185px;
+  }
+
+  .top-control-panel > .daily-surface-switch {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+}
+
 /* ── Author social folio: 1080 × 1920 editorial composition ───────────── */
 .author-social-export-card {
   background: #f4f0e6 !important;
