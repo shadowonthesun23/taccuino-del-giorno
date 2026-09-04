@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,12 +24,16 @@ const themeBootstrapScript = `
 (() => {
   try {
     const savedTheme = localStorage.getItem('theme');
-    const dark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const themeMode = savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system'
+      ? savedTheme
+      : 'system';
+    const dark = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
     const scheme = dark ? 'dark' : 'light';
     const color = dark ? '#171614' : '#F8F6F0';
     const root = document.documentElement;
     root.classList.toggle('dark', dark);
     root.dataset.theme = scheme;
+    root.dataset.themeMode = themeMode;
     root.style.backgroundColor = color;
     root.style.colorScheme = scheme;
     document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
@@ -85,7 +90,7 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
       </body>
     </html>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, SlidersHorizontal, ChevronLeft, ChevronRight, X, Search, Feather, Quote, Type, Church, Palette, Music, Telescope, ExternalLink, FileDown, ChevronDown, Sparkles, BookOpen, Mail } from 'lucide-react';
+import { Languages, CalendarDays, BookmarkCheck, Bookmark, Sun, Moon, Monitor, SlidersHorizontal, ChevronLeft, ChevronRight, X, Search, Feather, Quote, Type, Church, Palette, Music, Telescope, ExternalLink, FileDown, ChevronDown, Sparkles, BookOpen, Mail } from 'lucide-react';
 
 // Custom components
 import AuthorExportCard from './AuthorExportCard';
@@ -30,13 +30,14 @@ import type { LanguageCode, OperaGiorno, SaintArtworkResult, ApodData, DatiTaccu
 import { DAILY_SEAL_COLORS, TICKET_DOWNLOAD_EVENT, VISITED_ARCHIVE_STORAGE_KEY, DEFAULT_DAILY_ACCENT, SEAL_COLOR_MAP, notebookNavItems } from '@/lib/constants';
 import { t } from '@/lib/translation';
 import { formatDataItaliana, getRomeDateIso, getSavedVisitedDates, getMonthNumber, getDisplayDate, getDayOfYearInfo, getInitials, getSeason, formatExLibrisDate, isSeasonId, getMarginalia, normalizeArchiveText } from '@/lib/date-utils';
-import { getAmbientLightStyle, applyBrowserTheme, runWhenIdle, getImageLoadingProps, uniqueImageCandidates, proxiedImageUrl } from '@/lib/browser-utils';
+import { getAmbientLightStyle, runWhenIdle, getImageLoadingProps, uniqueImageCandidates, proxiedImageUrl, type ThemeMode } from '@/lib/browser-utils';
 import { getSavedCards, persistSavedCards, groupByMonth, getArchiveMonthMood, getArchiveEntryMark } from '@/lib/archive-utils';
 import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-translation';
 import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { garamond, caveat, janeAust, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
 import { getWordSocialCardLayout } from '@/app/lib/wordCardDesign';
+import { useTheme } from './ThemeProvider';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import {
   DEFAULT_EDITORIAL_MEDIA_CROP,
@@ -109,6 +110,22 @@ const DAILY_SURFACE_COPY: Record<LanguageCode, {
   ES: { label: 'Vista del día', postcard: 'Postal', ticket: 'Billete' },
   PT: { label: 'Vista do dia', postcard: 'Postal', ticket: 'Bilhete' },
 };
+
+const THEME_MODE_COPY: Record<LanguageCode, {
+  label: string;
+  light: string;
+  dark: string;
+  system: string;
+}> = {
+  IT: { label: 'Tema', light: 'Chiaro', dark: 'Scuro', system: 'Come il sistema' },
+  EN: { label: 'Theme', light: 'Light', dark: 'Dark', system: 'System' },
+  FR: { label: 'Thème', light: 'Clair', dark: 'Sombre', system: 'Comme le système' },
+  DE: { label: 'Thema', light: 'Hell', dark: 'Dunkel', system: 'Wie das System' },
+  ES: { label: 'Tema', light: 'Claro', dark: 'Oscuro', system: 'Como el sistema' },
+  PT: { label: 'Tema', light: 'Claro', dark: 'Escuro', system: 'Como o sistema' },
+};
+
+const THEME_MODES: ThemeMode[] = ['light', 'dark', 'system'];
 
 const LANGUAGES: LanguageConfig[] = [
   {
@@ -269,7 +286,95 @@ function LanguageSelector({
   );
 }
 
+function ThemeModeIcon({ mode, className }: { mode: ThemeMode; className?: string }) {
+  if (mode === 'light') return <Sun className={className} aria-hidden="true" />;
+  if (mode === 'dark') return <Moon className={className} aria-hidden="true" />;
+  return <Monitor className={className} aria-hidden="true" />;
+}
+
+function ThemeModeSelector({
+  lingua,
+  mode,
+  isDark,
+  onChange,
+}: {
+  lingua: LanguageCode;
+  mode: ThemeMode;
+  isDark: boolean;
+  onChange: (mode: ThemeMode) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const copy = THEME_MODE_COPY[lingua];
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className={`${garamond.className} relative inline-block text-left select-none`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className={`top-control-button notebook-action notebook-action-icon tab-theme p-2 rounded-full border backdrop-blur-sm transition-colors ${
+          isOpen
+            ? 'border-[#DE6B58] text-[#DE6B58]'
+            : isDark
+              ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
+              : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
+        }`}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-label={copy.label}
+        data-tooltip={copy.label}
+      >
+        <ThemeModeIcon mode={mode} className="w-5 h-5" />
+      </button>
+
+      <div
+        className={`archive-popover theme-mode-popover ${isOpen ? 'is-open' : ''} ${isDark ? 'is-dark' : ''} absolute right-0 mt-2 w-48 z-50 overflow-hidden flex flex-col`}
+        style={{ transformOrigin: 'top right' }}
+        role="listbox"
+        aria-label={copy.label}
+      >
+        <div className="p-2 flex flex-col gap-1">
+          {THEME_MODES.map((themeMode) => (
+            <button
+              key={themeMode}
+              type="button"
+              onClick={() => {
+                onChange(themeMode);
+                setIsOpen(false);
+              }}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold transition-all duration-200 text-left rounded-lg ${
+                mode === themeMode
+                  ? 'text-[#DE6B58] font-bold bg-[#DE6B58]/5'
+                  : isDark
+                    ? 'text-[#bbb2ad] hover:bg-white/5 hover:text-white hover:translate-x-0.5'
+                    : 'text-[#746b66] hover:bg-black/5 hover:text-black hover:translate-x-0.5'
+              }`}
+              role="option"
+              aria-selected={mode === themeMode}
+            >
+              <ThemeModeIcon mode={themeMode} className="h-4 w-4 shrink-0" />
+              <span>{copy[themeMode]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCode }) {
+  const { themeMode, isDark, setThemeMode } = useTheme();
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
   const [translationsCache, setTranslationsCache] = useState<Record<string, DatiTaccuino>>({});
@@ -286,7 +391,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPreloadExiting, setIsPreloadExiting] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [dailySurfaceMode, setDailySurfaceMode] = useState<DailySurfaceMode>('postcard');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
@@ -316,7 +420,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mobileReadingVisible, setMobileReadingVisible] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
-  const [mobileMenuTab, setMobileMenuTab] = useState<'main' | 'lang'>('main');
+  const [mobileMenuTab, setMobileMenuTab] = useState<'main' | 'lang' | 'theme'>('main');
   const [footerInView, setFooterInView] = useState(false);
   const [ambientLightStyle, setAmbientLightStyle] = useState<CSSProperties>(() => getAmbientLightStyle(new Date(), false));
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -557,10 +661,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   }, [data, contentKey]);
 
   useEffect(() => {
-    applyBrowserTheme(isDark);
-  }, [isDark]);
-
-  useEffect(() => {
     const updateAmbientLight = () => setAmbientLightStyle(getAmbientLightStyle(new Date(), isDark));
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') updateAmbientLight();
@@ -769,14 +869,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   useEffect(() => {
     let mountedTimer: number | undefined;
     if (typeof window !== 'undefined') {
-      const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const savedTheme = localStorage.getItem('theme');
-      const calcolatoDark = savedTheme === 'dark' || (!savedTheme && isSystemDark);
       mountedTimer = window.setTimeout(() => {
         setIsMounted(true);
-        setIsDark(calcolatoDark);
       }, 0);
-      applyBrowserTheme(calcolatoDark);
     }
     const loadTimer = window.setTimeout(() => {
       const requestedDate = new URLSearchParams(window.location.search).get('data');
@@ -811,13 +906,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       }
     }
   }, [dataOriginale, lingua, cambiaLingua, translationsCache, dataSelezionata]);
-
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem('theme', next ? 'dark' : 'light');
-    applyBrowserTheme(next);
-  };
 
   const positionArchivePopover = useCallback((trigger: HTMLButtonElement | null) => {
     if (!trigger) return;
@@ -1201,8 +1289,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   );
 
   if (error) return (
-    <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
-      <div className={`${isDark ? 'bg-[#2A2A2A] border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
+    <div className={`notebook-missing-state min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
+      <div className={`notebook-missing-card ${isDark ? 'bg-[#2A2A2A] border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
         <p className={`${themeClasses.text} text-xl font-medium mb-4`}>{t('contentNotReadyTitle', lingua)}</p>
         <p className={`text-sm ${themeClasses.textMuted} italic`}>{t('contentNotReadyMessage', lingua)}</p>
         {archivio.length > 0 && (
@@ -1322,18 +1410,12 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
             {savedCards.length > 0 ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
           </button>
 
-          <button
-            onClick={toggleTheme}
-            className={`top-control-button notebook-action notebook-action-icon tab-theme p-2 rounded-full border backdrop-blur-sm transition-colors ${
-              isDark
-                ? 'border-white/10 text-[#A0A0A0] bg-[#1E1E1E]/55 hover:text-[#DE6B58] hover:border-[#DE6B58]/70'
-                : 'border-[#EBE5DB] text-[#8A817C] bg-[#F4F0E6]/60 hover:text-[#DE6B58] hover:border-[#DE6B58]'
-            }`}
-            aria-label="Cambia tema"
-            data-tooltip={{ IT: 'Tema', EN: 'Theme', FR: 'Thème', DE: 'Thema', ES: 'Tema', PT: 'Tema' }[lingua] || 'Theme'}
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
+          <ThemeModeSelector
+            lingua={lingua}
+            mode={themeMode}
+            isDark={isDark}
+            onChange={setThemeMode}
+          />
 
           <div
             className={`daily-surface-switch ${dailySurfaceMode === 'ticket' ? 'is-ticket' : 'is-postcard'} ${garamond.className}`}
@@ -1428,23 +1510,51 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setMobileToolsOpen(false);
-                    toggleTheme();
-                  }}
+                  onClick={() => setMobileMenuTab('theme')}
                 >
-                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                  <span>{
-                    {
-                      IT: isDark ? 'Tema chiaro' : 'Tema scuro',
-                      EN: isDark ? 'Light theme' : 'Dark theme',
-                      FR: isDark ? 'Thème clair' : 'Thème sombre',
-                      DE: isDark ? 'Helles Thema' : 'Dunkles Thema',
-                      ES: isDark ? 'Tema claro' : 'Tema oscuro',
-                      PT: isDark ? 'Tema claro' : 'Tema escuro'
-                    }[lingua] || (isDark ? 'Light theme' : 'Dark theme')
-                  }</span>
+                  <ThemeModeIcon mode={themeMode} className="h-4 w-4" />
+                  <div className="flex items-center justify-between w-full pr-1">
+                    <span>{THEME_MODE_COPY[lingua].label}</span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
+                      {THEME_MODE_COPY[lingua][themeMode]}
+                      <ChevronRight className="w-3 h-3 text-[#DE6B58]" />
+                    </span>
+                  </div>
                 </button>
+              </div>
+            ) : mobileMenuTab === 'theme' ? (
+              <div className="flex flex-col gap-[3px] animate-menu-fade">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuTab('main')}
+                  className="mobile-tools-back-btn w-full flex items-center justify-between text-left border-b border-stone-200 dark:border-white/5 pb-2.5 mb-1.5 rounded-none"
+                >
+                  <ChevronLeft className="h-4 w-4 text-[#DE6B58]" />
+                  <div className="flex items-center justify-between w-full pr-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A817C] dark:text-[#A0A0A0] not-italic font-sans">
+                      {THEME_MODE_COPY[lingua].label}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
+                      {{ IT: 'Indietro', EN: 'Back', FR: 'Retour', DE: 'Zurück', ES: 'Atrás', PT: 'Voltar' }[lingua] || 'Back'}
+                    </span>
+                  </div>
+                </button>
+                {THEME_MODES.map((nextMode) => (
+                  <button
+                    key={nextMode}
+                    type="button"
+                    aria-pressed={themeMode === nextMode}
+                    className={themeMode === nextMode ? 'mobile-tools-lang-active' : 'hover:translate-x-0.5'}
+                    onClick={() => {
+                      setThemeMode(nextMode);
+                      setMobileToolsOpen(false);
+                      setMobileMenuTab('main');
+                    }}
+                  >
+                    <ThemeModeIcon mode={nextMode} className="h-4 w-4" />
+                    <span>{THEME_MODE_COPY[lingua][nextMode]}</span>
+                  </button>
+                ))}
               </div>
             ) : (
               <div className="flex flex-col gap-[3px] animate-menu-fade">

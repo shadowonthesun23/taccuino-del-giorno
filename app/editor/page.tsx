@@ -581,12 +581,12 @@ export default function EditorPage() {
   }
 
   return (
-    <main className={`${garamond.className} min-h-screen bg-[#f8f6f0] px-5 py-10 text-[#2a2522]`}>
-      <section className="mx-auto max-w-5xl rounded-[18px] border border-[#b5956a]/25 bg-[#fffdf6]/82 p-6 shadow-[0_24px_70px_-52px_rgba(42,37,34,0.42)] md:p-9">
+    <main className={`${garamond.className} editor-page min-h-screen bg-[#f8f6f0] px-5 py-10 text-[#2a2522]`}>
+      <section className="editor-card mx-auto max-w-5xl rounded-[18px] border border-[#b5956a]/25 bg-[#fffdf6]/82 p-6 shadow-[0_24px_70px_-52px_rgba(42,37,34,0.42)] md:p-9">
         <div className="mb-3 flex items-center justify-between gap-4">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#9e2a2b]">Editor</p>
           <button
-            className="text-xs font-bold uppercase tracking-[0.14em] text-[#6f614d] underline decoration-[#b5956a]/60 underline-offset-4"
+            className="editor-logout text-xs font-bold uppercase tracking-[0.14em] text-[#6f614d] underline decoration-[#b5956a]/60 underline-offset-4"
             type="button"
             onClick={() => void handleLogout()}
           >
@@ -594,7 +594,7 @@ export default function EditorPage() {
           </button>
         </div>
         <h1 className="text-4xl font-bold leading-tight md:text-5xl">Direzione curatoriale del giorno</h1>
-        <p className="mt-4 max-w-2xl text-lg italic leading-relaxed text-[#5f5548]">
+        <p className="editor-intro mt-4 max-w-2xl text-lg italic leading-relaxed text-[#5f5548]">
           Usa questa pagina quando vuoi forzare o orientare l’autore del giorno senza intervenire a mano nel database.
           La rigenerazione aggiorna il contenuto della data selezionata; le immagini manuali qui sotto completano la tavola senza toccare i contenuti.
         </p>
@@ -602,9 +602,9 @@ export default function EditorPage() {
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div className="grid gap-5 md:grid-cols-[180px_1fr]">
             <label className="block">
-              <span className="mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Data</span>
+              <span className="editor-top-label mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Data</span>
               <input
-                className="w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg outline-none transition focus:border-[#9e2a2b]"
+                className="editor-top-input w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg outline-none transition focus:border-[#9e2a2b]"
                 type="date"
                 value={date}
                 onChange={(event) => setDate(event.target.value)}
@@ -612,9 +612,9 @@ export default function EditorPage() {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Autore da forzare</span>
+              <span className="editor-top-label mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Autore da forzare</span>
               <input
-                className="w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg outline-none transition focus:border-[#9e2a2b]"
+                className="editor-top-input w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg outline-none transition focus:border-[#9e2a2b]"
                 value={author}
                 onChange={(event) => setAuthor(event.target.value)}
                 placeholder="Es. Simone Weil, Italo Calvino, Cristina Campo…"
@@ -623,9 +623,9 @@ export default function EditorPage() {
           </div>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Note curatoriale</span>
+            <span className="editor-top-label mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Note curatoriale</span>
             <textarea
-              className="min-h-36 w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg leading-relaxed outline-none transition focus:border-[#9e2a2b]"
+              className="editor-top-textarea min-h-36 w-full rounded-xl border border-[#b5956a]/35 bg-[#f8f1df] px-4 py-3 text-lg leading-relaxed outline-none transition focus:border-[#9e2a2b]"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               placeholder="Es. Voglio un taglio più filosofico e meno biografico; collega l’autore al tema della memoria e della responsabilità."
@@ -633,12 +633,12 @@ export default function EditorPage() {
           </label>
 
           <div className="flex flex-col gap-3 border-t border-[#b5956a]/20 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm italic text-[#756957]">
+            <p className="editor-snapshot-note text-sm italic text-[#756957]">
               Prima della rigenerazione salvo una copia locale nel browser, così puoi ripristinarla.
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
-                className="rounded-xl border border-[#756957]/35 bg-transparent px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#5f5548] transition hover:border-[#9e2a2b]/45 disabled:cursor-not-allowed disabled:opacity-45"
+                className="editor-secondary-action rounded-xl border border-[#756957]/35 bg-transparent px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#5f5548] transition hover:border-[#9e2a2b]/45 disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={status === 'loading' || !hasSnapshot}
                 type="button"
                 onClick={handleRestore}
@@ -646,7 +646,7 @@ export default function EditorPage() {
                 Ripristina copia
               </button>
               <button
-                className="rounded-xl border border-[#9e2a2b]/55 bg-[#9e2a2b] px-6 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#fffdf6] transition hover:bg-[#7f2223] disabled:cursor-wait disabled:opacity-55"
+                className="editor-primary-action rounded-xl border border-[#9e2a2b]/55 bg-[#9e2a2b] px-6 py-3 text-sm font-bold uppercase tracking-[0.16em] text-[#fffdf6] transition hover:bg-[#7f2223] disabled:cursor-wait disabled:opacity-55"
                 disabled={status === 'loading'}
                 type="submit"
               >
@@ -658,7 +658,7 @@ export default function EditorPage() {
 
         {message ? (
           <div
-            className={`mt-6 rounded-xl border px-4 py-3 text-base ${
+            className={`editor-status-message ${status === 'error' ? 'is-error' : ''} mt-6 rounded-xl border px-4 py-3 text-base ${
               status === 'error'
                 ? 'border-[#9e2a2b]/30 bg-[#9e2a2b]/8 text-[#7f2223]'
                 : 'border-[#b5956a]/25 bg-[#f4eddb] text-[#5f5548]'

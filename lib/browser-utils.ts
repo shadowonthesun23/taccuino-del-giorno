@@ -1,6 +1,33 @@
 import type { CSSProperties } from 'react';
 import { THEME_SURFACE } from './constants';
 
+export const THEME_STORAGE_KEY = 'theme';
+export type ThemeMode = 'light' | 'dark' | 'system';
+
+export function isThemeMode(value: string | null): value is ThemeMode {
+  return value === 'light' || value === 'dark' || value === 'system';
+}
+
+export function getStoredThemeMode(): ThemeMode {
+  if (typeof window === 'undefined') return 'system';
+
+  try {
+    const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return isThemeMode(savedTheme) ? savedTheme : 'system';
+  } catch {
+    return 'system';
+  }
+}
+
+export function getSystemThemeDark(): boolean {
+  return typeof window !== 'undefined'
+    && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+export function resolveThemeMode(mode: ThemeMode): boolean {
+  return mode === 'dark' || (mode === 'system' && getSystemThemeDark());
+}
+
 export function isMobileChromiumBrowser(): boolean {
   if (typeof window === 'undefined') return false;
   const userAgent = window.navigator.userAgent;
@@ -25,7 +52,7 @@ export function uniqueImageCandidates(...urls: Array<string | null | undefined>)
   return Array.from(new Set(urls.filter((url): url is string => Boolean(url))));
 }
 
-export function applyBrowserTheme(nextDark: boolean) {
+export function applyBrowserTheme(nextDark: boolean, mode: ThemeMode = nextDark ? 'dark' : 'light') {
   if (typeof document === 'undefined') return;
 
   const scheme = nextDark ? 'dark' : 'light';
@@ -34,6 +61,7 @@ export function applyBrowserTheme(nextDark: boolean) {
 
   root.classList.toggle('dark', nextDark);
   root.dataset.theme = scheme;
+  root.dataset.themeMode = mode;
   root.style.backgroundColor = color;
   root.style.colorScheme = scheme;
 
@@ -56,6 +84,12 @@ export function applyBrowserTheme(nextDark: boolean) {
     document.head.appendChild(appThemeMeta);
   }
   appThemeMeta.content = color;
+}
+
+export function applyBrowserThemeMode(mode: ThemeMode): boolean {
+  const nextDark = resolveThemeMode(mode);
+  applyBrowserTheme(nextDark, mode);
+  return nextDark;
 }
 
 export function runWhenIdle(callback: () => void) {
