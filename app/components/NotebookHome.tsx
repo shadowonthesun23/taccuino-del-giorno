@@ -51,6 +51,9 @@ const eagerImageProps = getImageLoadingProps(true);
 const lazyImageProps = getImageLoadingProps();
 const lowPriorityImageProps = { decoding: 'async' as const, fetchPriority: 'low' as const };
 const PRELOAD_EXIT_DURATION = 820;
+const ARCHIVE_POPOVER_MAX_HEIGHT = 480;
+const ARCHIVE_POPOVER_VIEWPORT_MARGIN = 16;
+const ARCHIVE_POPOVER_GAP = 10;
 let latestDayRequestId = 0;
 
 interface ScrollRevealBadgeProps {
@@ -289,6 +292,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
   const [savedCards, setSavedCards] = useState<SavedCardItem[]>(getSavedCards);
   const [popoverPos, setPopoverPos] = useState({ top: 0, right: 16 });
+  const [archivePopoverMaxHeight, setArchivePopoverMaxHeight] = useState(ARCHIVE_POPOVER_MAX_HEIGHT);
   const [savedDrawerPos, setSavedDrawerPos] = useState({ top: 0, right: 16 });
   const [archivio, setArchivio] = useState<ArchivioItem[]>([]);
   const [visitedArchiveDates, setVisitedArchiveDates] = useState<Set<string>>(getSavedVisitedDates);
@@ -815,15 +819,60 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     applyBrowserTheme(next);
   };
 
+  const positionArchivePopover = useCallback((trigger: HTMLButtonElement | null) => {
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const availableAbove = Math.max(
+      0,
+      rect.top - ARCHIVE_POPOVER_VIEWPORT_MARGIN - ARCHIVE_POPOVER_GAP,
+    );
+    const availableBelow = Math.max(
+      0,
+      window.innerHeight - rect.bottom - ARCHIVE_POPOVER_VIEWPORT_MARGIN - ARCHIVE_POPOVER_GAP,
+    );
+    const preferredHeight = Math.min(
+      ARCHIVE_POPOVER_MAX_HEIGHT,
+      Math.max(1, window.innerHeight - ARCHIVE_POPOVER_VIEWPORT_MARGIN * 2),
+    );
+    const opensAbove = availableBelow < preferredHeight && availableAbove > availableBelow;
+    const availableHeight = opensAbove ? availableAbove : availableBelow;
+    const maxHeight = Math.min(preferredHeight, Math.max(1, availableHeight));
+    const top = opensAbove
+      ? Math.max(
+        ARCHIVE_POPOVER_VIEWPORT_MARGIN,
+        rect.top - ARCHIVE_POPOVER_GAP - maxHeight,
+      )
+      : Math.max(
+        ARCHIVE_POPOVER_VIEWPORT_MARGIN,
+        Math.min(
+          rect.bottom + ARCHIVE_POPOVER_GAP,
+          window.innerHeight - ARCHIVE_POPOVER_VIEWPORT_MARGIN - maxHeight,
+        ),
+      );
+    const panelWidth = Math.min(
+      360,
+      Math.max(1, window.innerWidth - ARCHIVE_POPOVER_VIEWPORT_MARGIN * 2),
+    );
+    const desiredRight = window.innerWidth - rect.right;
+    const maxRight = Math.max(
+      ARCHIVE_POPOVER_VIEWPORT_MARGIN,
+      window.innerWidth - ARCHIVE_POPOVER_VIEWPORT_MARGIN - panelWidth,
+    );
+
+    setArchivePopoverMaxHeight(maxHeight);
+    setPopoverPos({
+      top,
+      right: Math.min(
+        maxRight,
+        Math.max(ARCHIVE_POPOVER_VIEWPORT_MARGIN, desiredRight),
+      ),
+    });
+  }, []);
+
   const toggleArchive = (trigger: HTMLButtonElement) => {
     lastArchiveTriggerRef.current = trigger;
-    if (!popoverOpen) {
-      const rect = trigger.getBoundingClientRect();
-      setPopoverPos({
-        top: rect.bottom + 10,
-        right: window.innerWidth - rect.right,
-      });
-    }
+    if (!popoverOpen) positionArchivePopover(trigger);
     setPopoverOpen((current) => !current);
   };
 
@@ -838,6 +887,27 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
     }
     setSavedDrawerOpen((current) => !current);
   };
+
+  useEffect(() => {
+    if (!popoverOpen) return;
+
+    let frame: number | null = null;
+    const reposition = () => {
+      if (frame !== null) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        positionArchivePopover(lastArchiveTriggerRef.current);
+      });
+    };
+
+    window.addEventListener('resize', reposition);
+    window.addEventListener('scroll', reposition, true);
+    return () => {
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, [popoverOpen, positionArchivePopover]);
 
   const themeClasses = {
     bg: isDark ? 'bg-[#171614]' : 'bg-[#F8F6F0]',
@@ -947,7 +1017,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
         width: '360px',
         maxWidth: 'calc(100vw - 32px)',
         transformOrigin: 'top right',
-        maxHeight: '480px',
+        maxHeight: `${archivePopoverMaxHeight}px`,
         height: 'auto',
       }}
     >
@@ -1133,8 +1203,8 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   if (error) return (
     <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center ${garamond.className} p-4 relative transition-colors duration-300`}>
       <div className={`${isDark ? 'bg-[#2A2A2A] border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'} border p-8 max-w-lg text-center rounded-2xl relative z-10 transition-colors duration-300`}>
-        <p className={`${themeClasses.text} text-xl font-medium mb-4`}>Il taccuino di oggi non è ancora stato compilato.</p>
-        <p className={`text-sm ${themeClasses.textMuted} italic`}>{error}</p>
+        <p className={`${themeClasses.text} text-xl font-medium mb-4`}>{t('contentNotReadyTitle', lingua)}</p>
+        <p className={`text-sm ${themeClasses.textMuted} italic`}>{t('contentNotReadyMessage', lingua)}</p>
         {archivio.length > 0 && (
           <button
             ref={desktopArchiveTriggerRef}

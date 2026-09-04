@@ -33,6 +33,22 @@ export const UI_TRANSLATIONS: Record<string, Record<LanguageCode, string>> = {
     ES: 'Cada día trae consigo algo digno de guardar: una frase, un poema, una imagen, una palabra, un recuerdo, un pasaje de fe. Un espacio tranquilo para reunirlos, leer lentamente y guardarlos en papel o en el corazón.',
     PT: 'Cada dia traz consigo algo que vale a pena guardar: uma frase, um poema, uma imagem, uma palavra, uma memória, uma passagem de fé. Um espaço tranquilo para recolhê-los, ler devagar e guardá-los no papel ou no coração.'
   },
+  contentNotReadyTitle: {
+    IT: 'Il taccuino di oggi è ancora in preparazione.',
+    EN: 'Today’s notebook is still being prepared.',
+    FR: 'Le carnet du jour est encore en préparation.',
+    DE: 'Das Notizbuch für heute wird noch vorbereitet.',
+    ES: 'El cuaderno de hoy todavía se está preparando.',
+    PT: 'O caderno de hoje ainda está a ser preparado.'
+  },
+  contentNotReadyMessage: {
+    IT: 'Torna a trovarci più tardi: il contenuto del giorno sarà qui ad aspettarti.',
+    EN: 'Come back later: today’s content will be waiting for you here.',
+    FR: 'Revenez nous voir plus tard : le contenu du jour vous attendra ici.',
+    DE: 'Komm später wieder vorbei: Der Inhalt des Tages wartet hier auf dich.',
+    ES: 'Vuelve a visitarnos más tarde: el contenido del día te estará esperando aquí.',
+    PT: 'Volta a visitar-nos mais tarde: o conteúdo do dia estará aqui à tua espera.'
+  },
   correspondencesTitle: {
     IT: 'Per iniziare', EN: 'A place to begin', FR: 'Pour commencer', DE: 'Zum Einstieg', ES: 'Para empezar', PT: 'Para começar'
   },
