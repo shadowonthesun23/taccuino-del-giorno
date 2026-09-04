@@ -5601,6 +5601,18 @@ body.museum-room-open :is(
   z-index: 61;
 }
 
+/* During close, move the outer tab back at the same time as the reverse
+   motion. The peek is revealed only after this landing point is reached. */
+.daily-postcard.is-open.is-closing,
+.daily-postcard.is-open.is-closing:hover,
+.daily-postcard.is-open.is-closing:focus-within {
+  height: var(--daily-postcard-height);
+  left: auto;
+  right: calc(68px - var(--daily-postcard-width));
+  top: calc(50% - var(--daily-postcard-half-height));
+  width: calc(var(--daily-postcard-width) + var(--daily-postcard-peek-reveal));
+}
+
 .daily-postcard-peek {
   appearance: none;
   background: transparent;
@@ -5963,7 +5975,6 @@ body.museum-room-open :is(
 
 .daily-postcard-stage {
   aspect-ratio: 15 / 10;
-  animation: dailyPostcardStageIn 740ms cubic-bezier(0.16, 1, 0.3, 1) both;
   cursor: pointer;
   max-width: 720px;
   perspective: 1500px;
@@ -5975,47 +5986,27 @@ body.museum-room-open :is(
 
 @keyframes dailyPostcardStageIn {
   from {
-    filter: blur(1.8px);
     opacity: 0.18;
     transform: translate3d(38vw, 16px, 0) scale(0.88) rotate(3.2deg);
   }
 
-  44% {
-    filter: blur(0.42px);
-    opacity: 0.92;
-    transform: translate3d(9vw, 4px, 0) scale(0.98) rotate(0.65deg);
-  }
-
-  78% {
-    filter: blur(0);
-    opacity: 1;
-    transform: translate3d(-0.7vw, 0, 0) scale(1.008) rotate(-0.12deg);
-  }
-
   to {
-    filter: blur(0);
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
   }
 }
 
-@keyframes dailyPostcardStageOut {
+/* The entry path is intentionally duplicated under a new name so the
+   closing state can restart it and play the exact same motion in reverse. */
+@keyframes dailyPostcardStageInReverse {
   from {
-    filter: blur(0);
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-  }
-
-  48% {
-    filter: blur(0.08px);
-    opacity: 0.94;
-    transform: translate3d(5vw, -3px, 0) scale(0.985) rotate(-0.55deg);
+    opacity: 0.18;
+    transform: translate3d(38vw, 16px, 0) scale(0.88) rotate(3.2deg);
   }
 
   to {
-    filter: blur(1.8px);
-    opacity: 0;
-    transform: translate3d(36vw, 15px, 0) scale(0.88) rotate(3.2deg);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
   }
 }
 
@@ -6027,6 +6018,11 @@ body.museum-room-open :is(
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .daily-postcard-stage {
+    animation: dailyPostcardStageIn 740ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: opacity, transform;
+  }
+
   .daily-postcard-card-motion {
     transform:
       translate3d(var(--postcard-shift-x, 0px), var(--postcard-shift-y, 0px), 0)
@@ -6085,7 +6081,11 @@ body.museum-room-open :is(
 
 @media (prefers-reduced-motion: no-preference) {
   .daily-postcard.is-closing .daily-postcard-stage {
-    animation: dailyPostcardStageOut 460ms cubic-bezier(0.4, 0, 1, 1) both;
+    animation: dailyPostcardStageInReverse 460ms cubic-bezier(0.16, 1, 0.3, 1) reverse both;
+  }
+
+  .daily-postcard.is-open.is-closing {
+    transition-duration: 460ms, 420ms, 420ms;
   }
 }
 
