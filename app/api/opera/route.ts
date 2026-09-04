@@ -6,6 +6,7 @@ import {
   localizeArtworkToItalian,
   type Artwork,
 } from '@/lib/artwork';
+import { getFallbackContent } from '@/lib/fallback-content';
 
 export const maxDuration = 30;
 
@@ -38,21 +39,24 @@ export async function GET(request: Request) {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     const dataIso = requestedDate(request);
 
-    const { data: record, error: dbError } = await supabase
+    const { data: record } = await supabase
       .from('contenuti_giornalieri')
       .select('keyword_arte_en, opera_giorno')
       .eq('data', dataIso)
       .single();
 
-    if (dbError || !record) {
+    const baseRecord = record ?? getFallbackContent(dataIso);
+
+    if (!baseRecord) {
       return Response.json({ error: 'Nessun record trovato per la data richiesta' }, { status: 404 });
     }
 
-    const existingArtwork = cachedArtwork(record.opera_giorno);
+    const existingArtwork = cachedArtwork(baseRecord.opera_giorno);
     if (existingArtwork) {
       const localizedArtwork = await localizeArtworkToItalian(existingArtwork as Artwork);
       if (
         supabaseServiceKey
+        && record
         && (
           localizedArtwork.medium_it !== existingArtwork.medium_it
           || localizedArtwork.dipartimento_it !== existingArtwork.dipartimento_it
@@ -67,8 +71,8 @@ export async function GET(request: Request) {
       return Response.json(localizedArtwork);
     }
 
-    const keyword = typeof record.keyword_arte_en === 'string'
-      ? record.keyword_arte_en.trim()
+    const keyword = typeof baseRecord.keyword_arte_en === 'string'
+      ? baseRecord.keyword_arte_en.trim()
       : '';
     if (!keyword) {
       return Response.json({ error: 'Nessuna keyword disponibile per la data richiesta' }, { status: 404 });
@@ -104,7 +108,7 @@ export async function GET(request: Request) {
     }
     const artwork = await localizeArtworkToItalian(selectedArtwork);
 
-    if (supabaseServiceKey) {
+    if (supabaseServiceKey && record) {
       const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
       const { error: cacheError } = await supabaseAdmin
         .from('contenuti_giornalieri')

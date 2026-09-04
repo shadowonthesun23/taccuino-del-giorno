@@ -50,6 +50,8 @@ export interface DatiTaccuino {
   bibbia: { testo: string; fonte: string; nota: string };
   poesia: { testo: string; autore: string; fonte: string; nota: string };
   musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
+  keyword_arte_en?: string | null;
+  opera_giorno?: Artwork | null;
   foto_autore_url?: string | null;
   autore_data_nascita?: string | null;
   autore_data_decesso?: string | null;

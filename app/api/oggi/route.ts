@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import { sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
+import { getFallbackContent } from '@/lib/fallback-content';
 
 function getRomeDateIso(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -135,13 +136,15 @@ export async function GET(request: Request) {
       dataIso = getRomeDateIso();
     }
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('contenuti_giornalieri')
       .select('*')
       .eq('data', dataIso)
       .single();
 
-    if (error || !data) {
+    const baseData = data ?? getFallbackContent(dataIso);
+
+    if (!baseData) {
       return NextResponse.json({ error: 'Nessun contenuto per questa data' }, { status: 404 });
     }
 
@@ -160,7 +163,7 @@ export async function GET(request: Request) {
         .select('overrides')
         .eq('data', dataIso)
         .maybeSingle(),
-      getAuthorMetadata(data.autore_giorno),
+      getAuthorMetadata(baseData.autore_giorno),
     ]);
 
     if (editorialMediaError) {
@@ -173,7 +176,7 @@ export async function GET(request: Request) {
     const editorialContent = sanitizeEditorialContentOverrides(editorialContentRow?.overrides);
     const editorialMedia = sanitizeEditorialMediaOverrides(editorialMediaRow?.overrides);
 
-    const dataWithContent = applyEditorialContentOverrides(data, editorialContent);
+    const dataWithContent = applyEditorialContentOverrides(baseData, editorialContent);
 
     return NextResponse.json(
       {
