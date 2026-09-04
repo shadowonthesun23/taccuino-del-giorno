@@ -116,7 +116,15 @@ function replacePostcardAddressInputs(sourceCard: HTMLElement, clone: HTMLElemen
   });
 }
 
-function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fontFamily: string) {
+function getPostcardExportHeight(sourceCard: HTMLElement) {
+  const sourceWidth = sourceCard.offsetWidth || DAILY_POSTCARD_EXPORT_WIDTH;
+  const sourceHeight = sourceCard.offsetHeight || DAILY_POSTCARD_EXPORT_HEIGHT;
+  const scaledHeight = Math.round((sourceHeight * DAILY_POSTCARD_EXPORT_WIDTH) / sourceWidth);
+
+  return Math.max(DAILY_POSTCARD_EXPORT_HEIGHT, scaledHeight);
+}
+
+function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fontFamily: string, exportHeight: number) {
   const clone = sourceCard.cloneNode(true) as HTMLElement;
   const selectedFaceClass = `daily-postcard-${face}`;
 
@@ -141,7 +149,7 @@ function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fon
   Object.assign(clone.style, {
     boxSizing: 'border-box',
     fontFamily,
-    height: `${DAILY_POSTCARD_EXPORT_HEIGHT}px`,
+    height: `${exportHeight}px`,
     inset: 'auto',
     margin: '0',
     maxHeight: 'none',
@@ -161,7 +169,7 @@ function createExportFrame(sourceCard: HTMLElement, face: DailyPostcardFace, fon
   Object.assign(exportFrame.style, {
     backgroundColor: face === 'back' ? '#f2eadb' : '#e6d8c0',
     boxSizing: 'border-box',
-    height: `${DAILY_POSTCARD_EXPORT_HEIGHT}px`,
+    height: `${exportHeight}px`,
     left: '0',
     opacity: '0.001',
     overflow: 'hidden',
@@ -223,7 +231,8 @@ export async function downloadDailyPostcardFace(
   if (!sourceFace) throw new Error(`Faccia ${face} della cartolina non trovata.`);
 
   await waitForImages(sourceFace);
-  const { clone, exportFrame } = createExportFrame(sourceCard, face, sourceFontFamily);
+  const exportHeight = getPostcardExportHeight(sourceCard);
+  const { clone, exportFrame } = createExportFrame(sourceCard, face, sourceFontFamily, exportHeight);
 
   try {
     await inlineCloneImages(clone, sourceFace);
@@ -234,7 +243,7 @@ export async function downloadDailyPostcardFace(
       backgroundColor: face === 'back' ? '#f2eadb' : '#e6d8c0',
       cacheBust: false,
       fontEmbedCSS,
-      height: DAILY_POSTCARD_EXPORT_HEIGHT,
+      height: exportHeight,
       includeQueryParams: true,
       pixelRatio: DAILY_POSTCARD_EXPORT_PIXEL_RATIO,
       quality: JPEG_QUALITY,
