@@ -21,7 +21,7 @@ import MobileReadingThread from './MobileReadingThread';
 import GuestbookModal from './GuestbookModal';
 import { TypewriterText, DecorativeInitialText, EditorialQuoteText } from '@/components/ui/Typography';
 import { DoodleArrow } from '@/components/ui/Doodles';
-import { XIcon, InstagramIcon, CoffeeIcon } from '@/components/ui/Icons';
+import { XIcon, InstagramIcon, CoffeeIcon, SpotifyIcon, YouTubeIcon } from '@/components/ui/Icons';
 import WatercolorDivider from '@/components/ui/WatercolorDivider';
 
 // Library utilities & types
@@ -2069,16 +2069,18 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                       target="_blank" rel="noopener noreferrer"
                       className={`editorial-link-button notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
                     >
-                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                      <SpotifyIcon className="h-4 w-4 shrink-0" />
                       <span>Spotify</span>
+                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                     </a>
                     <a
                       href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.musica.chiave_ricerca)}`}
                       target="_blank" rel="noopener noreferrer"
                       className={`editorial-link-button notebook-action notebook-action-secondary ${isDark ? 'is-dark' : ''}`}
                     >
-                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                      <YouTubeIcon className="h-4 w-4 shrink-0" />
                       <span>YouTube</span>
+                      <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                     </a>
                   </div>
                 </div>

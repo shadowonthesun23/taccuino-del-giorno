@@ -23,3 +23,19 @@ export const CoffeeIcon = ({ className, strokeWidth = 1.5 }: { className?: strin
     <line x1="14" x2="14" y1="2" y2="4"/>
   </svg>
 );
+
+export const SpotifyIcon = ({ className, strokeWidth = 1.7 }: { className?: string, strokeWidth?: number }) => (
+  <svg aria-hidden="true" className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M7.2 9.3c3.2-.9 6.9-.7 9.7.8" />
+    <path d="M7.7 12.2c2.7-.7 5.7-.5 8.2.7" />
+    <path d="M8.4 15c2.2-.5 4.5-.3 6.6.6" />
+  </svg>
+);
+
+export const YouTubeIcon = ({ className, strokeWidth = 1.7 }: { className?: string, strokeWidth?: number }) => (
+  <svg aria-hidden="true" className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.6 7.1a2.7 2.7 0 0 0-1.9-1.9C17 4.7 12 4.7 12 4.7s-5 0-6.7.5a2.7 2.7 0 0 0-1.9 1.9A28 28 0 0 0 2.9 12a28 28 0 0 0 .5 4.9 2.7 2.7 0 0 0 1.9 1.9c1.7.5 6.7.5 6.7.5s5 0 6.7-.5a2.7 2.7 0 0 0 1.9-1.9 28 28 0 0 0 .5-4.9 28 28 0 0 0-.5-4.9Z" />
+    <path d="m10.1 9 5 3-5 3V9Z" fill="currentColor" stroke="none" />
+  </svg>
+);
