@@ -11,15 +11,16 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 
 export const maxDuration = 60;
 
-const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
-const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite';
-// Keep enough of the global budget for a meaningful fallback attempt.
-const GEMINI_ATTEMPT_TIMEOUT_MS = 30_000;
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+// Controlled test: duplicate candidates are deduplicated, so no model fallback is attempted.
+const FALLBACK_GEMINI_MODEL = DEFAULT_GEMINI_MODEL;
+// Leave a small margin inside Vercel's 60-second function limit.
+const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
 const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 10_000;
-const MAX_FULL_GENERATION_ATTEMPTS = 2;
+const MAX_FULL_GENERATION_ATTEMPTS = 1;
 const MAX_WORD_REPAIR_ATTEMPTS = 2;
 const RETRY_BACKOFF_MS = 250;
 
