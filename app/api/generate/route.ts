@@ -12,10 +12,11 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 export const maxDuration = 60;
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_ATTEMPT_TIMEOUT_MS = 20_000;
+const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
+const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 10_000;
 const MAX_FULL_GENERATION_ATTEMPTS = 2;
 const MAX_WORD_REPAIR_ATTEMPTS = 2;
 const RETRY_BACKOFF_MS = 250;
@@ -708,7 +709,7 @@ Restituisci questo JSON:
         if (
           fullGenerationAttempts >= MAX_FULL_GENERATION_ATTEMPTS
           || !fallbackModel
-          || getGeminiAttemptTimeout(generationStartedAt) === null
+          || (getGeminiAttemptTimeout(generationStartedAt) ?? 0) < GEMINI_MIN_FALLBACK_TIMEOUT_MS
         ) {
           break;
         }
