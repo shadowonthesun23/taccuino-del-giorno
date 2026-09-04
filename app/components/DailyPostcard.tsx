@@ -706,9 +706,17 @@ export default function DailyPostcard({
         </button>
       ) : null}
 
+      <button
+        type="button"
+        className={`daily-postcard-modal-backdrop ${postcardOpen ? 'is-open' : ''}`}
+        aria-label={copy.close}
+        aria-hidden={!postcardOpen}
+        tabIndex={postcardOpen ? 0 : -1}
+        onClick={closePostcard}
+      />
+
       {postcardOpen ? (
         <>
-          <button type="button" className="daily-postcard-modal-backdrop" aria-label={copy.close} onClick={closePostcard} />
           <section className="daily-postcard-dialog" role="dialog" aria-modal="true" aria-labelledby="daily-postcard-title">
             <h2 id="daily-postcard-title" className="sr-only">{copy.dailyPostcard}: {dateLabel}</h2>
             <button type="button" className="daily-postcard-close notebook-action notebook-action-icon" onClick={closePostcard} aria-label={copy.close}>
