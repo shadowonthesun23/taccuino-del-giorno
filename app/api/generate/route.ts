@@ -12,7 +12,7 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 export const maxDuration = 60;
 
 const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
-const FALLBACK_GEMINI_MODEL = 'gemini-3.7-flash';
+const FALLBACK_GEMINI_MODEL = 'gemini-3.6-flash';
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
