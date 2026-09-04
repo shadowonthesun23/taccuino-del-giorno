@@ -5930,6 +5930,7 @@ body.museum-room-open :is(
   position: fixed;
   -webkit-backdrop-filter: blur(0) saturate(1);
   backdrop-filter: blur(0) saturate(1);
+  will-change: opacity, -webkit-backdrop-filter, backdrop-filter;
   z-index: 58;
 }
 
@@ -5942,10 +5943,8 @@ body.museum-room-open :is(
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .daily-postcard-modal-backdrop {
-    transition-property: background, opacity, -webkit-backdrop-filter, backdrop-filter;
-    transition-duration: 560ms;
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  .daily-postcard.is-open .daily-postcard-modal-backdrop {
+    animation: dailyPostcardBackdropOut 420ms cubic-bezier(0.4, 0, 1, 1) reverse both;
   }
 
   .daily-postcard.is-closing .daily-postcard-modal-backdrop {
