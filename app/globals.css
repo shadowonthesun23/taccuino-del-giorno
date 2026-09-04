@@ -14695,6 +14695,13 @@ body.museum-room-open :is(
   -webkit-line-clamp: 2;
 }
 
+/* The live word tile has room for the explanatory etymology to resolve
+   beyond the short teaser; the export folio keeps its own full-copy rules. */
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-word-full-etymology {
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
+}
+
 .correspondence-word-content > img,
 .correspondence-reading-content > img {
   border-radius: 8px 6px 9px 7px;
