@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
+import InkBottleCorner from '@/components/ui/InkBottleCorner';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
 const renderRopeStrands = (
@@ -145,7 +146,7 @@ export default function ParallaxBackground({
   sealColor?: string;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
-  const coffeeLayerRef = useRef<HTMLDivElement>(null);
+  const deskLayerRef = useRef<HTMLDivElement>(null);
   const lineArtRef = useRef<HTMLDivElement>(null);
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const seasonalCaptionRef = useRef<HTMLElement>(null);
@@ -401,7 +402,7 @@ export default function ParallaxBackground({
 
       const transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
       image.style.transform = transform;
-      if (coffeeLayerRef.current) coffeeLayerRef.current.style.transform = transform;
+      if (deskLayerRef.current) deskLayerRef.current.style.transform = transform;
       frame = null;
     };
 
@@ -986,7 +987,7 @@ export default function ParallaxBackground({
 
       {showEspresso ? (
         <div
-          ref={coffeeLayerRef}
+          ref={deskLayerRef}
           aria-hidden="true"
           className="safe-viewport-backdrop fixed z-0 pointer-events-none overflow-hidden"
           style={{
@@ -1006,6 +1007,7 @@ export default function ParallaxBackground({
             }}
           >
             <EspressoCorner isDark={dark} />
+            <InkBottleCorner isDark={dark} />
           </div>
         </div>
       ) : null}
