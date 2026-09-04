@@ -11,7 +11,8 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 
 export const maxDuration = 60;
 
-const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
+const FALLBACK_GEMINI_MODEL = 'gemini-3.7-flash';
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
@@ -154,8 +155,27 @@ function getDatePartsFromIso(dataIso: string) {
   return { dataIso, dataDiOggiStr };
 }
 
+type GeminiGenerationConfig = {
+  responseMimeType: 'application/json';
+  thinkingConfig?: {
+    thinkingLevel: 'medium';
+  };
+};
+
+function getGeminiGenerationConfig(modelName: string): GeminiGenerationConfig {
+  const config: GeminiGenerationConfig = {
+    responseMimeType: 'application/json',
+  };
+
+  if (/^gemini-3(?:\.|-)/u.test(modelName)) {
+    config.thinkingConfig = { thinkingLevel: 'medium' };
+  }
+
+  return config;
+}
+
 function uniqueModelCandidates(primaryModel?: string) {
-  return [primaryModel?.trim(), DEFAULT_GEMINI_MODEL, 'gemini-flash-latest']
+  return [primaryModel?.trim(), DEFAULT_GEMINI_MODEL, FALLBACK_GEMINI_MODEL]
     .filter((model): model is string => Boolean(model))
     .filter((model, index, models) => models.indexOf(model) === index);
 }
@@ -636,9 +656,7 @@ Restituisci questo JSON:
       const modelName = modelCandidates[modelIndex];
       const model = genAI.getGenerativeModel({
         model: modelName,
-        generationConfig: {
-          responseMimeType: "application/json",
-        },
+        generationConfig: getGeminiGenerationConfig(modelName),
       });
 
       const fullAttemptNumber = fullGenerationAttempts + 1;
