@@ -12216,6 +12216,13 @@ body.museum-room-open :is(
   transform: translateY(-2px) rotate(0.12deg);
 }
 
+/* The live plate should frame the author content, not stretch through the
+   three shared grid rows used to position the surrounding entries. */
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-author {
+  align-self: start;
+  height: fit-content;
+}
+
 .correspondence-author:active {
   transform: scale(0.96);
 }

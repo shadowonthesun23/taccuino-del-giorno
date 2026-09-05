@@ -9,7 +9,7 @@ import { getMoonPhase } from '@/lib/astronomy';
 import { formatExLibrisDate, getDayOfYearInfo, getInitials } from '@/lib/date-utils';
 import { getImageLoadingProps } from '@/lib/browser-utils';
 import { OPEN_EPHEMERIS_EVENT, SITE_WATERMARK, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
-import { sanitizeAuthorDescription } from '@/lib/author-description';
+import { getAuthorTeaser, sanitizeAuthorDescription } from '@/lib/author-description';
 import { t } from '@/lib/translation';
 import { janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
@@ -20,40 +20,10 @@ import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle, getRende
 const eagerImageProps = getImageLoadingProps(true);
 const CORRESPONDENCE_TYPEWRITER_DELAY = 520;
 const CORRESPONDENCE_TYPEWRITER_SPEED = 1.8;
+const LIVE_AUTHOR_TEASER_MAX_LENGTH = 210;
 
 function getFirstSentence(text: string) {
   return text.match(/^[\s\S]*?[.!?](?=\s|$)/u)?.[0]?.trim() || text.trim();
-}
-
-function getAuthorTeaser(text: string) {
-  const firstSentence = getFirstSentence(text)
-    .replace(/\s*[([{][^\])}]*[\])}]/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-
-  if (firstSentence.length <= 112) return firstSentence;
-
-  const maxLength = 112;
-  const prefix = firstSentence.slice(0, maxLength);
-  const boundary = Math.max(
-    prefix.lastIndexOf(','),
-    prefix.lastIndexOf(';'),
-    prefix.lastIndexOf(':'),
-    prefix.lastIndexOf(' — '),
-    prefix.lastIndexOf(' – '),
-  );
-
-  if (boundary >= 48) {
-    return `${prefix.slice(0, boundary).replace(/[,:;–—-]+$/u, '').trim()}.`;
-  }
-
-  const words = prefix.trim().split(/\s+/u);
-  let teaser = words.slice(0, -1).join(' ');
-  while (/\b(?:e|ed|di|del|della|dei|degli|delle|il|lo|la|i|gli|le|un|uno|una|che|con|per|in|a|da|nel|nella|è|fu|ha)$/iu.test(teaser)) {
-    teaser = teaser.replace(/\s+\S+$/u, '');
-  }
-
-  return `${teaser.replace(/[,:;–—-]+$/u, '').trim()}.`;
 }
 
 function getExportAuthorDescription(text: string, author: string, lingua: LanguageCode) {
@@ -194,7 +164,7 @@ export default function DailyCorrespondences({
   const bibleImageAvailable = Boolean(bibleImageUrl) && !failedMedia.has(bibleImageUrl);
   const saintOfTheDay = data.santi[0];
   const authorDescriptionText = sanitizeAuthorDescription(data.breve_descrizione);
-  const authorDescription = getAuthorTeaser(authorDescriptionText);
+  const authorDescription = getAuthorTeaser(authorDescriptionText, LIVE_AUTHOR_TEASER_MAX_LENGTH);
   const exportAuthorDescription = getExportAuthorDescription(authorDescriptionText, data.autore_giorno, lingua);
   const exportWordEtymology = getExportWordEtymology(data.parola_giorno.etimologia, lingua);
   const exportSaintRole = saintOfTheDay ? getExportSaintRole(saintOfTheDay.ruolo, lingua) : '';
