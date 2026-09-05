@@ -388,7 +388,13 @@ export default function EditorPage() {
     setMediaMessage('');
   }
 
-  function updateContentOverride(section: Exclude<keyof EditorialContentOverrides, 'avvenimenti'>, field: string, value: string) {
+  function updateAuthorDescription(value: string) {
+    setContentOverrides((current) => ({ ...current, breve_descrizione: value }));
+    setContentStatus('idle');
+    setContentMessage('');
+  }
+
+  function updateContentOverride(section: Exclude<keyof EditorialContentOverrides, 'avvenimenti' | 'breve_descrizione'>, field: string, value: string) {
     setContentOverrides((current) => {
       const next = { ...current } as Record<string, unknown>;
       const group = isRecordValue(next[section]) ? { ...(next[section] as Record<string, string>) } : {};
@@ -789,6 +795,19 @@ export default function EditorPage() {
           </p>
 
           <div className="editor-content-grid">
+            <fieldset className="editor-content-field editor-content-field-wide">
+              <legend>Autore del giorno</legend>
+              <label>
+                <span>Breve descrizione</span>
+                <textarea
+                  className="editor-content-input editor-content-textarea"
+                  value={contentOverrides.breve_descrizione ?? previewData?.breve_descrizione ?? ''}
+                  onChange={(event) => updateAuthorDescription(event.target.value)}
+                />
+              </label>
+              <p className="editor-content-hint">Puoi correggere o completare il testo biografico mostrato nella tavola.</p>
+            </fieldset>
+
             <fieldset className="editor-content-field editor-content-field-wide">
               <legend>Citazione</legend>
               <label>

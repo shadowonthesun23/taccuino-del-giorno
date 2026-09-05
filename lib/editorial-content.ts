@@ -1,9 +1,10 @@
 import type { DatiTaccuino } from './types';
 
-type TextField = 'testo' | 'autore' | 'fonte' | 'parola' | 'definizione' | 'etimologia' | 'esempio' | 'nota';
+type TextField = 'testo' | 'autore' | 'fonte' | 'breve_descrizione' | 'parola' | 'definizione' | 'etimologia' | 'esempio' | 'nota';
 type TextOverrides = Partial<Record<TextField, string>>;
 
 export interface EditorialContentOverrides {
+  breve_descrizione?: string;
   citazione?: Pick<TextOverrides, 'testo' | 'autore' | 'fonte'>;
   parola_giorno?: Pick<TextOverrides, 'parola' | 'definizione' | 'etimologia' | 'esempio' | 'nota'>;
   avvenimenti?: string[];
@@ -15,6 +16,7 @@ const MAX_TEXT_LENGTHS: Record<TextField, number> = {
   testo: 12_000,
   autore: 240,
   fonte: 240,
+  breve_descrizione: 4_000,
   parola: 160,
   definizione: 4_000,
   etimologia: 1_000,
@@ -47,11 +49,13 @@ export function sanitizeEditorialContentOverrides(value: unknown): EditorialCont
   if (!isRecord(value)) return {};
 
   const result: EditorialContentOverrides = {};
+  const breveDescrizione = normalizeText(value.breve_descrizione, 'breve_descrizione', true);
   const citazione = sanitizeTextGroup(value.citazione, ['testo', 'autore', 'fonte']);
   const parola = sanitizeTextGroup(value.parola_giorno, ['parola', 'definizione', 'etimologia', 'esempio', 'nota']);
   const poesia = sanitizeTextGroup(value.poesia, ['testo', 'autore', 'fonte', 'nota']);
   const bibbia = sanitizeTextGroup(value.bibbia, ['testo', 'fonte', 'nota']);
 
+  if (breveDescrizione !== undefined) result.breve_descrizione = breveDescrizione;
   if (citazione) {
     const citationOverride = { ...citazione };
     const changesQuote = Object.hasOwn(citationOverride, 'testo') || Object.hasOwn(citationOverride, 'autore');
@@ -85,6 +89,7 @@ export function applyEditorialContentOverrides(
 ): DatiTaccuino {
   return {
     ...data,
+    ...(Object.hasOwn(overrides, 'breve_descrizione') ? { breve_descrizione: overrides.breve_descrizione ?? '' } : {}),
     ...(overrides.citazione ? { citazione: { ...data.citazione, ...overrides.citazione } } : {}),
     ...(overrides.parola_giorno ? { parola_giorno: { ...data.parola_giorno, ...overrides.parola_giorno } } : {}),
     ...(overrides.avvenimenti ? { avvenimenti: overrides.avvenimenti } : {}),

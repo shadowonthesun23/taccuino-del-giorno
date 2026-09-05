@@ -49,6 +49,31 @@ test('keeps an explicitly supplied source alongside a quote override', () => {
   );
 });
 
+test('sanitizes and applies an author description override', () => {
+  const overrides = sanitizeEditorialContentOverrides({
+    breve_descrizione: '  Una descrizione corretta dalla redazione.  ',
+  });
+
+  assert.deepEqual(overrides, {
+    breve_descrizione: 'Una descrizione corretta dalla redazione.',
+  });
+
+  const applied = applyEditorialContentOverrides({
+    data_odierna: '5 settembre',
+    autore_giorno: 'Autore automatico',
+    breve_descrizione: 'Descrizione automatica.',
+    citazione: { testo: '', autore: '', fonte: '' },
+    avvenimenti: [],
+    parola_giorno: { parola: '', definizione: '', etimologia: '', esempio: '', nota: '' },
+    santi: [],
+    bibbia: { testo: '', fonte: '', nota: '' },
+    poesia: { testo: '', autore: '', fonte: '', nota: '' },
+    musica: { brano: '', autore: '', genere: '', motivo: '', chiave_ricerca: '' },
+  }, overrides);
+
+  assert.equal(applied.breve_descrizione, 'Una descrizione corretta dalla redazione.');
+});
+
 test('preserves an explicitly empty events list', () => {
   assert.deepEqual(
     sanitizeEditorialContentOverrides({ avvenimenti: ['  ', '\n'] }),
