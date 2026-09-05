@@ -16,6 +16,7 @@ import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { TypewriterPhrase } from '@/components/ui/Typography';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import { DEFAULT_EDITORIAL_MEDIA_CROP, getEditorialMediaCropImageStyle, getRenderableImageUrl } from '@/lib/editorial-media';
+import PlanetIcon from './PlanetIcon';
 
 const eagerImageProps = getImageLoadingProps(true);
 const CORRESPONDENCE_TYPEWRITER_DELAY = 520;
@@ -354,7 +355,7 @@ export default function DailyCorrespondences({
                 <span className="correspondence-planets-heading"><Eye aria-hidden="true" />{t('visiblePlanetsInSky', lingua)}</span>
                 {visiblePlanets.map((planet) => (
                   <span key={planet.body} className="correspondence-planet-chip" title={`${planet.name} · ${planet.direction} · ${planet.bestTime} · ${t(planet.viewingAid === 'binoculars-recommended' ? 'binocularsRecommended' : 'nakedEye', lingua)}`}>
-                    <span className={`correspondence-planet-icon planet-${planet.body.toLowerCase()}`} aria-hidden="true" />
+                    <PlanetIcon body={planet.body} />
                     <span className="correspondence-planet-aid" aria-label={t(planet.viewingAid === 'binoculars-recommended' ? 'binocularsRecommended' : 'nakedEye', lingua)}>
                       {planet.viewingAid === 'binoculars-recommended' ? <Binoculars aria-hidden="true" /> : <Eye aria-hidden="true" />}
                     </span>

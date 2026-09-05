@@ -42,6 +42,7 @@ import { SITE_WATERMARK } from '@/lib/constants';
 import { garamond, janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { t } from '@/lib/translation';
+import PlanetIcon from './PlanetIcon';
 
 export type SocialStoryVariant = 'all-in-one' | 'things' | 'carry';
 
@@ -387,7 +388,7 @@ function ThingsStory(props: SocialStoryProps) {
                 <div className="social-things-planets-list">
                   {visiblePlanets.map((planet) => (
                     <span className="social-things-planet" key={planet.body}>
-                      <span className={`correspondence-planet-icon planet-${String(planet.body).toLowerCase()}`} aria-hidden="true" />
+                      <PlanetIcon body={planet.body} />
                       <span>{planet.name}</span>
                     </span>
                   ))}

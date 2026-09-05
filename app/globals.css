@@ -11769,84 +11769,29 @@ body.museum-room-open :is(
 }
 
 .correspondence-planet-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 20px;
+  object-fit: contain;
+  object-position: center;
+  width: 20px;
+}
+
+.correspondence-planet-fallback {
   background: #b8997b;
   border-radius: 999px;
   box-shadow:
     inset -2px -1px 0 rgba(49, 34, 25, 0.18),
     0 1px 3px rgba(42, 37, 34, 0.15);
-  display: inline-block;
-  flex: 0 0 auto;
-  height: 17px;
   position: relative;
-  width: 17px;
 }
 
-.correspondence-planet-icon::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.08) 70%, transparent 100%);
-  background-size: 220% 100%;
-  border-radius: inherit;
-  content: '';
-  inset: 1px;
-  pointer-events: none;
-  position: absolute;
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-saturn {
+  width: 30px;
 }
 
-.correspondence-planet-icon.planet-mercury {
+.correspondence-planet-icon.correspondence-planet-fallback.planet-mercury {
   background: radial-gradient(circle at 34% 30%, #f4e8d4 0 10%, #a88e76 12% 34%, #766357 36% 100%);
-}
-
-.correspondence-planet-icon.planet-venus {
-  background: radial-gradient(circle at 32% 28%, #fff7d7 0 12%, #ead6a2 24%, #b99c68 100%);
-}
-
-.correspondence-planet-icon.planet-mars {
-  background: radial-gradient(circle at 32% 28%, #e9a37e 0 10%, #b85e42 36%, #733326 100%);
-}
-
-.correspondence-planet-icon.planet-jupiter {
-  background: repeating-linear-gradient(174deg, #f0d9ae 0 3px, #bd8967 3px 5px, #f4e3bd 5px 7px, #936047 7px 9px);
-}
-
-.correspondence-planet-icon.planet-saturn {
-  background: radial-gradient(circle at 35% 30%, #fff0bb 0 12%, #d6b56d 46%, #927645 100%);
-}
-
-.correspondence-planet-icon.planet-saturn::after {
-  border: 1px solid rgba(104, 78, 42, 0.72);
-  border-radius: 999px;
-  content: '';
-  height: 6px;
-  left: -5px;
-  position: absolute;
-  top: 5px;
-  transform: rotate(-22deg);
-  width: 25px;
-}
-
-@keyframes correspondence-planet-axial-rotation {
-  from { background-position: 120% 50%; }
-  to { background-position: -120% 50%; }
-}
-
-/* Simulate axial rotation by moving only the surface highlight inside each
-   small sphere. The icon stays centered and Saturn's ring does not wobble. */
-@media (prefers-reduced-motion: no-preference) {
-  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon::before {
-    animation: correspondence-planet-axial-rotation 24s linear infinite;
-  }
-
-  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-venus::before,
-  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-saturn::before {
-    animation-direction: reverse;
-  }
-
-  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-mars::before {
-    animation-duration: 19s;
-  }
-
-  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-jupiter::before {
-    animation-duration: 30s;
-  }
 }
 
 .correspondence-apod .correspondence-entry-content > img,
@@ -12818,13 +12763,6 @@ body.museum-room-open :is(
 .correspondence-export-frame .daily-correspondences-export .correspondence-planet-icon {
   height: 24px;
   width: 24px;
-}
-
-.correspondence-export-frame .daily-correspondences-export .correspondence-planet-icon.planet-saturn::after {
-  height: 8px;
-  left: -6px;
-  top: 7px;
-  width: 32px;
 }
 
 .correspondence-export-frame .daily-correspondences-export .correspondence-apod .correspondence-entry-content > img,
