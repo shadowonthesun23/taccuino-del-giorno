@@ -17,6 +17,7 @@ import {
   sanitizeEditorialMediaOverrides,
   saveEditorialMediaDocument,
   type EditorialMediaCrop,
+  type EditorialMediaCropId,
   type EditorialMediaCrops,
   type EditorialMediaOverrides,
   type EditorialMediaSectionId,
@@ -88,16 +89,24 @@ function isRecordValue(value: unknown): value is Record<string, string> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function AuthorCropEditor({
+function MediaCropEditor({
   src,
   crop,
   onChange,
   onReset,
+  title,
+  ariaLabel,
+  imageAlt,
+  zoomLabel,
 }: {
   src: string;
   crop: EditorialMediaCrop;
   onChange: (crop: EditorialMediaCrop) => void;
   onReset: () => void;
+  title?: string;
+  ariaLabel: string;
+  imageAlt: string;
+  zoomLabel: string;
 }) {
   const dragRef = useRef<{ startX: number; startY: number; cropX: number; cropY: number } | null>(null);
 
@@ -133,6 +142,7 @@ function AuthorCropEditor({
 
   return (
     <div className="editor-author-crop">
+      {title ? <strong className="editor-author-crop-title">{title}</strong> : null}
       <div
         className="editor-author-crop-stage"
         onPointerDown={handlePointerDown}
@@ -141,12 +151,12 @@ function AuthorCropEditor({
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
         role="application"
-        aria-label="Ritaglia il ritratto dell’autore trascinando la foto"
+        aria-label={ariaLabel}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- crop preview accepts author-supplied remote URLs and local data URLs */}
         <img
           src={src}
-          alt="Anteprima del ritaglio dell’autore"
+          alt={imageAlt}
           draggable={false}
           style={getEditorialMediaCropImageStyle(crop)}
         />
@@ -161,7 +171,7 @@ function AuthorCropEditor({
             max="3"
             step="0.05"
             value={crop.zoom}
-            aria-label="Zoom del ritratto"
+            aria-label={zoomLabel}
             onChange={(event) => onChange({ ...crop, zoom: Number(event.target.value) })}
           />
         </label>
@@ -169,6 +179,47 @@ function AuthorCropEditor({
       </div>
       <p className="editor-author-crop-hint">Trascina la foto per scegliere il punto da mettere in evidenza. Puoi anche usare la rotellina sul computer.</p>
     </div>
+  );
+}
+
+function TableCropField({
+  label,
+  hint,
+  src,
+  crop,
+  onChange,
+  onReset,
+  ariaLabel,
+  imageAlt,
+  zoomLabel,
+}: {
+  label: string;
+  hint: string;
+  src: string;
+  crop: EditorialMediaCrop;
+  onChange: (crop: EditorialMediaCrop) => void;
+  onReset: () => void;
+  ariaLabel: string;
+  imageAlt: string;
+  zoomLabel: string;
+}) {
+  return (
+    <fieldset className="editor-media-field editor-table-crop-field">
+      <div className="editor-media-field-heading">
+        <legend>{label}</legend>
+      </div>
+      <p className="editor-media-hint">{hint}</p>
+      <MediaCropEditor
+        src={src}
+        crop={crop}
+        onChange={onChange}
+        onReset={onReset}
+        title="Inquadratura dedicata alla tavola"
+        ariaLabel={ariaLabel}
+        imageAlt={imageAlt}
+        zoomLabel={zoomLabel}
+      />
+    </fieldset>
   );
 }
 
@@ -223,11 +274,15 @@ export default function EditorPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [mediaOverrides, setMediaOverrides] = useState<EditorialMediaOverrides>({});
   const [mediaCrops, setMediaCrops] = useState<EditorialMediaCrops>({});
+  const [saintImageSource, setSaintImageSource] = useState('');
+  const [poetImageSource, setPoetImageSource] = useState('');
   const [mediaStatus, setMediaStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [mediaMessage, setMediaMessage] = useState('');
   const [contentOverrides, setContentOverrides] = useState<EditorialContentOverrides>({});
   const [contentStatus, setContentStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [contentMessage, setContentMessage] = useState('');
+  const previewSaintName = previewData?.santi?.[0]?.nome?.trim() ?? '';
+  const previewPoetName = previewData?.poesia?.autore?.trim() ?? '';
 
   useEffect(() => {
     // Remove the legacy secret that older editor versions stored in localStorage.
@@ -239,6 +294,64 @@ export default function EditorPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasSnapshot(Boolean(window.localStorage.getItem(snapshotKey(date))));
   }, [date]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!previewSaintName) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSaintImageSource('');
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setSaintImageSource('');
+    fetch(`/api/santo-immagine?nome=${encodeURIComponent(previewSaintName)}`, { cache: 'no-store' })
+      .then(async (response) => {
+        if (response.status === 204 || !response.ok) return null;
+        return response.json() as Promise<{ imageUrl?: unknown }>;
+      })
+      .then((result) => {
+        if (!cancelled) setSaintImageSource(normalizeEditorialMediaValue(result?.imageUrl));
+      })
+      .catch(() => {
+        if (!cancelled) setSaintImageSource('');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [previewSaintName]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!previewPoetName) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPoetImageSource('');
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setPoetImageSource('');
+    fetch(`/api/reading-media?autore=${encodeURIComponent(previewPoetName)}`, { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json() as Promise<{ poesia?: { imageUrl?: unknown } | null }>;
+      })
+      .then((result) => {
+        if (!cancelled) setPoetImageSource(normalizeEditorialMediaValue(result?.poesia?.imageUrl));
+      })
+      .catch(() => {
+        if (!cancelled) setPoetImageSource('');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [previewPoetName]);
 
   useEffect(() => {
     // Manual media is an external localStorage value keyed by the selected date.
@@ -375,17 +488,34 @@ export default function EditorPage() {
 
   function updateMediaOverride(section: EditorialMediaSectionId, value: string) {
     setMediaOverrides((current) => ({ ...current, [section]: value }));
-    if (section === 'autore') {
-      setMediaCrops((current) => current.autore ? {} : current);
+    if (section === 'autore' || section === 'santi') {
+      setMediaCrops((current) => {
+        const next = { ...current };
+        if (section === 'autore') {
+          delete next.autore;
+          delete next.tavola_autore;
+        } else {
+          delete next.tavola_santi;
+        }
+        return next;
+      });
     }
     setMediaStatus('idle');
     setMediaMessage('');
   }
 
   function updateAuthorCrop(crop: EditorialMediaCrop) {
-    setMediaCrops({ autore: crop });
+    updateMediaCrop('autore', crop);
+  }
+
+  function updateMediaCrop(cropId: EditorialMediaCropId, crop: EditorialMediaCrop) {
+    setMediaCrops((current) => ({ ...current, [cropId]: crop }));
     setMediaStatus('idle');
     setMediaMessage('');
+  }
+
+  function resetMediaCrop(cropId: EditorialMediaCropId) {
+    updateMediaCrop(cropId, DEFAULT_EDITORIAL_MEDIA_CROP);
   }
 
   function updateAuthorDescription(value: string) {
@@ -745,15 +875,15 @@ export default function EditorPage() {
                     </div>
                   ) : null}
                   {field.id === 'autore' && cropSource ? (
-                    <AuthorCropEditor
+                    <MediaCropEditor
                       src={cropSource}
                       crop={authorCrop}
                       onChange={updateAuthorCrop}
-                      onReset={() => {
-                        setMediaCrops({});
-                        setMediaStatus('idle');
-                        setMediaMessage('');
-                      }}
+                      onReset={() => resetMediaCrop('autore')}
+                      title="Inquadratura card/home"
+                      ariaLabel="Ritaglia il ritratto dell’autore per la card della home"
+                      imageAlt="Anteprima del ritaglio dell’autore per la card della home"
+                      zoomLabel="Zoom del ritratto dell’autore per la card"
                     />
                   ) : null}
                 </fieldset>
@@ -761,8 +891,65 @@ export default function EditorPage() {
             })}
           </div>
 
+          {(normalizeEditorialMediaValue(mediaOverrides.autore) || normalizeEditorialMediaValue(previewData?.foto_autore_url)
+            || normalizeEditorialMediaValue(mediaOverrides.santi) || saintImageSource
+            || poetImageSource) ? (
+            <section className="editor-table-crop-panel" aria-labelledby="editor-table-crop-title">
+              <div className="editor-media-heading">
+                <div>
+                  <p className="editor-media-kicker"><ImagePlus aria-hidden="true" /> Inquadrature separate</p>
+                  <h3 id="editor-table-crop-title">Ritratti nella tavola</h3>
+                </div>
+              </div>
+              <p className="editor-media-intro editor-table-crop-intro">
+                Questi controlli modificano solo il modo in cui il volto viene mostrato nella tavola. Le card della home, la foto dell’autore e le immagini originali restano invariate.
+              </p>
+              <div className="editor-table-crop-grid">
+                {(normalizeEditorialMediaValue(mediaOverrides.autore) || normalizeEditorialMediaValue(previewData?.foto_autore_url)) ? (
+                  <TableCropField
+                    label="Autore nella tavola"
+                    hint="Sposta il punto focale senza cambiare l’inquadratura della card autore nella home."
+                    src={normalizeEditorialMediaValue(mediaOverrides.autore) || normalizeEditorialMediaValue(previewData?.foto_autore_url)}
+                    crop={mediaCrops.tavola_autore ?? mediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP}
+                    onChange={(crop) => updateMediaCrop('tavola_autore', crop)}
+                    onReset={() => resetMediaCrop('tavola_autore')}
+                    ariaLabel="Ritaglia il ritratto dell’autore nella tavola trascinando la foto"
+                    imageAlt="Anteprima del ritaglio dell’autore nella tavola"
+                    zoomLabel="Zoom del ritratto dell’autore nella tavola"
+                  />
+                ) : null}
+                {(normalizeEditorialMediaValue(mediaOverrides.santi) || saintImageSource) ? (
+                  <TableCropField
+                    label="Santo nella tavola"
+                    hint="Scegli la parte da mantenere visibile nel piccolo riquadro della tavola."
+                    src={normalizeEditorialMediaValue(mediaOverrides.santi) || saintImageSource}
+                    crop={mediaCrops.tavola_santi ?? DEFAULT_EDITORIAL_MEDIA_CROP}
+                    onChange={(crop) => updateMediaCrop('tavola_santi', crop)}
+                    onReset={() => resetMediaCrop('tavola_santi')}
+                    ariaLabel="Ritaglia l’immagine del santo nella tavola trascinando la foto"
+                    imageAlt="Anteprima del ritaglio del santo nella tavola"
+                    zoomLabel="Zoom dell’immagine del santo nella tavola"
+                  />
+                ) : null}
+                {poetImageSource ? (
+                  <TableCropField
+                    label="Poeta nella tavola"
+                    hint="Scegli il punto focale del ritratto mostrato accanto alla poesia."
+                    src={poetImageSource}
+                    crop={mediaCrops.tavola_poesia ?? DEFAULT_EDITORIAL_MEDIA_CROP}
+                    onChange={(crop) => updateMediaCrop('tavola_poesia', crop)}
+                    onReset={() => resetMediaCrop('tavola_poesia')}
+                    ariaLabel="Ritaglia il ritratto del poeta nella tavola trascinando la foto"
+                    imageAlt="Anteprima del ritaglio del poeta nella tavola"
+                    zoomLabel="Zoom del ritratto del poeta nella tavola"
+                  />
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
           <div className="editor-media-actions">
-            <p>Le immagini manuali prendono il posto del risultato automatico nella home e nella tavola, per tutti i visitatori.</p>
+            <p>Le immagini manuali prendono il posto del risultato automatico nella home e nella tavola, per tutti i visitatori. Le inquadrature qui sopra riguardano solo la tavola.</p>
             <div>
               <button type="button" className="editor-media-clear" onClick={() => void handleClearMedia()} disabled={mediaStatus === 'loading' || (!Object.keys(mediaOverrides).length && !Object.keys(mediaCrops).length)}>
                 <RotateCcw aria-hidden="true" />

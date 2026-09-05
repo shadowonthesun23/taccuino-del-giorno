@@ -11453,6 +11453,28 @@ body.museum-room-open :is(
   width: 54px;
 }
 
+.correspondence-media-frame {
+  background: #eee4d3;
+  border-radius: 8px 6px 9px 7px;
+  box-shadow: 0 6px 16px -14px rgba(42, 37, 34, 0.55);
+  box-sizing: border-box;
+  display: block;
+  flex: 0 0 auto;
+  height: 54px;
+  overflow: hidden;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+  position: relative;
+  width: 54px;
+}
+
+.correspondence-media-frame > img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
 .correspondence-moon {
   background: #eee4d3;
   border-radius: 8px 6px 9px 7px;
@@ -12023,8 +12045,13 @@ body.museum-room-open :is(
 }
 
 .daily-correspondences-sheet.is-dark .correspondence-artwork > img,
-.daily-correspondences-sheet.is-dark .correspondence-entry-content > img {
+.daily-correspondences-sheet.is-dark .correspondence-entry-content > img,
+.daily-correspondences-sheet.is-dark .correspondence-media-frame {
   outline-color: oklch(1 0 0 / 0.1);
+}
+
+.daily-correspondences-sheet.is-dark .correspondence-media-frame {
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .daily-correspondences-sheet.is-dark .correspondence-fallback-icon,
@@ -12697,7 +12724,8 @@ body.museum-room-open :is(
 .correspondence-export-frame .daily-correspondences-export .correspondence-entry-content > img,
 .correspondence-export-frame .daily-correspondences-export .correspondence-missing-media,
 .correspondence-export-frame .daily-correspondences-export .correspondence-moon,
-.correspondence-export-frame .daily-correspondences-export .correspondence-saint-mark {
+.correspondence-export-frame .daily-correspondences-export .correspondence-saint-mark,
+.correspondence-export-frame .daily-correspondences-export .correspondence-media-frame {
   height: 76px;
   width: 76px;
 }
@@ -14876,12 +14904,12 @@ body.museum-room-open :is(
   min-width: 0;
 }
 
-.correspondence-reading-content > span {
+.correspondence-reading-content > span:last-child {
   display: grid;
   gap: 3px;
 }
 
-.correspondence-reading-content.has-image > span {
+.correspondence-reading-content.has-image > span:last-child {
   padding-top: 1px;
 }
 
@@ -14974,6 +15002,8 @@ body.museum-room-open :is(
 
   .correspondence-word-content > img,
   .correspondence-reading-content > img,
+  .correspondence-reading-content > .correspondence-media-frame,
+  .correspondence-entry-content > .correspondence-media-frame,
   .correspondence-artwork .correspondence-entry-content > img,
   .correspondence-artwork .correspondence-entry-content > .correspondence-missing-media {
     height: 48px;
@@ -15307,6 +15337,35 @@ body.museum-room-open :is(
   padding: 0.85rem;
 }
 
+.editor-author-crop-title {
+  color: #5f5548;
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  margin-bottom: 0.65rem;
+}
+
+.editor-table-crop-panel {
+  border-top: 1px solid rgba(181, 149, 106, 0.22);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+}
+
+.editor-table-crop-intro {
+  margin-top: 0.7rem;
+}
+
+.editor-table-crop-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.1rem;
+}
+
+.editor-table-crop-field {
+  min-width: 0;
+}
+
 .editor-author-crop-stage {
   aspect-ratio: 4 / 5;
   background: #e9dfcf;
@@ -15542,6 +15601,10 @@ body.museum-room-open :is(
   }
 
   .editor-media-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-table-crop-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -16358,7 +16421,8 @@ body.museum-room-open :is(
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-missing-media,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-moon,
 .correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-saint-mark,
-.correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-content > img {
+.correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-reading-content > img,
+.correspondence-export-frame .daily-correspondences-export.correspondence-complete-folio .correspondence-media-frame {
   border-radius: 8px 6px 9px 7px;
   height: 100px;
   width: 100px;
@@ -19464,6 +19528,11 @@ body.museum-room-open :is(
 [data-theme="dark"] .editor-author-crop {
   background: rgba(224, 196, 161, 0.06);
   border-color: rgba(224, 196, 161, 0.18);
+}
+
+.dark .editor-author-crop-title,
+[data-theme="dark"] .editor-author-crop-title {
+  color: #d0c1aa;
 }
 
 .dark .editor-author-crop-stage,

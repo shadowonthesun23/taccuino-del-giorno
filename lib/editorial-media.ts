@@ -16,7 +16,15 @@ export interface EditorialMediaCrop {
   zoom: number;
 }
 
-export type EditorialMediaCrops = Partial<Record<'autore', EditorialMediaCrop>>;
+export const EDITORIAL_MEDIA_CROP_IDS = [
+  'autore',
+  'tavola_autore',
+  'tavola_santi',
+  'tavola_poesia',
+] as const;
+
+export type EditorialMediaCropId = typeof EDITORIAL_MEDIA_CROP_IDS[number];
+export type EditorialMediaCrops = Partial<Record<EditorialMediaCropId, EditorialMediaCrop>>;
 export interface EditorialMediaDocument {
   overrides: EditorialMediaOverrides;
   crops: EditorialMediaCrops;
@@ -45,7 +53,7 @@ function cropAxisPosition(offset: number) {
 }
 
 /**
- * Shared rendering for the author crop.
+ * Shared rendering for editorial media crops.
  *
  * object-position alone cannot move an image whose source already has the
  * same aspect ratio as its frame. The explicit left/top offsets preserve the
@@ -125,8 +133,13 @@ export function sanitizeEditorialMediaCrop(value: unknown): EditorialMediaCrop |
 
 export function sanitizeEditorialMediaCrops(value: unknown): EditorialMediaCrops {
   if (!isRecord(value)) return {};
-  const authorCrop = sanitizeEditorialMediaCrop(value.autore);
-  return authorCrop ? { autore: authorCrop } : {};
+
+  const entries = EDITORIAL_MEDIA_CROP_IDS.flatMap((cropId) => {
+    const crop = sanitizeEditorialMediaCrop(value[cropId]);
+    return crop ? [[cropId, crop] as const] : [];
+  });
+
+  return Object.fromEntries(entries) as EditorialMediaCrops;
 }
 
 function normalizeDocument(value: unknown): EditorialMediaDocument {

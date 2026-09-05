@@ -157,7 +157,11 @@ export default function DailyCorrespondences({
   const saintArtworkImageUrl = getRenderableImageUrl(editorialMedia.santi) || getRenderableImageUrl(saintArtwork?.imageUrl);
   const poemImageUrl = getRenderableImageUrl(readingMedia.poesia?.imageUrl);
   const bibleImageUrl = getRenderableImageUrl(readingMedia.bibbia?.imageUrl);
-  const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
+  const authorImageCrop = editorialMediaCrops.tavola_autore
+    ?? editorialMediaCrops.autore
+    ?? DEFAULT_EDITORIAL_MEDIA_CROP;
+  const saintImageCrop = editorialMediaCrops.tavola_santi ?? DEFAULT_EDITORIAL_MEDIA_CROP;
+  const poetImageCrop = editorialMediaCrops.tavola_poesia ?? DEFAULT_EDITORIAL_MEDIA_CROP;
   const apodImageAvailable = Boolean(apodImageUrl) && !failedMedia.has(apodImageUrl);
   const saintArtworkImageAvailable = Boolean(saintArtworkImageUrl) && !failedMedia.has(saintArtworkImageUrl);
   const poemImageAvailable = Boolean(poemImageUrl) && !failedMedia.has(poemImageUrl);
@@ -302,8 +306,10 @@ export default function DailyCorrespondences({
               <span className="correspondence-entry-label"><Church aria-hidden="true" />{t('correspondenceSaint', lingua)}</span>
               <span className="correspondence-entry-content">
                 {saintArtworkImageAvailable ? (
-                  /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
-                  <img draggable={false} src={saintArtworkImageUrl} alt="" onError={() => markMediaUnavailable(saintArtworkImageUrl)} {...eagerImageProps} />
+                  <span className="correspondence-media-frame correspondence-saint-image-frame">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
+                    <img draggable={false} src={saintArtworkImageUrl} alt="" onError={() => markMediaUnavailable(saintArtworkImageUrl)} {...eagerImageProps} style={getEditorialMediaCropImageStyle(saintImageCrop)} />
+                  </span>
                 ) : <span className="correspondence-saint-mark" aria-hidden="true"><Church /></span>}
                 <span><strong>{saintOfTheDay.nome}</strong><em className="correspondence-entry-full-copy">{saintOfTheDay.ruolo}</em><em className="correspondence-entry-export-copy">{exportSaintRole}</em></span>
               </span>
@@ -379,8 +385,10 @@ export default function DailyCorrespondences({
             <span className="correspondence-reading-label"><Feather aria-hidden="true" />{t('correspondencePoem', lingua)}</span>
             <span className={`correspondence-reading-content${poemImageAvailable ? ' has-image' : ''}`}>
               {poemImageAvailable ? (
-                /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
-                <img draggable={false} src={poemImageUrl} alt="" onError={() => markMediaUnavailable(poemImageUrl)} {...eagerImageProps} />
+                <span className="correspondence-media-frame correspondence-poet-image-frame">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
+                  <img draggable={false} src={poemImageUrl} alt="" onError={() => markMediaUnavailable(poemImageUrl)} {...eagerImageProps} style={getEditorialMediaCropImageStyle(poetImageCrop)} />
+                </span>
               ) : null}
               <span><strong>{data.poesia.autore}</strong><em className="correspondence-entry-full-copy">{data.poesia.fonte || getFirstSentence(data.poesia.testo)}</em><em className="correspondence-entry-export-copy">{exportPoemSource}</em></span>
             </span>
