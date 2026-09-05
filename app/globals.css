@@ -5448,8 +5448,9 @@ body.museum-room-open :is(
 
 .seasonal-bookmark-planet-row {
   display: grid;
-  grid-template-columns: 85px 50px 1fr;
   align-items: baseline;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) max-content max-content;
   font-size: 0.81rem;
   line-height: 1.2;
 }
@@ -5462,6 +5463,10 @@ body.museum-room-open :is(
 .seasonal-bookmark-planet-list > em {
   font-size: 0.76rem;
   font-style: italic;
+}
+
+.seasonal-bookmark-planet-row > span {
+  white-space: nowrap;
 }
 
 .seasonal-bookmark-planets small {
@@ -11709,7 +11714,7 @@ body.museum-room-open :is(
   display: inline-flex;
   flex-basis: 100%;
   font-family: var(--font-geist-mono), 'Courier New', monospace;
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   font-weight: 700;
   gap: 5px;
   letter-spacing: 0.1em;
@@ -11727,9 +11732,9 @@ body.museum-room-open :is(
   align-items: center;
   color: #62554c;
   display: inline-flex;
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   gap: 5px;
-  line-height: 1;
+  line-height: 1.05;
   min-width: 0;
 }
 
@@ -11758,8 +11763,9 @@ body.museum-room-open :is(
 
 .correspondence-planet-chip em {
   color: #8a7668;
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   font-style: normal;
+  white-space: nowrap;
 }
 
 .correspondence-planet-icon {
@@ -11770,9 +11776,19 @@ body.museum-room-open :is(
     0 1px 3px rgba(42, 37, 34, 0.15);
   display: inline-block;
   flex: 0 0 auto;
-  height: 15px;
+  height: 17px;
   position: relative;
-  width: 15px;
+  width: 17px;
+}
+
+.correspondence-planet-icon::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.08) 70%, transparent 100%);
+  background-size: 220% 100%;
+  border-radius: inherit;
+  content: '';
+  inset: 1px;
+  pointer-events: none;
+  position: absolute;
 }
 
 .correspondence-planet-icon.planet-mercury {
@@ -11799,12 +11815,38 @@ body.museum-room-open :is(
   border: 1px solid rgba(104, 78, 42, 0.72);
   border-radius: 999px;
   content: '';
-  height: 5px;
-  left: -4px;
+  height: 6px;
+  left: -5px;
   position: absolute;
-  top: 4px;
+  top: 5px;
   transform: rotate(-22deg);
-  width: 21px;
+  width: 25px;
+}
+
+@keyframes correspondence-planet-axial-rotation {
+  from { background-position: 120% 50%; }
+  to { background-position: -120% 50%; }
+}
+
+/* Simulate axial rotation by moving only the surface highlight inside each
+   small sphere. The icon stays centered and Saturn's ring does not wobble. */
+@media (prefers-reduced-motion: no-preference) {
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon::before {
+    animation: correspondence-planet-axial-rotation 24s linear infinite;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-venus::before,
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-saturn::before {
+    animation-direction: reverse;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-mars::before {
+    animation-duration: 19s;
+  }
+
+  .daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-planet-icon.planet-jupiter::before {
+    animation-duration: 30s;
+  }
 }
 
 .correspondence-apod .correspondence-entry-content > img,
@@ -14911,6 +14953,19 @@ body.museum-room-open :is(
 
 .correspondence-reading-content.has-image > span:last-child {
   padding-top: 1px;
+}
+
+/* The live plate has enough room for a calmer reading size on non-retina
+   displays. Keep the poster/export typography on its own scale below. */
+.daily-correspondences-sheet:not(.daily-correspondences-export) :is(
+  .correspondence-author-caption em,
+  .correspondence-entry-content em,
+  .correspondence-reading-content em,
+  .correspondence-word-content > span > em
+) {
+  font-size: clamp(0.95rem, 0.85vw, 1rem);
+  line-height: 1.32;
+  text-wrap: pretty;
 }
 
 /* Source thumbnails can carry a little ringing from an earlier resize. Keep

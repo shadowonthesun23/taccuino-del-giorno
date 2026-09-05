@@ -86,10 +86,17 @@ function getHorizontalPosition(body: Body, date: Date, observer: Observer) {
   return Horizon(date, observer, equatorial.ra, equatorial.dec, 'normal');
 }
 
+const DIRECTION_LABELS: Record<LanguageCode, readonly string[]> = {
+  IT: ['Nord', 'Nord-est', 'Est', 'Sud-est', 'Sud', 'Sud-ovest', 'Ovest', 'Nord-ovest'],
+  EN: ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest'],
+  FR: ['Nord', 'Nord-est', 'Est', 'Sud-est', 'Sud', 'Sud-ouest', 'Ouest', 'Nord-ouest'],
+  DE: ['Nord', 'Nordost', 'Ost', 'Südost', 'Süd', 'Südwest', 'West', 'Nordwest'],
+  ES: ['Norte', 'Noreste', 'Este', 'Sureste', 'Sur', 'Suroeste', 'Oeste', 'Noroeste'],
+  PT: ['Norte', 'Nordeste', 'Leste', 'Sudeste', 'Sul', 'Sudoeste', 'Oeste', 'Noroeste'],
+};
+
 function getDirection(azimuth: number, lingua: LanguageCode): string {
-  const directions = (lingua === 'IT' || lingua === 'FR' || lingua === 'ES' || lingua === 'PT')
-    ? ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO']
-    : ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const directions = DIRECTION_LABELS[lingua] || DIRECTION_LABELS.EN;
   return directions[Math.round(azimuth / 45) % directions.length];
 }
 
