@@ -14736,6 +14736,17 @@ body.museum-room-open :is(
   row-gap: clamp(20px, 3.5vw, 30px);
 }
 
+/* Compact live plate: the central author still anchors the composition, but
+   it should not make three short side entries inherit a poster-like height. */
+.daily-correspondences-sheet:not(.daily-correspondences-export) .daily-correspondences-grid {
+  row-gap: clamp(14px, 2.2vw, 22px);
+}
+
+.daily-correspondences-sheet:not(.daily-correspondences-export) .correspondence-entry {
+  min-height: 0;
+  padding-block: 9px 6px;
+}
+
 .daily-correspondences-grid > :is(.correspondence-author, .correspondence-entry, .correspondence-artwork),
 .daily-correspondences-readings > .correspondence-reading {
   min-width: 0;
