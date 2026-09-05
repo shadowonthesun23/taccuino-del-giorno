@@ -14913,6 +14913,20 @@ body.museum-room-open :is(
   padding-top: 1px;
 }
 
+/* Source thumbnails can carry a little ringing from an earlier resize. Keep
+   the author portrait untouched, while giving the much smaller table media a
+   barely perceptible softening that preserves facial detail without adding a
+   client-side processing step or changing the source image pipeline. */
+.daily-correspondences-sheet :is(
+  .correspondence-entry-content > img,
+  .correspondence-media-frame > img,
+  .correspondence-reading-content > img,
+  .daily-correspondences-seasonal-preview img
+) {
+  filter: blur(0.14px) saturate(0.94) contrast(0.97) brightness(1.015);
+  image-rendering: auto;
+}
+
 .daily-correspondences-sheet.is-dark .correspondence-word-content > span > em {
   color: #b7a997;
 }
