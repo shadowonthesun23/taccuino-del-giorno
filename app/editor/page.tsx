@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent, useEffect, useRef, useState } from 'react';
+import { Fragment, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent, useEffect, useRef, useState } from 'react';
 import { IM_Fell_Double_Pica } from 'next/font/google';
 import { ExternalLink, ImagePlus, RotateCcw, Save, Sparkles, Upload } from 'lucide-react';
 import type { DatiTaccuino } from '@/lib/types';
@@ -844,11 +844,47 @@ export default function EditorPage() {
         </div>
         <h1 className="text-4xl font-bold leading-tight md:text-5xl">Direzione curatoriale del giorno</h1>
         <p className="editor-intro mt-4 max-w-2xl text-lg italic leading-relaxed text-[#5f5548]">
-          Usa questa pagina quando vuoi forzare o orientare l’autore del giorno senza intervenire a mano nel database.
-          La rigenerazione aggiorna il contenuto della data selezionata; le immagini manuali qui sotto completano la tavola senza toccare i contenuti.
+          Scegli prima la data, poi intervieni solo sul livello necessario: rigenera la giornata, sostituisci un’immagine oppure correggi singoli testi.
         </p>
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+        <nav className="editor-section-nav" aria-label="Sezioni dell’editor">
+          <a href="#editor-section-day">
+            <span className="editor-section-nav-index">01</span>
+            <span>
+              <strong>Giornata</strong>
+              <small>Data e rigenerazione</small>
+            </span>
+          </a>
+          <a href="#editor-section-media">
+            <span className="editor-section-nav-index">02</span>
+            <span>
+              <strong>Immagini</strong>
+              <small>Media e inquadrature</small>
+            </span>
+          </a>
+          <a href="#editor-section-content">
+            <span className="editor-section-nav-index">03</span>
+            <span>
+              <strong>Testi</strong>
+              <small>Correzioni e override</small>
+            </span>
+          </a>
+        </nav>
+
+        <section id="editor-section-day" className="editor-section editor-section-day" aria-labelledby="editor-section-day-title">
+          <div className="editor-section-heading">
+            <div className="editor-section-title-group">
+              <span className="editor-section-number" aria-hidden="true">01</span>
+              <div>
+                <p className="editor-section-kicker">Scelta editoriale</p>
+                <h2 id="editor-section-day-title">Giornata e selezione</h2>
+                <p className="editor-section-description">Decidi la data, orienta la scelta dell’autore e rigenera l’intero contenuto quando serve.</p>
+              </div>
+            </div>
+            <span className="editor-section-meta">Intervento globale</span>
+          </div>
+
+          <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
           <div className="grid gap-5 md:grid-cols-[180px_1fr]">
             <label className="block">
               <span className="editor-top-label mb-2 block text-sm font-bold uppercase tracking-[0.16em] text-[#6f614d]">Data</span>
@@ -903,34 +939,37 @@ export default function EditorPage() {
               </button>
             </div>
           </div>
-        </form>
+          </form>
 
-        {message ? (
-          <div
-            className={`editor-status-message ${status === 'error' ? 'is-error' : ''} mt-6 rounded-xl border px-4 py-3 text-base ${
-              status === 'error'
-                ? 'border-[#9e2a2b]/30 bg-[#9e2a2b]/8 text-[#7f2223]'
-                : 'border-[#b5956a]/25 bg-[#f4eddb] text-[#5f5548]'
-            }`}
-          >
-            {message}
-          </div>
-        ) : null}
+          {message ? (
+            <div
+              className={`editor-status-message mt-6 rounded-xl border px-4 py-3 text-base ${status === 'error' ? 'is-error' : ''} ${
+                status === 'error'
+                  ? 'border-[#9e2a2b]/30 bg-[#9e2a2b]/8 text-[#7f2223]'
+                  : 'border-[#b5956a]/25 bg-[#f4eddb] text-[#5f5548]'
+              }`}
+            >
+              {message}
+            </div>
+          ) : null}
+        </section>
 
-        <section className="editor-media-panel" aria-labelledby="editor-media-title">
-          <div className="editor-media-heading">
-            <div>
-              <p className="editor-media-kicker"><ImagePlus aria-hidden="true" /> Immagini manuali</p>
-              <h2 id="editor-media-title">Completa la tavola</h2>
+        <section id="editor-section-media" className="editor-media-panel editor-section" aria-labelledby="editor-media-title">
+          <div className="editor-media-heading editor-section-heading">
+            <div className="editor-section-title-group">
+              <span className="editor-section-number" aria-hidden="true">02</span>
+              <div>
+                <p className="editor-media-kicker"><ImagePlus aria-hidden="true" /> Immagini e inquadrature</p>
+                <h2 id="editor-media-title">Materiali della tavola</h2>
+                <p className="editor-section-description">Sostituisci le immagini automatiche, prepara il ritratto dell’autore e regola le inquadrature senza toccare i testi.</p>
+              </div>
             </div>
             <span className="editor-media-date-note">
               {previewLoading ? 'Leggo il giorno…' : previewData ? `Contenuto del ${date}` : 'Inserimento libero'}
             </span>
           </div>
           <p className="editor-media-intro">
-            Qui puoi scegliere le immagini che hanno una presenza reale nella tavola: autore, santi, opera, musica e foto astronomica.
-            Dopo il salvataggio vengono pubblicate in Supabase e restano associate alla data scelta per tutti i visitatori.
-            Il disegno dell’autore viene preparato automaticamente sul Mac e resta parcheggiato finché non scegli di attivarlo; puoi sempre tornare alla foto originale.
+            Le immagini pubblicate qui valgono per la data scelta e per tutti i visitatori. Il disegno dell’autore viene preparato automaticamente sul Mac e resta parcheggiato finché non scegli di attivarlo.
           </p>
           <div className="editor-media-note">
             <strong>Nota pratica.</strong> Dal pulsante “Cerca immagini” apri una ricerca, poi copia l’URL del file immagine; se il sito non offre un URL diretto, scarica l’immagine e usa “Carica file”.
@@ -945,7 +984,21 @@ export default function EditorPage() {
                 : '';
               const authorCrop = mediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
               return (
-                <fieldset key={field.id} className={`editor-media-field ${field.id === 'autore' ? 'editor-media-author-field' : ''}`}>
+                <Fragment key={field.id}>
+                  {field.id === 'autore' ? (
+                    <div className="editor-grid-section-heading">
+                      <p className="editor-grid-section-kicker">Immagine principale</p>
+                      <h3>Ritratto dell’autore</h3>
+                      <p>URL, upload, disegno preparato sul Mac e inquadratura della card principale.</p>
+                    </div>
+                  ) : field.id === 'santi' ? (
+                    <div className="editor-grid-section-heading">
+                      <p className="editor-grid-section-kicker">Immagini di supporto</p>
+                      <h3>Altri elementi visivi</h3>
+                      <p>Santi, opera, musica e foto astronomica possono essere sostituiti singolarmente.</p>
+                    </div>
+                  ) : null}
+                  <fieldset className={`editor-media-field ${field.id === 'autore' ? 'editor-media-author-field' : ''}`}>
                   <div className="editor-media-field-heading">
                     <legend>{field.label}</legend>
                     <div className="editor-media-field-tools">
@@ -1025,7 +1078,8 @@ export default function EditorPage() {
                       zoomLabel="Zoom del ritratto dell’autore per la card"
                     />
                   ) : null}
-                </fieldset>
+                  </fieldset>
+                </Fragment>
               );
             })}
           </div>
@@ -1034,10 +1088,10 @@ export default function EditorPage() {
             || normalizeEditorialMediaValue(mediaOverrides.santi) || saintImageSource
             || poetImageSource) ? (
             <section className="editor-table-crop-panel" aria-labelledby="editor-table-crop-title">
-              <div className="editor-media-heading">
+              <div className="editor-media-heading editor-subsection-heading">
                 <div>
-                  <p className="editor-media-kicker"><ImagePlus aria-hidden="true" /> Inquadrature separate</p>
-                  <h3 id="editor-table-crop-title">Ritratti nella tavola</h3>
+                  <p className="editor-media-kicker"><ImagePlus aria-hidden="true" /> Ultimo passaggio visivo</p>
+                  <h3 id="editor-table-crop-title">Inquadrature nella tavola</h3>
                 </div>
               </div>
               <p className="editor-media-intro editor-table-crop-intro">
@@ -1107,20 +1161,28 @@ export default function EditorPage() {
           ) : null}
         </section>
 
-        <section className="editor-content-panel" aria-labelledby="editor-content-title">
-          <div className="editor-media-heading">
-            <div>
-              <p className="editor-media-kicker"><Save aria-hidden="true" /> Testi manuali</p>
-              <h2 id="editor-content-title">Correggi il contenuto</h2>
+        <section id="editor-section-content" className="editor-content-panel editor-section" aria-labelledby="editor-content-title">
+          <div className="editor-media-heading editor-section-heading">
+            <div className="editor-section-title-group">
+              <span className="editor-section-number" aria-hidden="true">03</span>
+              <div>
+                <p className="editor-media-kicker"><Save aria-hidden="true" /> Testi e contenuti</p>
+                <h2 id="editor-content-title">Correzioni puntuali</h2>
+                <p className="editor-section-description">Modifica solo il testo che vuoi sostituire: tutto ciò che lasci invariato continua a seguire la generazione automatica.</p>
+              </div>
             </div>
             <span className="editor-media-date-note">Override condivisi per la data</span>
           </div>
           <p className="editor-media-intro">
-            Questi campi sostituiscono solo il testo scelto, senza rigenerare l’intera giornata. Lascia invariato ciò che vuoi mantenere automatico.
-            Le modifiche pubblicate valgono per tutti i visitatori; quando cambi testo o autore della citazione, la vecchia fonte viene rimossa se non ne inserisci una nuova.
+            Le modifiche pubblicate valgono per tutti i visitatori. Quando cambi testo o autore della citazione, la vecchia fonte viene rimossa se non ne inserisci una nuova.
           </p>
 
           <div className="editor-content-grid">
+            <div className="editor-grid-section-heading">
+              <p className="editor-grid-section-kicker">Voce del giorno</p>
+              <h3>Autore e citazione</h3>
+              <p>Correggi la descrizione biografica o la citazione senza rigenerare l’intera giornata.</p>
+            </div>
             <fieldset className="editor-content-field editor-content-field-wide">
               <legend>Autore del giorno</legend>
               <label>
@@ -1165,6 +1227,11 @@ export default function EditorPage() {
               </div>
             </fieldset>
 
+            <div className="editor-grid-section-heading">
+              <p className="editor-grid-section-kicker">Segni del calendario</p>
+              <h3>Parola ed eventi</h3>
+              <p>Intervieni sulla parola del giorno o sulle righe di “Accadde oggi”.</p>
+            </div>
             <fieldset className="editor-content-field">
               <legend>Parola del giorno</legend>
               <label>
@@ -1222,6 +1289,11 @@ export default function EditorPage() {
               <p className="editor-content-hint">Le righe vuote vengono ignorate quando pubblichi.</p>
             </fieldset>
 
+            <div className="editor-grid-section-heading">
+              <p className="editor-grid-section-kicker">Letture</p>
+              <h3>Poesia e passaggio biblico</h3>
+              <p>Rivedi i testi letterari e spirituali mantenendo separati testo, fonte e nota curatoriale.</p>
+            </div>
             <fieldset className="editor-content-field editor-content-field-wide">
               <legend>Poesia</legend>
               <label>
