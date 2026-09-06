@@ -1867,7 +1867,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               onToggleSaved={() => saveCard('santi', data.santi.map((santo) => santo.nome).join(', '), data.santi[0]?.biografia ?? '', data.santi.map((santo) => santo.ruolo).join(' · '))}>
               <div className={`saints-card-layout ${data.santi.length > 1 ? 'has-multiple-saints' : 'has-single-saint'}`}>
                 {visibleSaintArtwork ? (
-                  <figure className="saint-card-artwork">
+                  <figure className="saint-card-artwork saint-card-mounted-slide">
                     <img
                       draggable={false}
                       src={editorialMedia.santi || `/api/image-proxy?url=${encodeURIComponent(visibleSaintArtwork.imageUrl)}`}
@@ -1943,7 +1943,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               onToggleSaved={() => saveCard('poesia', data.poesia.fonte || t('poemCard', lingua), data.poesia.testo.slice(0, 180), data.poesia.autore)}>
               <div className={`reading-card-layout ${poemImageUrl ? 'has-image' : ''}`}>
                 {poemImageUrl ? (
-                  <figure className="reading-card-artwork reading-card-artwork-poem" aria-hidden="true">
+                  <figure className="reading-card-artwork reading-card-artwork-poem reading-card-mounted-slide" aria-hidden="true">
                     {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
                     <img
                       draggable={false}

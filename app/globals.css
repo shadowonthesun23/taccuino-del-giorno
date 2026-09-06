@@ -20388,3 +20388,196 @@ html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(
     transform: none;
   }
 }
+
+/* ── Live image folios ────────────────────────────────────────────────────
+ * Saints and poems are physical inserts in the notebook, not atmospheric
+ * backgrounds. Export clones keep their dedicated folio layout above. */
+.editorial-card:not(.social-export-card) .saint-card-mounted-slide,
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide {
+  aspect-ratio: 4 / 5;
+  background: #f4eddf;
+  border: 1px solid rgba(117, 88, 57, 0.13);
+  border-radius: 3px 2px 7px 4px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  margin: 0;
+  opacity: 1;
+  outline: 1px solid oklch(0 0 0 / 0.05);
+  outline-offset: -1px;
+  overflow: visible;
+  padding: clamp(0.42rem, 0.8vw, 0.68rem);
+  pointer-events: auto;
+  position: absolute;
+  right: clamp(0.7rem, 2.6vw, 1.9rem);
+  top: clamp(0.5rem, 1.15vw, 1rem);
+  transform: rotate(var(--mounted-slide-rotation, 2.15deg));
+  /* The tape sits on the outer upper-right corner: it is the hinge, not the
+     opposite edge of the paper. */
+  transform-origin: calc(100% - 18px) 4px;
+  transition: transform 520ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 520ms cubic-bezier(0.25, 0.8, 0.25, 1);
+  width: clamp(9.2rem, 17vw, 12.9rem);
+  -webkit-mask-image: none;
+  mask-image: none;
+  z-index: 3;
+}
+
+.editorial-card:not(.social-export-card) .saint-card-mounted-slide::before,
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide::before {
+  background: rgba(202, 177, 136, 0.74);
+  box-shadow: 0 1px 2px rgba(58, 39, 25, 0.16);
+  content: '';
+  height: clamp(0.52rem, 0.8vw, 0.72rem);
+  left: auto;
+  opacity: 0.82;
+  position: absolute;
+  right: clamp(-0.55rem, -0.7vw, -0.2rem);
+  top: clamp(-0.3rem, -0.35vw, -0.1rem);
+  transform: rotate(27deg);
+  width: clamp(2.65rem, 3.8vw, 3.45rem);
+  z-index: 4;
+}
+
+.editorial-card:not(.social-export-card) .saint-card-mounted-slide::after,
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide::after {
+  background: linear-gradient(132deg, rgba(255, 255, 255, 0.25), transparent 42%, rgba(84, 54, 33, 0.08));
+  content: '';
+  inset: clamp(0.42rem, 0.8vw, 0.68rem);
+  opacity: 0.64;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.editorial-card:not(.social-export-card) .saint-card-mounted-slide img,
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide img {
+  border-radius: 1px 2px 1px 0;
+  display: block;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.05);
+  outline-offset: -1px;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.editorial-card:not(.social-export-card) .saint-card-mounted-slide,
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide {
+  box-shadow:
+    0 8px 14px -12px rgba(42, 37, 34, 0.34),
+    0 2px 4px -3px rgba(42, 37, 34, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide {
+  --mounted-slide-rotation: -2.2deg;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .editorial-card:not(.social-export-card) .saint-card-mounted-slide:hover,
+  .editorial-card:not(.social-export-card) .reading-card-mounted-slide:hover {
+    box-shadow:
+      0 24px 32px -16px rgba(42, 37, 34, 0.52),
+      0 10px 17px -7px rgba(42, 37, 34, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.68);
+    transform: perspective(1400px) rotateX(2deg) rotateY(3deg) rotate(var(--mounted-slide-rotation, 2.15deg));
+  }
+
+  .dark .editorial-card:not(.social-export-card) .saint-card-mounted-slide:hover,
+  .dark .editorial-card:not(.social-export-card) .reading-card-mounted-slide:hover,
+  [data-theme="dark"] .editorial-card:not(.social-export-card) .saint-card-mounted-slide:hover,
+  [data-theme="dark"] .editorial-card:not(.social-export-card) .reading-card-mounted-slide:hover {
+    box-shadow:
+      0 24px 32px -16px rgba(0, 0, 0, 0.82),
+      0 10px 17px -7px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+.editorial-card:not(.social-export-card) .saint-card-mounted-slide img,
+.editorial-card:not(.social-export-card) .reading-card-mounted-slide img {
+  filter: grayscale(0.2) sepia(0.12) saturate(0.92) contrast(1.04) brightness(1.02);
+  mix-blend-mode: normal;
+}
+
+.card-section-santi.editorial-card:not(.social-export-card) .saints-card-copy,
+.card-section-poesia.editorial-card:not(.social-export-card) .reading-card-layout.has-image .reading-card-copy {
+  max-width: min(64ch, calc(100% - clamp(10.7rem, 21vw, 15rem)));
+}
+
+.card-section-santi.editorial-card:not(.social-export-card) .saints-card-layout,
+.card-section-poesia.editorial-card:not(.social-export-card) .reading-card-layout.has-image {
+  isolation: isolate;
+}
+
+.dark .editorial-card:not(.social-export-card) .saint-card-mounted-slide,
+.dark .editorial-card:not(.social-export-card) .reading-card-mounted-slide,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .saint-card-mounted-slide,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .reading-card-mounted-slide {
+  background: #fffdf8;
+  border-color: rgba(117, 88, 57, 0.13);
+  box-shadow:
+    0 8px 14px -12px rgba(0, 0, 0, 0.58),
+    0 2px 4px -3px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  outline-color: oklch(0 0 0 / 0.05);
+}
+
+.dark .editorial-card:not(.social-export-card) .saint-card-mounted-slide::before,
+.dark .editorial-card:not(.social-export-card) .reading-card-mounted-slide::before,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .saint-card-mounted-slide::before,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .reading-card-mounted-slide::before {
+  background: rgba(186, 151, 103, 0.58);
+}
+
+.dark .editorial-card:not(.social-export-card) .saint-card-mounted-slide::after,
+.dark .editorial-card:not(.social-export-card) .reading-card-mounted-slide::after,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .saint-card-mounted-slide::after,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .reading-card-mounted-slide::after {
+  background: linear-gradient(132deg, rgba(255, 245, 224, 0.12), transparent 42%, rgba(0, 0, 0, 0.16));
+}
+
+.dark .editorial-card:not(.social-export-card) .saint-card-mounted-slide img,
+.dark .editorial-card:not(.social-export-card) .reading-card-mounted-slide img,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .saint-card-mounted-slide img,
+[data-theme="dark"] .editorial-card:not(.social-export-card) .reading-card-mounted-slide img {
+  filter: grayscale(0.18) sepia(0.08) saturate(0.82) contrast(1.04) brightness(0.88);
+  outline-color: oklch(0 0 0 / 0.05);
+}
+
+@media (max-width: 767px) {
+  .card-section-santi.editorial-card:not(.social-export-card) .saints-card-layout,
+  .card-section-poesia.editorial-card:not(.social-export-card) .reading-card-layout.has-image {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-height: 0;
+  }
+
+  .editorial-card:not(.social-export-card) .saint-card-mounted-slide,
+  .editorial-card:not(.social-export-card) .reading-card-mounted-slide {
+    align-self: flex-end;
+    height: clamp(11.6rem, 43vw, 14.5rem);
+    margin: 0.18rem 0.35rem 0;
+    position: relative;
+    right: auto;
+    top: auto;
+    width: min(58%, 12rem);
+  }
+
+  .card-section-santi.editorial-card:not(.social-export-card) .saints-card-copy,
+  .card-section-poesia.editorial-card:not(.social-export-card) .reading-card-layout.has-image .reading-card-copy {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorial-card:not(.social-export-card) .saint-card-mounted-slide,
+  .editorial-card:not(.social-export-card) .reading-card-mounted-slide {
+    transition: none;
+  }
+}
