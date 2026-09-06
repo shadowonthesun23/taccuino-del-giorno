@@ -10,6 +10,11 @@
     "start": "next start",
     "preview:local": "next start --hostname 127.0.0.1",
     "preview:lan": "next start --hostname 0.0.0.0",
+    "author-artwork:dry-run": "node scripts/local-author-artwork-worker.mjs",
+    "author-artwork:park": "node scripts/local-author-artwork-worker.mjs",
+    "author-artwork:bridge": "node scripts/local-author-artwork-bridge.mjs",
+    "author-artwork:install": "node scripts/manage-author-artwork-launchagents.mjs",
+    "author-artwork:uninstall": "node scripts/manage-author-artwork-launchagents.mjs uninstall",
     "lint": "eslint",
     "test": "node --test tests/*.test.mts"
   },

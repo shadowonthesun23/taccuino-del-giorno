@@ -15194,6 +15194,15 @@ body.museum-room-open :is(
   justify-content: space-between;
 }
 
+.editor-media-field-tools {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
 .editor-media-field legend {
   color: #2a2522;
   font-size: 1.22rem;
@@ -15226,6 +15235,59 @@ body.museum-room-open :is(
   outline: none;
   text-decoration: underline;
   text-underline-offset: 0.18em;
+}
+
+.editor-media-artwork-action {
+  align-items: center;
+  background: rgba(158, 42, 43, 0.07);
+  border: 1px solid rgba(158, 42, 43, 0.3);
+  border-radius: 0.7rem;
+  color: #9e2a2b;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.77rem;
+  font-weight: 700;
+  gap: 0.32rem;
+  letter-spacing: 0.04em;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.7rem;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.editor-media-artwork-action svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.editor-media-artwork-action:hover:not(:disabled),
+.editor-media-artwork-action:focus-visible {
+  background: rgba(158, 42, 43, 0.13);
+  border-color: rgba(158, 42, 43, 0.55);
+  color: #7f2223;
+  outline: none;
+}
+
+.editor-media-artwork-action:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.editor-media-artwork-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.editor-media-original-action {
+  background: transparent;
+  border-color: rgba(117, 105, 87, 0.3);
+  color: #5f5548;
+}
+
+.editor-media-original-action:hover:not(:disabled),
+.editor-media-original-action:focus-visible {
+  background: transparent;
+  border-color: rgba(158, 42, 43, 0.55);
+  color: #9e2a2b;
 }
 
 .editor-media-hint {
@@ -15695,6 +15757,16 @@ body.museum-room-open :is(
 
   .editor-media-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-media-field-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .editor-media-field-tools {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .editor-table-crop-grid {
@@ -19813,11 +19885,13 @@ body.museum-room-open :is(
 
 .dark .editor-media-upload,
 .dark .editor-media-clear,
+.dark .editor-media-artwork-action,
 .dark .editor-author-crop-controls button,
 .dark .editor-secondary-action,
 .dark .editor-logout,
 [data-theme="dark"] .editor-media-upload,
 [data-theme="dark"] .editor-media-clear,
+[data-theme="dark"] .editor-media-artwork-action,
 [data-theme="dark"] .editor-author-crop-controls button,
 [data-theme="dark"] .editor-secondary-action,
 [data-theme="dark"] .editor-logout {
@@ -19825,10 +19899,22 @@ body.museum-room-open :is(
   color: #d0c1aa !important;
 }
 
+.dark .editor-media-artwork-action,
+[data-theme="dark"] .editor-media-artwork-action {
+  background: rgba(222, 107, 88, 0.08) !important;
+}
+
+.dark .editor-media-original-action,
+[data-theme="dark"] .editor-media-original-action {
+  background: transparent !important;
+}
+
 .dark .editor-media-upload:hover,
 .dark .editor-media-upload:focus-within,
 .dark .editor-media-clear:hover:not(:disabled),
 .dark .editor-media-clear:focus-visible,
+.dark .editor-media-artwork-action:hover:not(:disabled),
+.dark .editor-media-artwork-action:focus-visible,
 .dark .editor-author-crop-controls button:hover,
 .dark .editor-author-crop-controls button:focus-visible,
 .dark .editor-secondary-action:hover,
@@ -19837,6 +19923,8 @@ body.museum-room-open :is(
 [data-theme="dark"] .editor-media-upload:focus-within,
 [data-theme="dark"] .editor-media-clear:hover:not(:disabled),
 [data-theme="dark"] .editor-media-clear:focus-visible,
+[data-theme="dark"] .editor-media-artwork-action:hover:not(:disabled),
+[data-theme="dark"] .editor-media-artwork-action:focus-visible,
 [data-theme="dark"] .editor-author-crop-controls button:hover,
 [data-theme="dark"] .editor-author-crop-controls button:focus-visible,
 [data-theme="dark"] .editor-secondary-action:hover,

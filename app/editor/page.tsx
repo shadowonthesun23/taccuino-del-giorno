@@ -2,7 +2,7 @@
 
 import { type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent, useEffect, useRef, useState } from 'react';
 import { IM_Fell_Double_Pica } from 'next/font/google';
-import { ExternalLink, ImagePlus, RotateCcw, Save, Upload } from 'lucide-react';
+import { ExternalLink, ImagePlus, RotateCcw, Save, Sparkles, Upload } from 'lucide-react';
 import type { DatiTaccuino } from '@/lib/types';
 import type { EditorialContentOverrides } from '@/lib/editorial-content';
 import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
@@ -45,6 +45,9 @@ function todayInRome() {
 function snapshotKey(date: string) {
   return `taccuino-editor-snapshot-${date}`;
 }
+
+const LOCAL_ARTWORK_BRIDGE_URL = 'http://127.0.0.1:43127';
+const LOCAL_ARTWORK_TIMEOUT_MS = 30 * 1_000;
 
 type EditorPreviewData = DatiTaccuino & {
   keyword_arte_en?: string | null;
@@ -279,6 +282,7 @@ export default function EditorPage() {
   const [poetImageSource, setPoetImageSource] = useState('');
   const [mediaStatus, setMediaStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [mediaMessage, setMediaMessage] = useState('');
+  const [artworkLoading, setArtworkLoading] = useState(false);
   const [contentOverrides, setContentOverrides] = useState<EditorialContentOverrides>({});
   const [contentStatus, setContentStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [contentMessage, setContentMessage] = useState('');
@@ -360,6 +364,7 @@ export default function EditorPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMediaOverrides(localDocument.overrides);
     setMediaCrops(localDocument.crops);
+    setArtworkLoading(false);
     setContentOverrides({});
     setMediaStatus('idle');
     setMediaMessage('');
@@ -557,6 +562,130 @@ export default function EditorPage() {
     }
   }
 
+  async function persistMediaDocument(nextOverrides: EditorialMediaOverrides, nextCrops: EditorialMediaCrops) {
+    const overrides = sanitizeEditorialMediaOverrides(nextOverrides);
+    const crops = sanitizeEditorialMediaCrops(nextCrops);
+    const response = await fetch('/api/editorial-media', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ data: date.trim(), overrides, crops }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Errore ${response.status}`);
+    }
+
+    const result = await response.json() as { overrides?: unknown; crops?: unknown };
+    const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
+    const savedCrops = sanitizeEditorialMediaCrops(result.crops ?? crops);
+    saveEditorialMediaDocument(date.trim(), { overrides: savedOverrides, crops: savedCrops });
+    setMediaOverrides(savedOverrides);
+    setMediaCrops(savedCrops);
+    return { savedOverrides, savedCrops };
+  }
+
+  async function handleActivateAuthorArtwork() {
+    const dataIso = date.trim();
+    const currentAuthor = previewData?.autore_giorno?.trim() ?? '';
+    const sourcePhoto = normalizeEditorialMediaValue(previewData?.foto_autore_url);
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataIso)) {
+      setMediaStatus('error');
+      setMediaMessage('Inserisci una data valida prima di attivare il disegno.');
+      return;
+    }
+
+    if (!currentAuthor || !sourcePhoto) {
+      setMediaStatus('error');
+      setMediaMessage('Per questa data non è ancora disponibile una foto verificata dell’autore.');
+      return;
+    }
+
+    setArtworkLoading(true);
+    setMediaStatus('loading');
+    setMediaMessage(`Recupero il disegno parcheggiato di ${currentAuthor}…`);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), LOCAL_ARTWORK_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(`${LOCAL_ARTWORK_BRIDGE_URL}/preview?data=${encodeURIComponent(dataIso)}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      const result = await response.json().catch(() => ({})) as {
+        data?: unknown;
+        dataUrl?: unknown;
+        authorName?: unknown;
+        sourceUrl?: unknown;
+        error?: unknown;
+      };
+
+      if (!response.ok) {
+        throw new Error(typeof result.error === 'string' ? result.error : `Errore del ponte locale (${response.status}).`);
+      }
+
+      const artworkDataUrl = normalizeEditorialMediaValue(result.dataUrl);
+      if (!artworkDataUrl.startsWith('data:image/webp;base64,')) {
+        throw new Error('Il ponte locale non ha restituito un WebP valido.');
+      }
+      if (result.data !== dataIso || result.authorName !== currentAuthor || normalizeEditorialMediaValue(result.sourceUrl) !== sourcePhoto) {
+        throw new Error('Il disegno ricevuto non corrisponde alla data o all’autore visualizzati.');
+      }
+
+      const nextOverrides = { ...mediaOverrides, autore: artworkDataUrl };
+      const nextCrops = { ...mediaCrops };
+      delete nextCrops.autore;
+      delete nextCrops.tavola_autore;
+      await persistMediaDocument(nextOverrides, nextCrops);
+      setMediaStatus('success');
+      setMediaMessage(`Disegno di ${currentAuthor} attivato in WebP per il ${dataIso}.`);
+    } catch (error) {
+      const message = error instanceof DOMException && error.name === 'AbortError'
+        ? 'Il recupero del disegno parcheggiato ha superato il tempo massimo.'
+        : error instanceof TypeError
+          ? 'Il ponte locale non è attivo. Avvia sul Mac “npm run author-artwork:bridge”.'
+          : error instanceof Error
+            ? error.message
+            : 'Attivazione del disegno non riuscita.';
+      setMediaStatus('error');
+      setMediaMessage(message);
+    } finally {
+      window.clearTimeout(timeoutId);
+      setArtworkLoading(false);
+    }
+  }
+
+  async function handleRestoreOriginalAuthor() {
+    if (!normalizeEditorialMediaValue(mediaOverrides.autore)) {
+      setMediaStatus('error');
+      setMediaMessage('La foto originale è già attiva per questa data.');
+      return;
+    }
+
+    if (!window.confirm(`Ripristinare la foto originale dell’autore per il ${date}?`)) return;
+
+    setMediaStatus('loading');
+    setMediaMessage('Ripristino la foto originale dell’autore…');
+    const nextOverrides = { ...mediaOverrides };
+    delete nextOverrides.autore;
+    const nextCrops = { ...mediaCrops };
+    delete nextCrops.autore;
+    delete nextCrops.tavola_autore;
+
+    try {
+      await persistMediaDocument(nextOverrides, nextCrops);
+      setMediaStatus('success');
+      setMediaMessage('Foto originale ripristinata. Il disegno parcheggiato resta disponibile.');
+    } catch (error) {
+      setMediaStatus('error');
+      setMediaMessage(error instanceof Error ? error.message : 'Ripristino della foto originale non riuscito.');
+    }
+  }
+
   async function handleSaveMedia() {
     const invalidField = MEDIA_FIELDS.find(({ id }) => {
       const value = mediaOverrides[id];
@@ -579,27 +708,7 @@ export default function EditorPage() {
     setMediaMessage('Pubblico le immagini nella tavola condivisa…');
 
     try {
-      const overrides = sanitizeEditorialMediaOverrides(mediaOverrides);
-      const crops = sanitizeEditorialMediaCrops(mediaCrops);
-      const response = await fetch('/api/editorial-media', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: date.trim(), overrides, crops }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Errore ${response.status}`);
-      }
-
-      const result = await response.json() as { overrides?: unknown; crops?: unknown };
-      const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
-      const savedCrops = sanitizeEditorialMediaCrops(result.crops ?? crops);
-      saveEditorialMediaDocument(date.trim(), { overrides: savedOverrides, crops: savedCrops });
-      setMediaOverrides(savedOverrides);
-      setMediaCrops(savedCrops);
+      await persistMediaDocument(mediaOverrides, mediaCrops);
       setMediaStatus('success');
       setMediaMessage('Immagini pubblicate in Supabase: ora valgono per tutti i visitatori.');
     } catch (error) {
@@ -821,7 +930,7 @@ export default function EditorPage() {
           <p className="editor-media-intro">
             Qui puoi scegliere le immagini che hanno una presenza reale nella tavola: autore, santi, opera, musica e foto astronomica.
             Dopo il salvataggio vengono pubblicate in Supabase e restano associate alla data scelta per tutti i visitatori.
-            Il browser conserva anche una copia di fallback per te.
+            Il disegno dell’autore viene preparato automaticamente sul Mac e resta parcheggiato finché non scegli di attivarlo; puoi sempre tornare alla foto originale.
           </p>
           <div className="editor-media-note">
             <strong>Nota pratica.</strong> Dal pulsante “Cerca immagini” apri una ricerca, poi copia l’URL del file immagine; se il sito non offre un URL diretto, scarica l’immagine e usa “Carica file”.
@@ -839,15 +948,41 @@ export default function EditorPage() {
                 <fieldset key={field.id} className={`editor-media-field ${field.id === 'autore' ? 'editor-media-author-field' : ''}`}>
                   <div className="editor-media-field-heading">
                     <legend>{field.label}</legend>
-                    <a
-                      href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="editor-media-search"
-                    >
-                      <span>Cerca immagini</span>
-                      <ExternalLink aria-hidden="true" />
-                    </a>
+                    <div className="editor-media-field-tools">
+                      <a
+                        href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="editor-media-search"
+                      >
+                        <span>Cerca immagini</span>
+                        <ExternalLink aria-hidden="true" />
+                      </a>
+                      {field.id === 'autore' ? (
+                        <button
+                          type="button"
+                          className="editor-media-artwork-action"
+                          onClick={() => void handleActivateAuthorArtwork()}
+                          disabled={mediaStatus === 'loading' || artworkLoading || !normalizeEditorialMediaValue(previewData?.foto_autore_url)}
+                          title="Attiva il disegno già preparato sul Mac per questa data"
+                        >
+                          <Sparkles aria-hidden="true" />
+                          <span>{artworkLoading ? 'Attivo…' : 'Attiva disegno'}</span>
+                        </button>
+                      ) : null}
+                      {field.id === 'autore' && normalizeEditorialMediaValue(mediaOverrides.autore) ? (
+                        <button
+                          type="button"
+                          className="editor-media-artwork-action editor-media-original-action"
+                          onClick={() => void handleRestoreOriginalAuthor()}
+                          disabled={mediaStatus === 'loading' || artworkLoading}
+                          title="Rimuovi l’immagine manuale e torna alla foto originale"
+                        >
+                          <RotateCcw aria-hidden="true" />
+                          <span>Ripristina originale</span>
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                   <p className="editor-media-hint">{field.hint}</p>
                   <div className="editor-media-input-row">
@@ -955,13 +1090,13 @@ export default function EditorPage() {
           <div className="editor-media-actions">
             <p>Le immagini manuali prendono il posto del risultato automatico nella home e nella tavola, per tutti i visitatori. Le inquadrature qui sopra riguardano solo la tavola.</p>
             <div>
-              <button type="button" className="editor-media-clear" onClick={() => void handleClearMedia()} disabled={mediaStatus === 'loading' || (!Object.keys(mediaOverrides).length && !Object.keys(mediaCrops).length)}>
+              <button type="button" className="editor-media-clear" onClick={() => void handleClearMedia()} disabled={mediaStatus === 'loading' || artworkLoading || (!Object.keys(mediaOverrides).length && !Object.keys(mediaCrops).length)}>
                 <RotateCcw aria-hidden="true" />
                 <span>Svuota questa data</span>
               </button>
-              <button type="button" className="editor-media-save" onClick={() => void handleSaveMedia()} disabled={mediaStatus === 'loading'}>
+              <button type="button" className="editor-media-save" onClick={() => void handleSaveMedia()} disabled={mediaStatus === 'loading' || artworkLoading}>
                 <Save aria-hidden="true" />
-                <span>{mediaStatus === 'loading' ? 'Pubblico…' : 'Pubblica immagini'}</span>
+                <span>{artworkLoading ? 'Attivo…' : mediaStatus === 'loading' ? 'Pubblico…' : 'Pubblica immagini'}</span>
               </button>
             </div>
           </div>
