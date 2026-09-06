@@ -914,7 +914,7 @@ body {
 
   .espresso-corner-image {
     display: block;
-    filter: drop-shadow(5px 8px 10px rgba(63, 46, 27, 0.06));
+    filter: drop-shadow(9px 12px 12px rgba(63, 46, 27, 0.05));
     height: 100%;
     object-fit: contain;
     opacity: 0;
@@ -929,18 +929,63 @@ body {
     z-index: 1;
   }
 
+  /* A narrow cast shadow follows the cup handle's lower-right diagonal. Keep
+   * it separate from the image shadow so the extra reach does not duplicate
+   * the whole saucer. */
+  .espresso-corner::after {
+    background: linear-gradient(
+      90deg,
+      rgba(63, 46, 27, 0.16) 0%,
+      rgba(63, 46, 27, 0.1) 22%,
+      rgba(63, 46, 27, 0.035) 68%,
+      transparent 100%
+    );
+    border-radius: 999px;
+    content: '';
+    filter: blur(13px);
+    height: 16%;
+    left: 59%;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 62%;
+    transform: rotate(39deg) scaleX(0.78);
+    transform-origin: 0 50%;
+    transition:
+      opacity 560ms ease-out,
+      transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+    width: 105%;
+    z-index: 0;
+  }
+
   .espresso-corner.is-ready .espresso-corner-image {
-    filter: drop-shadow(14px 20px 18px rgba(63, 46, 27, 0.2));
+    filter:
+      drop-shadow(11px 15px 15px rgba(63, 46, 27, 0.15));
     opacity: 1;
     transform: translate3d(0, 0, 0) rotate(-3.5deg) scale(1);
   }
 
+  .espresso-corner.is-ready::after {
+    opacity: 0.82;
+    transform: rotate(39deg) scaleX(1);
+  }
+
   .espresso-corner.is-dark .espresso-corner-image {
-    filter: drop-shadow(5px 8px 10px rgba(0, 0, 0, 0.12));
+    filter: drop-shadow(9px 12px 12px rgba(0, 0, 0, 0.08));
   }
 
   .espresso-corner.is-dark.is-ready .espresso-corner-image {
-    filter: drop-shadow(14px 20px 20px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(11px 15px 15px rgba(0, 0, 0, 0.3));
+  }
+
+  .espresso-corner.is-dark::after {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.26) 0%,
+      rgba(0, 0, 0, 0.16) 22%,
+      rgba(0, 0, 0, 0.06) 68%,
+      transparent 100%
+    );
   }
 
   .espresso-corner-smoke {
@@ -3076,6 +3121,46 @@ html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(
 html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note-doodle-head {
   animation: none !important;
   stroke-dashoffset: 0 !important;
+}
+
+/* The large correspondence sheet is the only scrolling surface that uses a
+ * backdrop filter. Avoid asking the compositor to re-raster that full sheet
+ * while the fixed desk plane is moving; its opaque paper color already keeps
+ * the visual treatment intact during the gesture. */
+html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  isolation: auto;
+}
+
+html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet::before {
+  filter: none !important;
+}
+
+/* Finish the folio's staggered reveal as soon as the reader starts moving.
+ * Otherwise the paper background can be captured before its text layers are
+ * painted, producing a transient solid beige block during a wheel gesture. */
+html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet > :is(
+  .daily-correspondences-header,
+  .daily-correspondences-intro,
+  .daily-correspondences-complete-body,
+  .daily-correspondences-closure
+),
+html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-complete-body > :is(
+  .daily-correspondences-grid,
+  .daily-correspondences-readings
+) {
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  translate: none !important;
+  will-change: auto !important;
+}
+
+html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet,
+html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet * {
+  transition: none !important;
 }
 
 .loading-screen-overlay {
@@ -19417,6 +19502,177 @@ body.museum-room-open :is(
   }
 }
 
+/* ── Shared theme control for accesso and editor ─────────────────────────── */
+.theme-mode-control {
+  position: relative;
+}
+
+.theme-mode-trigger {
+  align-items: center;
+  appearance: none;
+  background: rgba(244, 240, 230, 0.72);
+  border: 1px solid rgba(181, 149, 106, 0.32);
+  border-radius: 10px 12px 9px 11px;
+  box-shadow:
+    0 10px 24px -20px rgba(42, 37, 34, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  color: #756957;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0.55rem;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.theme-mode-trigger svg {
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+.theme-mode-trigger:hover,
+.theme-mode-trigger:focus-visible,
+.theme-mode-trigger.is-open {
+  background: rgba(222, 107, 88, 0.08);
+  border-color: rgba(158, 42, 43, 0.55);
+  color: #9e2a2b;
+  outline: none;
+}
+
+.theme-mode-trigger:focus-visible {
+  box-shadow: 0 0 0 3px rgba(158, 42, 43, 0.12);
+}
+
+.theme-mode-trigger:active,
+.theme-mode-option:active {
+  transform: scale(0.96);
+}
+
+.theme-mode-menu {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.48), transparent 34%),
+    rgba(249, 246, 238, 0.96);
+  border: 1px solid rgba(117, 91, 57, 0.22);
+  border-radius: 14px 11px 13px 10px;
+  box-shadow:
+    0 24px 54px -30px rgba(42, 37, 34, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  display: grid;
+  gap: 0.2rem;
+  min-width: 180px;
+  opacity: 0;
+  padding: 0.38rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.55rem);
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms;
+  visibility: hidden;
+  z-index: 40;
+}
+
+.theme-mode-menu.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+}
+
+.theme-mode-option {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px 10px 7px 9px;
+  color: #5f5548;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.9rem;
+  gap: 0.6rem;
+  min-height: 40px;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  width: 100%;
+}
+
+.theme-mode-option svg {
+  color: #9e2a2b;
+  height: 1rem;
+  width: 1rem;
+}
+
+.theme-mode-option:hover,
+.theme-mode-option:focus-visible {
+  background: rgba(158, 42, 43, 0.07);
+  border-color: rgba(158, 42, 43, 0.18);
+  color: #7f2223;
+  outline: none;
+}
+
+.theme-mode-option.is-selected {
+  background: rgba(158, 42, 43, 0.1);
+  border-color: rgba(158, 42, 43, 0.22);
+  color: #9e2a2b;
+  font-weight: 700;
+}
+
+.theme-mode-menu.is-dark,
+:root.dark .theme-mode-menu,
+:root[data-theme="dark"] .theme-mode-menu {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent 34%),
+    rgba(23, 22, 20, 0.97);
+  border-color: rgba(224, 196, 161, 0.2);
+  box-shadow:
+    0 28px 62px -30px rgba(0, 0, 0, 0.86),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #e5ded7;
+}
+
+:root.dark .theme-mode-trigger,
+:root[data-theme="dark"] .theme-mode-trigger {
+  background: rgba(30, 30, 30, 0.72);
+  border-color: rgba(203, 177, 139, 0.3);
+  color: #d6bf9b;
+}
+
+:root.dark .theme-mode-trigger:hover,
+:root.dark .theme-mode-trigger:focus-visible,
+:root.dark .theme-mode-trigger.is-open,
+:root[data-theme="dark"] .theme-mode-trigger:hover,
+:root[data-theme="dark"] .theme-mode-trigger:focus-visible,
+:root[data-theme="dark"] .theme-mode-trigger.is-open {
+  background: rgba(181, 149, 106, 0.12);
+  border-color: rgba(203, 177, 139, 0.58);
+  color: #ead8ba;
+}
+
+:root.dark .theme-mode-option,
+:root[data-theme="dark"] .theme-mode-option {
+  color: #c9bdab;
+}
+
+:root.dark .theme-mode-option:hover,
+:root.dark .theme-mode-option:focus-visible,
+:root[data-theme="dark"] .theme-mode-option:hover,
+:root[data-theme="dark"] .theme-mode-option:focus-visible {
+  background: rgba(181, 149, 106, 0.12);
+  border-color: rgba(203, 177, 139, 0.25);
+  color: #f0e5d4;
+}
+
+:root.dark .theme-mode-option.is-selected,
+:root[data-theme="dark"] .theme-mode-option.is-selected {
+  background: rgba(181, 149, 106, 0.16);
+  border-color: rgba(203, 177, 139, 0.38);
+  color: #ead8ba;
+}
+
 /* ── Shared theme surfaces: accesso, editor e stati di fallback ─────────── */
 .login-page,
 .editor-page,
@@ -19492,11 +19748,15 @@ body.museum-room-open :is(
 
 .dark .editor-page h1,
 .dark .editor-media-heading h2,
+.dark .editor-table-crop-panel h3,
+.dark .editor-media-field legend,
 .dark .editor-content-field legend,
 [data-theme="dark"] .editor-page h1,
 [data-theme="dark"] .editor-media-heading h2,
+[data-theme="dark"] .editor-table-crop-panel h3,
+[data-theme="dark"] .editor-media-field legend,
 [data-theme="dark"] .editor-content-field legend {
-  color: #f0e5d4;
+  color: #f0e5d4 !important;
 }
 
 .dark .editor-intro,

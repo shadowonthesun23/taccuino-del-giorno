@@ -7,6 +7,7 @@ import type { DatiTaccuino } from '@/lib/types';
 import type { EditorialContentOverrides } from '@/lib/editorial-content';
 import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/client';
+import ThemeModeControl from '@/app/components/ThemeModeControl';
 import {
   clearEditorialMediaOverrides,
   DEFAULT_EDITORIAL_MEDIA_CROP,
@@ -721,13 +722,16 @@ export default function EditorPage() {
       <section className="editor-card mx-auto max-w-5xl rounded-[18px] border border-[#b5956a]/25 bg-[#fffdf6]/82 p-6 shadow-[0_24px_70px_-52px_rgba(42,37,34,0.42)] md:p-9">
         <div className="mb-3 flex items-center justify-between gap-4">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#9e2a2b]">Editor</p>
-          <button
-            className="editor-logout text-xs font-bold uppercase tracking-[0.14em] text-[#6f614d] underline decoration-[#b5956a]/60 underline-offset-4"
-            type="button"
-            onClick={() => void handleLogout()}
-          >
-            Esci
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeModeControl />
+            <button
+              className="editor-logout text-xs font-bold uppercase tracking-[0.14em] text-[#6f614d] underline decoration-[#b5956a]/60 underline-offset-4"
+              type="button"
+              onClick={() => void handleLogout()}
+            >
+              Esci
+            </button>
+          </div>
         </div>
         <h1 className="text-4xl font-bold leading-tight md:text-5xl">Direzione curatoriale del giorno</h1>
         <p className="editor-intro mt-4 max-w-2xl text-lg italic leading-relaxed text-[#5f5548]">

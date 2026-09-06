@@ -23,9 +23,10 @@ type SmokeParticle = {
 
 const FRAME_INTERVAL = 1000 / 30;
 const SIMULATION_INTERVAL = 1000 / 60;
-const MAX_PARTICLES = 72;
+const MAX_PARTICLES = 84;
+const PREWARM_PARTICLES = 36;
 const SMOKE_CONFIG = {
-  density: 3,
+  density: 3.4,
   windForce: 0.6,
   windAngle: 60,
   originX: 0.5,
@@ -143,8 +144,8 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
         age,
         life,
         opacity: isDark
-          ? 0.13 + Math.random() * 0.08
-          : 0.2 + Math.random() * 0.1,
+          ? 0.19 + Math.random() * 0.1
+          : 0.33 + Math.random() * 0.14,
         rotation: Math.random() * Math.PI,
         spin: (Math.random() - 0.5) * 0.008,
         phase: Math.random() * Math.PI * 2,
@@ -270,10 +271,19 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
 
     const resizeObserver = new ResizeObserver(resize);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
+      const wasVisible = visible;
       visible = entry.isIntersecting;
       if (!visible && frame !== 0) {
         window.cancelAnimationFrame(frame);
         frame = 0;
+      }
+      if (!visible) {
+        // Do not retain a frozen cloud while the still life is outside the
+        // viewport. It will be rebuilt softly when the cup returns.
+        particles.length = 0;
+        spawnCarry = 0;
+      } else if (!wasVisible) {
+        for (let index = 0; index < PREWARM_PARTICLES; index += 1) spawnParticle(true);
       }
       ensureAnimation();
     });
@@ -284,7 +294,7 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     document.addEventListener('visibilitychange', handleVisibility);
     resize();
-    for (let index = 0; index < 30; index += 1) spawnParticle(true);
+    for (let index = 0; index < PREWARM_PARTICLES; index += 1) spawnParticle(true);
     ensureAnimation();
 
     return () => {

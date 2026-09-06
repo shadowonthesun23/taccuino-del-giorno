@@ -5,6 +5,7 @@ import { IM_Fell_Double_Pica } from 'next/font/google';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import ThemeModeControl from '@/app/components/ThemeModeControl';
 
 const garamond = IM_Fell_Double_Pica({
   subsets: ['latin'],
@@ -48,6 +49,9 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
   return (
     <main className={`${garamond.className} login-page min-h-screen bg-[#f8f6f0] px-5 py-10 text-[#2a2522]`}>
       <section className="login-card mx-auto mt-12 max-w-xl rounded-[18px] border border-[#b5956a]/25 bg-[#fffdf6]/90 p-7 shadow-[0_24px_70px_-52px_rgba(42,37,34,0.42)] md:mt-20 md:p-10">
+        <div className="mb-5 flex justify-end">
+          <ThemeModeControl />
+        </div>
         <p className="login-kicker mb-3 text-xs font-bold uppercase tracking-[0.28em] text-[#9e2a2b]">Area riservata</p>
         <h1 className="login-title text-4xl font-bold leading-tight md:text-5xl">Accesso editor</h1>
         <p className="login-intro mt-4 text-lg italic leading-relaxed text-[#5f5548]">
