@@ -108,6 +108,8 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
     let spawnCarry = 0;
     let visible = true;
     let pageVisible = !document.hidden;
+    let isScrolling = false;
+    let resumeTimer: number | null = null;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -150,7 +152,7 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
     };
 
     const paint = (time: number) => {
-      if (!visible || !pageVisible) {
+      if (!visible || !pageVisible || isScrolling) {
         frame = 0;
         return;
       }
@@ -220,10 +222,24 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
     };
 
     const ensureAnimation = () => {
-      if (frame === 0 && visible && pageVisible) {
+      if (frame === 0 && visible && pageVisible && !isScrolling) {
         lastFrame = performance.now();
         frame = window.requestAnimationFrame(paint);
       }
+    };
+
+    const handleScroll = () => {
+      isScrolling = true;
+      if (frame !== 0) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      if (resumeTimer !== null) window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        resumeTimer = null;
+        isScrolling = false;
+        ensureAnimation();
+      }, 180);
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -264,6 +280,7 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
 
     resizeObserver.observe(wrapper);
     visibilityObserver.observe(wrapper);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     document.addEventListener('visibilitychange', handleVisibility);
     resize();
@@ -272,8 +289,10 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
+      if (resumeTimer !== null) window.clearTimeout(resumeTimer);
       resizeObserver.disconnect();
       visibilityObserver.disconnect();
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointermove', handlePointerMove);
       document.removeEventListener('visibilitychange', handleVisibility);
     };

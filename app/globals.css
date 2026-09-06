@@ -136,7 +136,9 @@
 html, body {
   background-color: var(--browser-surface);
   overflow-x: clip;
-  scroll-behavior: smooth;
+  /* Do not animate wheel/trackpad scrolling globally. Anchor navigation opts
+     into smooth scrolling explicitly, so native reading remains responsive. */
+  scroll-behavior: auto;
 }
 
 img {
@@ -3032,6 +3034,48 @@ body {
 .journal-page-enter {
   animation: journalPageEnter 1.04s cubic-bezier(0.2, 0.76, 0.22, 1) 80ms both;
   transform-origin: 50% 24px;
+}
+
+/*
+ * A wheel gesture must never reveal the intermediate state of an entrance
+ * animation. The paper surface is intentionally visible first, so a delayed
+ * text layer otherwise looks like a solid beige panel while the page moves.
+ * ParallaxBackground adds .is-scrolling on the first scroll event and removes
+ * it shortly after the gesture stops; this keeps the opening composition
+ * intact without making reading depend on animation timing.
+ */
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing),
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .animate-fadeInUp,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .quote-editorial-dropcap,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .quote-editorial-copy,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .quote-editorial-footer,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .author-photo-wrap,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .author-photo-paper,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .author-photo-tape,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note-doodle,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note span {
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  translate: none !important;
+}
+
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note {
+  opacity: 0.82 !important;
+  transform: rotate(-1.1deg) !important;
+}
+
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note-doodle {
+  opacity: 0.72 !important;
+  transform: rotate(-4deg) !important;
+}
+
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note-doodle-line,
+html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note-doodle-head {
+  animation: none !important;
+  stroke-dashoffset: 0 !important;
 }
 
 .loading-screen-overlay {

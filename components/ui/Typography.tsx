@@ -20,10 +20,29 @@ function useTypewriterText(text: string, startDelay = 260, speed = 1) {
       timeoutIds.add(timeoutId);
     };
 
+    const revealImmediately = () => {
+      if (cancelled) return;
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      timeoutIds.clear();
+      setVisibleText(text);
+    };
+
+    window.addEventListener('scroll', revealImmediately, { passive: true });
+
+    if (window.scrollY > 0 || document.documentElement.classList.contains('has-scrolled') || document.documentElement.classList.contains('is-scrolling')) {
+      revealImmediately();
+      return () => {
+        cancelled = true;
+        window.removeEventListener('scroll', revealImmediately);
+        timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      };
+    }
+
     if (reduceMotion) {
       schedule(() => setVisibleText(text), 0);
       return () => {
         cancelled = true;
+        window.removeEventListener('scroll', revealImmediately);
         timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
       };
     }
@@ -47,6 +66,7 @@ function useTypewriterText(text: string, startDelay = 260, speed = 1) {
 
     return () => {
       cancelled = true;
+      window.removeEventListener('scroll', revealImmediately);
       timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
   }, [speed, startDelay, text]);

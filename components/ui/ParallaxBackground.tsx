@@ -382,6 +382,7 @@ export default function ParallaxBackground({
 
   useEffect(() => {
     let frame: number | null = null;
+    let scrollIdleTimer: number | null = null;
     let maxScroll = 1;
     let travel = window.innerHeight * 0.5;
     let targetY = 0;
@@ -422,7 +423,22 @@ export default function ParallaxBackground({
       updateTarget(!initialized);
     };
 
-    const handleScroll = () => updateTarget();
+    const handleScroll = () => {
+      // The page has a handful of editorial entrance animations. If a wheel
+      // gesture starts while one of them is still delayed, the card surface
+      // can be painted before its text, which reads as a blank beige block.
+      // Mark the document immediately so CSS can finish those animations in
+      // the same frame as the first scroll event.
+      const root = document.documentElement;
+      root.classList.add('has-scrolled');
+      root.classList.add('is-scrolling');
+      if (scrollIdleTimer !== null) window.clearTimeout(scrollIdleTimer);
+      scrollIdleTimer = window.setTimeout(() => {
+        scrollIdleTimer = null;
+        root.classList.remove('is-scrolling');
+      }, 180);
+      updateTarget();
+    };
     const resizeObserver = new ResizeObserver(updateMetrics);
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -435,6 +451,8 @@ export default function ParallaxBackground({
       window.removeEventListener('resize', updateMetrics);
       resizeObserver.disconnect();
       if (frame !== null) window.cancelAnimationFrame(frame);
+      if (scrollIdleTimer !== null) window.clearTimeout(scrollIdleTimer);
+      document.documentElement.classList.remove('is-scrolling');
     };
   }, []);
 
