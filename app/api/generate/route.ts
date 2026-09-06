@@ -9,6 +9,7 @@ import {
 } from "@google/generative-ai";
 import { getEditorAuthorization } from '@/lib/editor-auth';
 import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
+import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-history';
 
 export const maxDuration = 60;
 
@@ -237,7 +238,7 @@ function extractFirstJsonObject(text: string) {
 type GeneratedDailyData = Record<string, unknown> & {
   citazione?: Record<string, unknown>;
   parola_giorno?: { parola?: unknown };
-  poesia?: { autore?: unknown };
+  poesia?: { autore?: unknown; fonte?: unknown; testo?: unknown };
 };
 
 function parseGeneratedJson(responseText: string): GeneratedDailyData {
@@ -294,6 +295,7 @@ type RecentContentRecord = {
   poesia: {
     autore?: unknown;
     fonte?: unknown;
+    testo?: unknown;
   } | null;
 };
 
@@ -353,16 +355,6 @@ function formatRecentWordExclusions(records: RecentContentRecord[] | null): stri
     .join('\n');
 }
 
-function formatRecentPoemExclusions(records: RecentContentRecord[] | null): string {
-  const unique = new Set<string>();
-  for (const record of (records ?? []).slice(0, 45)) {
-    const author = typeof record.poesia?.autore === 'string' ? record.poesia.autore.trim() : '';
-    const source = typeof record.poesia?.fonte === 'string' ? record.poesia.fonte.trim() : '';
-    if (author) unique.add([author, source].filter(Boolean).join(' — '));
-  }
-  return [...unique].map((poem) => `- ${poem}`).join('\n');
-}
-
 function validateEditorialQuality(
   data: GeneratedDailyData,
   recentRows: RecentContentRecord[] | null,
@@ -392,15 +384,10 @@ function validateEditorialQuality(
   if (wordKey && recentWords.has(wordKey)) issues.push(`la parola "${word}" è già stata usata di recente`);
 
   const poet = typeof data?.poesia?.autore === 'string' ? data.poesia.autore.trim() : '';
-  const poetKey = normalizeEditorialValue(poet);
-  const recentPoets = new Set((recentRows ?? []).slice(0, 45)
-    .map((record) => typeof record.poesia?.autore === 'string'
-      ? normalizeEditorialValue(record.poesia.autore)
-      : '')
-    .filter(Boolean));
-
   if (!poet) issues.push('l’autore della poesia è assente');
-  if (poetKey && recentPoets.has(poetKey)) issues.push(`il poeta "${poet}" è già comparso negli ultimi 45 giorni`);
+  if (isRecentPoemRepeat(data.poesia?.testo, recentRows)) {
+    issues.push(`la stessa poesia di "${poet}" è già comparsa negli ultimi 45 giorni`);
+  }
 
   return issues;
 }
@@ -804,14 +791,14 @@ REGOLE DI CURATELA:
 4. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
 5. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 6. ${DAILY_WORD_EDITORIAL_RULES}
-7. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non usare poeti comparsi negli ultimi 45 giorni. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
+7. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non ripetere la stessa poesia comparsa negli ultimi 45 giorni. Lo stesso poeta può tornare con un testo diverso: il controllo riguarda il testo della poesia, non il solo nome dell'autore. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 8. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente. In "chiave_ricerca" inserisci soltanto artista e titolo esatti, senza genere o commenti aggiuntivi.
 9. KEYWORD_ARTE_EN: Una singola parola o breve frase in INGLESE (max 2 parole) che rappresenti il tema concettuale del giorno per una ricerca nel Metropolitan Museum of Art. Deve essere un concetto visivo evocativo (es. "solitude", "divine light", "triumph", "contemplation", "vanity"). NON usare nomi propri di persone.
 
 PAROLE RECENTI DA NON RIPETERE:
 ${recentWordExclusions || '- Nessuna parola storica disponibile: evita comunque i concetti generici elencati sopra.'}
 
-POETI E POESIE RECENTI DA NON RIPETERE:
+POESIE RECENTI DA NON RIPETERE:
 ${recentPoemExclusions || '- Nessuno storico disponibile: scegli comunque un autore non ovvio e varia il canone.'}
 
 CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
