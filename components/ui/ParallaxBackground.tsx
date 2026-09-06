@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
 import InkBottleCorner from '@/components/ui/InkBottleCorner';
+import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
 const renderRopeStrands = (
@@ -1015,6 +1016,7 @@ export default function ParallaxBackground({
           }}
         >
           <div
+            className="desk-still-life-layer"
             style={{
               opacity: isArtworkSolo ? 0 : 1,
               transform: isArtworkSolo ? 'translate3d(-18px, -14px, 0) scale(0.985)' : 'translate3d(0, 0, 0) scale(1)',
@@ -1026,6 +1028,7 @@ export default function ParallaxBackground({
           >
             <EspressoCorner isDark={dark} />
             <InkBottleCorner isDark={dark} />
+            <SeasonalDeskObject season={season} isDark={dark} />
           </div>
         </div>
       ) : null}

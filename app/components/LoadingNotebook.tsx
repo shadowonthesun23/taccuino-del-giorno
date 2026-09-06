@@ -7,19 +7,21 @@ import { garamond, janeAust } from '@/lib/fonts';
 import { t } from '@/lib/translation';
 import type { LanguageCode } from '@/lib/types';
 
+const getLoadingDateLabel = (language: LanguageCode) =>
+  new Intl.DateTimeFormat(language === 'IT' ? 'it-IT' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Europe/Rome',
+  }).format(new Date());
+
 export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boolean; lingua?: LanguageCode }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [fadeState, setFadeState] = useState<'fade-in' | 'fade-out'>('fade-in');
-  const [dateLabel, setDateLabel] = useState('');
+  const [dateLabel, setDateLabel] = useState(() => getLoadingDateLabel(lingua));
 
   useEffect(() => {
-    const formatter = new Intl.DateTimeFormat(lingua === 'IT' ? 'it-IT' : 'en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'Europe/Rome',
-    });
-    const updateDateLabel = () => setDateLabel(formatter.format(new Date()));
+    const updateDateLabel = () => setDateLabel(getLoadingDateLabel(lingua));
 
     updateDateLabel();
     const dateTimer = window.setInterval(updateDateLabel, 60_000);
@@ -54,7 +56,7 @@ export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boo
         >
           <div className="loading-notebook-content">
             <div className="loading-notebook-center">
-              <p className="loading-date-line">{dateLabel}</p>
+              <p className="loading-date-line" suppressHydrationWarning>{dateLabel}</p>
               <h1 className={`${janeAust.className} jane-aust-wordmark notebook-wordmark`}>
                 {t('dayTitle', lingua)}
               </h1>
