@@ -29,7 +29,8 @@ const services = [
     stdout: path.join(logsDir, 'author-artwork-worker.log'),
     stderr: path.join(logsDir, 'author-artwork-worker.error.log'),
     keepAlive: false,
-    runAtLoad: false,
+    runAtLoad: true,
+    startInterval: 60 * 60,
   },
 ];
 
@@ -55,6 +56,11 @@ function plistFor(service) {
       <key>Minute</key>
       <integer>0</integer>
     </dict>`
+    : '';
+  const interval = service.startInterval
+    ? `
+  <key>StartInterval</key>
+  <integer>${service.startInterval}</integer>`
     : '';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -87,7 +93,7 @@ ${environment.map(([key, value]) => `    <key>${xml(key)}</key>\n    <string>${x
   <key>RunAtLoad</key>
   <${service.runAtLoad ? 'true' : 'false'}/>
   <key>KeepAlive</key>
-  <${service.keepAlive ? 'true' : 'false'}/>${calendar}
+  <${service.keepAlive ? 'true' : 'false'}/>${calendar}${interval}
 </dict>
 </plist>
 `;
@@ -103,6 +109,35 @@ async function launchctl(args, allowFailure = false) {
     const detail = typeof error?.stderr === 'string' ? error.stderr.trim() : '';
     throw new Error(`launchctl ${args.join(' ')} non riuscito.${detail ? ` ${detail}` : ''}`);
   }
+}
+
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function waitForServiceStopped(target) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    try {
+      await execFileAsync('/bin/launchctl', ['print', target], { maxBuffer: 256 * 1024 });
+    } catch {
+      return;
+    }
+    await sleep(250);
+  }
+}
+
+async function bootstrapWithRetry(domain, plistPath) {
+  let lastError;
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await launchctl(['bootstrap', domain, plistPath]);
+      return;
+    } catch (error) {
+      lastError = error;
+      await sleep(500);
+    }
+  }
+  throw lastError;
 }
 
 async function uninstall() {
@@ -123,9 +158,11 @@ async function install() {
 
   for (const service of services) {
     const plistPath = path.join(launchAgentsDir, `${service.label}.plist`);
-    await launchctl(['bootout', `gui/${uid}/${service.label}`], true);
+    const target = `gui/${uid}/${service.label}`;
+    await launchctl(['bootout', target], true);
+    await waitForServiceStopped(target);
     await writeFile(plistPath, plistFor(service), 'utf8');
-    await launchctl(['bootstrap', `gui/${uid}`, plistPath]);
+    await bootstrapWithRetry(`gui/${uid}`, plistPath);
     console.log(`Installato ${service.label}`);
   }
 

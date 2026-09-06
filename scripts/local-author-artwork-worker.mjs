@@ -28,6 +28,7 @@ const MIN_IMAGE_BYTES = 32 * 1024;
 const MIN_GENERATED_DIMENSION = 512;
 const MAX_GENERATED_DIMENSION = 4096;
 const WEBP_QUALITY = 88;
+const ARTWORK_GENERATION_VERSION = 'square-contain-v2';
 
 const baseUrl = (process.env.TACCUINO_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, '');
 const shortcutName = process.env.TACCUINO_SHORTCUT_NAME ?? DEFAULT_SHORTCUT_NAME;
@@ -204,6 +205,23 @@ async function runImagePlayground(sourcePath, pngPath) {
   return { bytes: generatedBytes, dimensions: `${metadata.width}x${metadata.height}` };
 }
 
+async function prepareImagePlaygroundInput(sourcePath, inputPath) {
+  await sharp(sourcePath)
+    .resize(1024, 1024, {
+      fit: 'contain',
+      background: { r: 248, g: 246, b: 240, alpha: 1 },
+    })
+    .png({ compressionLevel: 9 })
+    .toFile(inputPath);
+
+  const metadata = await sharp(inputPath).metadata();
+  if (metadata.width !== 1024 || metadata.height !== 1024) {
+    throw new Error(`Input preparato con dimensioni inattese: ${metadata.width}x${metadata.height}.`);
+  }
+
+  return { dimensions: `${metadata.width}x${metadata.height}` };
+}
+
 async function convertToWebp(pngPath, webpPath) {
   await sharp(pngPath)
     .webp({ quality: WEBP_QUALITY, effort: 4, smartSubsample: true })
@@ -249,7 +267,9 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   await appendLog(logPath, `Avvio preparazione parcheggiata per ${authorData.authorName} (${requestedDate}).`);
 
+  const previousState = await readJson(statePath);
   let succeeded = false;
+  let failureMessage = 'Generazione non completata.';
 
   try {
     const sourceRunPath = path.join(runDir, `${requestedDate}-${authorSlug}-original.${extensionFor('', authorData.sourceUrl)}`);
@@ -258,10 +278,14 @@ async function main() {
 
     await appendLog(logPath, `Sorgente verificata: ${sourceInfo.dimensions}, ${sourceInfo.bytes} byte.`);
 
-    const previousState = await readJson(statePath);
+    const playgroundInputPath = path.join(runDir, `${requestedDate}-${authorSlug}-input.png`);
+    const playgroundInputInfo = await prepareImagePlaygroundInput(sourcePath, playgroundInputPath);
+    await appendLog(logPath, `Input Image Playground preparato senza ritaglio: ${playgroundInputInfo.dimensions}.`);
+
     const existingOutput = await fileSize(outputPath).catch(() => 0);
     if (
       previousState?.status === 'success' &&
+      previousState.generatorVersion === ARTWORK_GENERATION_VERSION &&
       previousState.authorName === authorData.authorName &&
       previousState.sourceSha256 === sourceInfo.sha256 &&
       existingOutput >= MIN_IMAGE_BYTES
@@ -276,7 +300,7 @@ async function main() {
 
     const pngPath = path.join(runDir, `${requestedDate}-${authorSlug}.png`);
     const tempWebpPath = path.join(runDir, `${requestedDate}-${authorSlug}.webp`);
-    const playgroundInfo = await runImagePlayground(sourcePath, pngPath);
+    const playgroundInfo = await runImagePlayground(playgroundInputPath, pngPath);
     await appendLog(logPath, `Image Playground completato: ${playgroundInfo.dimensions}, ${playgroundInfo.bytes} byte PNG temporanei.`);
 
     const webpInfo = await convertToWebp(pngPath, tempWebpPath);
@@ -285,6 +309,7 @@ async function main() {
     const state = {
       status: 'success',
       mode: 'parked',
+      generatorVersion: ARTWORK_GENERATION_VERSION,
       date: requestedDate,
       authorName: authorData.authorName,
       sourceUrl: authorData.sourceUrl,
@@ -303,21 +328,41 @@ async function main() {
     await appendLog(logPath, `WebP validato e salvato: ${outputPath} (${webpInfo.bytes} byte).`);
     await appendLog(logPath, 'Nessuna pubblicazione remota eseguita: WebP parcheggiato in attesa della scelta editoriale.');
     succeeded = true;
+  } catch (error) {
+    failureMessage = error instanceof Error ? error.message : String(error);
+    throw error;
   } finally {
     if (succeeded) {
       await rm(runDir, { recursive: true, force: true });
     } else {
-      await appendLog(logPath, `Generazione non completata. Run conservata per diagnosi: ${runDir}`);
-      const failedState = {
-        status: 'failed',
-        mode: 'parked',
-        date: requestedDate,
-        authorName: authorData.authorName,
-        sourceUrl: authorData.sourceUrl,
+      const existingOutput = await fileSize(outputPath).catch(() => 0);
+      const hasPreviousValidOutput = previousState?.status === 'success'
+        && previousState.authorName === authorData.authorName
+        && existingOutput >= MIN_IMAGE_BYTES;
+      const failure = {
+        message: failureMessage,
         runDir,
         failedAt: new Date().toISOString(),
       };
-      await writeFile(statePath, `${JSON.stringify(failedState, null, 2)}\n`, 'utf8');
+
+      if (hasPreviousValidOutput) {
+        await appendLog(logPath, `Generazione non completata (${failureMessage}). Il WebP precedente resta disponibile: ${outputPath}`);
+        await writeFile(statePath, `${JSON.stringify({ ...previousState, lastFailure: failure }, null, 2)}\n`, 'utf8');
+      } else {
+        await appendLog(logPath, `Generazione non completata. Run conservata per diagnosi: ${runDir}`);
+        const failedState = {
+          status: 'failed',
+          mode: 'parked',
+          date: requestedDate,
+          authorName: authorData.authorName,
+          sourceUrl: authorData.sourceUrl,
+          outputPath,
+          runDir,
+          failedAt: failure.failedAt,
+          error: failureMessage,
+        };
+        await writeFile(statePath, `${JSON.stringify(failedState, null, 2)}\n`, 'utf8');
+      }
     }
   }
 }
