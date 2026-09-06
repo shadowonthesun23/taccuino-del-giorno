@@ -3060,13 +3060,11 @@ body {
 }
 
 .journal-page-enter {
-  animation: journalPageEnter 920ms cubic-bezier(0.22, 1, 0.36, 1) 70ms both;
   isolation: isolate;
   transform-origin: 50% 24px;
 }
 
 .journal-page-enter::before {
-  animation: journalPageLandingShadow 820ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
   border-radius: 18px 18px 12px 12px;
   box-shadow:
     0 20px 25px -24px rgba(42, 37, 34, 0.48),
@@ -3076,7 +3074,7 @@ body {
   opacity: 0;
   pointer-events: none;
   position: absolute;
-  transform: translate3d(0, 8px, 0) scale(0.994);
+  transform: none;
   z-index: 0;
 }
 
@@ -3096,35 +3094,6 @@ body {
     opacity: 0;
     transform: translate3d(0, 0, 0) scale(1);
   }
-}
-
-/*
- * A wheel gesture must never reveal the intermediate state of an entrance
- * animation. The paper surface is intentionally visible first, so a delayed
- * text layer otherwise looks like a solid beige panel while the page moves.
- * ParallaxBackground adds .is-scrolling on the first scroll event and removes
- * it shortly after the gesture stops; this keeps the opening composition
- * intact without making reading depend on animation timing.
- */
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing),
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .animate-fadeInUp,
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .quote-editorial-dropcap,
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .quote-editorial-copy,
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .quote-editorial-footer,
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note,
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note-doodle,
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .margin-note span {
-  animation: none !important;
-  filter: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-  translate: none !important;
-}
-
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter::before {
-  animation: none !important;
-  opacity: 0 !important;
-  transform: none !important;
 }
 
 /* Finish the author photograph's entrance without flattening the physical
@@ -3177,32 +3146,6 @@ html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence
 
 html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet::before {
   filter: none !important;
-}
-
-/* Finish the folio's staggered reveal as soon as the reader starts moving.
- * Otherwise the paper background can be captured before its text layers are
- * painted, producing a transient solid beige block during a wheel gesture. */
-html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet > :is(
-  .daily-correspondences-header,
-  .daily-correspondences-intro,
-  .daily-correspondences-complete-body,
-  .daily-correspondences-closure
-),
-html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-complete-body > :is(
-  .daily-correspondences-grid,
-  .daily-correspondences-readings
-) {
-  animation: none !important;
-  filter: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-  translate: none !important;
-  will-change: auto !important;
-}
-
-html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet,
-html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-sheet * {
-  transition: none !important;
 }
 
 .loading-screen-overlay {
@@ -12584,26 +12527,6 @@ body.museum-room-open :is(
   color: #cfb393;
 }
 
-@keyframes correspondencesEntryIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-readings, .daily-correspondences-closure) {
-  animation: correspondencesEntryIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.daily-correspondences-sheet > .daily-correspondences-intro { animation-delay: 70ms; }
-.daily-correspondences-sheet > .daily-correspondences-grid { animation-delay: 140ms; }
-.daily-correspondences-sheet > .daily-correspondences-readings { animation-delay: 180ms; }
-.daily-correspondences-sheet > .daily-correspondences-closure { animation-delay: 230ms; }
-
 @media (max-width: 680px) {
   .daily-correspondences {
     padding: 2px 0;
@@ -20232,58 +20155,6 @@ body.museum-room-open :is(
   box-shadow: 0 24px 70px -52px rgba(0, 0, 0, 0.82);
 }
 
-/* ── Final editorial motion pass ──────────────────────────────────────────
- * These cues belong to the live notebook only. They stay out of export
- * clones, finish cleanly when scrolling starts, and use one-shot CSS motion
- * so the page does not acquire another scroll-time animation loop. */
-@keyframes journalSectionEntry {
-  0% {
-    filter: blur(1.8px);
-    opacity: 0;
-    transform: translate3d(0, 14px, 0);
-  }
-  64% {
-    filter: blur(0.25px);
-    opacity: 0.92;
-    transform: translate3d(0, -1px, 0);
-  }
-  100% {
-    filter: blur(0);
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-/* Major paper sections now enter as a readable sequence instead of relying
- * on the old generic utility classes alone. */
-.journal-page-enter > :is(.journal-hero, .daily-correspondences, .author-feature, .editorial-card-stack, .journal-footer) {
-  animation: journalSectionEntry 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.journal-page-enter > .journal-hero { animation-delay: 120ms; }
-.journal-page-enter > .daily-correspondences { animation-delay: 240ms; }
-.journal-page-enter > .author-feature { animation-delay: 380ms; }
-.journal-page-enter > .editorial-card-stack { animation-delay: 540ms; }
-.journal-page-enter > .journal-footer { animation-delay: 700ms; }
-
-/* The individual cards continue the same rhythm inside their stack. */
-.journal-page-enter > .editorial-card-stack > .animate-fadeInUp.stagger-4 { animation-delay: 100ms; }
-.journal-page-enter > .editorial-card-stack > .animate-fadeInUp.stagger-6 { animation-delay: 220ms; }
-.journal-page-enter > .editorial-card-stack > .animate-fadeInUp.stagger-7 { animation-delay: 300ms; }
-.journal-page-enter > .editorial-card-stack > .animate-fadeInUp.stagger-8 { animation-delay: 380ms; }
-.journal-page-enter > .editorial-card-stack > .animate-fadeInUp.stagger-9 { animation-delay: 460ms; }
-.journal-page-enter > .editorial-card-stack > .animate-fadeInUp.stagger-10 { animation-delay: 540ms; }
-
-/* A wheel gesture must land every staged section immediately, including the
- * new direct-section animation and the existing correspondence sub-sequence. */
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) > :is(.journal-hero, .daily-correspondences, .author-feature, .editorial-card-stack, .journal-footer),
-html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(.is-revealing) .daily-correspondences-sheet > :is(.daily-correspondences-header, .daily-correspondences-intro, .daily-correspondences-grid, .daily-correspondences-readings, .daily-correspondences-closure) {
-  animation: none !important;
-  filter: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-}
-
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   /* A restrained paper glint makes the side ticket react before it opens. */
   .seasonal-bookmark:not(.is-inactive):not(.is-open):not(.is-closing):not(.ticket-export-source):not(.ticket-export-clone) .seasonal-bookmark-ticket::after {
@@ -20377,15 +20248,6 @@ html:is(.is-scrolling, .has-scrolled) .journal-page-enter:not(.is-covering):not(
   .daily-correspondences:not(.correspondence-export-frame) .daily-correspondences-wax-seal.daily-wax-seal:hover::before {
     opacity: 0.78;
     transform: translate3d(7%, 4%, 0) rotate(-9deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .journal-page-enter > :is(.journal-hero, .daily-correspondences, .author-feature, .editorial-card-stack, .journal-footer) {
-    animation: none;
-    filter: none;
-    opacity: 1;
-    transform: none;
   }
 }
 

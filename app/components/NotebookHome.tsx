@@ -1619,7 +1619,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           className={`journal-page-enter journal-page-transition is-${pageTurnPhase} w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10`}
           aria-busy={isTurningPage}
         >
-          <header className="journal-hero text-center relative animate-fadeInUp stagger-1 px-4">
+          <header className="journal-hero text-center relative px-4">
             <div className="relative z-10" data-reveal-readability>
               <div className="flex justify-center mb-2">
                 <div className={`masking-tape journal-date-tape ${caveat.className} text-lg font-bold tracking-wider`}>
@@ -1671,7 +1671,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
           onOpenStories={() => setSocialStoriesOpen(true)}
         />
 
-        <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 animate-fadeInUp stagger-2 relative px-4">
+        <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 relative px-4">
   <div className="relative z-10">
     <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
@@ -1752,7 +1752,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
       </div>
     </div> {/* chiude mx-auto flex */}
 
-    <div className="mt-8 animate-fadeInUp stagger-3">
+    <div className="mt-8">
       <Card
         key={`${dataExLibris}:citazione`}
         id="citazione"
@@ -1828,7 +1828,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
           <div className="editorial-card-stack">
 
-            <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
+            <Card key={`${dataExLibris}:parola`} id="parola" title={t('wordCard', lingua)} icon={Type} isDark={isDark} className="scroll-mt-28"
               filename={`parola-${data.parola_giorno.parola.toLowerCase()}`}
               exportDate={formatExLibrisDate(dataExLibris)}
               socialExportVariant="word"
@@ -1859,7 +1859,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               )}
             </Card>
 
-            <Card key={`${dataExLibris}:santi`} id="santi" title={t('saintsCard', lingua)} icon={Church} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-4"
+            <Card key={`${dataExLibris}:santi`} id="santi" title={t('saintsCard', lingua)} icon={Church} isDark={isDark} className="scroll-mt-28"
               onExport={async () => {
                 await saintExportCardRef.current?.exportImage();
               }}
@@ -1918,7 +1918,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               />
             </div>
 
-            <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-6"
+            <Card key={`${dataExLibris}:avvenimenti`} id="avvenimenti" title={t('eventsCard', lingua)} icon={CalendarDays} isDark={isDark} className="scroll-mt-28 md:col-span-2"
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('avvenimenti')}
               onToggleSaved={() => saveCard('avvenimenti', t('eventsCard', lingua), data.avvenimenti[0] ?? '')}>
@@ -1935,7 +1935,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               </ul>
             </Card>
 
-            <Card key={`${dataExLibris}:poesia`} id="poesia" title={t('poemCard', lingua)} icon={Feather} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card key={`${dataExLibris}:poesia`} id="poesia" title={t('poemCard', lingua)} icon={Feather} isDark={isDark} className="scroll-mt-28"
               onExport={async () => {
                 await poemExportCardRef.current?.exportImage();
               }}
@@ -1985,7 +1985,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               </div>
               </Card>
 
-            <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={t('bibleCard', lingua)} icon={BookOpen} isDark={isDark} className="scroll-mt-28 animate-fadeInUp stagger-7"
+            <Card key={`${dataExLibris}:bibbia`} id="bibbia" title={t('bibleCard', lingua)} icon={BookOpen} isDark={isDark} className="scroll-mt-28"
               onExport={async () => {
                 await bibleExportCardRef.current?.exportImage();
               }}
@@ -2070,7 +2070,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 title={t('artworkCard', lingua)}
                 icon={Palette}
                 isDark={isDark}
-                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-8"
+                className="scroll-mt-28 md:col-span-2"
                 filename={`opera-${dataExLibris}`}
                 exportDate={formatExLibrisDate(dataExLibris)}
                 isSaved={isCardSaved('opera')}
@@ -2133,7 +2133,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               title={t('musicCard', lingua)}
               icon={Music}
               isDark={isDark}
-              className="music-feature-card scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-9"
+              className="music-feature-card scroll-mt-28 md:col-span-2"
               exportDate={formatExLibrisDate(dataExLibris)}
               isSaved={isCardSaved('musica')}
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
@@ -2206,7 +2206,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 title={t('apodCard', lingua)}
                 icon={Telescope}
                 isDark={isDark}
-                className="scroll-mt-28 md:col-span-2 animate-fadeInUp stagger-10"
+                className="scroll-mt-28 md:col-span-2"
                 exportDate={formatExLibrisDate(dataExLibris)}
                 isSaved={isCardSaved('apod')}
                 onToggleSaved={
