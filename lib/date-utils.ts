@@ -244,6 +244,6 @@ export function getMarginalia(value: string): string {
 
 export function getDisplayDate(data: { data_odierna: string; data?: string }, lingua: LanguageCode, dataSelezionata: string | null): string {
   if (lingua === 'IT') return data.data_odierna;
-  const isoDate = data.data || dataSelezionata || new Date().toISOString().split('T')[0];
+  const isoDate = data.data || dataSelezionata || getRomeDateIso();
   return formatDataMultilingua(isoDate, lingua) || data.data_odierna;
 }

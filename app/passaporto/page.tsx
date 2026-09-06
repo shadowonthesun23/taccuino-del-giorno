@@ -11,6 +11,7 @@ import {
 } from '@/lib/artwork';
 import { applyEditorialContentOverrides, sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import { sanitizeAuthorDescription } from '@/lib/author-description';
+import { getRomeDateIso } from '@/lib/date-utils';
 import { janeAust } from '@/lib/fonts';
 import type { EditorialMediaCrop, EditorialMediaOverrides } from '@/lib/editorial-media';
 import { getEditorialMediaCropImageStyle, getRenderableImageUrl, sanitizeEditorialMediaCrops, sanitizeEditorialMediaOverrides } from '@/lib/editorial-media';
@@ -269,7 +270,7 @@ export default async function PassportPage({
   const dataParam = Array.isArray(params.data) ? params.data[0] : params.data;
   const dataIso = dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)
     ? dataParam
-    : new Date().toISOString().split('T')[0];
+    : getRomeDateIso();
 
   let payload: PassportPayload;
   try {

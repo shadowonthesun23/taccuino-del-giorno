@@ -6,6 +6,7 @@ import {
   localizeArtworkToItalian,
   type Artwork,
 } from '@/lib/artwork';
+import { getRomeDateIso } from '@/lib/date-utils';
 import { getFallbackContent } from '@/lib/fallback-content';
 
 export const maxDuration = 30;
@@ -18,7 +19,7 @@ function requestedDate(request: Request): string {
   const value = new URL(request.url).searchParams.get('data');
   return value && /^\d{4}-\d{2}-\d{2}$/.test(value)
     ? value
-    : new Date().toISOString().split('T')[0];
+    : getRomeDateIso();
 }
 
 function cachedArtwork(value: unknown): Partial<Artwork> | null {

@@ -8,6 +8,7 @@ import {
   type GenerativeModel,
 } from "@google/generative-ai";
 import { getEditorAuthorization } from '@/lib/editor-auth';
+import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
 
 export const maxDuration = 60;
 
@@ -234,7 +235,7 @@ function extractFirstJsonObject(text: string) {
 }
 
 type GeneratedDailyData = Record<string, unknown> & {
-  citazione?: { autore?: unknown };
+  citazione?: Record<string, unknown>;
   parola_giorno?: { parola?: unknown };
   poesia?: { autore?: unknown };
 };
@@ -404,6 +405,76 @@ function validateEditorialQuality(
   return issues;
 }
 
+function getGeneratedAuthor(data: GeneratedDailyData): string {
+  return typeof data.autore_giorno === 'string' ? data.autore_giorno.trim() : '';
+}
+
+function getGeneratedAuthorDescription(data: GeneratedDailyData): string {
+  return typeof data.breve_descrizione === 'string' ? data.breve_descrizione.trim() : '';
+}
+
+function getGeneratedCitationAuthor(data: GeneratedDailyData): string {
+  return typeof data.citazione?.autore === 'string' ? data.citazione.autore.trim() : '';
+}
+
+async function validateAutomaticAuthor(
+  data: GeneratedDailyData,
+  dataIso: string,
+  dataDiOggiStr: string,
+): Promise<string[]> {
+  const author = getGeneratedAuthor(data);
+  if (!author) return ["l'autore del giorno è assente"];
+
+  const metadata = await getAuthorMetadata(author);
+  const anniversary = getAuthorAnniversary(dataIso, metadata);
+  if (!anniversary) {
+    const availableDates = [metadata.birthDate, metadata.deathDate].filter(Boolean).join(' / ');
+    return [
+      availableDates
+        ? `l'autore del giorno "${author}" non ha una nascita o una morte il ${dataDiOggiStr} (date verificate: ${availableDates})`
+        : `la data biografica dell'autore del giorno "${author}" non è verificabile`,
+    ];
+  }
+
+  const citationAuthor = getGeneratedCitationAuthor(data);
+  const issues: string[] = [];
+  if (!citationAuthor || normalizeEditorialValue(citationAuthor) !== normalizeEditorialValue(author)) {
+    issues.push(`la citazione deve appartenere all'autore del giorno "${author}"`);
+  }
+
+  const description = getGeneratedAuthorDescription(data);
+  const prefix = /^(Nato in questo giorno|Scomparso in questa data)\s+nel\s+(\d{4})\s*[,.:—-]/iu.exec(description);
+  const expectedLabel = anniversary.kind === 'birth' ? 'Nato in questo giorno' : 'Scomparso in questa data';
+  if (!prefix || prefix[1].toLocaleLowerCase('it-IT') !== expectedLabel.toLocaleLowerCase('it-IT') || prefix[2] !== anniversary.year) {
+    issues.push(`la descrizione deve indicare "${expectedLabel} nel ${anniversary.year}" per l'autore verificato`);
+  }
+
+  return issues;
+}
+
+function isAutomaticAuthorIssue(issue: string): boolean {
+  return issue.startsWith("l'autore del giorno")
+    || issue.startsWith('la data biografica dell’autore del giorno')
+    || issue.startsWith('la data biografica dell\'autore del giorno')
+    || issue.startsWith('la citazione deve appartenere all’autore del giorno')
+    || issue.startsWith("la citazione deve appartenere all'autore del giorno")
+    || issue.startsWith('la descrizione deve indicare');
+}
+
+async function validateGeneratedContent(
+  data: GeneratedDailyData,
+  dataIso: string,
+  dataDiOggiStr: string,
+  recentRows: RecentContentRecord[] | null,
+  forcedAuthor: string,
+): Promise<string[]> {
+  const issues = validateEditorialQuality(data, recentRows, forcedAuthor);
+  if (!forcedAuthor) {
+    issues.push(...await validateAutomaticAuthor(data, dataIso, dataDiOggiStr));
+  }
+  return issues;
+}
+
 function isDailyWordIssue(issue: string): boolean {
   return issue === 'la parola del giorno è assente'
     || /^la parola "[^"]*" è (?:troppo generica|già stata usata di recente)$/u.test(issue);
@@ -411,6 +482,126 @@ function isDailyWordIssue(issue: string): boolean {
 
 function isWordOnlyQualityIssue(issues: string[]): boolean {
   return issues.length > 0 && issues.every(isDailyWordIssue);
+}
+
+function parseGeneratedAuthorRepair(responseText: string): {
+  autore_giorno: string;
+  breve_descrizione: string;
+  citazione: { testo: string; autore: string; fonte: string };
+} {
+  const parsed = parseGeneratedJson(responseText);
+  const citation = isRecord(parsed.citazione) ? parsed.citazione : null;
+  if (
+    typeof parsed.autore_giorno !== 'string'
+    || typeof parsed.breve_descrizione !== 'string'
+    || !citation
+    || typeof citation.testo !== 'string'
+    || typeof citation.autore !== 'string'
+    || typeof citation.fonte !== 'string'
+  ) {
+    throw new InvalidGeneratedJsonError('La risposta per la riparazione dell’autore non contiene tutti i campi richiesti.');
+  }
+
+  return {
+    autore_giorno: parsed.autore_giorno.trim(),
+    breve_descrizione: parsed.breve_descrizione.trim(),
+    citazione: {
+      testo: citation.testo.trim(),
+      autore: citation.autore.trim(),
+      fonte: citation.fonte.trim(),
+    },
+  };
+}
+
+function buildAuthorRepairPrompt(
+  candidateData: GeneratedDailyData,
+  dataDiOggiStr: string,
+  authorIssues: string[],
+  rejectedAuthors: string[],
+): string {
+  const rejectedAuthorList = rejectedAuthors.length > 0
+    ? rejectedAuthors.map((author) => `- ${author}`).join('\n')
+    : '- Nessun autore specifico: verifica comunque la data.';
+
+  return `Il JSON completo per il ${dataDiOggiStr} è già stato generato, ma la scelta dell'autore del giorno non ha superato la verifica delle date biografiche.
+
+PROBLEMI DA CORREGGERE:
+${authorIssues.map((issue) => `- ${issue}`).join('\n')}
+
+CONTESTO DEL CONTENUTO APPENA GENERATO:
+${formatGeneratedContentContext(candidateData)}
+
+AUTORI GIÀ RIFIUTATI:
+${rejectedAuthorList}
+
+Sostituisci esclusivamente "autore_giorno", "breve_descrizione" e "citazione". Non modificare nessun altro campo del contenuto.
+Per la generazione automatica scegli esclusivamente uno scrittore, poeta, filosofo o altra figura culturale legata alla parola scritta la cui nascita o morte sia verificabile e cada esattamente nel giorno e mese del ${dataDiOggiStr}. Preferisci una nascita; usa una morte solo per una figura molto illustre. Non scegliere un autore solo perché è affine al tema e non inventare date.
+La descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," oppure "Scomparso in questa data nel [anno]," in base alla data verificata. La citazione deve appartenere allo stesso autore ed essere in italiano con fonte.
+
+Restituisci esclusivamente un unico oggetto JSON valido con questa forma:
+{
+  "autore_giorno": "...",
+  "breve_descrizione": "...",
+  "citazione": { "testo": "...", "autore": "...", "fonte": "..." }
+}`;
+}
+
+async function regenerateDailyAuthor(
+  model: GenerativeModel,
+  modelName: string,
+  candidateData: GeneratedDailyData,
+  dataIso: string,
+  dataDiOggiStr: string,
+  startedAt: number,
+  initialAuthorIssues: string[],
+): Promise<GeneratedDailyData> {
+  const rejectedAuthors = new Set<string>();
+  const initialAuthor = getGeneratedAuthor(candidateData);
+  if (initialAuthor) rejectedAuthors.add(initialAuthor);
+
+  let lastError: unknown = new EditorialQualityError(initialAuthorIssues);
+  let authorIssues = initialAuthorIssues;
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const repairResult = await generateWithBudget(
+        model,
+        modelName,
+        buildAuthorRepairPrompt(candidateData, dataDiOggiStr, authorIssues, [...rejectedAuthors]),
+        startedAt,
+        'Riparazione mirata autore del giorno...',
+      );
+      const replacement = parseGeneratedAuthorRepair(getGeneratedResponseText(repairResult));
+      const repairedData: GeneratedDailyData = {
+        ...candidateData,
+        autore_giorno: replacement.autore_giorno,
+        breve_descrizione: replacement.breve_descrizione,
+        citazione: replacement.citazione,
+      };
+      authorIssues = await validateAutomaticAuthor(repairedData, dataIso, dataDiOggiStr);
+      if (authorIssues.length === 0) {
+        console.info(`Autore sostitutivo verificato (${replacement.autore_giorno}); ${getGenerationTiming(startedAt)}.`);
+        return repairedData;
+      }
+
+      lastError = new EditorialQualityError(authorIssues);
+      if (replacement.autore_giorno) rejectedAuthors.add(replacement.autore_giorno);
+      console.warn(`Rifiuto editoriale autore sostitutivo: ${authorIssues.join('; ')}; ${getGenerationTiming(startedAt)}.`);
+    } catch (error) {
+      lastError = error;
+      if (error instanceof GenerationBudgetError) break;
+      logTechnicalError('riparazione mirata autore del giorno', modelName, error, startedAt);
+    }
+
+    if (attempt < 2) {
+      if (getGeminiAttemptTimeout(startedAt) === null) break;
+      await waitBeforeRetry(startedAt);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Nessun autore sostitutivo verificato ricevuto dal modello.');
 }
 
 function formatGeneratedContentContext(data: GeneratedDailyData): string {
@@ -607,8 +798,8 @@ ${forcedAuthor ? '- Verifica prima il giorno e il mese di nascita e di morte del
 ${manualDirection}
 
 REGOLE DI CURATELA:
-1. AUTORE: Scegli prima di tutto scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta. Prediligi nati oggi; morti solo se molto più illustri. Evita musicisti e compositori come autore del giorno quando esiste una figura letteraria adatta alla data.
-2. DESCRIZIONE AUTORE: Se la nascita dell'autore cade nel giorno e mese della data curata, la "breve_descrizione" deve iniziare con "Nato in questo giorno nel [anno],"; se la morte coincide, deve iniziare con "Scomparso in questa data nel [anno],". Se nessuna delle due date coincide, inizia direttamente con una normale frase biografica o editoriale, senza prefissi o etichette sulla selezione dell'autore.
+1. AUTORE: Per la generazione automatica scegli esclusivamente scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta la cui nascita o morte sia verificabile e cada esattamente nel giorno e mese della data curata. Prediligi una nascita; usa una morte solo per una figura molto più illustre. Evita musicisti e compositori quando esiste una figura letteraria adatta. Non scegliere un autore soltanto perché è affine al tema e non inventare date.
+2. DESCRIZIONE AUTORE: Per la generazione automatica la descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," se la nascita coincide oppure con "Scomparso in questa data nel [anno]," se la morte coincide. L'anno deve essere quello della data biografica verificata. L'eccezione per un autore non legato alla data vale soltanto quando è indicato esplicitamente nella DIREZIONE EDITORIALE MANUALE.
 3. CITAZIONE: Solo in ITALIANO. Usa una citazione autentica dell'autore con fonte verificabile e riporta una traduzione italiana pubblicata quando l'originale è in un'altra lingua; non lasciare la citazione in lingua originale.
 4. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
 5. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
@@ -673,7 +864,39 @@ Restituisci questo JSON:
           'Generazione completa Gemini...',
         );
         const candidateData = parseGeneratedJson(getGeneratedResponseText(attemptResult));
-        const qualityIssues = validateEditorialQuality(candidateData, recentRows, forcedAuthor);
+        let acceptedCandidate = candidateData;
+        let qualityIssues = await validateGeneratedContent(
+          acceptedCandidate,
+          dataIso,
+          dataDiOggiStr,
+          recentRows,
+          forcedAuthor,
+        );
+
+        if (!forcedAuthor && qualityIssues.some(isAutomaticAuthorIssue)) {
+          const authorIssues = qualityIssues.filter(isAutomaticAuthorIssue);
+          try {
+            acceptedCandidate = await regenerateDailyAuthor(
+              model,
+              modelName,
+              acceptedCandidate,
+              dataIso,
+              dataDiOggiStr,
+              generationStartedAt,
+              authorIssues,
+            );
+            qualityIssues = await validateGeneratedContent(
+              acceptedCandidate,
+              dataIso,
+              dataDiOggiStr,
+              recentRows,
+              forcedAuthor,
+            );
+          } catch (error) {
+            lastGenerationError = error;
+            break;
+          }
+        }
 
         if (qualityIssues.length > 0) {
           console.warn(`Rifiuto editoriale: ${qualityIssues.join('; ')}; ${getGenerationTiming(generationStartedAt)}.`);
@@ -683,7 +906,7 @@ Restituisci questo JSON:
               generatedData = await regenerateDailyWord(
                 model,
                 modelName,
-                candidateData,
+                acceptedCandidate,
                 dataDiOggiStr,
                 recentWordExclusions,
                 recentRows,
@@ -715,7 +938,7 @@ Restituisci questo JSON:
           continue;
         }
 
-        generatedData = candidateData;
+        generatedData = acceptedCandidate;
         console.info(`Contenuto generato con ${modelName} al tentativo completo ${fullAttemptNumber}; ${getGenerationTiming(generationStartedAt)}.`);
       } catch (error) {
         lastGenerationError = error;
@@ -747,7 +970,11 @@ Restituisci questo JSON:
         : new Error('Nessuna risposta ricevuta dal modello.');
     }
 
-    const data = generatedData;
+    const data = {
+      ...generatedData,
+      // The date is derived from the route timezone, never from model prose.
+      data_odierna: dataDiOggiStr,
+    };
 
     const { error } = await supabase.from('contenuti_giornalieri').upsert(
       { ...data, data: dataIso },
