@@ -12,6 +12,25 @@ type EditorialMediaPayload = {
   crops?: unknown;
 };
 
+const EDITORIAL_MEDIA_MUTATION_TIMEOUT_MS = 15_000;
+
+function isRequestTimeout(error: unknown, signal: AbortSignal) {
+  return signal.aborted || (
+    error instanceof Error
+    && (error.name === 'AbortError' || error.name === 'TimeoutError')
+  );
+}
+
+function mutationErrorResponse(action: string, error: unknown, signal: AbortSignal) {
+  console.error(`Errore ${action} immagini editoriali:`, error);
+
+  if (isRequestTimeout(error, signal)) {
+    return new Response('Supabase non ha risposto entro 15 secondi.', { status: 504 });
+  }
+
+  return new Response(error instanceof Error ? error.message : 'Errore Supabase non identificato.', { status: 500 });
+}
+
 function isValidIsoDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
 
@@ -51,31 +70,43 @@ export async function POST(request: Request) {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   if (Object.keys(overrides).length === 0 && Object.keys(crops).length === 0) {
-    const { error } = await supabase
-      .from('editorial_media_overrides')
-      .delete()
-      .eq('data', dataIso);
+    const signal = AbortSignal.timeout(EDITORIAL_MEDIA_MUTATION_TIMEOUT_MS);
+    try {
+      const { error } = await supabase
+        .from('editorial_media_overrides')
+        .delete()
+        .eq('data', dataIso)
+        .retry(false)
+        .abortSignal(signal);
 
-    if (error) {
-      console.error('Errore rimozione immagini editoriali:', error);
-      return new Response(error.message, { status: 500 });
+      if (error) {
+        return mutationErrorResponse('rimozione', error, signal);
+      }
+    } catch (error) {
+      return mutationErrorResponse('rimozione', error, signal);
     }
 
     return NextResponse.json({ ok: true, data: dataIso, overrides: {}, crops: {} });
   }
 
-  const { error } = await supabase
-    .from('editorial_media_overrides')
-    .upsert({
-      data: dataIso,
-      overrides,
-      crops,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'data' });
+  const signal = AbortSignal.timeout(EDITORIAL_MEDIA_MUTATION_TIMEOUT_MS);
+  try {
+    const { error } = await supabase
+      .from('editorial_media_overrides')
+      .upsert({
+        data: dataIso,
+        overrides,
+        crops,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'data' })
+      .retry(false)
+      .abortSignal(signal);
 
-  if (error) {
-    console.error('Errore salvataggio immagini editoriali:', error);
-    return new Response(error.message, { status: 500 });
+    if (error) {
+      return mutationErrorResponse('salvataggio', error, signal);
+    }
+  } catch (error) {
+    return mutationErrorResponse('salvataggio', error, signal);
   }
 
   return NextResponse.json({ ok: true, data: dataIso, overrides, crops });

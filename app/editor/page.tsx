@@ -48,6 +48,7 @@ function snapshotKey(date: string) {
 
 const LOCAL_ARTWORK_BRIDGE_URL = 'http://127.0.0.1:43127';
 const LOCAL_ARTWORK_TIMEOUT_MS = 30 * 1_000;
+const EDITORIAL_MEDIA_REQUEST_TIMEOUT_MS = 25 * 1_000;
 
 type EditorPreviewData = DatiTaccuino & {
   keyword_arte_en?: string | null;
@@ -565,26 +566,42 @@ export default function EditorPage() {
   async function persistMediaDocument(nextOverrides: EditorialMediaOverrides, nextCrops: EditorialMediaCrops) {
     const overrides = sanitizeEditorialMediaOverrides(nextOverrides);
     const crops = sanitizeEditorialMediaCrops(nextCrops);
-    const response = await fetch('/api/editorial-media', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ data: date.trim(), overrides, crops }),
-    });
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), EDITORIAL_MEDIA_REQUEST_TIMEOUT_MS);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Errore ${response.status}`);
+    try {
+      const response = await fetch('/api/editorial-media', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: date.trim(), overrides, crops }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Errore ${response.status}`);
+      }
+
+      const result = await response.json() as { overrides?: unknown; crops?: unknown };
+      const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
+      const savedCrops = sanitizeEditorialMediaCrops(result.crops ?? crops);
+      saveEditorialMediaDocument(date.trim(), { overrides: savedOverrides, crops: savedCrops });
+      setMediaOverrides(savedOverrides);
+      setMediaCrops(savedCrops);
+      return { savedOverrides, savedCrops };
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error('Il salvataggio delle immagini non ha risposto entro 25 secondi.');
+      }
+      if (error instanceof TypeError) {
+        throw new Error('Il salvataggio delle immagini non è raggiungibile. Controlla la connessione e riprova.');
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
     }
-
-    const result = await response.json() as { overrides?: unknown; crops?: unknown };
-    const savedOverrides = sanitizeEditorialMediaOverrides(result.overrides ?? overrides);
-    const savedCrops = sanitizeEditorialMediaCrops(result.crops ?? crops);
-    saveEditorialMediaDocument(date.trim(), { overrides: savedOverrides, crops: savedCrops });
-    setMediaOverrides(savedOverrides);
-    setMediaCrops(savedCrops);
-    return { savedOverrides, savedCrops };
   }
 
   async function handleActivateAuthorArtwork() {
