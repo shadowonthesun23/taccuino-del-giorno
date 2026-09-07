@@ -61,6 +61,7 @@ export function normalizeReadingInlineText(value: string | null | undefined): st
 export function normalizeBibleReference(value: string | null | undefined): string {
   return normalizeReadingInlineText(value)
     .replace(/\s*\(\s*CEI\s*2008\s*\)\s*$/i, '')
+    .replace(/\s*[—–-]\s*CEI\s*2008\s*$/i, '')
     .replace(/\s+CEI\s*2008\s*$/i, '')
     .trim();
 }

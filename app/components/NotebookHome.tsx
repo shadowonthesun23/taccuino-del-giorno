@@ -37,6 +37,7 @@ import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { garamond, caveat, janeAust, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
 import { getWordSocialCardLayout } from '@/app/lib/wordCardDesign';
+import { normalizeBibleReference } from '@/app/lib/readingCardDesign';
 import { useTheme } from './ThemeProvider';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
 import {
@@ -78,16 +79,29 @@ function ScrollRevealBadge({
 
 function getReadingMediaCreditLabel(
   lingua: LanguageCode,
-  section: 'poesia' | 'bibbia',
   media: ReadingMedia,
 ) {
-  const labels = {
-    poesia: { IT: 'Ritratto', EN: 'Portrait', FR: 'Portrait', DE: 'Porträt', ES: 'Retrato', PT: 'Retrato' },
-    bibbia: { IT: 'Foto', EN: 'Photo', FR: 'Photo', DE: 'Foto', ES: 'Foto', PT: 'Foto' },
-  } as const;
+  const labels = { IT: 'Ritratto', EN: 'Portrait', FR: 'Portrait', DE: 'Porträt', ES: 'Retrato', PT: 'Retrato' } as const;
   const source = media.source === 'wikimedia' ? 'Wikimedia Commons' : 'Wikipedia';
-  const details = section === 'bibbia' ? [media.author, media.license] : [];
-  return [labels[section][lingua], source, ...details].filter(Boolean).join(' · ');
+  return [labels[lingua], source].filter(Boolean).join(' · ');
+}
+
+function getBibleReferenceParts(reference: string) {
+  const value = reference.trim();
+  const sourceMatch = value.match(/\s*(?:\(\s*(CEI\s*2008)\s*\)|[—–-]\s*(CEI\s*2008))\s*$/i);
+  const normalized = normalizeBibleReference(value);
+  const match = normalized.match(/^(.*?)(\d+)\s*[,.:]\s*(\d+(?:\s*[-–]\s*\d+)?)\s*$/);
+
+  return {
+    book: match?.[1]?.trim() || normalized,
+    coordinates: match ? `${match[2]} · ${match[3].replace(/\s*[-–]\s*/, '–')}` : '',
+    source: sourceMatch?.[1] || sourceMatch?.[2] || '',
+  };
+}
+
+function isLongMusicTitle(title: string) {
+  const normalized = title.trim();
+  return normalized.length > 22 || normalized.split(/\s+/).some((word) => word.length > 15);
 }
 
 interface LanguageConfig {
@@ -1035,7 +1049,6 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const operaImageSrc = operaImageCandidates[operaImageIndex] ?? null;
   const authorImageCrop = editorialMediaCrops.autore ?? DEFAULT_EDITORIAL_MEDIA_CROP;
   const poemImageUrl = proxiedImageUrl(readingMedia.poesia?.imageUrl);
-  const bibleImageUrl = proxiedImageUrl(readingMedia.bibbia?.imageUrl);
   const operaMedium = lingua === 'IT' ? opera?.medium_it || opera?.medium : opera?.medium;
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
@@ -1311,6 +1324,18 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   if (!data) return null;
 
   const authorDescription = sanitizeAuthorDescription(data.breve_descrizione);
+  const bibleReference = getBibleReferenceParts(data.bibbia.fonte);
+  const musicTitleIsLong = isLongMusicTitle(data.musica.brano);
+  const musicHeading = (
+    <div className="music-heading-block">
+      <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
+      <p className="card-byline text-xl font-medium mb-2">
+        {{ IT: 'di', EN: 'by', FR: 'par', DE: 'von', ES: 'de', PT: 'de' }[lingua] || 'by'}{' '}
+        <span className="font-bold">{data.musica.autore}</span>
+      </p>
+      <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
+    </div>
+  );
   const wordSocialLayout = getWordSocialCardLayout(
     data.parola_giorno.parola,
     data.parola_giorno.etimologia,
@@ -1673,9 +1698,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
 
         <section id="autore" className="author-feature scroll-mt-28 pt-0 pb-4 md:pb-5 relative px-4">
   <div className="relative z-10">
-    <div className="author-feature-layout mx-auto flex max-w-3xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
+    <div className="author-feature-layout mx-auto flex max-w-4xl flex-col items-center gap-10 md:flex-row md:items-center md:justify-center">
       {data.foto_autore_url && (
-        <div className="author-photo-wrap relative z-20 flex-shrink-0" style={{ width: '160px', transform: 'rotate(-2.5deg)' }}>
+        <div className="author-photo-wrap relative z-20 flex-shrink-0" style={{ transform: 'rotate(-2.5deg)' }}>
           <div
             className="masking-tape author-photo-tape"
             style={{
@@ -1875,6 +1900,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                       crossOrigin={editorialMedia.santi ? undefined : 'anonymous'}
                       {...lazyImageProps}
                     />
+                    <span className={`${caveat.className} author-photo-caption mounted-slide-caption`}>
+                      {data.santi[0]?.nome?.split(/\s+(?:di|da|del|della|de|degli|delle)\s+/i)[0] || t('saintsCard', lingua)} · {formatExLibrisDate(dataExLibris)}
+                    </span>
                   </figure>
                 ) : null}
                 <ul className="saints-card-copy space-y-6">
@@ -1952,6 +1980,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                       onError={() => setReadingMedia((current) => ({ ...current, poesia: null }))}
                       {...lazyImageProps}
                     />
+                    <span className={`${caveat.className} author-photo-caption mounted-slide-caption`}>
+                      {getInitials(data.poesia.autore || t('poemCard', lingua))} · {formatExLibrisDate(dataExLibris)}
+                    </span>
                   </figure>
                 ) : null}
                 <div className="reading-card-copy">
@@ -1976,9 +2007,9 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                       target="_blank"
                       rel="noopener noreferrer"
                       className="reading-card-credit"
-                      aria-label={getReadingMediaCreditLabel(lingua, 'poesia', readingMedia.poesia)}
+                      aria-label={getReadingMediaCreditLabel(lingua, readingMedia.poesia)}
                     >
-                      {getReadingMediaCreditLabel(lingua, 'poesia', readingMedia.poesia)}
+                      {getReadingMediaCreditLabel(lingua, readingMedia.poesia)}
                     </a>
                   ) : null}
                 </div>
@@ -1991,45 +2022,35 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               }}
               isSaved={isCardSaved('bibbia')}
               onToggleSaved={() => saveCard('bibbia', data.bibbia.fonte, data.bibbia.testo.slice(0, 180))}>
-              <div className={`reading-card-layout ${bibleImageUrl ? 'has-image' : ''}`}>
-                {bibleImageUrl ? (
-                  <figure className="reading-card-artwork reading-card-artwork-bible" aria-hidden="true">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */}
-                    <img
-                      draggable={false}
-                      src={bibleImageUrl}
-                      alt=""
-                      onError={() => setReadingMedia((current) => ({ ...current, bibbia: null }))}
-                      {...lazyImageProps}
-                    />
-                  </figure>
-                ) : null}
-                <div className="reading-card-copy">
-                  <DecorativeInitialText
-                    text={data.bibbia.testo}
-                    className="whitespace-pre-wrap text-xl font-medium leading-relaxed mb-6"
-                  />
-                  <div className="poem-bible-attribution text-left pt-4 mb-6">
-                    <p className={`${themeClasses.textMuted} italic font-bold`}>{data.bibbia.fonte}</p>
+              <div className="reading-card-layout reading-card-layout-bible">
+                <div className="reading-card-bible-folio">
+                  <div className="reading-card-bible-folio-content">
+                    <header className="reading-card-bible-folio-header">
+                      <span className="reading-card-bible-folio-book">{bibleReference.book}</span>
+                      <span className="reading-card-bible-folio-reference" aria-label={data.bibbia.fonte}>
+                        {bibleReference.coordinates || data.bibbia.fonte}
+                      </span>
+                    </header>
+                    {bibleReference.source ? (
+                      <span className="reading-card-bible-folio-source">Fonte: {bibleReference.source}</span>
+                    ) : null}
+                    <div className="reading-card-copy">
+                      <DecorativeInitialText
+                        text={data.bibbia.testo}
+                        className="reading-card-bible-quote whitespace-pre-wrap font-medium"
+                        initialTone="red"
+                      />
+                    </div>
                   </div>
-                  {data.bibbia.nota && (
-                    <div className={`reading-note ${isDark ? 'is-dark' : ''}`}>
+                </div>
+                {data.bibbia.nota ? (
+                  <div className="reading-card-bible-annotation">
+                    <div className={`reading-note reading-card-bible-note ${isDark ? 'is-dark' : ''}`}>
                       <span className="font-bold text-[#DE6B58] text-xs tracking-widest uppercase block mb-1">{{ IT: 'Il senso del passaggio', EN: 'The meaning of the passage', FR: 'Le sens du passage', DE: 'Die Bedeutung der Passage', ES: 'El sentido del pasaje', PT: 'O sentido da passagem' }[lingua] || 'The meaning of the passage'}</span>
                       {data.bibbia.nota}
                     </div>
-                  )}
-                  {readingMedia.bibbia?.sourceUrl ? (
-                    <a
-                      href={readingMedia.bibbia.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="reading-card-credit"
-                      aria-label={getReadingMediaCreditLabel(lingua, 'bibbia', readingMedia.bibbia)}
-                    >
-                      {getReadingMediaCreditLabel(lingua, 'bibbia', readingMedia.bibbia)}
-                    </a>
-                  ) : null}
-                </div>
+                  </div>
+                ) : null}
               </div>
             </Card>
 
@@ -2138,7 +2159,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
               isSaved={isCardSaved('musica')}
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
             >
-              <div className="music-card-layout">
+              <div className={`music-card-layout ${musicTitleIsLong ? 'is-long-title' : ''}`}>
                 <div className="music-media-cell select-none">
                   <div className="music-vinyl-wrapper">
                     <div className="music-vinyl-disc" aria-hidden="true">
@@ -2163,15 +2184,11 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                       )}
                     </figure>
                   </div>
+                  {musicTitleIsLong ? <div className="music-cover-caption">{musicHeading}</div> : null}
                 </div>
 
                 <div className="music-copy-cell">
-                  <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
-                  <p className="card-byline text-xl font-medium mb-2">
-                    {{ IT: 'di', EN: 'by', FR: 'par', DE: 'von', ES: 'de', PT: 'de' }[lingua] || 'by'}{' '}
-                    <span className="font-bold">{data.musica.autore}</span>
-                  </p>
-                  <p className="card-secondary-meta text-[#DE6B58] font-medium italic mb-5">{data.musica.genere}</p>
+                  {!musicTitleIsLong ? musicHeading : null}
                   <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
                   <div className="music-link-actions">
                     <a

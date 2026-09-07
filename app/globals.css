@@ -3437,6 +3437,32 @@ html:is(.is-scrolling, .has-scrolled) .daily-correspondences:not(.correspondence
   width: 140px;
 }
 
+/* The author feature is the home page's lead card: give its composition the
+   same reading rail as the cards below while keeping the portrait tactile. */
+.author-feature-layout {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .author-feature .author-photo-wrap {
+    width: clamp(180px, 21vw, 220px);
+  }
+
+  .author-feature .author-photo-image-frame {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .author-feature .author-photo-wrap {
+    width: min(48vw, 190px);
+  }
+
+  .author-feature .author-photo-image-frame {
+    width: 100%;
+  }
+}
+
 .dark .author-photo-paper img,
 [data-theme="dark"] .author-photo-paper img {
   outline-color: oklch(1 0 0 / 0.1);
@@ -20280,6 +20306,7 @@ body.museum-room-open :is(
   outline-offset: -1px;
   overflow: visible;
   padding: clamp(0.42rem, 0.8vw, 0.68rem);
+  padding-bottom: clamp(1.55rem, 2.2vw, 1.75rem);
   pointer-events: auto;
   position: absolute;
   right: clamp(0.7rem, 2.6vw, 1.9rem);
@@ -20313,10 +20340,12 @@ body.museum-room-open :is(
 
 .editorial-card:not(.social-export-card) .saint-card-mounted-slide::after,
 .editorial-card:not(.social-export-card) .reading-card-mounted-slide::after {
-  background: linear-gradient(132deg, rgba(255, 255, 255, 0.25), transparent 42%, rgba(84, 54, 33, 0.08));
+  background: none;
+  border: 1px solid rgba(117, 88, 57, 0.1);
+  border-radius: 3px 3px 6px 4px;
   content: '';
-  inset: clamp(0.42rem, 0.8vw, 0.68rem);
-  opacity: 0.64;
+  inset: clamp(0.42rem, 0.8vw, 0.68rem) clamp(0.42rem, 0.8vw, 0.68rem) clamp(1.4rem, 2.1vw, 1.62rem);
+  opacity: 1;
   pointer-events: none;
   position: absolute;
   z-index: 2;
@@ -20335,6 +20364,16 @@ body.museum-room-open :is(
   position: relative;
   width: 100%;
   z-index: 1;
+}
+
+.editorial-card:not(.social-export-card) .mounted-slide-caption {
+  display: block;
+  max-width: calc(100% - 1.5rem);
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 3;
 }
 
 .editorial-card:not(.social-export-card) .saint-card-mounted-slide,
@@ -20410,7 +20449,7 @@ body.museum-room-open :is(
 .dark .editorial-card:not(.social-export-card) .reading-card-mounted-slide::after,
 [data-theme="dark"] .editorial-card:not(.social-export-card) .saint-card-mounted-slide::after,
 [data-theme="dark"] .editorial-card:not(.social-export-card) .reading-card-mounted-slide::after {
-  background: linear-gradient(132deg, rgba(255, 245, 224, 0.12), transparent 42%, rgba(0, 0, 0, 0.16));
+  background: none;
 }
 
 .dark .editorial-card:not(.social-export-card) .saint-card-mounted-slide img,
@@ -20470,5 +20509,358 @@ body.museum-room-open :is(
   .editorial-card:not(.social-export-card) .saint-card-mounted-slide,
   .editorial-card:not(.social-export-card) .reading-card-mounted-slide {
     transition: none;
+  }
+}
+
+/* Let a single saint card follow its content instead of inheriting the
+   poster-height rhythm used when several saints share the card. */
+.card-section-santi.editorial-card:not(.social-export-card) .saints-card-layout.has-single-saint {
+  height: auto;
+  min-height: 0;
+  padding-bottom: 1.8rem;
+}
+
+/* The poem's explanation sits below the mounted portrait, so it can use the
+   full reading rail instead of remaining constrained to the text column. */
+@media (min-width: 768px) {
+  .card-section-poesia.editorial-card:not(.social-export-card) .reading-note {
+    max-width: none;
+    width: calc(100% + clamp(10.7rem, 20vw, 15rem));
+  }
+}
+
+/* The Bible passage is its own illuminated folio: a distinct visual object
+   instead of another dark reading card or a generic open-book backdrop. */
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-layout-bible {
+  isolation: isolate;
+  min-height: 0;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.38), transparent 46%),
+    url('/beige-paper.png');
+  background-blend-mode: normal, multiply;
+  background-color: #eee3d0;
+  background-size: auto, 200px 200px;
+  border: 1px solid rgba(117, 88, 57, 0.2);
+  border-radius: 4px 8px 5px 7px;
+  box-shadow:
+    0 22px 34px -26px rgba(24, 16, 10, 0.66),
+    0 5px 10px -7px rgba(24, 16, 10, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  color: #2d2722;
+  overflow: hidden;
+  padding: clamp(1rem, 2.8vw, 2rem);
+  position: relative;
+  transform: rotate(-0.18deg);
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio::after {
+  border: 1px solid rgba(117, 88, 57, 0.2);
+  border-radius: 2px 5px 3px 4px;
+  content: '';
+  inset: clamp(0.58rem, 1.4vw, 0.95rem);
+  pointer-events: none;
+  position: absolute;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-content {
+  position: relative;
+  z-index: 1;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-header {
+  align-items: baseline;
+  border-bottom: 1px solid rgba(117, 88, 57, 0.28);
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.1rem 0 clamp(0.7rem, 1.5vw, 1rem);
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-book {
+  color: #9e2a2b;
+  font-size: clamp(1.45rem, 3.6vw, 3.1rem);
+  font-style: italic;
+  letter-spacing: -0.035em;
+  line-height: 0.86;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-reference {
+  color: #9e2a2b;
+  font-size: clamp(2.2rem, 5.4vw, 4.8rem);
+  font-variant-numeric: lining-nums;
+  letter-spacing: -0.08em;
+  line-height: 0.72;
+  white-space: nowrap;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-source {
+  color: rgba(45, 39, 34, 0.62);
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  margin-top: 0.55rem;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio .reading-card-copy {
+  max-width: 100%;
+  padding: clamp(1.45rem, 3vw, 2.25rem) clamp(0.2rem, 0.8vw, 0.6rem) clamp(0.15rem, 0.5vw, 0.35rem);
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote {
+  color: #2d2722;
+  font-size: clamp(1.28rem, 2.5vw, 1.78rem) !important;
+  letter-spacing: 0;
+  line-height: 1.56 !important;
+  margin: 0;
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote .decorative-initial {
+  color: #9e2a2b;
+  font-size: 3.2em;
+  margin-right: 0.12em;
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-annotation {
+  margin: clamp(1.1rem, 2.2vw, 1.8rem) auto 0;
+  max-width: min(70ch, 100%);
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-note {
+  background: transparent;
+  border-bottom: 1px solid rgba(222, 107, 88, 0.28);
+  border-left: 2px solid rgba(222, 107, 88, 0.72);
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: 0;
+  padding: 0.15rem 0 1rem clamp(1rem, 2vw, 1.35rem);
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-note.is-dark {
+  background: transparent;
+  color: #c7c0b9;
+}
+
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent 46%),
+    url('/beige-paper.png');
+  background-blend-mode: normal, soft-light;
+  background-color: #2c2520;
+  background-size: auto, 200px 200px;
+  border-color: rgba(226, 193, 157, 0.24);
+  box-shadow:
+    0 24px 38px -28px rgba(0, 0, 0, 0.96),
+    0 5px 10px -7px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 235, 207, 0.12);
+  color: #e6d8c3;
+}
+
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio::after,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio::after {
+  border-color: rgba(226, 193, 157, 0.2);
+}
+
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-header,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-header {
+  border-bottom-color: rgba(226, 193, 157, 0.25);
+}
+
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-book,
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-reference,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-book,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-reference,
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote .decorative-initial,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote .decorative-initial {
+  color: #e58a72;
+}
+
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-source,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-source {
+  color: rgba(226, 204, 177, 0.62);
+}
+
+.dark .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote,
+[data-theme="dark"] .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote {
+  color: #e6d8c3;
+}
+
+@media (max-width: 767px) {
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio {
+    padding: 0.95rem 0.9rem 1.05rem;
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-header {
+    gap: 0.45rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-book {
+    font-size: clamp(1.3rem, 6vw, 1.8rem);
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio-reference {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-folio .reading-card-copy {
+    padding: 1.35rem 0.1rem 0.1rem;
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote {
+    font-size: 1.24rem !important;
+    line-height: 1.6 !important;
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-quote .decorative-initial {
+    font-size: 2.9em;
+  }
+
+  .card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-bible-annotation {
+    margin-inline: 0.1rem;
+  }
+}
+
+.card-section-bibbia.editorial-card:not(.social-export-card) .reading-card-layout-bible .reading-note {
+  max-width: none;
+  width: 100%;
+}
+
+/* Music is a listening sleeve, not a thumbnail: give the cover enough visual
+   weight to balance the editorial copy while keeping the paper-card language. */
+.music-feature-card:not(.social-export-card) .music-card-layout {
+  gap: clamp(2.25rem, 5vw, 4.75rem);
+}
+
+.music-feature-card:not(.social-export-card) .music-copy-cell {
+  justify-content: flex-start;
+  padding-top: clamp(0.15rem, 0.8vw, 0.65rem);
+}
+
+.music-feature-card:not(.social-export-card) .music-heading-block .card-primary-title {
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  max-width: 13ch;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.music-feature-card:not(.social-export-card) .music-copy-cell .card-body-copy {
+  max-width: 39rem;
+  text-wrap: pretty;
+}
+
+.music-feature-card:not(.social-export-card) .music-media-cell {
+  align-items: flex-start;
+  position: relative;
+  padding-top: clamp(0.15rem, 1.2vw, 0.9rem);
+}
+
+.music-feature-card:not(.social-export-card) .music-vinyl-wrapper {
+  width: min(100%, 340px);
+}
+
+.music-feature-card:not(.social-export-card) .music-cover-frame {
+  padding: 8px;
+  transform: rotate(-1.2deg) !important;
+}
+
+.music-feature-card:not(.social-export-card) .music-vinyl-disc {
+  transform: translate3d(17%, 0, 0) rotate(18deg);
+}
+
+.music-feature-card:not(.social-export-card) .music-vinyl-wrapper:hover .music-cover-frame {
+  transform: rotate(-0.45deg) translateY(-3px) !important;
+}
+
+.music-feature-card:not(.social-export-card) .music-cover-caption {
+  margin-top: clamp(1rem, 1.8vw, 1.5rem);
+  width: 100%;
+}
+
+.music-feature-card:not(.social-export-card) .music-cover-caption .music-heading-block .card-primary-title {
+  font-size: clamp(1.55rem, 2.45vw, 2.65rem);
+  max-width: none;
+  text-wrap: pretty;
+}
+
+.music-feature-card:not(.social-export-card) .music-cover-caption .card-byline {
+  font-size: clamp(1rem, 1.45vw, 1.35rem);
+}
+
+.music-feature-card:not(.social-export-card) .music-cover-caption .card-secondary-meta {
+  margin-bottom: 0;
+}
+
+.music-feature-card:not(.social-export-card) .music-card-layout.is-long-title .music-copy-cell {
+  justify-content: flex-start;
+}
+
+.music-feature-card:not(.social-export-card) .music-card-layout.is-long-title .music-media-cell {
+  align-items: stretch;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.music-feature-card:not(.social-export-card) .music-card-layout.is-long-title .music-vinyl-wrapper {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .music-feature-card:not(.social-export-card) .music-card-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  }
+
+  .music-feature-card:not(.social-export-card) .music-copy-cell {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .music-feature-card:not(.social-export-card) .music-media-cell {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 767px) {
+  .music-feature-card:not(.social-export-card) .music-card-layout {
+    gap: 2.35rem;
+  }
+
+  .music-feature-card:not(.social-export-card) .music-vinyl-wrapper {
+    width: min(100%, 260px);
+  }
+
+  .music-feature-card:not(.social-export-card) .music-cover-frame {
+    padding: 7px;
+    transform: rotate(-0.65deg) !important;
+  }
+
+  .music-feature-card:not(.social-export-card) .music-cover-caption {
+    margin-top: 1rem;
+  }
+
+  .music-feature-card:not(.social-export-card) .music-cover-caption .music-heading-block .card-primary-title {
+    font-size: clamp(1.35rem, 6.5vw, 1.75rem);
+    letter-spacing: -0.045em;
+    line-height: 1.06;
+    overflow-wrap: break-word;
+  }
+
+  .music-feature-card:not(.social-export-card) .music-vinyl-disc {
+    transform: translate3d(15%, 0, 0) rotate(18deg);
   }
 }
