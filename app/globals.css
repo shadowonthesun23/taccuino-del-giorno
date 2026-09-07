@@ -6437,7 +6437,8 @@ body.museum-room-open :is(
 
 .daily-postcard-back-body {
   display: grid;
-  flex: 0 0 auto;
+  /* Fill the standard card height, but keep growing with long editorial copy. */
+  flex: 1 1 auto;
   gap: 20px;
   grid-template-columns: minmax(0, 1.06fr) 1px minmax(0, 0.94fr);
   min-height: max-content;
