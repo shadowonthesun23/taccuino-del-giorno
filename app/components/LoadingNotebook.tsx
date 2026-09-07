@@ -18,7 +18,9 @@ const getLoadingDateLabel = (language: LanguageCode) =>
 export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boolean; lingua?: LanguageCode }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [fadeState, setFadeState] = useState<'fade-in' | 'fade-out'>('fade-in');
-  const [dateLabel, setDateLabel] = useState(() => getLoadingDateLabel(lingua));
+  // The homepage is prerendered by Next.js. Computing the date in the initial
+  // state would bake the build-time date into the online preload.
+  const [dateLabel, setDateLabel] = useState('');
 
   useEffect(() => {
     const updateDateLabel = () => setDateLabel(getLoadingDateLabel(lingua));
@@ -56,7 +58,7 @@ export default function LoadingNotebook({ isDark, lingua = 'IT' }: { isDark: boo
         >
           <div className="loading-notebook-content">
             <div className="loading-notebook-center">
-              <p className="loading-date-line" suppressHydrationWarning>{dateLabel}</p>
+              <p className="loading-date-line" aria-hidden={!dateLabel}>{dateLabel || '\u00a0'}</p>
               <h1 className={`${janeAust.className} jane-aust-wordmark notebook-wordmark`}>
                 {t('dayTitle', lingua)}
               </h1>
