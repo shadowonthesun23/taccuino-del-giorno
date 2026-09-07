@@ -9,7 +9,7 @@ import { formatBookmarkDate, formatExLibrisDate, getDayOfYearInfo, getSeason } f
 import { getImageLoadingProps } from '@/lib/browser-utils';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork, type SeasonalArtwork } from '@/lib/seasonal-artwork';
 import { getEditorialMediaCropImageStyle, DEFAULT_EDITORIAL_MEDIA_CROP, type EditorialMediaCrop } from '@/lib/editorial-media';
-import { caveat, janeAust } from '@/lib/fonts';
+import { caveat, garamond, janeAust } from '@/lib/fonts';
 import { SITE_WATERMARK } from '@/lib/constants';
 import { downloadDailyPostcardFace, type DailyPostcardFace } from './dailyPostcardExport';
 
@@ -63,6 +63,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
   finishEditing: string;
   editingHint: string;
   addressMessage: string;
+  footerColophon: string;
 }> = {
   IT: {
     open: 'Apri la cartolina del giorno',
@@ -83,6 +84,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
     finishEditing: 'Termina compilazione',
     editingHint: 'Scrivi sulle cinque righe',
     addressMessage: 'Messaggio della cartolina',
+    footerColophon: 'Cultura · Memoria · Ascolto',
   },
   EN: {
     open: 'Open the postcard of the day',
@@ -103,6 +105,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
     finishEditing: 'Finish writing',
     editingHint: 'Write on the five lines',
     addressMessage: 'Postcard message',
+    footerColophon: 'Culture · memory · listening',
   },
   FR: {
     open: 'Ouvrir la carte du jour',
@@ -123,6 +126,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
     finishEditing: 'Terminer la saisie',
     editingHint: 'Écrivez sur les cinq lignes',
     addressMessage: 'Message de la carte',
+    footerColophon: 'Culture · mémoire · écoute',
   },
   DE: {
     open: 'Tagespostkarte öffnen',
@@ -143,6 +147,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
     finishEditing: 'Eingabe beenden',
     editingHint: 'Auf die fünf Linien schreiben',
     addressMessage: 'Nachricht auf der Postkarte',
+    footerColophon: 'Kultur · Erinnerung · Zuhören',
   },
   ES: {
     open: 'Abrir la postal del día',
@@ -163,6 +168,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
     finishEditing: 'Terminar edición',
     editingHint: 'Escribe en las cinco líneas',
     addressMessage: 'Mensaje de la postal',
+    footerColophon: 'Cultura · memoria · escucha',
   },
   PT: {
     open: 'Abrir o postal do dia',
@@ -183,6 +189,7 @@ const POSTCARD_COPY: Record<LanguageCode, {
     finishEditing: 'Terminar preenchimento',
     editingHint: 'Escreva nas cinco linhas',
     addressMessage: 'Mensagem do postal',
+    footerColophon: 'Cultura · memória · escuta',
   },
 };
 
@@ -402,7 +409,7 @@ function PostcardBack({
           <span>{lingua === 'IT' ? 'Ogni giorno è un luogo da esplorare.' : lingua === 'EN' ? 'Every day is a place to explore.' : copy.dayToKeep}</span>
           <a className="daily-postcard-site-url" href={`https://${SITE_WATERMARK}`} target="_blank" rel="noopener noreferrer">{SITE_WATERMARK}</a>
         </span>
-        <strong className={`${janeAust.className} notebook-wordmark`}>{copy.dayToKeep}</strong>
+        <strong className={`${garamond.className} daily-postcard-back-colophon`}>{copy.footerColophon}</strong>
         <span>{copy.postcardFrom} {day}° {copy.dayWord}.<em>{dateLabel}</em></span>
       </footer>
     </div>

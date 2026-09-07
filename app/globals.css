@@ -6852,6 +6852,15 @@ body.museum-room-open :is(
   white-space: nowrap;
 }
 
+.daily-postcard-back-footer .daily-postcard-back-colophon {
+  display: block;
+  font-size: clamp(0.76rem, 1.45vw, 1.02rem);
+  font-style: italic;
+  letter-spacing: 0.012em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
 .daily-postcard-back-footer em {
   display: block;
   font-size: 0.53rem;
