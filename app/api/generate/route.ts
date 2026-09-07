@@ -20,9 +20,15 @@ const FALLBACK_GEMINI_MODEL = DEFAULT_GEMINI_MODEL;
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
+// Keep one compact author repair possible after the full JSON has been checked.
+// This is a time reserve, not an extra daily call: it is spent only when the
+// generated author fails the external date verification.
+const GEMINI_AUTHOR_REPAIR_RESERVE_MS = 10_000;
+const GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS = 8_000;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
 const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 10_000;
 const MAX_FULL_GENERATION_ATTEMPTS = 1;
+const MAX_AUTHOR_REPAIR_ATTEMPTS = 1;
 const MAX_WORD_REPAIR_ATTEMPTS = 2;
 const RETRY_BACKOFF_MS = 250;
 
@@ -55,10 +61,19 @@ function getGenerationTiming(startedAt: number): string {
   return `trascorsi ${getElapsedGenerationMs(startedAt)}ms, budget residuo ${getRemainingGenerationMs(startedAt)}ms`;
 }
 
-function getGeminiAttemptTimeout(startedAt: number): number | null {
-  const availableMs = getRemainingGenerationMs(startedAt) - GEMINI_BUDGET_RESERVE_MS;
-  if (availableMs < GEMINI_MIN_REQUEST_TIMEOUT_MS) return null;
-  return Math.min(GEMINI_ATTEMPT_TIMEOUT_MS, availableMs);
+type GeminiAttemptOptions = {
+  reserveMs?: number;
+  maxTimeoutMs?: number;
+  minTimeoutMs?: number;
+};
+
+function getGeminiAttemptTimeout(startedAt: number, options: GeminiAttemptOptions = {}): number | null {
+  const minTimeoutMs = options.minTimeoutMs ?? GEMINI_MIN_REQUEST_TIMEOUT_MS;
+  const availableMs = getRemainingGenerationMs(startedAt)
+    - GEMINI_BUDGET_RESERVE_MS
+    - (options.reserveMs ?? 0);
+  if (availableMs < minTimeoutMs) return null;
+  return Math.min(options.maxTimeoutMs ?? GEMINI_ATTEMPT_TIMEOUT_MS, availableMs);
 }
 
 function createGenerationBudgetError(operation: string, startedAt: number): GenerationBudgetError {
@@ -112,8 +127,9 @@ async function generateWithBudget(
   prompt: string,
   startedAt: number,
   operation: string,
+  options: GeminiAttemptOptions = {},
 ): Promise<GenerateContentResult> {
-  const timeoutMs = getGeminiAttemptTimeout(startedAt);
+  const timeoutMs = getGeminiAttemptTimeout(startedAt, options);
   if (timeoutMs === null) {
     throw createGenerationBudgetError(operation, startedAt);
   }
@@ -502,6 +518,7 @@ function parseGeneratedAuthorRepair(responseText: string): {
 
 function buildAuthorRepairPrompt(
   candidateData: GeneratedDailyData,
+  dataIso: string,
   dataDiOggiStr: string,
   authorIssues: string[],
   rejectedAuthors: string[],
@@ -510,19 +527,19 @@ function buildAuthorRepairPrompt(
     ? rejectedAuthors.map((author) => `- ${author}`).join('\n')
     : '- Nessun autore specifico: verifica comunque la data.';
 
-  return `Il JSON completo per il ${dataDiOggiStr} è già stato generato, ma la scelta dell'autore del giorno non ha superato la verifica delle date biografiche.
+  return `Il JSON completo per il ${dataDiOggiStr} (${dataIso}) è già stato generato, ma la scelta dell'autore del giorno non ha superato la verifica delle date biografiche.
 
 PROBLEMI DA CORREGGERE:
 ${authorIssues.map((issue) => `- ${issue}`).join('\n')}
 
-CONTESTO DEL CONTENUTO APPENA GENERATO:
-${formatGeneratedContentContext(candidateData)}
+CONTESTO EDITORIALE MINIMO:
+${formatAuthorRepairContext(candidateData)}
 
 AUTORI GIÀ RIFIUTATI:
 ${rejectedAuthorList}
 
 Sostituisci esclusivamente "autore_giorno", "breve_descrizione" e "citazione". Non modificare nessun altro campo del contenuto.
-Per la generazione automatica scegli esclusivamente uno scrittore, poeta, filosofo o altra figura culturale legata alla parola scritta la cui nascita o morte sia verificabile e cada esattamente nel giorno e mese del ${dataDiOggiStr}. Preferisci una nascita; usa una morte solo per una figura molto illustre. Non scegliere un autore solo perché è affine al tema e non inventare date.
+Scegli esclusivamente uno scrittore, poeta, filosofo o altra figura culturale legata alla parola scritta la cui nascita o morte sia verificabile e cada esattamente il ${dataDiOggiStr} (giorno e mese, non solo l'anno). Preferisci una nascita; usa una morte solo per una figura molto illustre. La data è il vincolo principale: non scegliere un autore solo perché è affine al tema e non inventare date. Non ripetere gli autori già rifiutati.
 La descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," oppure "Scomparso in questa data nel [anno]," in base alla data verificata. La citazione deve appartenere allo stesso autore ed essere in italiano con fonte.
 
 Restituisci esclusivamente un unico oggetto JSON valido con questa forma:
@@ -548,19 +565,21 @@ async function regenerateDailyAuthor(
 
   let lastError: unknown = new EditorialQualityError(initialAuthorIssues);
   let authorIssues = initialAuthorIssues;
+  let currentCandidateData = candidateData;
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= MAX_AUTHOR_REPAIR_ATTEMPTS; attempt++) {
     try {
       const repairResult = await generateWithBudget(
         model,
         modelName,
-        buildAuthorRepairPrompt(candidateData, dataDiOggiStr, authorIssues, [...rejectedAuthors]),
+        buildAuthorRepairPrompt(currentCandidateData, dataIso, dataDiOggiStr, authorIssues, [...rejectedAuthors]),
         startedAt,
         'Riparazione mirata autore del giorno...',
+        { maxTimeoutMs: GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS },
       );
       const replacement = parseGeneratedAuthorRepair(getGeneratedResponseText(repairResult));
       const repairedData: GeneratedDailyData = {
-        ...candidateData,
+        ...currentCandidateData,
         autore_giorno: replacement.autore_giorno,
         breve_descrizione: replacement.breve_descrizione,
         citazione: replacement.citazione,
@@ -573,6 +592,7 @@ async function regenerateDailyAuthor(
 
       lastError = new EditorialQualityError(authorIssues);
       if (replacement.autore_giorno) rejectedAuthors.add(replacement.autore_giorno);
+      currentCandidateData = repairedData;
       console.warn(`Rifiuto editoriale autore sostitutivo: ${authorIssues.join('; ')}; ${getGenerationTiming(startedAt)}.`);
     } catch (error) {
       lastError = error;
@@ -580,7 +600,7 @@ async function regenerateDailyAuthor(
       logTechnicalError('riparazione mirata autore del giorno', modelName, error, startedAt);
     }
 
-    if (attempt < 2) {
+    if (attempt < MAX_AUTHOR_REPAIR_ATTEMPTS) {
       if (getGeminiAttemptTimeout(startedAt) === null) break;
       await waitBeforeRetry(startedAt);
     }
@@ -603,6 +623,17 @@ function formatGeneratedContentContext(data: GeneratedDailyData): string {
     poesia: data.poesia,
     musica: data.musica,
   }, null, 2).slice(0, 16_000);
+}
+
+function formatAuthorRepairContext(data: GeneratedDailyData): string {
+  return JSON.stringify({
+    autore_giorno: data.autore_giorno,
+    breve_descrizione: data.breve_descrizione,
+    citazione: data.citazione,
+    parola_giorno: data.parola_giorno,
+    poesia: data.poesia,
+    keyword_arte_en: data.keyword_arte_en,
+  }, null, 2).slice(0, 5_000);
 }
 
 function buildDailyWordRepairPrompt(
@@ -780,12 +811,12 @@ ${forcedAuthor ? '- Verifica prima il giorno e il mese di nascita e di morte del
 `
       : '';
 
-    const prompt = `Sei un erudito critico letterario e teologo. Cura "Il giorno da custodire" per il ${dataDiOggiStr}.
+    const prompt = `Sei un erudito critico letterario e teologo. Cura "Il giorno da custodire" per il ${dataDiOggiStr} (${dataIso}).
 
 ${manualDirection}
 
 REGOLE DI CURATELA:
-1. AUTORE: Per la generazione automatica scegli esclusivamente scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta la cui nascita o morte sia verificabile e cada esattamente nel giorno e mese della data curata. Prediligi una nascita; usa una morte solo per una figura molto più illustre. Evita musicisti e compositori quando esiste una figura letteraria adatta. Non scegliere un autore soltanto perché è affine al tema e non inventare date.
+1. AUTORE: Per la generazione automatica scegli esclusivamente scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta la cui nascita o morte sia verificabile e cada esattamente il ${dataDiOggiStr} (giorno e mese della data ${dataIso}). Prediligi una nascita; usa una morte solo per una figura molto più illustre. Evita musicisti e compositori quando esiste una figura letteraria adatta. La data esatta viene prima del tema: non scegliere un autore soltanto perché è affine e non inventare date.
 2. DESCRIZIONE AUTORE: Per la generazione automatica la descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," se la nascita coincide oppure con "Scomparso in questa data nel [anno]," se la morte coincide. L'anno deve essere quello della data biografica verificata. L'eccezione per un autore non legato alla data vale soltanto quando è indicato esplicitamente nella DIREZIONE EDITORIALE MANUALE.
 3. CITAZIONE: Solo in ITALIANO. Usa una citazione autentica dell'autore con fonte verificabile e riporta una traduzione italiana pubblicata quando l'originale è in un'altra lingua; non lasciare la citazione in lingua originale.
 4. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
@@ -849,6 +880,7 @@ Restituisci questo JSON:
           `${prompt}${qualityFeedback}`,
           generationStartedAt,
           'Generazione completa Gemini...',
+          { reserveMs: GEMINI_AUTHOR_REPAIR_RESERVE_MS },
         );
         const candidateData = parseGeneratedJson(getGeneratedResponseText(attemptResult));
         let acceptedCandidate = candidateData;
@@ -872,10 +904,11 @@ Restituisci questo JSON:
               generationStartedAt,
               authorIssues,
             );
-            qualityIssues = await validateGeneratedContent(
+            // regenerateDailyAuthor returns only after the replacement has
+            // already passed validateAutomaticAuthor; validate the remaining
+            // editorial fields without spending another metadata timeout.
+            qualityIssues = validateEditorialQuality(
               acceptedCandidate,
-              dataIso,
-              dataDiOggiStr,
               recentRows,
               forcedAuthor,
             );
