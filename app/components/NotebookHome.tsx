@@ -36,6 +36,7 @@ import { extractTranslatableText, rebuildTranslatedData } from '@/lib/daily-tran
 import { sanitizeAuthorDescription } from '@/lib/author-description';
 import { garamond, caveat, janeAust, masterSignature } from '@/lib/fonts';
 import { getLocalizedSeasonalArtwork, getSeasonalArtwork } from '@/lib/seasonal-artwork';
+import { truncateTitleAtWords } from '@/lib/text-utils';
 import { getWordSocialCardLayout } from '@/app/lib/wordCardDesign';
 import { normalizeBibleReference } from '@/app/lib/readingCardDesign';
 import { useTheme } from './ThemeProvider';
@@ -1053,6 +1054,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
   const operaDepartment = lingua === 'IT'
     ? opera?.dipartimento_it || opera?.dipartimento
     : opera?.dipartimento;
+  const displayArtworkTitle = opera ? truncateTitleAtWords(opera.titolo) : '';
   const inizialiExLibris = data ? getInitials(data.autore_giorno) : 'TDG';
   const { day: dayOfYear, total: totalDays } = getDayOfYearInfo(dataExLibris);
   const currentSealColor = DAILY_SEAL_COLORS[(dayOfYear - 1) % DAILY_SEAL_COLORS.length];
@@ -2100,7 +2102,7 @@ export default function Home({ initialLang = 'IT' }: { initialLang?: LanguageCod
                 <div className="opera-postcard grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                   <div className="opera-postcard-copy space-y-5 order-2 md:order-1">
                     <div>
-                      <h4 className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{opera.titolo}</h4>
+                      <h4 aria-label={opera.titolo} title={opera.titolo} className="card-primary-title text-3xl md:text-4xl font-bold leading-tight mb-2">{displayArtworkTitle}</h4>
                       <p className="card-byline text-xl font-medium">{{ IT: 'di', EN: 'by', FR: 'par', DE: 'von', ES: 'de', PT: 'de' }[lingua] || 'by'} <span className="font-bold">{opera.artista}</span>{opera.anno ? <span className={`${themeClasses.textMuted} italic`}> — {opera.anno}</span> : null}</p>
                     </div>
                     {(operaMedium || operaDepartment) && <p className={`card-secondary-meta ${themeClasses.textMuted} italic`}>{[operaMedium, operaDepartment].filter(Boolean).join(' · ')}</p>}

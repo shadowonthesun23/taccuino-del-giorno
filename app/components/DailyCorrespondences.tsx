@@ -11,6 +11,7 @@ import { getImageLoadingProps } from '@/lib/browser-utils';
 import { OPEN_EPHEMERIS_EVENT, SITE_WATERMARK, SKY_REGION_STORAGE_KEY } from '@/lib/constants';
 import { getAuthorTeaser, sanitizeAuthorDescription } from '@/lib/author-description';
 import { t } from '@/lib/translation';
+import { truncateTitleAtWords } from '@/lib/text-utils';
 import { janeAust } from '@/lib/fonts';
 import { MoonPhaseGlyph } from '@/components/ui/Doodles';
 import { TypewriterPhrase } from '@/components/ui/Typography';
@@ -174,6 +175,7 @@ export default function DailyCorrespondences({
   const exportWordEtymology = getExportWordEtymology(data.parola_giorno.etimologia, lingua);
   const exportSaintRole = saintOfTheDay ? getExportSaintRole(saintOfTheDay.ruolo, lingua) : '';
   const exportArtworkCredit = opera ? getExportArtworkCredit(opera.artista, lingua) : '';
+  const displayArtworkTitle = opera ? truncateTitleAtWords(opera.titolo) : '';
   const exportPoemSource = getExportPoemSource(data.poesia.fonte || getFirstSentence(data.poesia.testo), data.poesia.autore, lingua);
   const wordLength = data.parola_giorno.parola.trim().length;
   const wordTypographyClass = wordLength > 24
@@ -326,7 +328,7 @@ export default function DailyCorrespondences({
                   /* eslint-disable-next-line @next/next/no-img-element -- dynamic proxied media must remain usable by the DOM export */
                   <img draggable={false} src={artworkImageUrl} alt={`${opera.titolo}, ${opera.artista}`} onError={() => markMediaUnavailable(artworkImageUrl)} {...eagerImageProps} />
                 ) : <span className="correspondence-missing-media" title={t('correspondenceArtworkUnavailable', lingua)}><Palette aria-hidden="true" /></span>}
-                <span><strong>{opera.titolo}</strong><em className="correspondence-entry-full-copy">{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em><em className="correspondence-entry-export-copy">{exportArtworkCredit}{opera.anno ? ` · ${opera.anno}` : ''}</em></span>
+                <span><strong aria-label={opera.titolo} title={opera.titolo}>{displayArtworkTitle}</strong><em className="correspondence-entry-full-copy">{opera.artista}{opera.anno ? ` · ${opera.anno}` : ''}</em><em className="correspondence-entry-export-copy">{exportArtworkCredit}{opera.anno ? ` · ${opera.anno}` : ''}</em></span>
               </span>
               <ContinueReadingHint />
             </button>
