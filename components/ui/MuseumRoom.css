@@ -3,12 +3,12 @@
 .museum-gallery-room {
   background: #494b3c;
   --museum-frame-rail: clamp(20px, 2.6vw, 36px);
-  --museum-light-strength: 0.25;
+  --museum-light-strength: 0.3;
   --museum-wall-variation: 0.056;
-  --museum-floor-light: 0.11;
-  --museum-frame-contact-shadow: rgb(9 11 7 / 0.62);
-  --museum-frame-projected-shadow: rgb(12 15 9 / 0.52);
-  --museum-frame-diffuse-shadow: rgb(12 15 9 / 0.31);
+  --museum-floor-light: 0.16;
+  --museum-frame-contact-shadow: rgb(8 10 6 / 0.72);
+  --museum-frame-projected-shadow: rgb(11 14 8 / 0.6);
+  --museum-frame-diffuse-shadow: rgb(11 14 8 / 0.38);
   /* Projected shadow = frame depth × light direction (upper-left source).
      Both contact and penumbra grow with the physical moulding thickness. */
   --museum-depth: calc(var(--museum-frame-rail) * 0.38);
@@ -172,15 +172,15 @@
 
 @media (min-width: 768px) {
   .museum-gallery-room {
-    --museum-shadow-x: calc(var(--museum-depth) * 0.58);
-    --museum-shadow-y: calc(var(--museum-depth) * 1.7);
+    --museum-shadow-x: calc(var(--museum-depth) * 0.63);
+    --museum-shadow-y: calc(var(--museum-depth) * 1.9);
   }
 
   .museum-gallery-room .museum-frame-inner.frame-style-photographic {
     box-shadow:
-      2px 3px 2px var(--museum-frame-contact-shadow),
-      var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.58) var(--museum-frame-projected-shadow),
-      calc(var(--museum-shadow-x) * 1.9) calc(var(--museum-shadow-y) * 2.35) calc(var(--museum-depth) * 4.2) var(--museum-frame-diffuse-shadow) !important;
+      2px 4px 2.5px var(--museum-frame-contact-shadow),
+      var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.72) var(--museum-frame-projected-shadow),
+      calc(var(--museum-shadow-x) * 2) calc(var(--museum-shadow-y) * 2.55) calc(var(--museum-depth) * 4.8) var(--museum-frame-diffuse-shadow) !important;
   }
 
   .museum-gallery-room .museum-wall-backdrop {
@@ -198,18 +198,18 @@
   .museum-gallery-room .museum-wall-backdrop::before {
     background:
       radial-gradient(
-        ellipse 62% 84% at 50% 16%,
+        ellipse 64% 86% at 50% 17%,
         rgb(255 228 174 / var(--museum-light-strength)) 0%,
-        rgb(255 222 163 / 0.13) 45%,
-        rgb(255 216 151 / 0.04) 69%,
+        rgb(255 222 163 / 0.16) 45%,
+        rgb(255 216 151 / 0.055) 69%,
         transparent 86%
       ),
       linear-gradient(
         90deg,
-        rgb(10 13 8 / 0.26),
-        transparent 24%,
-        transparent 76%,
-        rgb(10 13 8 / 0.29)
+        rgb(9 12 7 / 0.31),
+        transparent 27%,
+        transparent 73%,
+        rgb(9 12 7 / 0.34)
       );
   }
 
@@ -222,10 +222,10 @@
         rgb(12 14 10 / 0.018)
       ),
       radial-gradient(
-        ellipse 62% 15% at 50% 90%,
+        ellipse 70% 18% at 50% 90%,
         rgb(255 208 139 / var(--museum-floor-light)),
-        rgb(255 202 128 / 0.035) 52%,
-        transparent 79%
+        rgb(255 202 128 / 0.055) 56%,
+        transparent 82%
       );
   }
 
