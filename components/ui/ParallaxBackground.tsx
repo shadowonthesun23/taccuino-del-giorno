@@ -1,98 +1,16 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import './MuseumRoom.css';
+import { clampMuseumCamera, getMuseumCameraPose, museumCameraTransform, RESTING_MUSEUM_CAMERA, type MuseumCameraPose } from '@/lib/museum-camera';
 import EspressoCorner from '@/components/ui/EspressoCorner';
 import InkBottleCorner from '@/components/ui/InkBottleCorner';
 import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
-const renderRopeStrands = (
-  p0: [number, number],
-  p1: [number, number],
-  p2: [number, number],
-  steps: number,
-  strandHeight: number,
-  strandWidth: number,
-  twistAngle: number
-) => {
-  const elements = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const x = (1 - t) * (1 - t) * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0];
-    const y = (1 - t) * (1 - t) * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1];
-    
-    const dx = 2 * (1 - t) * (p1[0] - p0[0]) + 2 * t * (p2[0] - p1[0]);
-    const dy = 2 * (1 - t) * (p1[1] - p0[1]) + 2 * t * (p2[1] - p1[1]);
-    
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    
-    elements.push(
-      <ellipse
-        key={i}
-        cx={0}
-        cy={0}
-        rx={strandWidth}
-        ry={strandHeight}
-        transform={`translate(${x}, ${y}) rotate(${angle + twistAngle})`}
-        fill="url(#strand-grad)"
-        stroke="#120002"
-        strokeWidth="0.45"
-      />
-    );
-  }
-  return elements;
-};
-
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
 const darkNotebookBackground = '/images/sfondo-taccuino-dark-paper.webp';
-
-const getRelativeDateIso = (dateStr: string | undefined, offset: number): string | undefined => {
-  if (!dateStr) return undefined;
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
-  if (!match) return undefined;
-  const [, year, month, day] = match;
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-  date.setUTCDate(date.getUTCDate() + offset);
-  const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(date.getUTCDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-};
-
-const getFrameStyleClass = (dateStr: string | undefined): string => {
-  if (!dateStr) return 'frame-style-walnut';
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
-  if (!match) return 'frame-style-walnut';
-  const [, year, month, day] = match;
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-  const utcDay = Math.floor(date.getTime() / 86_400_000);
-  const index = ((utcDay + 2) % 5 + 5) % 5;
-  const styles = [
-    'frame-style-walnut',
-    'frame-style-gold',
-    'frame-style-ebony',
-    'frame-style-ivory',
-    'frame-style-oak'
-  ];
-  return styles[index];
-};
-
-const SEAL_HEX_CODES: Record<string, string> = {
-  blu: '#11304e',
-  rosso: '#7e0814',
-  oro: '#86683a',
-  'verde-scuro': '#3c6146',
-  salvia: '#6c7d60',
-  'verde-chiaro': '#7d8e75',
-  borgogna: '#54191f',
-  rame: '#bb7652',
-  terracotta: '#a8480e',
-  argento: '#9fa3a6',
-  ocra: '#ca8e2d',
-  antracite: '#424143',
-  ottanio: '#196066',
-};
 
 const CAPTION_TRANSLATIONS = {
   badge: {
@@ -136,7 +54,6 @@ export default function ParallaxBackground({
   showEspresso = false,
   captionClassName = '',
   language = 'IT',
-  sealColor,
 }: {
   children: React.ReactNode;
   season?: SeasonId;
@@ -152,28 +69,33 @@ export default function ParallaxBackground({
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const mainArtworkRef = useRef<HTMLDivElement>(null);
-  const mainArtworkImgRef = useRef<HTMLImageElement>(null);
+  const cameraRef = useRef<HTMLDivElement>(null);
+  const roomExitRef = useRef<HTMLButtonElement>(null);
+  const roomTriggerRef = useRef<HTMLElement | null>(null);
   const [dark, setDark] = useState(false);
   const [isArtworkSolo, setIsArtworkSolo] = useState(false);
   const [isExitingSolo, setIsExitingSolo] = useState(false);
   const [isArtworkZoomed, setIsArtworkZoomed] = useState(false);
-  const [isPanningReady, setIsPanningReady] = useState(false);
-  const [zoomStyles, setZoomStyles] = useState<React.CSSProperties>({});
-  const zoomScaleRef = useRef(1);
-  const zoomTranslateRef = useRef({ x: 0, y: 0 });
-  const overflowRef = useRef({ w: 0, h: 0 });
-  const panningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [cameraPose, setCameraPose] = useState<MuseumCameraPose>(RESTING_MUSEUM_CAMERA);
+  const [isDraggingCamera, setIsDraggingCamera] = useState(false);
+  const cameraDragRef = useRef<{ pointerId: number; startX: number; startY: number; pose: MuseumCameraPose; moved: boolean } | null>(null);
+  const suppressCameraClickRef = useRef(false);
   const prevSolo = useRef(isArtworkSolo);
   const prevSoloForTransition = useRef(isArtworkSolo);
 
+  useEffect(() => {
+    if (!isArtworkSolo) return;
+    roomTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    roomExitRef.current?.focus({ preventScroll: true });
+    return () => roomTriggerRef.current?.focus({ preventScroll: true });
+  }, [isArtworkSolo]);
+
   const closeArtworkZoom = useCallback(() => {
-    if (panningTimeoutRef.current) {
-      clearTimeout(panningTimeoutRef.current);
-      panningTimeoutRef.current = null;
-    }
+    suppressCameraClickRef.current = false;
     setIsArtworkZoomed(false);
-    setIsPanningReady(false);
-    setZoomStyles({});
+    setIsDraggingCamera(false);
+    cameraDragRef.current = null;
+    setCameraPose(RESTING_MUSEUM_CAMERA);
   }, []);
 
   useEffect(() => {
@@ -187,27 +109,19 @@ export default function ParallaxBackground({
     prevSoloForTransition.current = isArtworkSolo;
   }, [isArtworkSolo]);
 
-  // Clean up timeout on unmount
+  // Escape steps back before leaving the room.
   useEffect(() => {
-    return () => {
-      if (panningTimeoutRef.current) {
-        clearTimeout(panningTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Escape key close zoom
-  useEffect(() => {
-    if (!isArtworkZoomed) return;
+    if (!isArtworkSolo) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        closeArtworkZoom();
+        if (isArtworkZoomed) closeArtworkZoom();
+        else setIsArtworkSolo(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [closeArtworkZoom, isArtworkZoomed]);
+  }, [closeArtworkZoom, isArtworkSolo, isArtworkZoomed]);
 
   // Resize close zoom
   useEffect(() => {
@@ -218,105 +132,55 @@ export default function ParallaxBackground({
     return () => window.removeEventListener('resize', handleResize);
   }, [closeArtworkZoom, isArtworkZoomed]);
 
-  // PointerMove Listener (Mouse Panning details)
-  useEffect(() => {
-    if (!isArtworkZoomed || !isPanningReady) return;
-
-    const handlePointerMove = (e: PointerEvent) => {
-      const row = document.querySelector('.museum-paintings-row') as HTMLElement;
-      if (!row) return;
-
-      const viewportHalfW = window.innerWidth / 2;
-      const viewportHalfH = window.innerHeight / 2;
-
-      // Relative position from center (-1 to 1)
-      const relX = (e.clientX - viewportHalfW) / viewportHalfW;
-      const relY = (e.clientY - viewportHalfH) / viewportHalfH;
-
-      // Clamp coordinates to [-1, 1]
-      const clampedX = Math.max(-1, Math.min(1, relX));
-      const clampedY = Math.max(-1, Math.min(1, relY));
-
-      // Calculate pan offsets based on image overflow
-      const panX = -clampedX * (overflowRef.current.w / 2);
-      const panY = -clampedY * (overflowRef.current.h / 2);
-
-      // Combine base translation and pan offset
-      const tx = zoomTranslateRef.current.x + panX;
-      const ty = zoomTranslateRef.current.y + panY;
-      const s = zoomScaleRef.current;
-
-      row.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${s})`;
-    };
-
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    return () => window.removeEventListener('pointermove', handlePointerMove);
-  }, [isArtworkZoomed, isPanningReady]);
-
   const toggleZoom = () => {
-    if (!isArtworkSolo) return;
-
-    if (panningTimeoutRef.current) {
-      clearTimeout(panningTimeoutRef.current);
-      panningTimeoutRef.current = null;
+    if (!isArtworkSolo || suppressCameraClickRef.current) return;
+    if (isArtworkZoomed) {
+      closeArtworkZoom();
+      return;
     }
+    const frame = mainArtworkRef.current;
+    const camera = cameraRef.current;
+    if (!frame || !camera) return;
+    const frameRect = frame.getBoundingClientRect();
+    const cameraRect = camera.getBoundingClientRect();
+    // Recover wall coordinates even if a previous approach is still reversing.
+    const currentScale = cameraRect.width / camera.offsetWidth;
+    setCameraPose(getMuseumCameraPose(camera.offsetWidth, camera.offsetHeight, {
+      x: (frameRect.left - cameraRect.left) / currentScale,
+      y: (frameRect.top - cameraRect.top) / currentScale,
+      width: frameRect.width / currentScale,
+      height: frameRect.height / currentScale,
+    }));
+    setIsArtworkZoomed(true);
+  };
 
-    if (!isArtworkZoomed) {
-      const img = mainArtworkImgRef.current;
-      const frame = mainArtworkRef.current;
-      if (img && frame) {
-        const imgRect = img.getBoundingClientRect();
-        const frameRect = frame.getBoundingClientRect();
+  const startCameraDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isArtworkZoomed || event.button !== 0 || (event.target as HTMLElement).closest('a, button')) return;
+    const camera = event.currentTarget;
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(camera).transform);
+    const pose = { scale: matrix.a, x: matrix.m41, y: matrix.m42 };
+    suppressCameraClickRef.current = false;
+    cameraDragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, pose, moved: false };
+  };
 
-        const computedStyle = window.getComputedStyle(img);
-        const pt = parseFloat(computedStyle.paddingTop) || 0;
-        const pb = parseFloat(computedStyle.paddingBottom) || 0;
-        const pl = parseFloat(computedStyle.paddingLeft) || 0;
-        const pr = parseFloat(computedStyle.paddingRight) || 0;
+  const moveCamera = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = cameraDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.moved && Math.hypot(dx, dy) < 5) return;
+    drag.moved = true;
+    suppressCameraClickRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsDraggingCamera(true);
+    setCameraPose(clampMuseumCamera({
+      scale: drag.pose.scale, x: drag.pose.x + dx, y: drag.pose.y + dy,
+    }, event.currentTarget.offsetWidth, event.currentTarget.offsetHeight));
+  };
 
-        const canvasWidth = imgRect.width - (pl + pr);
-        const canvasHeight = imgRect.height - (pt + pb);
-
-        const scaleX = window.innerWidth / canvasWidth;
-        const scaleY = window.innerHeight / canvasHeight;
-        
-        // Fit screen (Math.min) and add 15% extra for panning details
-        const scale = Math.min(scaleX, scaleY) * 1.15;
-        zoomScaleRef.current = scale;
-
-        // Calculate overflow
-        const overflowW = (canvasWidth * scale) - window.innerWidth;
-        const overflowH = (canvasHeight * scale) - window.innerHeight;
-        overflowRef.current = {
-          w: Math.max(0, overflowW),
-          h: Math.max(0, overflowH),
-        };
-
-        const viewportCenterX = window.innerWidth / 2;
-        const viewportCenterY = window.innerHeight / 2;
-
-        const frameCenterX = frameRect.left + frameRect.width / 2;
-        const frameCenterY = frameRect.top + frameRect.height / 2;
-
-        const translateX = viewportCenterX - frameCenterX;
-        const translateY = viewportCenterY - frameCenterY;
-        zoomTranslateRef.current = { x: translateX, y: translateY };
-
-        setZoomStyles({
-          transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
-        });
-
-        // Set timeout to enable panning after the transition is complete
-        panningTimeoutRef.current = setTimeout(() => {
-          setIsPanningReady(true);
-        }, 1200);
-      }
-      setIsArtworkZoomed(true);
-    } else {
-      setIsPanningReady(false);
-      setZoomStyles({});
-      setIsArtworkZoomed(false);
-    }
+  const endCameraDrag = () => {
+    cameraDragRef.current = null;
+    setIsDraggingCamera(false);
   };
 
   const bgColor = dark ? '#171614' : '#F8F6F0';
@@ -327,14 +191,6 @@ export default function ParallaxBackground({
   const hasSeasonalReveal = season ? revealSeasons.includes(season) : false;
   const rawArtwork = season ? getSeasonalArtwork(season, dataIso) : undefined;
   const seasonalArtwork = getLocalizedSeasonalArtwork(rawArtwork, language);
-
-  const yesterdayIso = getRelativeDateIso(dataIso, -1);
-  const tomorrowIso = getRelativeDateIso(dataIso, 1);
-  const rawYesterdayArtwork = season && yesterdayIso ? getSeasonalArtwork(season, yesterdayIso) : undefined;
-  const yesterdayArtwork = getLocalizedSeasonalArtwork(rawYesterdayArtwork, language);
-  const rawTomorrowArtwork = season && tomorrowIso ? getSeasonalArtwork(season, tomorrowIso) : undefined;
-  const tomorrowArtwork = getLocalizedSeasonalArtwork(rawTomorrowArtwork, language);
-  const sealColorHex = sealColor ? (SEAL_HEX_CODES[sealColor] || '#424143') : '#424143';
 
   const langKey = (language as 'IT' | 'EN' | 'FR' | 'DE' | 'ES' | 'PT') || 'EN';
   const seasonalCaptionLabel = CAPTION_TRANSLATIONS.accessibilityLabel[langKey] || CAPTION_TRANSLATIONS.accessibilityLabel.EN;
@@ -668,7 +524,7 @@ export default function ParallaxBackground({
           aria-hidden={!isArtworkSolo}
           className={`museum-gallery-room safe-viewport-backdrop fixed inset-0 z-20 overflow-hidden ${
             isArtworkSolo ? 'is-open pointer-events-auto' : 'pointer-events-none'
-          }`}
+          } ${isArtworkZoomed ? 'is-close' : ''}`}
           style={{
             opacity: isArtworkSolo ? 1 : 0,
             transform: isArtworkSolo ? 'none' : 'scale(0.97)',
@@ -680,81 +536,52 @@ export default function ParallaxBackground({
               : 'opacity 400ms ease-out, transform 400ms ease-out, visibility 400ms 400ms',
             zIndex: isArtworkSolo ? 5 : isExitingSolo ? 20 : 5,
           }}
+          inert={!isArtworkSolo}
           onClick={isArtworkSolo ? () => {
             closeArtworkZoom();
             setIsArtworkSolo(false);
           } : undefined}
         >
-          {/* Unified dark museum wall with embedded spotlight & fine noise texture */}
-          <div
-            className="museum-wall-backdrop absolute inset-0 z-0 pointer-events-none"
-            style={{
-              backgroundColor: '#050505',
-              backgroundImage: `
-                radial-gradient(circle at 50% 48%, 
-                  color-mix(in srgb, ${sealColorHex} 65%, #fffbe6) 0%, 
-                  color-mix(in srgb, ${sealColorHex} 45%, #111) 36%, 
-                  color-mix(in srgb, ${sealColorHex} 8%, #000) 58%, 
-                  transparent 80%
-                ),
-                url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E")
-              `,
-              backgroundSize: 'cover, 150px 150px',
-              backgroundRepeat: 'no-repeat, repeat',
-              transform: isArtworkZoomed ? 'scale(1.1)' : 'scale(1)',
-              transition: 'transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
+          <button
+            ref={roomExitRef}
+            type="button"
+            className="museum-room-exit"
+            onClick={(event) => {
+              event.stopPropagation();
+              closeArtworkZoom();
+              setIsArtworkSolo(false);
             }}
-          />
-
-          <div
-            className={`museum-frame-container ${isArtworkZoomed ? 'is-zoomed' : ''} ${isPanningReady ? 'is-panning-ready' : ''}`}
-            onClick={isArtworkSolo ? () => {
-              if (isArtworkZoomed) {
-                if (panningTimeoutRef.current) {
-                  clearTimeout(panningTimeoutRef.current);
-                  panningTimeoutRef.current = null;
-                }
-                setIsArtworkZoomed(false);
-                setIsPanningReady(false);
-                setZoomStyles({});
-              } else {
-                closeArtworkZoom();
-                setIsArtworkSolo(false);
-              }
-            } : undefined}
           >
-            {/* Immersive zoom backdrop */}
-            <div className="museum-zoom-backdrop" />
+            {clickToShowText}
+          </button>
 
-            <div
-              className="museum-artwork-wrapper relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Paintings row to align side paintings to the exact vertical center of the main painting */}
-              <div 
-                className="museum-paintings-row relative w-full flex items-center justify-center z-10"
-                style={zoomStyles}
-              >
-                {/* Yesterday's Artwork (Left, flat on wall, blurred) */}
-                {yesterdayArtwork && (
-                  <div className="museum-side-painting left-side">
-                    <div className={`museum-frame-inner ${getFrameStyleClass(yesterdayIso)}`}>
-                      <img
-                        src={yesterdayArtwork.imageUrl}
-                        alt={yesterdayArtwork.title}
-                        className="museum-frame-image"
-                        draggable={false}
-                      />
-                    </div>
-                  </div>
-                )}
-
+          {/* The wall, floor, frame and label share exactly one camera transform. */}
+          <div
+            ref={cameraRef}
+            className={`museum-camera ${isDraggingCamera ? 'is-dragging' : ''}`}
+            style={{ transform: museumCameraTransform(cameraPose) }}
+            onPointerDown={startCameraDrag}
+            onPointerMove={moveCamera}
+            onPointerUp={endCameraDrag}
+            onPointerCancel={endCameraDrag}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (suppressCameraClickRef.current) {
+                suppressCameraClickRef.current = false;
+                return;
+              }
+              if (isArtworkZoomed) closeArtworkZoom();
+            }}
+          >
+            <div className="museum-wall-backdrop absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+            <div className="museum-frame-container">
+              <div className="museum-artwork-wrapper relative">
                 {/* Middle Column Wrapper: main painting + label */}
-                <div className="flex flex-col items-center gap-4 relative z-10">
+                <div className="museum-main-exhibit flex flex-col items-center relative z-10">
                   {/* Today's Main Artwork */}
                   <div
                     ref={mainArtworkRef}
-                    onClick={toggleZoom}
+                    onClick={(event) => { event.stopPropagation(); if (suppressCameraClickRef.current) { suppressCameraClickRef.current = false; return; } toggleZoom(); }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -762,13 +589,12 @@ export default function ParallaxBackground({
                       }
                     }}
                     role="button"
-                    tabIndex={0}
-                    className={`museum-frame-inner relative outline-none focus-visible:ring-2 focus-visible:ring-[#DE6B58] ${getFrameStyleClass(dataIso)}`}
+                    tabIndex={isArtworkSolo ? 0 : -1}
+                    aria-label={`${seasonalArtwork.title} — ${language === 'IT' ? (isArtworkZoomed ? 'Riduci' : 'Osserva da vicino') : (isArtworkZoomed ? 'Zoom out' : 'Look closer')}`}
+                    aria-pressed={isArtworkZoomed}
+                    className={`museum-frame-inner relative outline-none focus-visible:ring-2 focus-visible:ring-[#DE6B58] frame-style-photographic`}
                   >
-                    <div className="museum-hanging-chain left-chain" />
-                    <div className="museum-hanging-chain right-chain" />
                     <img
-                      ref={mainArtworkImgRef}
                       src={seasonalArtwork.imageUrl}
                       alt={seasonalArtwork.title}
                       className="museum-frame-image"
@@ -776,17 +602,18 @@ export default function ParallaxBackground({
                     />
                   </div>
 
-                  {/* Brass Label is inside here! */}
+                  {/* A small, flush-mounted museum label remains on the wall during approach. */}
                   {seasonalArtwork.sourceUrl ? (
                     <a
+                      onClick={(event) => event.stopPropagation()}
                       href={seasonalArtwork.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="museum-brass-label relative z-20"
+                      className="museum-wall-label relative z-20"
                       title={language === 'IT' ? 'Vedi sul sito del museo / fonte' : 'View on museum / source website'}
                     >
-                      <span className="museum-label-screw left" />
-                      <span className="museum-label-screw right" />
+                      <span className="museum-label-mount left" aria-hidden="true" />
+                      <span className="museum-label-mount right" aria-hidden="true" />
                       <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
                       <p className="museum-label-meta">
                         <span className="museum-label-artist">{seasonalArtwork.artist}</span>
@@ -797,9 +624,9 @@ export default function ParallaxBackground({
                       <p className="museum-label-collection">{seasonalArtwork.collection}</p>
                     </a>
                   ) : (
-                    <div className="museum-brass-label relative z-20">
-                      <span className="museum-label-screw left" />
-                      <span className="museum-label-screw right" />
+                    <div className="museum-wall-label relative z-20">
+                      <span className="museum-label-mount left" aria-hidden="true" />
+                      <span className="museum-label-mount right" aria-hidden="true" />
                       <h4 className="museum-label-title">{seasonalArtwork.title}</h4>
                       <p className="museum-label-meta">
                         <span className="museum-label-artist">{seasonalArtwork.artist}</span>
@@ -812,137 +639,7 @@ export default function ParallaxBackground({
                   )}
                 </div>
 
-                {/* Tomorrow's Artwork (Right, flat on wall, blurred) */}
-                {tomorrowArtwork && (
-                  <div className="museum-side-painting right-side">
-                    <div className={`museum-frame-inner ${getFrameStyleClass(tomorrowIso)}`}>
-                      <img
-                        src={tomorrowArtwork.imageUrl}
-                        alt={tomorrowArtwork.title}
-                        className="museum-frame-image"
-                        draggable={false}
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
-              
-              <div className="museum-stanchions" aria-hidden="true">
-                <svg className="museum-stanchions-svg" viewBox="0 0 1000 80" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="gold-pole-museum" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#3b2b07" />
-                      <stop offset="25%" stopColor="#5c430e" />
-                      <stop offset="50%" stopColor="#7a5c1b" />
-                      <stop offset="75%" stopColor="#4d3708" />
-                      <stop offset="100%" stopColor="#261a03" />
-                    </linearGradient>
-                    <linearGradient id="gold-base-museum" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#261a03" />
-                      <stop offset="30%" stopColor="#5c430e" />
-                      <stop offset="60%" stopColor="#7a5c1b" />
-                      <stop offset="85%" stopColor="#4d3708" />
-                      <stop offset="100%" stopColor="#1a1002" />
-                    </linearGradient>
-                    <radialGradient id="gold-ball-museum" cx="35%" cy="35%" r="65%">
-                      <stop offset="0%" stopColor="#fff2bc" stopOpacity="0.4" />
-                      <stop offset="40%" stopColor="#73561a" />
-                      <stop offset="80%" stopColor="#423009" />
-                      <stop offset="100%" stopColor="#211702" />
-                    </radialGradient>
-
-                    {/* Rich velvet burgundy strand gradient with warm 3D cylinder rendering (dimmed for ambient lighting) */}
-                    <linearGradient id="strand-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#1c0003" />
-                      <stop offset="25%" stopColor="#4a030c" />
-                      <stop offset="50%" stopColor="#7a0b18" />
-                      <stop offset="75%" stopColor="#4a030c" />
-                      <stop offset="100%" stopColor="#1c0003" />
-                    </linearGradient>
-
-                    {/* Cylindrical 3D Shading for the entire rope curve (darkened for shadowed foreground look) */}
-                    <linearGradient id="rope-3d-shading" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#000000" stopOpacity="0.85" />
-                      <stop offset="25%" stopColor="#000000" stopOpacity="0.3" />
-                      <stop offset="50%" stopColor="#ffffff" stopOpacity="0.08" />
-                      <stop offset="75%" stopColor="#000000" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#000000" stopOpacity="0.95" />
-                    </linearGradient>
-
-                    {/* Depth of Field Gaussian Blur Filters (very light variations) */}
-                    {/* Center Rope: Sharp focus (lightly softened for lens look) */}
-                    <filter id="blur-sharp-museum" x="-10%" y="-10%" width="120%" height="120%">
-                      <feGaussianBlur stdDeviation="0.55" />
-                    </filter>
-                    {/* Columns: Medium focus */}
-                    <filter id="blur-medium-museum" x="-10%" y="-10%" width="120%" height="120%">
-                      <feGaussianBlur stdDeviation="0.75" />
-                    </filter>
-                    {/* Side Ropes: Out of focus (subtle blur) */}
-                    <filter id="blur-defocused-museum" x="-10%" y="-10%" width="120%" height="120%">
-                      <feGaussianBlur stdDeviation="0.95" />
-                    </filter>
-                    {/* Gold Cap and Hook Loop for Rope Ends */}
-                    <g id="rope-cap-gold">
-                      {/* The hook link loop */}
-                      <path d="M -1.2,0 C 0.8,-2.4 4.5,-2.4 6.5,0 C 4.5,2.4 1,2.4 -1.2,0" fill="none" stroke="url(#gold-pole-museum)" strokeWidth="1.2" />
-                      {/* The collar */}
-                      <rect x="5.5" y="-3.8" width="1.5" height="7.6" rx="0.8" fill="url(#gold-base-museum)" stroke="#3a2a07" strokeWidth="0.3" />
-                      {/* The cylinder cap wrapping the rope end */}
-                      <path d="M 7.0,-3.4 L 14.0,-3.4 A 3.4,3.4 0 0,1 17.4,0 A 3.4,3.4 0 0,1 14.0,3.4 L 7.0,3.4 Z" fill="url(#gold-pole-museum)" stroke="#3a2a07" strokeWidth="0.3" />
-                    </g>
-                  </defs>
-
-                  {/* 1. Shadows Layer */}
-                  <path d="M -50,26 Q 85,55 220,15" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="6.5" strokeLinecap="round" transform="translate(0, 2)" filter="url(#blur-defocused-museum)" />
-                  <path d="M 220,15 Q 500,72 780,15" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="6.5" strokeLinecap="round" transform="translate(0, 2)" filter="url(#blur-sharp-museum)" />
-                  <path d="M 780,15 Q 915,55 1050,26" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="6.5" strokeLinecap="round" transform="translate(0, 2)" filter="url(#blur-defocused-museum)" />
-
-                  {/* 2. Rope Strands (Braided Structure via dynamic rendering) */}
-                  <g filter="url(#blur-defocused-museum)">
-                    {renderRopeStrands([-50, 26], [85, 55], [220, 15], 80, 3.2, 1.8, 38)}
-                  </g>
-                  <g filter="url(#blur-sharp-museum)">
-                    {renderRopeStrands([220, 15], [500, 72], [780, 15], 160, 3.2, 1.8, 38)}
-                  </g>
-                  <g filter="url(#blur-defocused-museum)">
-                    {renderRopeStrands([780, 15], [915, 55], [1050, 26], 80, 3.2, 1.8, 38)}
-                  </g>
-
-                  {/* 3. 3D Cylindrical Shading Overlay */}
-                  <path d="M -50,26 Q 85,55 220,15" fill="none" stroke="url(#rope-3d-shading)" strokeWidth="6.0" strokeLinecap="round" filter="url(#blur-defocused-museum)" opacity="0.22" />
-                  <path d="M 220,15 Q 500,72 780,15" fill="none" stroke="url(#rope-3d-shading)" strokeWidth="6.0" strokeLinecap="round" filter="url(#blur-sharp-museum)" opacity="0.22" />
-                  <path d="M 780,15 Q 915,55 1050,26" fill="none" stroke="url(#rope-3d-shading)" strokeWidth="6.0" strokeLinecap="round" filter="url(#blur-defocused-museum)" opacity="0.22" />
-
-                  {/* 3.5. Gold Rope Caps & Hooks */}
-                  <g filter="url(#blur-defocused-museum)">
-                    <use href="#rope-cap-gold" transform="translate(220, 15) rotate(163.5)" />
-                    <use href="#rope-cap-gold" transform="translate(780, 15) rotate(16.5)" />
-                  </g>
-                  <g filter="url(#blur-sharp-museum)">
-                    <use href="#rope-cap-gold" transform="translate(220, 15) rotate(11.5)" />
-                    <use href="#rope-cap-gold" transform="translate(780, 15) rotate(168.5)" />
-                  </g>
-
-                  {/* 4. Columns & Rings (Medium Blur) */}
-                  <g filter="url(#blur-medium-museum)">
-                    {/* Attachment rings */}
-                    <circle cx="220" cy="15" r="1.5" fill="#3a2a07" />
-                    <circle cx="780" cy="15" r="1.5" fill="#3a2a07" />
-
-                    {/* Left Column (No base, goes straight down off-screen) */}
-                    <rect x="218" y="15" width="4" height="65" fill="url(#gold-pole-museum)" />
-                    <rect x="217" y="14" width="6" height="1" fill="url(#gold-base-museum)" />
-                    <circle cx="220" cy="11.5" r="3.2" fill="url(#gold-ball-museum)" />
-
-                    {/* Right Column (No base, goes straight down off-screen) */}
-                    <rect x="778" y="15" width="4" height="65" fill="url(#gold-pole-museum)" />
-                    <rect x="777" y="14" width="6" height="1" fill="url(#gold-base-museum)" />
-                    <circle cx="780" cy="11.5" r="3.2" fill="url(#gold-ball-museum)" />
-                  </g>
-                </svg>
-              </div>
-
             </div>
           </div>
         </div>
@@ -1035,6 +732,7 @@ export default function ParallaxBackground({
 
       {/* Contenuto */}
       <div 
+        inert={isArtworkSolo}
         className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''} ${isArtworkSolo ? 'is-artwork-solo' : ''}`}
         style={{
           opacity: isArtworkSolo ? 0 : 1,

@@ -1,0 +1,195 @@
+/* A photographic architectural shell, separate from the unaltered artwork.
+   The source skirting at 74% is displayed at 83%; keep the exhibit above it. */
+.museum-gallery-room {
+  background: #494b3c;
+  --museum-frame-rail: clamp(20px, 2.6vw, 36px);
+  /* Projected shadow = frame depth × light direction (upper-left source).
+     Both contact and penumbra grow with the physical moulding thickness. */
+  --museum-depth: calc(var(--museum-frame-rail) * 0.38);
+  --museum-shadow-x: calc(var(--museum-depth) * 0.48);
+  --museum-shadow-y: calc(var(--museum-depth) * 1.45);
+}
+
+.museum-gallery-room .museum-wall-backdrop {
+  background: #494b3c url('/images/museum-room-sage.webp') center top / 100% 112% no-repeat;
+}
+
+.museum-camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  transition: transform 1500ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.museum-camera.is-dragging { transition: none; }
+.museum-gallery-room.is-close .museum-camera { touch-action: none; cursor: grab; }
+.museum-gallery-room.is-close .museum-camera.is-dragging { cursor: grabbing; }
+.museum-gallery-room.is-close .museum-frame-inner[role="button"] { cursor: zoom-out; }
+
+.museum-gallery-room .museum-frame-container {
+  height: 82% !important;
+  padding: 54px 36px 16px !important;
+}
+
+.museum-gallery-room .museum-artwork-wrapper {
+  gap: 0;
+}
+
+.museum-gallery-room .museum-main-exhibit {
+  gap: 12px;
+  max-width: 100%;
+}
+
+.museum-gallery-room .museum-frame-inner.frame-style-photographic {
+  display: block;
+  padding: 0 !important;
+  border: var(--museum-frame-rail) solid #463124;
+  border-image: url('/images/museum-frame-walnut.webp') 14.3% 14.3% 16.5% / 1 / 0 stretch;
+  background: #382e24;
+  border-radius: 0;
+  box-shadow:
+    1px 2px 2px rgb(0 0 0 / 0.38),
+    var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.65) rgb(17 20 13 / 0.38),
+    calc(var(--museum-shadow-x) * 1.6) calc(var(--museum-shadow-y) * 1.8) calc(var(--museum-depth) * 2.8) rgb(17 20 13 / 0.22) !important;
+}
+
+.museum-gallery-room .museum-frame-inner.frame-style-photographic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* The small rebate shadow belongs to the frame, not a filter on the painting. */
+  box-shadow: inset 1px 2px 3px rgb(0 0 0 / 0.35);
+}
+
+.museum-gallery-room .museum-frame-inner .museum-frame-image {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: calc(68vw - 2 * var(--museum-frame-rail)) !important;
+  max-height: calc(82svh - 230px) !important;
+  padding: 0 !important;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: 1px solid rgb(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+.museum-gallery-room .museum-wall-label {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  width: clamp(108px, 27%, 136px);
+  min-height: 44px;
+  padding: 8px 12px 8px;
+  border: 1px solid rgb(78 73 58 / 0.32);
+  border-radius: 1px 0 1px 0;
+  background:
+    linear-gradient(104deg, rgb(255 255 255 / 0.17), transparent 34% 72%, rgb(60 53 39 / 0.06)),
+    url('/beige-paper.png') 17px 11px / 108px repeat,
+    #d5d0bd;
+  background-blend-mode: soft-light, multiply, normal;
+  color: #2e2b22;
+  text-align: left;
+  text-decoration: none;
+  text-shadow: none;
+  /* Thin conservation board, mounted almost flush to the plaster. */
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.14),
+    1px 1.5px 1px rgb(21 22 16 / 0.27),
+    2px 3px 3px rgb(21 22 16 / 0.09),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.2);
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  overflow-wrap: anywhere;
+}
+.museum-gallery-room .museum-label-title { font-size: 10.5px; line-height: 1.15; margin: 0 0 3px; }
+.museum-gallery-room .museum-label-meta { font-size: 8.5px; line-height: 1.35; margin: 0; }
+.museum-gallery-room .museum-label-collection { font-size: 8px; line-height: 1.3; opacity: 0.86; margin-top: 2px; }
+.museum-gallery-room .museum-label-mount {
+  position: absolute;
+  top: 6px;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #e5dfc9 0 14%, #817b68 36%, #49463c 72%);
+  box-shadow: 0 0.5px 0.5px rgb(0 0 0 / 0.42);
+  opacity: 0.72;
+}
+.museum-gallery-room .museum-label-mount.left { left: 5px; }
+.museum-gallery-room .museum-label-mount.right { right: 5px; }
+.museum-gallery-room .museum-wall-label:focus-visible,
+.museum-room-exit:focus-visible { outline: 2px solid #f4ead5; outline-offset: 5px; }
+
+.museum-room-exit {
+  position: absolute;
+  top: max(18px, env(safe-area-inset-top));
+  left: max(22px, env(safe-area-inset-left));
+  z-index: 40;
+  min-height: 44px;
+  padding: 8px 15px 8px 13px;
+  color: rgb(246 241 227 / 0.88) !important;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.035) 42%, rgb(9 12 9 / 0.12)),
+    rgb(30 34 28 / 0.34);
+  border: 0;
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(14px) saturate(0.78);
+  backdrop-filter: blur(14px) saturate(0.78);
+  font-family: Georgia, serif;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.14),
+    inset 0 1px 0 rgb(255 255 255 / 0.15),
+    0 5px 18px rgb(10 12 9 / 0.14);
+  cursor: pointer;
+  transition-property: background-color, box-shadow, color, scale;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+.museum-room-exit:hover {
+  color: #fffaf0 !important;
+  background-color: rgb(30 34 28 / 0.5);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 7px 22px rgb(10 12 9 / 0.18);
+}
+.museum-room-exit:active { scale: 0.96; }
+.seasonal-artwork-caption.is-solo-mode { display: none !important; }
+
+/* Navigation stays outside the moving room. */
+
+@media (max-width: 767px) {
+  .museum-gallery-room { --museum-frame-rail: 23px; }
+  .museum-gallery-room .museum-wall-backdrop {
+    /* A vertical camera crop, not a compressed desktop room. */
+    background-size: auto 112%;
+  }
+  .museum-gallery-room .museum-frame-container {
+    height: 82% !important;
+    padding: 76px 15px 12px !important;
+  }
+  .museum-gallery-room .museum-frame-inner .museum-frame-image {
+    max-width: calc(100vw - 30px - 2 * var(--museum-frame-rail)) !important;
+    max-height: calc(76svh - 235px) !important;
+  }
+  .museum-gallery-room .museum-main-exhibit { gap: 12px; }
+  .museum-room-exit { left: 15px; font-size: 12px; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .museum-gallery-room .museum-frame-container { height: 82% !important; padding-top: 20px !important; }
+  .museum-gallery-room .museum-main-exhibit { flex-direction: row; gap: 24px; }
+  .museum-gallery-room .museum-frame-inner .museum-frame-image { max-height: calc(78svh - 70px) !important; max-width: 45vw !important; }
+  .museum-gallery-room .museum-wall-label { width: 112px; flex-shrink: 0; }
+  .museum-room-exit { top: auto; bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .museum-gallery-room *, .museum-gallery-room *::before, .museum-gallery-room *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

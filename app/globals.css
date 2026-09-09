@@ -14015,9 +14015,11 @@ body.museum-room-open :is(
 
   @keyframes museumDissolveDiagonal {
     from {
+      opacity: 1;
       transform: translate3d(42vmax, 42vmax, 0);
     }
     to {
+      opacity: 0;
       transform: translate3d(-42vmax, -42vmax, 0);
     }
   }
