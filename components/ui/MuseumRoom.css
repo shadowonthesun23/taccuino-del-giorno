@@ -3,6 +3,12 @@
 .museum-gallery-room {
   background: #494b3c;
   --museum-frame-rail: clamp(20px, 2.6vw, 36px);
+  --museum-light-strength: 0.14;
+  --museum-wall-variation: 0.028;
+  --museum-floor-light: 0.055;
+  --museum-frame-contact-shadow: rgb(10 12 8 / 0.48);
+  --museum-frame-projected-shadow: rgb(14 17 11 / 0.39);
+  --museum-frame-diffuse-shadow: rgb(14 17 11 / 0.2);
   /* Projected shadow = frame depth × light direction (upper-left source).
      Both contact and penumbra grow with the physical moulding thickness. */
   --museum-depth: calc(var(--museum-frame-rail) * 0.38);
@@ -160,6 +166,124 @@
 .seasonal-artwork-caption.is-solo-mode { display: none !important; }
 
 /* Navigation stays outside the moving room. */
+
+.museum-ambience-control,
+.museum-room-signage { display: none; }
+
+@media (min-width: 768px) {
+  .museum-gallery-room .museum-frame-inner.frame-style-photographic {
+    box-shadow:
+      1px 2px 1px var(--museum-frame-contact-shadow),
+      var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.58) var(--museum-frame-projected-shadow),
+      calc(var(--museum-shadow-x) * 1.8) calc(var(--museum-shadow-y) * 2.15) calc(var(--museum-depth) * 3.4) var(--museum-frame-diffuse-shadow) !important;
+  }
+
+  .museum-gallery-room .museum-wall-backdrop {
+    filter: saturate(0.98) contrast(1.015);
+  }
+
+  .museum-gallery-room .museum-wall-backdrop::before,
+  .museum-gallery-room .museum-wall-backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .museum-gallery-room .museum-wall-backdrop::before {
+    background:
+      radial-gradient(
+        ellipse 58% 76% at 50% -15%,
+        rgb(255 231 183 / var(--museum-light-strength)) 0%,
+        rgb(255 226 172 / 0.07) 43%,
+        transparent 74%
+      ),
+      linear-gradient(
+        90deg,
+        rgb(12 15 10 / 0.15),
+        transparent 19%,
+        transparent 81%,
+        rgb(12 15 10 / 0.17)
+      );
+  }
+
+  .museum-gallery-room .museum-wall-backdrop::after {
+    background:
+      linear-gradient(
+        106deg,
+        rgb(255 255 255 / var(--museum-wall-variation)),
+        transparent 29% 68%,
+        rgb(12 14 10 / 0.018)
+      ),
+      radial-gradient(
+        ellipse 54% 11% at 50% 89%,
+        rgb(255 217 157 / var(--museum-floor-light)),
+        transparent 76%
+      );
+  }
+
+  .museum-ambience-control {
+    position: absolute;
+    right: max(22px, env(safe-area-inset-right));
+    bottom: max(22px, env(safe-area-inset-bottom));
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 9px 13px;
+    border: 1px solid rgb(255 247 226 / 0.14);
+    border-radius: 11px;
+    background:
+      linear-gradient(145deg, rgb(255 255 255 / 0.09), transparent 48%, rgb(8 10 7 / 0.1)),
+      rgb(25 29 23 / 0.46);
+    -webkit-backdrop-filter: blur(6px) saturate(0.72);
+    backdrop-filter: blur(6px) saturate(0.72);
+    color: rgb(246 239 220 / 0.72);
+    font-family: Georgia, serif;
+    font-size: 12px;
+    letter-spacing: 0.035em;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      0 5px 17px rgb(8 10 7 / 0.14);
+    cursor: pointer;
+    transition: color 180ms ease-out, border-color 180ms ease-out, background-color 180ms ease-out, scale 180ms ease-out;
+  }
+  .museum-ambience-control svg { width: 15px; height: 15px; stroke-width: 1.45; opacity: 0.76; }
+  .museum-ambience-control:hover { color: rgb(255 248 231 / 0.94); border-color: rgb(255 247 226 / 0.22); }
+  .museum-ambience-control.is-on { color: rgb(255 244 215 / 0.9); border-color: rgb(232 199 138 / 0.23); }
+  .museum-ambience-control:active { scale: 0.97; }
+  .museum-ambience-control:focus-visible { outline: 2px solid #f4ead5; outline-offset: 5px; }
+}
+
+@media (min-width: 1200px) and (min-height: 680px) {
+  .museum-room-signage {
+    position: absolute;
+    top: clamp(48px, 6vh, 70px);
+    right: clamp(42px, 4vw, 74px);
+    z-index: 2;
+    display: flex;
+    width: 156px;
+    flex-direction: column;
+    gap: 7px;
+    color: rgb(230 222 198 / 0.57);
+    font-family: "IM Fell Double Pica", Georgia, serif;
+    pointer-events: none;
+    text-align: left;
+  }
+  .museum-room-signage-title {
+    font-size: 12px;
+    line-height: 1.2;
+    letter-spacing: 0.17em;
+  }
+  .museum-room-signage time {
+    font-size: 11px;
+    font-style: italic;
+    line-height: 1.3;
+    letter-spacing: 0.035em;
+    opacity: 0.82;
+  }
+}
 
 @media (max-width: 767px) {
   .museum-gallery-room { --museum-frame-rail: 23px; }

@@ -151,3 +151,44 @@ final result: passed
 - On 390 × 844, the desktop-only postcard remains `display: none`, `aria-hidden="true"`, and inert.
 
 final result: passed
+
+# Museum immersive v2 — design QA
+
+Reference: `/Users/antonello/Downloads/Immagine Codex 9 set 2026, 21_44_55.png`
+
+Implementation capture: local app in the Codex in-app browser, room open on 9 September 2026 with the live seasonal artwork. The reference and implementation were reviewed together at the same wide-room state; the reference was treated as art direction rather than a request to reproduce its bench, side lights, or furniture.
+
+## Visual comparison
+
+| Principle | Reference direction | Implemented result |
+| --- | --- | --- |
+| Architecture | Quiet, believable gallery wall and parquet | Existing room architecture, artwork, frame, plaque, and camera remain unchanged |
+| Lighting | Warm museum light with darker lateral falloff | One broad, static top light and restrained edge falloff; no visible spotlight cone |
+| Materiality | Subtle plaster and satin floor response | Existing photographic texture retained, with very low-opacity density variation and a broad floor light |
+| Object grounding | Frame visibly attached to the wall | Directional contact, projected, and diffuse shadows follow the established upper-left light |
+| Signage | Small wall typography on the right | Localized “Sala del giorno” plus the real page date, directly on the wall and hidden where space is limited |
+| Controls | Quiet peripheral sound control | Compact satin audio button at bottom right; the established Home control remains untouched |
+
+## Responsive checks
+
+| Viewport | Result |
+| --- | --- |
+| 1920×1080 | Passed — balanced wall margins, signage clear, control unobtrusive |
+| 1680×1050 | Passed — artwork remains dominant; no collisions |
+| 1440×900 | Passed — reference comparison viewport; no clipping or overlap |
+| 1366×768 | Passed — signage and control retain safe spacing |
+| 1280×800 | Passed — compact wide layout remains balanced |
+| 390×844 | Passed — desktop additions hidden and original mobile composition preserved |
+
+## Interaction and technical checks
+
+- Cold room open: audio paused, ready state 0, zero audio resource requests.
+- User activation: one audio request, playback active, constant final volume 0.06.
+- Fade-out: intermediate volume observed at 0.022; final state paused at volume 0 after 1.35 s.
+- Room exit: audio returns to off, pauses, and does not persist behind the home page.
+- Zoom and Escape: the existing full-camera approach and reset remain functional.
+- Accessibility: native button, localized label/title, `aria-pressed`, 44 px minimum target, visible focus treatment.
+- Runtime: no console warnings or errors during the verified flow.
+- Performance: two static CSS overlay layers, one short-lived 50 ms fade timer, no permanent animation loop, no new dependency.
+
+final result: passed

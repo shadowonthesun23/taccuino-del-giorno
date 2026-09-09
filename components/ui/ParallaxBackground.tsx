@@ -6,6 +6,7 @@ import { clampMuseumCamera, getMuseumCameraPose, museumCameraTransform, RESTING_
 import EspressoCorner from '@/components/ui/EspressoCorner';
 import InkBottleCorner from '@/components/ui/InkBottleCorner';
 import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
+import MuseumAmbienceControl from '@/components/ui/MuseumAmbienceControl';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
@@ -46,6 +47,24 @@ const CAPTION_TRANSLATIONS = {
     PT: 'Obra sazonal revelada no fundo',
   }
 };
+
+const MUSEUM_ROOM_TRANSLATIONS = {
+  IT: 'SALA DEL GIORNO',
+  EN: 'ROOM OF THE DAY',
+  FR: 'SALLE DU JOUR',
+  DE: 'SAAL DES TAGES',
+  ES: 'SALA DEL DÍA',
+  PT: 'SALA DO DIA',
+} as const;
+
+const MUSEUM_DATE_LOCALES = {
+  IT: 'it-IT',
+  EN: 'en-GB',
+  FR: 'fr-FR',
+  DE: 'de-DE',
+  ES: 'es-ES',
+  PT: 'pt-PT',
+} as const;
 
 export default function ParallaxBackground({
   children,
@@ -197,6 +216,14 @@ export default function ParallaxBackground({
   const seasonalCaptionHint = CAPTION_TRANSLATIONS.hint[langKey] || CAPTION_TRANSLATIONS.hint.EN;
   const seasonalBadgeText = CAPTION_TRANSLATIONS.badge[langKey] || CAPTION_TRANSLATIONS.badge.EN;
   const clickToShowText = CAPTION_TRANSLATIONS.clickToShowText[langKey] || CAPTION_TRANSLATIONS.clickToShowText.EN;
+  const museumRoomTitle = MUSEUM_ROOM_TRANSLATIONS[langKey] || MUSEUM_ROOM_TRANSLATIONS.EN;
+  const museumDate = dataIso
+    ? new Intl.DateTimeFormat(MUSEUM_DATE_LOCALES[langKey] || MUSEUM_DATE_LOCALES.EN, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(`${dataIso}T12:00:00`))
+    : null;
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -555,6 +582,8 @@ export default function ParallaxBackground({
             {clickToShowText}
           </button>
 
+          <MuseumAmbienceControl active={isArtworkSolo} language={langKey} />
+
           {/* The wall, floor, frame and label share exactly one camera transform. */}
           <div
             ref={cameraRef}
@@ -574,6 +603,12 @@ export default function ParallaxBackground({
             }}
           >
             <div className="museum-wall-backdrop absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+            {museumDate && (
+              <aside className="museum-room-signage" aria-label={`${museumRoomTitle}, ${museumDate}`}>
+                <span className="museum-room-signage-title">{museumRoomTitle}</span>
+                <time dateTime={dataIso}>{museumDate}</time>
+              </aside>
+            )}
             <div className="museum-frame-container">
               <div className="museum-artwork-wrapper relative">
                 {/* Middle Column Wrapper: main painting + label */}
