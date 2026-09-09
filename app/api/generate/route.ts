@@ -14,9 +14,11 @@ import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-histo
 export const maxDuration = 60;
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-// Controlled test: duplicate candidates are deduplicated, so no model fallback is attempted.
-const FALLBACK_GEMINI_MODEL = DEFAULT_GEMINI_MODEL;
-// Leave a small margin inside Vercel's 60-second function limit.
+// Keep a stable, lighter model available when the primary model is busy or
+// returns a transient error. Both models support structured JSON responses.
+const FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+// Leave a bounded window for a second full attempt inside Vercel's 60-second
+// function limit. The remaining time is computed dynamically per attempt.
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 52_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
@@ -26,8 +28,8 @@ const GEMINI_BUDGET_RESERVE_MS = 500;
 const GEMINI_AUTHOR_REPAIR_RESERVE_MS = 10_000;
 const GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS = 8_000;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
-const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 10_000;
-const MAX_FULL_GENERATION_ATTEMPTS = 1;
+const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 8_000;
+const MAX_FULL_GENERATION_ATTEMPTS = 2;
 const MAX_AUTHOR_REPAIR_ATTEMPTS = 1;
 const MAX_WORD_REPAIR_ATTEMPTS = 2;
 const RETRY_BACKOFF_MS = 250;
@@ -111,6 +113,27 @@ function logTechnicalError(operation: string, modelName: string, error: unknown,
   console.warn(
     `Errore tecnico Gemini (${kind}) — ${operation}, modello ${modelName}; ${getGenerationTiming(startedAt)}: ${getSafeErrorMessage(error)}`,
   );
+}
+
+function getUserFacingGenerationError(error: unknown): string {
+  if (error instanceof EditorialQualityError) {
+    return `La generazione non ha superato i controlli editoriali: ${error.issues.join('; ')}`;
+  }
+
+  switch (classifyTechnicalError(error)) {
+    case 'timeout':
+      return 'La generazione ha impiegato troppo tempo. Riprova tra poco.';
+    case 'network':
+    case 'api':
+    case 'response':
+      return 'Il servizio di generazione non è momentaneamente disponibile. Riprova tra poco.';
+    case 'budget':
+      return 'La generazione ha superato il tempo disponibile. Riprova tra poco.';
+    case 'json':
+      return 'La risposta generata non era valida. Riprova tra poco.';
+    default:
+      return 'Generazione non riuscita. Riprova tra poco.';
+  }
 }
 
 async function waitBeforeRetry(startedAt: number) {
@@ -880,7 +903,10 @@ Restituisci questo JSON:
           `${prompt}${qualityFeedback}`,
           generationStartedAt,
           'Generazione completa Gemini...',
-          { reserveMs: GEMINI_AUTHOR_REPAIR_RESERVE_MS },
+          // Keep the author-repair reserve for the first candidate. If that
+          // call fails technically, the second model can use the remaining
+          // budget instead of being blocked by an unused reserve.
+          { reserveMs: fullGenerationAttempts === 1 ? GEMINI_AUTHOR_REPAIR_RESERVE_MS : 0 },
         );
         const candidateData = parseGeneratedJson(getGeneratedResponseText(attemptResult));
         let acceptedCandidate = candidateData;
@@ -914,7 +940,20 @@ Restituisci questo JSON:
             );
           } catch (error) {
             lastGenerationError = error;
-            break;
+            const fallbackModel = modelCandidates[modelIndex + 1];
+            if (
+              fullGenerationAttempts >= MAX_FULL_GENERATION_ATTEMPTS
+              || !fallbackModel
+              || (getGeminiAttemptTimeout(generationStartedAt) ?? 0) < GEMINI_MIN_FALLBACK_TIMEOUT_MS
+            ) {
+              break;
+            }
+
+            modelIndex += 1;
+            qualityFeedback = '';
+            console.info(`Ripiego su una nuova generazione dopo la riparazione autore; modello ${fallbackModel}; ${getGenerationTiming(generationStartedAt)}.`);
+            await waitBeforeRetry(generationStartedAt);
+            continue;
           }
         }
 
@@ -1008,7 +1047,7 @@ Restituisci questo JSON:
 
     return new Response('Successo!');
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Errore interno del server";
+    const message = getUserFacingGenerationError(err);
 
     console.error("Errore fatale in /api/generate:", err);
     return new Response(message, { status: 500 });
