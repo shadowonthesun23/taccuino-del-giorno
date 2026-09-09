@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 
-const MUSEUM_AMBIENCE_VOLUME = 0.06;
+const MUSEUM_AMBIENCE_VOLUME = 0.14;
 const MUSEUM_AMBIENCE_FADE_MS = 1350;
 const FADE_STEP_MS = 50;
 
