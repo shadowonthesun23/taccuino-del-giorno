@@ -676,6 +676,16 @@ export default function ParallaxBackground({
 
               </div>
             </div>
+
+            <div className="museum-bench-foreground" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static decorative foreground asset */}
+              <img
+                src="/museum/day-atlas-museum-bench.webp"
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+              />
+            </div>
           </div>
         </div>
       )}
