@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  sceneDraftToCss,
+  validateSceneDraft,
+} from '../lib/scene-draft.ts';
+import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   cloneBaselineSceneDraft,
   resolveSceneDraft,
-  sceneDraftToCss,
   updateSceneDraft,
-  validateSceneDraft,
-} from '../lib/scene-draft.ts';
+} from '../lib/scene-draft-editor.ts';
 
 test('baseline draft has the requested initial lock state', () => {
   assert.equal(HOME_SCENE_DRAFT_BASELINE_V1.objects['coffee-cup'].locked, true);

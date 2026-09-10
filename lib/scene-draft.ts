@@ -25,22 +25,12 @@ export type SceneDraftValidation =
   | { ok: true; value: SceneDraft }
   | { ok: false; issues: readonly string[] };
 
-const BOUNDS = {
+export const SCENE_DRAFT_TRANSFORM_BOUNDS = {
   x: [-4000, 4000],
   y: [-4000, 4000],
   scale: [0.1, 4],
   rotation: [-360, 360],
 } as const;
-
-export const HOME_SCENE_DRAFT_BASELINE_V1: SceneDraft = {
-  schemaVersion: SCENE_DRAFT_SCHEMA_VERSION,
-  sceneId: 'home',
-  objects: {
-    'coffee-cup': { x: 0, y: 0, scale: 1, rotation: -3.5, locked: true, visible: true },
-    'ink-bottle': { x: 0, y: 0, scale: 1, rotation: -6, locked: true, visible: true },
-    'seasonal-fig': { x: 0, y: 0, scale: 1, rotation: 0, locked: false, visible: true },
-  },
-};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -52,7 +42,7 @@ function validateObjectDraft(value: unknown, path: string, issues: string[]) {
     return;
   }
 
-  for (const [key, [min, max]] of Object.entries(BOUNDS)) {
+  for (const [key, [min, max]] of Object.entries(SCENE_DRAFT_TRANSFORM_BOUNDS)) {
     const current = value[key];
     if (typeof current !== 'number' || !Number.isFinite(current) || current < min || current > max) {
       issues.push(`${path}.${key} must be between ${min} and ${max}.`);
@@ -87,45 +77,6 @@ export function validateSceneDraft(input: unknown): SceneDraftValidation {
   return issues.length === 0
     ? { ok: true, value: input as SceneDraft }
     : { ok: false, issues };
-}
-
-export function cloneBaselineSceneDraft(): SceneDraft {
-  return structuredClone(HOME_SCENE_DRAFT_BASELINE_V1);
-}
-
-export function resolveSceneDraft(candidate: unknown): SceneDraft {
-  const result = validateSceneDraft(candidate);
-  return result.ok ? result.value : cloneBaselineSceneDraft();
-}
-
-export function clampSceneObjectDraftPatch(patch: SceneObjectDraftPatch): SceneObjectDraftPatch {
-  const next: SceneObjectDraftPatch = {};
-  for (const key of ['x', 'y', 'scale', 'rotation'] as const) {
-    const value = patch[key];
-    if (typeof value !== 'number' || !Number.isFinite(value)) continue;
-    const [min, max] = BOUNDS[key];
-    next[key] = Math.min(max, Math.max(min, value));
-  }
-  if (typeof patch.locked === 'boolean') next.locked = patch.locked;
-  if (typeof patch.visible === 'boolean') next.visible = patch.visible;
-  return next;
-}
-
-export function updateSceneDraft(
-  draft: SceneDraft,
-  objectId: SceneObjectId,
-  patch: SceneObjectDraftPatch,
-): SceneDraft {
-  return {
-    ...draft,
-    objects: {
-      ...draft.objects,
-      [objectId]: {
-        ...draft.objects[objectId],
-        ...clampSceneObjectDraftPatch(patch),
-      },
-    },
-  };
 }
 
 function formatNumber(value: number) {

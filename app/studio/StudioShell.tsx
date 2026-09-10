@@ -11,10 +11,12 @@ import {
 import type { SceneMode } from '@/lib/scene-config';
 import {
   HOME_SCENE_DRAFT_BASELINE_V1,
-  SCENE_OBJECT_IDS,
   cloneBaselineSceneDraft,
   resolveSceneDraft,
   updateSceneDraft,
+} from '@/lib/scene-draft-editor';
+import {
+  SCENE_OBJECT_IDS,
   type SceneDraft,
   type SceneObjectDraftPatch,
   type SceneObjectId,
