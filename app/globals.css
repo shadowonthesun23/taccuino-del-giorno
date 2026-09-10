@@ -923,7 +923,8 @@ body {
     object-fit: contain;
     opacity: 0;
     position: relative;
-    transform: translate3d(0, -14px, 0) rotate(-3.5deg) scale(0.985);
+    scale: var(--scene-object-scale, 1);
+    transform: translate3d(0, -14px, 0) rotate(var(--scene-object-rotation, -3.5deg)) scale(0.985);
     transform-origin: center;
     transition:
       opacity 520ms ease-out,
@@ -938,7 +939,7 @@ body {
      * short crescent only on the lower-right side toward the handle. */
     filter: drop-shadow(23px 32px 20px rgba(63, 46, 27, 0.26));
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(-3.5deg) scale(1);
+    transform: translate3d(0, 0, 0) rotate(var(--scene-object-rotation, -3.5deg)) scale(1);
   }
 
   .espresso-corner.is-dark .espresso-corner-image {
@@ -988,7 +989,8 @@ body {
     object-fit: contain;
     opacity: 0;
     position: relative;
-    transform: translate3d(0, 10px, 0) rotate(-6deg) scale(0.985);
+    scale: var(--scene-object-scale, 1);
+    transform: translate3d(0, 10px, 0) rotate(var(--scene-object-rotation, -6deg)) scale(0.985);
     transform-origin: center;
     transition:
       opacity 520ms ease-out,
@@ -1000,7 +1002,7 @@ body {
   .ink-bottle-corner.is-ready .ink-bottle-corner-image {
     filter: drop-shadow(9px 14px 15px rgba(63, 46, 27, 0.13));
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(-6deg) scale(1);
+    transform: translate3d(0, 0, 0) rotate(var(--scene-object-rotation, -6deg)) scale(1);
   }
 
   .ink-bottle-corner.is-dark .ink-bottle-corner-image {
@@ -1032,6 +1034,9 @@ body {
     object-fit: contain;
     opacity: 0.82;
     position: relative;
+    scale: var(--scene-object-scale, 1);
+    transform: rotate(var(--scene-object-rotation, 0deg));
+    transform-origin: center;
     width: 100%;
     z-index: 1;
   }
@@ -1081,7 +1086,7 @@ body {
   .espresso-corner-image {
     filter: drop-shadow(14px 20px 18px rgba(63, 46, 27, 0.2));
     opacity: 1;
-    transform: rotate(-3.5deg);
+    transform: rotate(var(--scene-object-rotation, -3.5deg));
     transition: none;
   }
 

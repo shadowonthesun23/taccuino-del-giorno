@@ -7,9 +7,13 @@ import seasonalFig from '@/public/images/seasonal/day-atlas-fico-stagionale.webp
 export default function SeasonalDeskObject({
   season,
   isDark,
+  sceneObjectId,
+  sceneObjectLocked,
 }: {
   season?: SeasonId;
   isDark: boolean;
+  sceneObjectId?: string;
+  sceneObjectLocked?: boolean;
 }) {
   // The desk keeps a single seasonal object; the fig replaces the former
   // botanical branch instead of adding another decorative layer.
@@ -18,6 +22,8 @@ export default function SeasonalDeskObject({
   return (
     <div
       className={`seasonal-desk-object season-${season} ${isDark ? 'is-dark' : ''}`}
+      data-scene-object={sceneObjectId}
+      data-scene-locked={sceneObjectLocked === undefined ? undefined : String(sceneObjectLocked)}
       aria-hidden="true"
     >
       <Image

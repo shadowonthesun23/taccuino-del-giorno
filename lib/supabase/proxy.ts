@@ -3,8 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabasePublicConfig } from './config';
 import { isConfiguredEditorUser } from '../editor-access';
 
-function isEditorPath(pathname: string) {
-  return pathname === '/editor' || pathname.startsWith('/editor/');
+function isProtectedEditorPath(pathname: string) {
+  return (
+    pathname === '/editor' ||
+    pathname.startsWith('/editor/') ||
+    pathname === '/studio' ||
+    pathname.startsWith('/studio/')
+  );
 }
 
 export async function updateSession(request: NextRequest) {
@@ -36,7 +41,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const userId = typeof data?.claims?.sub === 'string' ? data.claims.sub : null;
 
-  if (isEditorPath(request.nextUrl.pathname) && !isConfiguredEditorUser(userId)) {
+  if (isProtectedEditorPath(request.nextUrl.pathname) && !isConfiguredEditorUser(userId)) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set(
       'next',

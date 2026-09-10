@@ -3,9 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './MuseumRoom.css';
 import { clampMuseumCamera, getMuseumCameraPose, museumCameraTransform, RESTING_MUSEUM_CAMERA, type MuseumCameraPose } from '@/lib/museum-camera';
-import EspressoCorner from '@/components/ui/EspressoCorner';
-import InkBottleCorner from '@/components/ui/InkBottleCorner';
-import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
+import SceneRenderer from '@/components/scene/SceneRenderer';
 import MuseumAmbienceControl from '@/components/ui/MuseumAmbienceControl';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
@@ -768,9 +766,7 @@ export default function ParallaxBackground({
               willChange: 'transform, opacity',
             }}
           >
-            <EspressoCorner isDark={dark} />
-            <InkBottleCorner isDark={dark} />
-            <SeasonalDeskObject season={season} isDark={dark} />
+            <SceneRenderer season={season} isDark={dark} />
           </div>
         </div>
       ) : null}

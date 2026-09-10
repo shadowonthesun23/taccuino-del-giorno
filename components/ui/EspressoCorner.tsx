@@ -79,7 +79,15 @@ function makeSmokeTexture(isDark: boolean) {
   return sprite;
 }
 
-export default function EspressoCorner({ isDark }: { isDark: boolean }) {
+export default function EspressoCorner({
+  isDark,
+  sceneObjectId,
+  sceneObjectLocked,
+}: {
+  isDark: boolean;
+  sceneObjectId?: string;
+  sceneObjectLocked?: boolean;
+}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const theme = isDark ? 'dark' : 'light';
@@ -312,6 +320,8 @@ export default function EspressoCorner({ isDark }: { isDark: boolean }) {
     <div
       ref={wrapperRef}
       className={`espresso-corner ${isDark ? 'is-dark' : ''} ${imageReady ? 'is-ready' : ''}`}
+      data-scene-object={sceneObjectId}
+      data-scene-locked={sceneObjectLocked === undefined ? undefined : String(sceneObjectLocked)}
       aria-hidden="true"
     >
       <Image
