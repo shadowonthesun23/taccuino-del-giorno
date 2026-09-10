@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './MuseumRoom.css';
 import { clampMuseumCamera, getMuseumCameraPose, museumCameraTransform, RESTING_MUSEUM_CAMERA, type MuseumCameraPose } from '@/lib/museum-camera';
 import SceneRenderer from '@/components/scene/SceneRenderer';
+import type { SceneDraft } from '@/lib/scene-draft';
 import MuseumAmbienceControl from '@/components/ui/MuseumAmbienceControl';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 
@@ -71,6 +72,7 @@ export default function ParallaxBackground({
   showEspresso = false,
   captionClassName = '',
   language = 'IT',
+  sceneDraft,
 }: {
   children: React.ReactNode;
   season?: SeasonId;
@@ -79,6 +81,7 @@ export default function ParallaxBackground({
   captionClassName?: string;
   language?: string;
   sealColor?: string;
+  sceneDraft?: SceneDraft;
 }) {
   const imageRef = useRef<HTMLDivElement>(null);
   const deskLayerRef = useRef<HTMLDivElement>(null);
@@ -766,7 +769,7 @@ export default function ParallaxBackground({
               willChange: 'transform, opacity',
             }}
           >
-            <SceneRenderer season={season} isDark={dark} />
+            <SceneRenderer season={season} isDark={dark} draft={sceneDraft} />
           </div>
         </div>
       ) : null}

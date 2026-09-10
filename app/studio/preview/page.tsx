@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import NotebookHome from '@/app/components/NotebookHome';
 import { requireEditorPage } from '@/lib/editor-page-auth';
 import { isSceneMode } from '@/lib/studio-preview-protocol';
 import { getStudioViewportPreset } from '@/lib/studio-viewport';
@@ -26,10 +25,5 @@ export default async function StudioPreviewPage({
 
   await requireEditorPage(nextPath);
 
-  return (
-    <>
-      <StudioPreviewBridge initialMode={mode} initialViewport={viewport.id} />
-      <NotebookHome />
-    </>
-  );
+  return <StudioPreviewBridge initialMode={mode} initialViewport={viewport.id} />;
 }

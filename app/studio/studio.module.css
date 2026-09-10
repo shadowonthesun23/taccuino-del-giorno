@@ -44,6 +44,7 @@
     0 3px 9px rgba(12, 9, 6, 0.16);
   color: #282018;
   min-width: 268px;
+  width: 268px;
   overflow: hidden;
   pointer-events: auto;
   position: fixed;
@@ -135,6 +136,10 @@
 }
 
 .select:focus-visible,
+.numericField input:focus-visible,
+.objectButton:focus-visible,
+.objectButtonActive:focus-visible,
+.resetDraftButton:focus-visible,
 .iconButton:focus-visible,
 .primaryButton:focus-visible,
 .secondaryButton:focus-visible,
@@ -226,17 +231,110 @@
 }
 
 .objectList li {
-  align-items: center;
-  display: flex;
-  gap: 9px;
-  min-height: 34px;
-  padding: 0 5px;
+  margin: 0;
 }
 
-.figDot {
-  color: #7d4434;
+.objectButton,
+.objectButtonActive {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: #514538;
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 9px;
+  grid-template-columns: 14px 1fr auto;
+  min-height: 40px;
+  padding: 0 9px;
+  text-align: left;
+  width: 100%;
+}
+
+.objectButton:hover {
+  background: rgba(72, 55, 36, 0.07);
+}
+
+.objectButtonActive {
+  background: rgba(126, 76, 45, 0.12);
+  box-shadow: inset 3px 0 #8f5635;
+  color: #2c241c;
+}
+
+.objectState {
+  font-size: 0.72rem;
+}
+
+.propertyHeading {
+  align-items: baseline;
+  display: flex;
+  font-family: var(--font-geist-sans), sans-serif;
+  justify-content: space-between;
+}
+
+.propertyHeading strong {
+  font-size: 0.92rem;
+}
+
+.propertyHeading span {
+  color: #7b6b59;
   font-size: 0.68rem;
-  width: 1.1rem;
+}
+
+.numericGrid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.numericField {
+  color: #70604d;
+  display: grid;
+  font: 0.66rem/1.2 var(--font-geist-sans), sans-serif;
+  gap: 5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.numericField input {
+  background: rgba(255, 253, 247, 0.86);
+  border: 1px solid rgba(47, 37, 26, 0.2);
+  border-radius: 9px;
+  color: #282018;
+  font: 500 0.78rem/1 var(--font-geist-mono), monospace;
+  min-height: 40px;
+  min-width: 0;
+  padding: 0 9px;
+  width: 100%;
+}
+
+.numericField input:disabled {
+  background: rgba(72, 55, 36, 0.07);
+  color: #887b6c;
+  cursor: not-allowed;
+}
+
+.propertyActions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.resetDraftButton {
+  background: rgba(126, 55, 43, 0.07);
+  border: 0;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(126, 55, 43, 0.2);
+  color: #783d32;
+  cursor: pointer;
+  font: 600 0.75rem/1 var(--font-geist-sans), sans-serif;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.resetDraftButton:hover {
+  background: rgba(126, 55, 43, 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -244,7 +342,10 @@
   .primaryButton,
   .secondaryButton,
   .modeButton,
-  .modeActive {
+  .modeActive,
+  .objectButton,
+  .objectButtonActive,
+  .resetDraftButton {
     transition: none;
   }
 }
