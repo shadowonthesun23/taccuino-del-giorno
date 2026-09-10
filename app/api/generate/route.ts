@@ -27,6 +27,9 @@ const GEMINI_BUDGET_RESERVE_MS = 500;
 // generated author fails the external date verification.
 const GEMINI_AUTHOR_REPAIR_RESERVE_MS = 10_000;
 const GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS = 8_000;
+// Keep enough time for the final editorial check and Supabase upsert after a
+// successful targeted repair.
+const GEMINI_FINALIZATION_RESERVE_MS = 2_000;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
 const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 8_000;
 const MAX_FULL_GENERATION_ATTEMPTS = 2;
@@ -598,7 +601,10 @@ async function regenerateDailyAuthor(
         buildAuthorRepairPrompt(currentCandidateData, dataIso, dataDiOggiStr, authorIssues, [...rejectedAuthors]),
         startedAt,
         'Riparazione mirata autore del giorno...',
-        { maxTimeoutMs: GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS },
+        {
+          maxTimeoutMs: GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS,
+          reserveMs: GEMINI_FINALIZATION_RESERVE_MS,
+        },
       );
       const replacement = parseGeneratedAuthorRepair(getGeneratedResponseText(repairResult));
       const repairedData: GeneratedDailyData = {
@@ -920,10 +926,22 @@ Restituisci questo JSON:
 
         if (!forcedAuthor && qualityIssues.some(isAutomaticAuthorIssue)) {
           const authorIssues = qualityIssues.filter(isAutomaticAuthorIssue);
+          console.warn(
+            `Riparazione autore necessaria: ${authorIssues.join('; ')}; ${getGenerationTiming(generationStartedAt)}.`,
+          );
+          const authorRepairModelName = modelCandidates.includes(FALLBACK_GEMINI_MODEL)
+            ? FALLBACK_GEMINI_MODEL
+            : modelName;
+          const authorRepairModel = authorRepairModelName === modelName
+            ? model
+            : genAI.getGenerativeModel({
+              model: authorRepairModelName,
+              generationConfig: getGeminiGenerationConfig(authorRepairModelName),
+            });
           try {
             acceptedCandidate = await regenerateDailyAuthor(
-              model,
-              modelName,
+              authorRepairModel,
+              authorRepairModelName,
               acceptedCandidate,
               dataIso,
               dataDiOggiStr,
