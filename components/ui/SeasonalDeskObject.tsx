@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import type { SeasonId } from '@/lib/seasonal-artwork';
-import summerHerbariumSprig from '@/public/images/seasonal/summer-herbarium-sprig.webp';
+import seasonalFig from '@/public/images/seasonal/day-atlas-fico-stagionale.webp';
 
 export default function SeasonalDeskObject({
   season,
@@ -12,26 +11,24 @@ export default function SeasonalDeskObject({
   season?: SeasonId;
   isDark: boolean;
 }) {
-  const [isReady, setIsReady] = useState(false);
-
-  // Start with one carefully controlled summer specimen. More seasonal
-  // objects should earn their place one at a time rather than becoming a set.
+  // The desk keeps a single seasonal object; the fig replaces the former
+  // botanical branch instead of adding another decorative layer.
   if (season !== 'summer') return null;
 
   return (
     <div
-      className={`seasonal-desk-object season-${season} ${isDark ? 'is-dark' : ''} ${isReady ? 'is-ready' : ''}`}
+      className={`seasonal-desk-object season-${season} ${isDark ? 'is-dark' : ''}`}
       aria-hidden="true"
     >
       <Image
         className="seasonal-desk-object-image"
-        src={summerHerbariumSprig}
+        src={seasonalFig}
         alt=""
+        aria-hidden="true"
         draggable={false}
         decoding="async"
-        loading="eager"
-        onLoad={() => setIsReady(true)}
-        sizes="(min-width: 1600px) 12vw, 180px"
+        loading="lazy"
+        sizes="(min-width: 1600px) 310px, (min-width: 1181px) 14vw, 1px"
       />
     </div>
   );

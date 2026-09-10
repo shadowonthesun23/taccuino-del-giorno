@@ -1012,50 +1012,45 @@ body {
   }
 }
 
-/* A single botanical specimen gives the desk a seasonal memory without
-   competing with the cup, ink bottle, or the notebook itself. */
+/* The summer fig replaces the former botanical branch as a single, grounded
+   desk object. Its transparent asset already carries the scene shadow. */
 @media (min-width: 1024px) {
   .seasonal-desk-object {
-    aspect-ratio: 2 / 3;
-    bottom: clamp(2rem, 7.2vh, 6rem);
+    aspect-ratio: 1435 / 1118;
+    bottom: clamp(1.4rem, 4.6vh, 3.6rem);
     display: block;
     pointer-events: none;
     position: absolute;
-    right: clamp(0.75rem, 6.2vw, 6rem);
-    width: clamp(126px, 11vw, 210px);
+    right: clamp(1rem, 2vw, 2.5rem);
+    width: clamp(180px, 14vw, 220px);
     z-index: 4;
   }
 
   .seasonal-desk-object-image {
     display: block;
-    filter: blur(1.8px) saturate(0.72) opacity(0.08);
     height: 100%;
     object-fit: contain;
-    opacity: 0;
+    opacity: 0.82;
     position: relative;
-    transform: translate3d(9px, 15px, 0) rotate(4deg) scale(0.965);
-    transform-origin: 52% 88%;
-    transition:
-      opacity 620ms ease-out,
-      transform 940ms cubic-bezier(0.22, 1, 0.36, 1),
-      filter 860ms ease-out;
     width: 100%;
     z-index: 1;
   }
 
-  .seasonal-desk-object.is-ready .seasonal-desk-object-image {
-    filter: drop-shadow(3px 5px 3px rgba(63, 46, 27, 0.2)) saturate(0.82) contrast(0.96);
-    opacity: 0.76;
-    transform: translate3d(0, 0, 0) rotate(2deg) scale(1);
-  }
-
   .seasonal-desk-object.is-dark .seasonal-desk-object-image {
-    filter: blur(1.8px) saturate(0.58) brightness(0.68) opacity(0.06);
+    opacity: 0.62;
   }
+}
 
-  .seasonal-desk-object.is-dark.is-ready .seasonal-desk-object-image {
-    filter: drop-shadow(3px 5px 4px rgba(0, 0, 0, 0.32)) saturate(0.64) brightness(0.76) contrast(0.96);
-    opacity: 0.48;
+@media (min-width: 1600px) {
+  .seasonal-desk-object {
+    right: clamp(2.75rem, 5vw, 5.25rem);
+    width: clamp(260px, 17vw, 310px);
+  }
+}
+
+@media (max-width: 1180px) {
+  .seasonal-desk-object {
+    display: none;
   }
 }
 
@@ -1101,12 +1096,6 @@ body {
     transition: none;
   }
 
-  .seasonal-desk-object-image {
-    filter: drop-shadow(3px 5px 3px rgba(63, 46, 27, 0.2)) saturate(0.82) contrast(0.96);
-    opacity: 0.76;
-    transform: rotate(2deg);
-    transition: none;
-  }
 }
 
 /* Draft cascade retained while the final home overrides are declared at file end. */
