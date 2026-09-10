@@ -695,6 +695,7 @@ export default function DailyPostcard({
   return (
     <aside
       className={`daily-postcard ${!isActive ? 'is-inactive' : ''} ${postcardOpen ? 'is-open' : ''} ${isClosing ? 'is-closing' : ''}`}
+      data-scene-safe="postcard"
       aria-hidden={!desktopEnabled || !isActive}
       inert={!desktopEnabled || !isActive ? true : undefined}
       aria-label={copy.dailyPostcard}

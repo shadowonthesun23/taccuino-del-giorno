@@ -32,6 +32,7 @@ export default function NotebookQuickNav({
   const navigation = (
     <nav
       aria-label={{ IT: 'Sezioni del taccuino', EN: 'Notebook sections', FR: 'Sections du carnet', DE: 'Notizbuchabschnitte', ES: 'Secciones del cuaderno', PT: 'Seções do caderno' }[lingua] || 'Notebook sections'}
+      data-scene-safe="interactive"
       className={`${garamond.className} notebook-quick-nav ${isDark ? 'is-dark' : ''} ${readingComplete ? 'is-read' : ''}`}
     >
       <span className="notebook-quick-nav-rail" aria-hidden="true">

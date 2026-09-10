@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   getSceneResponsiveBreakpoint,
+  getSceneResponsiveBreakpoints,
   resolveSceneObjectForViewport,
   SCENE_OBJECT_ANCHORS,
   sceneDraftToCss,
@@ -49,6 +50,27 @@ test('breakpoints follow real width and height eligibility bands', () => {
   assert.equal(getSceneResponsiveBreakpoint({ width: 1440, height: 900 }), 'desktopShort');
   assert.equal(getSceneResponsiveBreakpoint({ width: 1366, height: 768 }), 'compactDesktop');
   assert.equal(getSceneResponsiveBreakpoint({ width: 1440, height: 700 }), 'veryShortDesktop');
+});
+
+test('responsive precedence is Base, then width, then the vertical refinement', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: 0.9 }, { mode: 'override', breakpointId: 'desktop' });
+  draft = createSceneResponsiveOverride(draft, 'seasonal-fig', 'desktopShort');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetY: -30, scale: 0.8 }, { mode: 'override', breakpointId: 'desktopShort' });
+  const resolved = resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1440, height: 900 });
+  assert.deepEqual(resolved.breakpointIds, ['desktop', 'desktopShort']);
+  assert.deepEqual(
+    { offsetX: resolved.object.offsetX, offsetY: resolved.object.offsetY, scale: resolved.object.scale },
+    { offsetX: 40, offsetY: -30, scale: 0.8 },
+  );
+});
+
+test('width-only and height refinements obey their exact 920 and 700 thresholds', () => {
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1366, height: 920 }), ['compactDesktop']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 921 }), ['desktop']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 920 }), ['desktop', 'desktopShort']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 701 }), ['desktop', 'desktopShort']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 700 }), ['desktop', 'veryShortDesktop']);
 });
 
 test('anchors stay in the production baseline while offsets remain screen-space deltas', () => {

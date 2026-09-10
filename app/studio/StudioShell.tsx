@@ -23,6 +23,7 @@ import {
   SCENE_RESPONSIVE_BREAKPOINTS,
   SCENE_OBJECT_IDS,
   getSceneResponsiveBreakpoint,
+  getSceneResponsiveBreakpoints,
   resolveSceneObjectForViewport,
   type SceneDraft,
   type SceneObjectDraftPatch,
@@ -33,8 +34,10 @@ import {
   STUDIO_PREVIEW_MESSAGE,
   STUDIO_RETURN_TO_EDIT_MESSAGE,
   STUDIO_SELECTION_CHANGE_MESSAGE,
+  STUDIO_SCENE_SAFETY_MESSAGE,
   STUDIO_TOGGLE_UI_MESSAGE,
 } from '@/lib/studio-preview-protocol';
+import type { SceneCollision, SceneGuideMode } from '@/lib/scene-safe-areas';
 import {
   STUDIO_VIEWPORT_PRESETS,
   calculatePreviewScale,
@@ -47,6 +50,7 @@ import styles from './studio.module.css';
 
 const PANEL_STORAGE_KEY = 'day-atlas-scene-studio-panels-v1';
 const DRAFT_STORAGE_KEY = 'day-atlas-scene-studio-draft-v1';
+const GUIDE_STORAGE_KEY = 'day-atlas-scene-studio-guides-v1';
 
 type PanelId = 'viewport' | 'objects' | 'properties';
 type PanelPositions = Record<PanelId, Point>;
@@ -93,6 +97,18 @@ function isTypingTarget(target: EventTarget | null) {
 
 function isSceneObjectId(value: unknown): value is SceneObjectId {
   return typeof value === 'string' && SCENE_OBJECT_IDS.some((id) => id === value);
+}
+
+function isSceneGuideMode(value: unknown): value is SceneGuideMode {
+  return value === 'off' || value === 'content' || value === 'interactive' || value === 'all';
+}
+
+function isSceneCollisionList(value: unknown): value is SceneCollision[] {
+  return Array.isArray(value) && value.every((collision) => Boolean(
+    collision && typeof collision === 'object'
+      && typeof (collision as SceneCollision).id === 'string'
+      && ['content', 'interactive', 'postcard'].includes((collision as SceneCollision).category),
+  ));
 }
 
 function FloatingPanel({
@@ -239,6 +255,8 @@ export default function StudioShell() {
   const [uiHidden, setUiHidden] = useState(false);
   const [selectedObjectId, setSelectedObjectId] = useState<SceneObjectId>('seasonal-fig');
   const [editingTarget, setEditingTarget] = useState<SceneEditingTarget>({ mode: 'base' });
+  const [guideMode, setGuideMode] = useState<SceneGuideMode>('off');
+  const [collisions, setCollisions] = useState<SceneCollision[]>([]);
   const [draft, setDraft] = useState<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
   const [draftRestored, setDraftRestored] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 1440, height: 900 });
@@ -264,11 +282,12 @@ export default function StudioShell() {
         sceneDraft: draft,
         selectedObjectId,
         editingTarget: effectiveEditingTarget,
+        guideMode,
         showEditor: mode === 'edit' && !uiHidden,
       },
       window.location.origin,
     );
-  }, [draft, effectiveEditingTarget, mode, selectedObjectId, uiHidden, viewport.id]);
+  }, [draft, effectiveEditingTarget, guideMode, mode, selectedObjectId, uiHidden, viewport.id]);
 
   useEffect(() => {
     const updateWindowSize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -295,6 +314,8 @@ export default function StudioShell() {
         if (patch && typeof patch === 'object' && !Array.isArray(patch)) {
           setDraft((current) => updateSceneDraft(current, candidate.objectId as SceneObjectId, patch as SceneObjectDraftPatch, effectiveEditingTarget));
         }
+      } else if (candidate.type === STUDIO_SCENE_SAFETY_MESSAGE && isSceneCollisionList(candidate.collisions)) {
+        setCollisions(candidate.collisions);
       } else if (candidate.type === 'day-atlas:studio-preview-ready') {
         sendPreviewEnvironment();
       }
@@ -313,6 +334,8 @@ export default function StudioShell() {
         properties: storedPositions.properties ?? { x: rightX, y: 254 },
       });
       const storedDraft = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      const storedGuideMode = window.localStorage.getItem(GUIDE_STORAGE_KEY);
+      if (isSceneGuideMode(storedGuideMode)) setGuideMode(storedGuideMode);
       if (storedDraft) {
         try {
           setDraft(resolveSceneDraft(JSON.parse(storedDraft)));
@@ -335,6 +358,10 @@ export default function StudioShell() {
     if (!draftRestored) return;
     window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
   }, [draft, draftRestored]);
+
+  useEffect(() => {
+    window.localStorage.setItem(GUIDE_STORAGE_KEY, guideMode);
+  }, [guideMode]);
 
   useEffect(() => {
     sendPreviewEnvironment();
@@ -440,8 +467,8 @@ export default function StudioShell() {
               {STUDIO_VIEWPORT_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>
                   {preset.width} × {preset.height} · {(() => {
-                    const breakpoint = getSceneResponsiveBreakpoint(preset);
-                    return breakpoint && SCENE_OBJECT_IDS.some((id) => draft.objects[id].responsiveOverrides[breakpoint]) ? 'OVERRIDE' : 'BASE';
+                    const breakpoints = getSceneResponsiveBreakpoints(preset);
+                    return breakpoints.some((breakpoint) => SCENE_OBJECT_IDS.some((id) => draft.objects[id].responsiveOverrides[breakpoint])) ? 'OVERRIDE' : 'BASE';
                   })()}
                 </option>
               ))}
@@ -465,6 +492,15 @@ export default function StudioShell() {
             <p className={styles.statusText}>
               {viewport.width} × {viewport.height} CSS px · {activeBreakpoint ? `${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint]}` : 'Baseline tecnica'} · scala {Math.round(scale * 100)}%
             </p>
+            <label className={styles.fieldLabel} htmlFor="studio-guides">
+              Guide
+            </label>
+            <select id="studio-guides" className={styles.select} value={guideMode} onChange={(event) => setGuideMode(event.target.value as SceneGuideMode)}>
+              <option value="off">Off</option>
+              <option value="content">Contenuto</option>
+              <option value="interactive">Interattivi</option>
+              <option value="all">Tutti</option>
+            </select>
             <button type="button" className={styles.primaryButton} onClick={() => setUiHidden(true)}>
               Nascondi UI <kbd>H</kbd>
             </button>
@@ -516,6 +552,7 @@ export default function StudioShell() {
               <button type="button" className={effectiveEditingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override corrente</button>
             </div>
             <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? 'Usa Base' : `Override: ${SCENE_RESPONSIVE_BREAKPOINTS[effectiveEditingTarget.breakpointId]}`}</p>
+            {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
             {activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override</button> : null}
             {activeBreakpoint && hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={removeOverride}>Rimuovi override</button> : null}
             <div className={styles.numericGrid}>

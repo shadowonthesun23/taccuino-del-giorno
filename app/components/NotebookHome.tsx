@@ -1397,7 +1397,7 @@ export default function Home({
           onNavigate={() => setMobileNavOpen(false)}
         />
         {isMounted ? createPortal(
-          <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2">
+          <div className="top-control-panel fixed top-4 right-4 z-50 flex items-center gap-2" data-scene-safe="interactive">
           <LanguageSelector
             lingua={lingua}
             onChange={cambiaLingua}
@@ -1655,7 +1655,7 @@ export default function Home({
           className={`journal-page-enter journal-page-transition is-${pageTurnPhase} w-full max-w-4xl mx-auto space-y-5 md:space-y-7 relative z-10`}
           aria-busy={isTurningPage}
         >
-          <header className="journal-hero text-center relative px-4">
+          <header className="journal-hero text-center relative px-4" data-scene-safe="content">
             <div className="relative z-10" data-reveal-readability>
               <div className="flex justify-center mb-2">
                 <div className={`masking-tape journal-date-tape ${caveat.className} text-lg font-bold tracking-wider`}>

@@ -23,6 +23,30 @@ export const SCENE_RESPONSIVE_BREAKPOINTS: Readonly<Record<SceneResponsiveBreakp
   wideShort: '≥1600 px · ≤920 px h', desktopShort: '1440–1599 px · ≤920 px h', veryShortDesktop: '≥1440 px · ≤700 px h',
 };
 
+/**
+ * Deterministic precedence: Base → one width band → one vertical refinement.
+ * The vertical refinement is applied last and therefore wins only for fields it declares.
+ */
+export function getSceneResponsiveBreakpoints({ width, height }: SceneViewport): readonly SceneResponsiveBreakpointId[] {
+  const widthBreakpoint = width >= 1600
+    ? 'wide'
+    : width >= 1440
+      ? 'desktop'
+      : width >= 1181
+        ? 'compactDesktop'
+        : width >= 1024
+          ? 'narrowDesktop'
+          : null;
+  const heightBreakpoint = width >= 1440 && height <= 700
+    ? 'veryShortDesktop'
+    : width >= 1600 && height <= 920
+      ? 'wideShort'
+      : width >= 1440 && height <= 920
+        ? 'desktopShort'
+        : null;
+  return [widthBreakpoint, heightBreakpoint].filter((value): value is SceneResponsiveBreakpointId => value !== null);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === 'object' && !Array.isArray(value); }
 function validateTransform(value: unknown, path: string, issues: string[], partial: boolean) {
   if (!isRecord(value)) { issues.push(`${path} must be an object.`); return; }
@@ -60,18 +84,14 @@ export function validateSceneDraft(input: unknown): SceneDraftValidation {
   return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues };
 }
 export function getSceneResponsiveBreakpoint({ width, height }: SceneViewport): SceneResponsiveBreakpointId | null {
-  if (width >= 1440 && height <= 700) return 'veryShortDesktop';
-  if (width >= 1600 && height <= 920) return 'wideShort';
-  if (width >= 1440 && height <= 920) return 'desktopShort';
-  if (width >= 1600) return 'wide';
-  if (width >= 1440) return 'desktop';
-  if (width >= 1181) return 'compactDesktop';
-  if (width >= 1024) return 'narrowDesktop';
-  return null;
+  const active = getSceneResponsiveBreakpoints({ width, height });
+  return active.at(-1) ?? null;
 }
 export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport) {
-  const breakpointId = getSceneResponsiveBreakpoint(viewport);
-  return { breakpointId, object: { ...object, ...(breakpointId ? object.responsiveOverrides[breakpointId] : undefined) } };
+  const breakpointIds = getSceneResponsiveBreakpoints(viewport);
+  const resolved = { ...object };
+  for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]);
+  return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, object: resolved };
 }
 function formatNumber(value: number) { return String(Math.round(value * 1000) / 1000); }
 export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport) {

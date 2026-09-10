@@ -349,6 +349,7 @@ export default function Card({
     <div id={id} className={className}>
       <section
         ref={sectionRef}
+        data-scene-safe="content"
         className={`${garamond.className} ${
           isDark ? 'bg-[#2A2A2A]/90 border-white/10' : 'bg-[#FDFCF8] border-[#EBE5DB]'
         } border rounded-2xl p-6 md:p-8 card-paper-shadow editorial-card relative group h-full ${id ? `card-section-${id}` : ''}`}

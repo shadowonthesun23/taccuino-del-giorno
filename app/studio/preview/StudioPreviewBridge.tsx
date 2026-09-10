@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -24,10 +25,20 @@ import {
   type SceneObjectId,
 } from '@/lib/scene-draft';
 import {
+  findSceneCollisions,
+  rectFromDomRect,
+  shouldShowSceneGuide,
+  type SceneCollision,
+  type SceneGuideMode,
+  type SceneRect,
+  type SceneSafeArea,
+} from '@/lib/scene-safe-areas';
+import {
   STUDIO_DRAFT_CHANGE_MESSAGE,
   STUDIO_PREVIEW_MESSAGE,
   STUDIO_RETURN_TO_EDIT_MESSAGE,
   STUDIO_SELECTION_CHANGE_MESSAGE,
+  STUDIO_SCENE_SAFETY_MESSAGE,
   STUDIO_TOGGLE_UI_MESSAGE,
   isSceneMode,
   type StudioPreviewMessage,
@@ -42,6 +53,7 @@ type ObjectRect = {
   height: number;
   rotation: number;
   zIndex: number;
+  visualRect: SceneRect;
 };
 
 type ObjectRects = Partial<Record<SceneObjectId, ObjectRect>>;
@@ -62,6 +74,68 @@ const OBJECT_LABELS: Record<SceneObjectId, string> = {
   'seasonal-fig': 'Fico',
 };
 
+function isSceneSafeAreaCategory(value: string | null): value is SceneSafeArea['category'] {
+  return value === 'content' || value === 'interactive' || value === 'postcard';
+}
+
+function sameSafety(current: readonly SceneSafeArea[], next: readonly SceneSafeArea[]) {
+  return JSON.stringify(current) === JSON.stringify(next);
+}
+
+function useSceneSafeAreas(viewport: { width: number; height: number }) {
+  const [safeAreas, setSafeAreas] = useState<SceneSafeArea[]>([]);
+
+  useEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const next = Array.from(document.querySelectorAll<HTMLElement>('[data-scene-safe]')).flatMap((element, index) => {
+        const category = element.getAttribute('data-scene-safe');
+        const rect = element.getBoundingClientRect();
+        if (!isSceneSafeAreaCategory(category) || rect.width <= 0 || rect.height <= 0 || getComputedStyle(element).display === 'none') return [];
+        return [{ id: `${category}-${index}`, category, rect: rectFromDomRect(rect) }];
+      });
+      setSafeAreas((current) => sameSafety(current, next) ? current : next);
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(measure);
+    };
+    const resizeObserver = new ResizeObserver(schedule);
+    resizeObserver.observe(document.body);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('load', schedule, { once: true });
+    void document.fonts?.ready.then(schedule);
+    schedule();
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('load', schedule);
+    };
+  }, [viewport.height, viewport.width]);
+
+  return safeAreas;
+}
+
+function SceneSafeAreaOverlay({ safeAreas, guideMode, collisions }: { safeAreas: readonly SceneSafeArea[]; guideMode: SceneGuideMode; collisions: readonly SceneCollision[] }) {
+  if (guideMode === 'off') return null;
+  const collisionIds = new Set(collisions.map((collision) => collision.id));
+  return (
+    <div className={styles.safeAreaLayer} aria-hidden="true">
+      {safeAreas.filter((safeArea) => shouldShowSceneGuide(guideMode, safeArea.category)).map((safeArea) => (
+        <div
+          key={safeArea.id}
+          className={`${styles.safeArea} ${collisionIds.has(safeArea.id) ? styles.safeAreaCollision : ''}`}
+          data-studio-safe-area={safeArea.category}
+          style={safeArea.rect}
+        >
+          <span>{safeArea.category}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function sameRects(current: ObjectRects, next: ObjectRects) {
   return JSON.stringify(current) === JSON.stringify(next);
 }
@@ -71,12 +145,14 @@ function SceneObjectEditor({
   selectedObjectId,
   onSelect,
   onPatch,
+  onSelectedRectChange,
   viewport,
 }: {
   draft: SceneDraft;
   selectedObjectId: SceneObjectId;
   onSelect: (objectId: SceneObjectId) => void;
   onPatch: (objectId: SceneObjectId, patch: SceneObjectDraftPatch) => void;
+  onSelectedRectChange: (rect: SceneRect | null) => void;
   viewport: { width: number; height: number };
 }) {
   const [rects, setRects] = useState<ObjectRects>({});
@@ -129,14 +205,20 @@ function SceneObjectEditor({
           height: element.offsetHeight * scale,
           rotation,
           zIndex: Number.parseInt(computed.zIndex, 10) || 1,
+          visualRect: rectFromDomRect(rect),
         };
       }
       setRects((current) => sameRects(current, next) ? current : next);
-      frame = window.requestAnimationFrame(measure);
+      onSelectedRectChange(next[selectedObjectId]?.visualRect ?? null);
+      frame = 0;
     };
     frame = window.requestAnimationFrame(measure);
-    return () => window.cancelAnimationFrame(frame);
-  }, [draft, viewport]);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', measure);
+    };
+  }, [draft, onSelectedRectChange, selectedObjectId, viewport]);
 
   function startDrag(event: ReactPointerEvent<HTMLDivElement>, objectId: SceneObjectId) {
     if (event.button !== 0) return;
@@ -309,7 +391,15 @@ export default function StudioPreviewBridge({
   const [showEditor, setShowEditor] = useState(initialMode === 'edit');
   const [viewportId, setViewportId] = useState<StudioViewportPresetId>(initialViewport);
   const [editingTarget, setEditingTarget] = useState<SceneEditingTarget>({ mode: 'base' });
+  const [guideMode, setGuideMode] = useState<SceneGuideMode>('off');
+  const [selectedRect, setSelectedRect] = useState<SceneRect | null>(null);
   const viewport = getStudioViewportPreset(viewportId);
+  const safeAreas = useSceneSafeAreas(viewport);
+  const selectedObject = resolveSceneObjectForViewport(draft.objects[selectedObjectId], viewport).object;
+  const collisions = useMemo(
+    () => selectedObject.visible ? findSceneCollisions(selectedRect, safeAreas) : [],
+    [safeAreas, selectedObject.visible, selectedRect],
+  );
 
   const sendSelection = useCallback((objectId: SceneObjectId) => {
     setSelectedObjectId(objectId);
@@ -326,6 +416,17 @@ export default function StudioPreviewBridge({
       window.location.origin,
     );
   }, [editingTarget]);
+
+  const handleSelectedRectChange = useCallback((rect: SceneRect | null) => {
+    setSelectedRect((current) => JSON.stringify(current) === JSON.stringify(rect) ? current : rect);
+  }, []);
+
+  useEffect(() => {
+    window.parent.postMessage(
+      { type: STUDIO_SCENE_SAFETY_MESSAGE, safeAreas, collisions },
+      window.location.origin,
+    );
+  }, [collisions, safeAreas]);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -355,6 +456,7 @@ export default function StudioPreviewBridge({
       modeRef.current = candidate.mode;
       setMode(candidate.mode);
       setShowEditor(candidate.showEditor === true && candidate.mode === 'edit');
+      setGuideMode(candidate.guideMode === 'content' || candidate.guideMode === 'interactive' || candidate.guideMode === 'all' ? candidate.guideMode : 'off');
       if (candidate.selectedObjectId && SCENE_OBJECT_IDS.includes(candidate.selectedObjectId)) {
         setSelectedObjectId(candidate.selectedObjectId);
       }
@@ -393,15 +495,8 @@ export default function StudioPreviewBridge({
   return (
     <>
       <NotebookHome sceneDraft={draft} sceneViewport={viewport} />
-      {showEditor && mode === 'edit' ? (
-        <SceneObjectEditor
-          draft={draft}
-          selectedObjectId={selectedObjectId}
-          onSelect={sendSelection}
-          onPatch={applyPatch}
-          viewport={viewport}
-        />
-      ) : null}
+      {showEditor && mode === 'edit' ? <SceneSafeAreaOverlay safeAreas={safeAreas} guideMode={guideMode} collisions={collisions} /> : null}
+      {showEditor && mode === 'edit' ? <SceneObjectEditor draft={draft} selectedObjectId={selectedObjectId} onSelect={sendSelection} onPatch={applyPatch} onSelectedRectChange={handleSelectedRectChange} viewport={viewport} /> : null}
     </>
   );
 }

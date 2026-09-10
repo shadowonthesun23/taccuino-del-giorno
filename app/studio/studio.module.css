@@ -191,6 +191,15 @@
   margin: 0;
 }
 
+.collisionWarning {
+  background: rgba(166, 98, 45, 0.1);
+  border-left: 2px solid #a6622d;
+  color: #7a431e;
+  font: 600 0.72rem/1.45 var(--font-geist-sans), sans-serif;
+  margin: 0;
+  padding: 7px 9px;
+}
+
 .primaryButton,
 .secondaryButton {
   border-radius: 10px;
