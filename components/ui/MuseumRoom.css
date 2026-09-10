@@ -277,7 +277,7 @@
   .museum-bench-foreground {
     position: absolute;
     z-index: 20;
-    bottom: -38px;
+    bottom: -32px;
     left: 50%;
     display: block;
     width: clamp(350px, 27vw, 470px);
