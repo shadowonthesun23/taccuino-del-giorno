@@ -5,27 +5,29 @@ import InkBottleCorner from '@/components/ui/InkBottleCorner';
 import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
 import { HOME_SCENE_BASELINE_V1 } from '@/lib/scene-baseline';
 import { resolveSceneConfig, sceneConfigToCss } from '@/lib/scene-config';
-import { sceneDraftToCss, validateSceneDraft, type SceneDraft } from '@/lib/scene-draft';
+import { resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft, type SceneDraft, type SceneViewport } from '@/lib/scene-draft';
 import type { SeasonId } from '@/lib/seasonal-artwork';
 
 type SceneRendererProps = {
   config?: unknown;
   draft?: SceneDraft;
+  viewport?: SceneViewport;
   isDark: boolean;
   season?: SeasonId;
 };
 
-export default function SceneRenderer({ config, draft, isDark, season }: SceneRendererProps) {
+export default function SceneRenderer({ config, draft, isDark, season, viewport }: SceneRendererProps) {
   const scene = resolveSceneConfig(config, HOME_SCENE_BASELINE_V1);
   const safeDraft = draft && validateSceneDraft(draft).ok ? draft : undefined;
 
   return (
     <>
       <style data-scene-styles={scene.id}>{sceneConfigToCss(scene)}</style>
-      {safeDraft ? <style data-scene-draft={safeDraft.sceneId}>{sceneDraftToCss(safeDraft)}</style> : null}
+      {safeDraft && viewport ? <style data-scene-draft={safeDraft.sceneId}>{sceneDraftToCss(safeDraft, viewport)}</style> : null}
       {scene.objects.map((object) => {
         const objectDraft = safeDraft?.objects[object.id as keyof SceneDraft['objects']];
-        if (!object.visible || objectDraft?.visible === false) return null;
+        const resolvedDraft = objectDraft && viewport ? resolveSceneObjectForViewport(objectDraft, viewport).object : objectDraft;
+        if (!object.visible || resolvedDraft?.visible === false) return null;
 
         const sceneProps = {
           sceneObjectId: object.id,

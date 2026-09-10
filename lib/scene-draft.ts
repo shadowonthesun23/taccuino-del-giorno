@@ -1,98 +1,83 @@
-export const SCENE_DRAFT_SCHEMA_VERSION = 1 as const;
-
+export const SCENE_DRAFT_SCHEMA_VERSION = 2 as const;
 export const SCENE_OBJECT_IDS = ['coffee-cup', 'ink-bottle', 'seasonal-fig'] as const;
-
 export type SceneObjectId = (typeof SCENE_OBJECT_IDS)[number];
+/** Studio offsets are visual screen-space deltas: +X moves right and +Y moves down, regardless of the production anchor. */
+export const SCENE_OBJECT_ANCHORS: Readonly<Record<SceneObjectId, 'left-top' | 'right-bottom'>> = {
+  'coffee-cup': 'left-top',
+  'ink-bottle': 'left-top',
+  'seasonal-fig': 'right-bottom',
+};
+export const SCENE_RESPONSIVE_BREAKPOINT_IDS = ['wide', 'desktop', 'compactDesktop', 'narrowDesktop', 'wideShort', 'desktopShort', 'veryShortDesktop'] as const;
+export type SceneResponsiveBreakpointId = (typeof SCENE_RESPONSIVE_BREAKPOINT_IDS)[number];
+export type SceneViewport = { width: number; height: number };
+export type SceneObjectTransform = { offsetX: number; offsetY: number; scale: number; rotation: number; visible: boolean };
+export type SceneObjectResponsiveOverride = Partial<SceneObjectTransform>;
+export type SceneObjectDraft = SceneObjectTransform & { locked: boolean; responsiveOverrides: Partial<Record<SceneResponsiveBreakpointId, SceneObjectResponsiveOverride>> };
+export type SceneDraft = { schemaVersion: typeof SCENE_DRAFT_SCHEMA_VERSION; sceneId: 'home'; objects: Record<SceneObjectId, SceneObjectDraft> };
+export type SceneObjectDraftPatch = Partial<Omit<SceneObjectDraft, 'responsiveOverrides'>>;
+export type SceneDraftValidation = { ok: true; value: SceneDraft } | { ok: false; issues: readonly string[] };
 
-export type SceneObjectDraft = {
-  x: number;
-  y: number;
-  scale: number;
-  rotation: number;
-  locked: boolean;
-  visible: boolean;
+export const SCENE_DRAFT_TRANSFORM_BOUNDS = { offsetX: [-4000, 4000], offsetY: [-4000, 4000], scale: [0.1, 4], rotation: [-360, 360] } as const;
+export const SCENE_RESPONSIVE_BREAKPOINTS: Readonly<Record<SceneResponsiveBreakpointId, string>> = {
+  wide: '≥1600 px', desktop: '1440–1599 px', compactDesktop: '1181–1439 px', narrowDesktop: '1024–1180 px',
+  wideShort: '≥1600 px · ≤920 px h', desktopShort: '1440–1599 px · ≤920 px h', veryShortDesktop: '≥1440 px · ≤700 px h',
 };
 
-export type SceneDraft = {
-  schemaVersion: typeof SCENE_DRAFT_SCHEMA_VERSION;
-  sceneId: 'home';
-  objects: Record<SceneObjectId, SceneObjectDraft>;
-};
-
-export type SceneObjectDraftPatch = Partial<SceneObjectDraft>;
-
-export type SceneDraftValidation =
-  | { ok: true; value: SceneDraft }
-  | { ok: false; issues: readonly string[] };
-
-export const SCENE_DRAFT_TRANSFORM_BOUNDS = {
-  x: [-4000, 4000],
-  y: [-4000, 4000],
-  scale: [0.1, 4],
-  rotation: [-360, 360],
-} as const;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function validateObjectDraft(value: unknown, path: string, issues: string[]) {
-  if (!isRecord(value)) {
-    issues.push(`${path} must be an object.`);
-    return;
-  }
-
+function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === 'object' && !Array.isArray(value); }
+function validateTransform(value: unknown, path: string, issues: string[], partial: boolean) {
+  if (!isRecord(value)) { issues.push(`${path} must be an object.`); return; }
   for (const [key, [min, max]] of Object.entries(SCENE_DRAFT_TRANSFORM_BOUNDS)) {
     const current = value[key];
-    if (typeof current !== 'number' || !Number.isFinite(current) || current < min || current > max) {
-      issues.push(`${path}.${key} must be between ${min} and ${max}.`);
+    if (partial && current === undefined) continue;
+    if (typeof current !== 'number' || !Number.isFinite(current) || current < min || current > max) issues.push(`${path}.${key} must be between ${min} and ${max}.`);
+  }
+  if ((!partial || value.visible !== undefined) && typeof value.visible !== 'boolean') issues.push(`${path}.visible must be boolean.`);
+  const allowed = new Set(partial ? ['offsetX', 'offsetY', 'scale', 'rotation', 'visible'] : ['offsetX', 'offsetY', 'scale', 'rotation', 'visible', 'locked', 'responsiveOverrides']);
+  for (const key of Object.keys(value)) if (!allowed.has(key)) issues.push(`${path}.${key} is unsupported.`);
+}
+function validateObjectDraft(value: unknown, path: string, issues: string[]) {
+  if (!isRecord(value)) { issues.push(`${path} must be an object.`); return; }
+  validateTransform(value, path, issues, false);
+  if (typeof value.locked !== 'boolean') issues.push(`${path}.locked must be boolean.`);
+  if (!isRecord(value.responsiveOverrides)) issues.push(`${path}.responsiveOverrides must be an object.`);
+  else {
+    const allowed = new Set<string>(SCENE_RESPONSIVE_BREAKPOINT_IDS);
+    for (const [id, override] of Object.entries(value.responsiveOverrides)) {
+      if (!allowed.has(id)) issues.push(`${path}.responsiveOverrides.${id} is unsupported.`);
+      else validateTransform(override, `${path}.responsiveOverrides.${id}`, issues, true);
     }
   }
-
-  if (typeof value.locked !== 'boolean') issues.push(`${path}.locked must be boolean.`);
-  if (typeof value.visible !== 'boolean') issues.push(`${path}.visible must be boolean.`);
-
-  const allowedKeys = new Set(['x', 'y', 'scale', 'rotation', 'locked', 'visible']);
-  for (const key of Object.keys(value)) {
-    if (!allowedKeys.has(key)) issues.push(`${path}.${key} is unsupported.`);
-  }
+  const allowed = new Set(['offsetX', 'offsetY', 'scale', 'rotation', 'visible', 'locked', 'responsiveOverrides']);
+  for (const key of Object.keys(value)) if (!allowed.has(key)) issues.push(`${path}.${key} is unsupported.`);
 }
-
 export function validateSceneDraft(input: unknown): SceneDraftValidation {
   const issues: string[] = [];
   if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] };
-
-  if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 1.');
+  if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 2.');
   if (input.sceneId !== 'home') issues.push('sceneId must be home.');
-  if (!isRecord(input.objects)) {
-    issues.push('objects must be an object.');
-  } else {
-    const allowedIds = new Set<string>(SCENE_OBJECT_IDS);
-    for (const id of SCENE_OBJECT_IDS) validateObjectDraft(input.objects[id], `objects.${id}`, issues);
-    for (const id of Object.keys(input.objects)) {
-      if (!allowedIds.has(id)) issues.push(`objects.${id} is unsupported.`);
-    }
-  }
-
-  return issues.length === 0
-    ? { ok: true, value: input as SceneDraft }
-    : { ok: false, issues };
+  if (!isRecord(input.objects)) issues.push('objects must be an object.');
+  else { const allowed = new Set<string>(SCENE_OBJECT_IDS); for (const id of SCENE_OBJECT_IDS) validateObjectDraft(input.objects[id], `objects.${id}`, issues); for (const id of Object.keys(input.objects)) if (!allowed.has(id)) issues.push(`objects.${id} is unsupported.`); }
+  return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues };
 }
-
-function formatNumber(value: number) {
-  return String(Math.round(value * 1000) / 1000);
+export function getSceneResponsiveBreakpoint({ width, height }: SceneViewport): SceneResponsiveBreakpointId | null {
+  if (width >= 1440 && height <= 700) return 'veryShortDesktop';
+  if (width >= 1600 && height <= 920) return 'wideShort';
+  if (width >= 1440 && height <= 920) return 'desktopShort';
+  if (width >= 1600) return 'wide';
+  if (width >= 1440) return 'desktop';
+  if (width >= 1181) return 'compactDesktop';
+  if (width >= 1024) return 'narrowDesktop';
+  return null;
 }
-
-export function sceneDraftToCss(draft: SceneDraft) {
+export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport) {
+  const breakpointId = getSceneResponsiveBreakpoint(viewport);
+  return { breakpointId, object: { ...object, ...(breakpointId ? object.responsiveOverrides[breakpointId] : undefined) } };
+}
+function formatNumber(value: number) { return String(Math.round(value * 1000) / 1000); }
+export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport) {
   return SCENE_OBJECT_IDS.map((id) => {
-    const object = draft.objects[id];
-    const selector = `[data-scene-object="${id}"]`;
-    const declarations = [
-      `translate: ${formatNumber(object.x)}px ${formatNumber(object.y)}px`,
-      `--scene-object-scale: ${formatNumber(object.scale)}`,
-      `--scene-object-rotation: ${formatNumber(object.rotation)}deg`,
-      object.visible ? null : 'display: none !important',
-    ].filter((value): value is string => Boolean(value));
-    return `${selector} { ${declarations.join('; ')}; }`;
+    const object = resolveSceneObjectForViewport(draft.objects[id], viewport).object;
+    const declarations = [`translate: ${formatNumber(object.offsetX)}px ${formatNumber(object.offsetY)}px`, `--scene-object-scale: ${formatNumber(object.scale)}`, `--scene-object-rotation: ${formatNumber(object.rotation)}deg`, object.visible ? null : 'display: none !important'].filter((value): value is string => Boolean(value));
+    return `[data-scene-object="${id}"] { ${declarations.join('; ')}; }`;
   }).join('\n');
 }

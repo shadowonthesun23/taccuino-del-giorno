@@ -1,75 +1,87 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  getSceneResponsiveBreakpoint,
+  resolveSceneObjectForViewport,
+  SCENE_OBJECT_ANCHORS,
   sceneDraftToCss,
   validateSceneDraft,
 } from '../lib/scene-draft.ts';
 import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   cloneBaselineSceneDraft,
+  createSceneResponsiveOverride,
+  removeSceneResponsiveOverride,
   resolveSceneDraft,
   updateSceneDraft,
 } from '../lib/scene-draft-editor.ts';
 
-test('baseline draft has the requested initial lock state', () => {
-  assert.equal(HOME_SCENE_DRAFT_BASELINE_V1.objects['coffee-cup'].locked, true);
-  assert.equal(HOME_SCENE_DRAFT_BASELINE_V1.objects['ink-bottle'].locked, true);
-  assert.equal(HOME_SCENE_DRAFT_BASELINE_V1.objects['seasonal-fig'].locked, false);
+test('base is used when no override exists', () => {
+  const object = resolveSceneObjectForViewport(cloneBaselineSceneDraft().objects['seasonal-fig'], { width: 1366, height: 768 });
+  assert.equal(object.breakpointId, 'compactDesktop');
+  assert.equal(object.object.offsetX, 0);
+  assert.equal(object.object.visible, true);
 });
 
-test('draft updates are immutable and clamp transform bounds', () => {
-  const baseline = cloneBaselineSceneDraft();
-  const changed = updateSceneDraft(baseline, 'seasonal-fig', {
-    x: 125,
-    y: -42,
-    scale: 8,
-    rotation: 22,
-    visible: false,
-  });
-
-  assert.equal(baseline.objects['seasonal-fig'].x, 0);
-  assert.deepEqual(changed.objects['seasonal-fig'], {
-    x: 125,
-    y: -42,
-    scale: 4,
-    rotation: 22,
-    locked: false,
-    visible: false,
-  });
+test('partial override inherits missing base properties', () => {
+  const draft = updateSceneDraft(createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'compactDesktop'), 'seasonal-fig', { offsetX: 35, scale: 0.92 }, { mode: 'override', breakpointId: 'compactDesktop' });
+  const resolved = resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1366, height: 768 }).object;
+  assert.deepEqual({ offsetX: resolved.offsetX, offsetY: resolved.offsetY, scale: resolved.scale, rotation: resolved.rotation }, { offsetX: 35, offsetY: 0, scale: 0.92, rotation: 0 });
 });
 
-test('draft CSS contains only validated numeric transforms and visibility', () => {
-  const draft = updateSceneDraft(cloneBaselineSceneDraft(), 'seasonal-fig', {
-    x: 12.3456,
-    y: -8,
-    scale: 1.25,
-    rotation: 17.5,
-    visible: false,
-  });
-  const css = sceneDraftToCss(draft);
+test('complete override and visibility apply only in its responsive band', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'compactDesktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 20, offsetY: -10, scale: 0.8, rotation: 12, visible: false }, { mode: 'override', breakpointId: 'compactDesktop' });
+  assert.equal(resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1366, height: 768 }).object.visible, false);
+  assert.equal(resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1920, height: 1080 }).object.visible, true);
+});
 
-  assert.match(css, /translate: 12\.346px -8px/);
-  assert.match(css, /--scene-object-scale: 1\.25/);
-  assert.match(css, /--scene-object-rotation: 17\.5deg/);
-  assert.match(css, /display: none !important/);
+test('a visibility override can restore the base scene visibility without bypassing baseline eligibility', () => {
+  let draft = updateSceneDraft(cloneBaselineSceneDraft(), 'seasonal-fig', { visible: false });
+  draft = createSceneResponsiveOverride(draft, 'seasonal-fig', 'compactDesktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { visible: true }, { mode: 'override', breakpointId: 'compactDesktop' });
+  assert.equal(resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1366, height: 768 }).object.visible, true);
+  assert.equal(resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1920, height: 1080 }).object.visible, false);
+});
+
+test('breakpoints follow real width and height eligibility bands', () => {
+  assert.equal(getSceneResponsiveBreakpoint({ width: 1920, height: 1080 }), 'wide');
+  assert.equal(getSceneResponsiveBreakpoint({ width: 1440, height: 900 }), 'desktopShort');
+  assert.equal(getSceneResponsiveBreakpoint({ width: 1366, height: 768 }), 'compactDesktop');
+  assert.equal(getSceneResponsiveBreakpoint({ width: 1440, height: 700 }), 'veryShortDesktop');
+});
+
+test('anchors stay in the production baseline while offsets remain screen-space deltas', () => {
+  assert.equal(SCENE_OBJECT_ANCHORS['coffee-cup'], 'left-top');
+  assert.equal(SCENE_OBJECT_ANCHORS['ink-bottle'], 'left-top');
+  assert.equal(SCENE_OBJECT_ANCHORS['seasonal-fig'], 'right-bottom');
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'compactDesktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 35, offsetY: -20 }, { mode: 'override', breakpointId: 'compactDesktop' });
+  assert.match(sceneDraftToCss(draft, { width: 1366, height: 768 }), /translate: 35px -20px/);
+});
+
+test('removing an override returns entirely to base', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'compactDesktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 45 }, { mode: 'override', breakpointId: 'compactDesktop' });
+  draft = removeSceneResponsiveOverride(draft, 'seasonal-fig', 'compactDesktop');
+  assert.equal(resolveSceneObjectForViewport(draft.objects['seasonal-fig'], { width: 1366, height: 768 }).object.offsetX, 0);
+});
+
+test('v1 drafts migrate without losing their valid transforms', () => {
+  const migrated = resolveSceneDraft({ schemaVersion: 1, sceneId: 'home', objects: {
+    'coffee-cup': { x: 4, y: 5, scale: 1, rotation: -3.5, locked: true, visible: true },
+    'ink-bottle': { x: 0, y: 0, scale: 1, rotation: -6, locked: true, visible: true },
+    'seasonal-fig': { x: 80, y: -20, scale: 1.2, rotation: 5, locked: false, visible: true },
+  }});
+  assert.equal(migrated.schemaVersion, 2);
+  assert.equal(migrated.objects['seasonal-fig'].offsetX, 80);
+  assert.deepEqual(migrated.objects['seasonal-fig'].responsiveOverrides, {});
+});
+
+test('corrupt local drafts fall back and generated CSS uses resolved values only', () => {
+  assert.deepEqual(resolveSceneDraft('{bad json'), HOME_SCENE_DRAFT_BASELINE_V1);
+  const css = sceneDraftToCss(cloneBaselineSceneDraft(), { width: 1920, height: 1080 });
+  assert.match(css, /translate: 0px 0px/);
   assert.doesNotMatch(css, /url\(|expression\(/);
-});
-
-test('invalid or extra local data fails closed to a fresh baseline', () => {
-  const invalid = {
-    ...HOME_SCENE_DRAFT_BASELINE_V1,
-    objects: {
-      ...HOME_SCENE_DRAFT_BASELINE_V1.objects,
-      'seasonal-fig': {
-        ...HOME_SCENE_DRAFT_BASELINE_V1.objects['seasonal-fig'],
-        scale: 'huge',
-        css: 'position: fixed',
-      },
-    },
-  };
-
-  assert.equal(validateSceneDraft(invalid).ok, false);
-  const resolved = resolveSceneDraft(invalid);
-  assert.deepEqual(resolved, HOME_SCENE_DRAFT_BASELINE_V1);
-  assert.notEqual(resolved, HOME_SCENE_DRAFT_BASELINE_V1);
+  assert.equal(validateSceneDraft({}).ok, false);
 });

@@ -1,5 +1,6 @@
 import type { SceneMode } from './scene-config';
 import type { SceneObjectDraftPatch, SceneObjectId } from './scene-draft';
+import type { SceneEditingTarget } from './scene-draft-editor';
 import type { StudioViewportPresetId } from './studio-viewport';
 
 export const STUDIO_PREVIEW_MESSAGE = 'day-atlas:studio-preview' as const;
@@ -14,6 +15,7 @@ export type StudioPreviewMessage = {
   viewport: StudioViewportPresetId;
   sceneDraft?: unknown;
   selectedObjectId?: SceneObjectId;
+  editingTarget?: SceneEditingTarget;
   showEditor?: boolean;
 };
 
@@ -21,6 +23,7 @@ export type StudioDraftChangeMessage = {
   type: typeof STUDIO_DRAFT_CHANGE_MESSAGE;
   objectId: SceneObjectId;
   patch: SceneObjectDraftPatch;
+  editingTarget?: SceneEditingTarget;
 };
 
 export function isSceneMode(value: unknown): value is SceneMode {

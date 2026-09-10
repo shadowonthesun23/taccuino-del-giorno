@@ -41,7 +41,7 @@ import { getWordSocialCardLayout } from '@/app/lib/wordCardDesign';
 import { normalizeBibleReference } from '@/app/lib/readingCardDesign';
 import { useTheme } from './ThemeProvider';
 import type { EditorialMediaCrops, EditorialMediaOverrides } from '@/lib/editorial-media';
-import type { SceneDraft } from '@/lib/scene-draft';
+import type { SceneDraft, SceneViewport } from '@/lib/scene-draft';
 import {
   DEFAULT_EDITORIAL_MEDIA_CROP,
   getEditorialMediaCropImageStyle,
@@ -392,9 +392,11 @@ function ThemeModeSelector({
 export default function Home({
   initialLang = 'IT',
   sceneDraft,
+  sceneViewport,
 }: {
   initialLang?: LanguageCode;
   sceneDraft?: SceneDraft;
+  sceneViewport?: SceneViewport;
 }) {
   const { themeMode, isDark, setThemeMode } = useTheme();
   const [data, setData] = useState<DatiTaccuino | null>(null);
@@ -1361,7 +1363,7 @@ export default function Home({
   return (
     <>
       {loadingScreen}
-      <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className} language={lingua} sealColor={currentSealColor} sceneDraft={sceneDraft}>
+      <ParallaxBackground season={season} dataIso={dataExLibris} showEspresso captionClassName={garamond.className} language={lingua} sealColor={currentSealColor} sceneDraft={sceneDraft} sceneViewport={sceneViewport}>
       <div
         className={`journal-material journal-material-${season} min-h-screen overflow-x-clip bg-transparent ${themeClasses.text} ${garamond.className} pt-6 md:pt-7 pb-0 px-4 md:px-8 ${themeClasses.selection} relative transition-colors duration-300`}
         style={{

@@ -13,9 +13,12 @@ import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   resolveSceneDraft,
   updateSceneDraft,
+  type SceneEditingTarget,
 } from '@/lib/scene-draft-editor';
 import {
   SCENE_OBJECT_IDS,
+  SCENE_RESPONSIVE_BREAKPOINT_IDS,
+  resolveSceneObjectForViewport,
   type SceneDraft,
   type SceneObjectDraftPatch,
   type SceneObjectId,
@@ -43,6 +46,16 @@ type ObjectRect = {
 
 type ObjectRects = Partial<Record<SceneObjectId, ObjectRect>>;
 
+function isSceneEditingTarget(value: unknown): value is SceneEditingTarget {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return candidate.mode === 'base' || (
+    candidate.mode === 'override'
+    && typeof candidate.breakpointId === 'string'
+    && SCENE_RESPONSIVE_BREAKPOINT_IDS.includes(candidate.breakpointId as (typeof SCENE_RESPONSIVE_BREAKPOINT_IDS)[number])
+  );
+}
+
 const OBJECT_LABELS: Record<SceneObjectId, string> = {
   'coffee-cup': 'Tazza',
   'ink-bottle': 'Boccetta',
@@ -58,11 +71,13 @@ function SceneObjectEditor({
   selectedObjectId,
   onSelect,
   onPatch,
+  viewport,
 }: {
   draft: SceneDraft;
   selectedObjectId: SceneObjectId;
   onSelect: (objectId: SceneObjectId) => void;
   onPatch: (objectId: SceneObjectId, patch: SceneObjectDraftPatch) => void;
+  viewport: { width: number; height: number };
 }) {
   const [rects, setRects] = useState<ObjectRects>({});
   const interactionRef = useRef<
@@ -121,12 +136,12 @@ function SceneObjectEditor({
     };
     frame = window.requestAnimationFrame(measure);
     return () => window.cancelAnimationFrame(frame);
-  }, [draft]);
+  }, [draft, viewport]);
 
   function startDrag(event: ReactPointerEvent<HTMLDivElement>, objectId: SceneObjectId) {
     if (event.button !== 0) return;
     onSelect(objectId);
-    const object = draft.objects[objectId];
+    const object = resolveSceneObjectForViewport(draft.objects[objectId], viewport).object;
     if (object.locked) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -136,8 +151,8 @@ function SceneObjectEditor({
       objectId,
       startX: event.clientX,
       startY: event.clientY,
-      originX: object.x,
-      originY: object.y,
+      originX: object.offsetX,
+      originY: object.offsetY,
     };
   }
 
@@ -154,7 +169,7 @@ function SceneObjectEditor({
       centerX: rect.centerX,
       centerY: rect.centerY,
       startDistance: Math.max(1, Math.hypot(event.clientX - rect.centerX, event.clientY - rect.centerY)),
-      originScale: draft.objects[objectId].scale,
+      originScale: resolveSceneObjectForViewport(draft.objects[objectId], viewport).object.scale,
     };
   }
 
@@ -171,7 +186,7 @@ function SceneObjectEditor({
       centerX: rect.centerX,
       centerY: rect.centerY,
       startAngle: Math.atan2(event.clientY - rect.centerY, event.clientX - rect.centerX),
-      originRotation: draft.objects[objectId].rotation,
+      originRotation: resolveSceneObjectForViewport(draft.objects[objectId], viewport).object.rotation,
     };
   }
 
@@ -180,8 +195,8 @@ function SceneObjectEditor({
     if (!interaction || interaction.pointerId !== event.pointerId) return;
     if (interaction.kind === 'drag') {
       onPatch(interaction.objectId, {
-        x: interaction.originX + event.clientX - interaction.startX,
-        y: interaction.originY + event.clientY - interaction.startY,
+        offsetX: interaction.originX + event.clientX - interaction.startX,
+        offsetY: interaction.originY + event.clientY - interaction.startY,
       });
       return;
     }
@@ -214,7 +229,7 @@ function SceneObjectEditor({
     <div className={styles.editorLayer} data-studio-editor-layer="true">
       {SCENE_OBJECT_IDS.map((objectId) => {
         const rect = rects[objectId];
-        const object = draft.objects[objectId];
+        const object = resolveSceneObjectForViewport(draft.objects[objectId], viewport).object;
         if (!rect || !object.visible) return null;
         const selected = selectedObjectId === objectId;
         return (
@@ -292,6 +307,9 @@ export default function StudioPreviewBridge({
   const [draft, setDraft] = useState<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
   const [selectedObjectId, setSelectedObjectId] = useState<SceneObjectId>('seasonal-fig');
   const [showEditor, setShowEditor] = useState(initialMode === 'edit');
+  const [viewportId, setViewportId] = useState<StudioViewportPresetId>(initialViewport);
+  const [editingTarget, setEditingTarget] = useState<SceneEditingTarget>({ mode: 'base' });
+  const viewport = getStudioViewportPreset(viewportId);
 
   const sendSelection = useCallback((objectId: SceneObjectId) => {
     setSelectedObjectId(objectId);
@@ -302,12 +320,12 @@ export default function StudioPreviewBridge({
   }, []);
 
   const applyPatch = useCallback((objectId: SceneObjectId, patch: SceneObjectDraftPatch) => {
-    setDraft((current) => updateSceneDraft(current, objectId, patch));
+    setDraft((current) => updateSceneDraft(current, objectId, patch, editingTarget));
     window.parent.postMessage(
-      { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch },
+      { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch, editingTarget },
       window.location.origin,
     );
-  }, []);
+  }, [editingTarget]);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -333,12 +351,14 @@ export default function StudioPreviewBridge({
       if (candidate.type !== STUDIO_PREVIEW_MESSAGE || !isSceneMode(candidate.mode)) return;
       const viewport = getStudioViewportPreset(candidate.viewport);
       applyEnvironment(candidate.mode, viewport.id);
+      setViewportId(viewport.id);
       modeRef.current = candidate.mode;
       setMode(candidate.mode);
       setShowEditor(candidate.showEditor === true && candidate.mode === 'edit');
       if (candidate.selectedObjectId && SCENE_OBJECT_IDS.includes(candidate.selectedObjectId)) {
         setSelectedObjectId(candidate.selectedObjectId);
       }
+      if (isSceneEditingTarget(candidate.editingTarget)) setEditingTarget(candidate.editingTarget);
       if (candidate.sceneDraft !== undefined) setDraft(resolveSceneDraft(candidate.sceneDraft));
     };
 
@@ -372,13 +392,14 @@ export default function StudioPreviewBridge({
 
   return (
     <>
-      <NotebookHome sceneDraft={draft} />
+      <NotebookHome sceneDraft={draft} sceneViewport={viewport} />
       {showEditor && mode === 'edit' ? (
         <SceneObjectEditor
           draft={draft}
           selectedObjectId={selectedObjectId}
           onSelect={sendSelection}
           onPatch={applyPatch}
+          viewport={viewport}
         />
       ) : null}
     </>
