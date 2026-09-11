@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getSceneObject, getSceneObjectResponsiveState, getScenePresetOverrideId, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
-import { cloneBaselineSceneDraft, createScenePresetOverride, createSceneResponsiveOverride, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
+import { cloneBaselineSceneDraft, createScenePresetOverride, createSceneResponsiveOverride, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, resolveSceneDraftStrict, updateSceneDraft } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
 const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {}, presetOverrides: {} };
@@ -142,4 +142,14 @@ test('corrupt drafts fall back to the baseline safely', () => {
   const draft = resolveSceneDraft('{bad json');
   assert.equal(draft.objects.length, 3);
   assert.equal(validateSceneDraft({}).ok, false);
+});
+
+test('strict historical resolver migrates legacy snapshots without baseline fallback', () => {
+  const current = cloneBaselineSceneDraft();
+  assert.equal(resolveSceneDraftStrict(current)?.schemaVersion, 5);
+  const legacy = { ...current, schemaVersion: 4, objects: current.objects.map((object) => ({ ...object, presetOverrides: undefined })) };
+  const migrated = resolveSceneDraftStrict(legacy);
+  assert.equal(migrated?.schemaVersion, 5);
+  assert.equal(migrated?.objects[2].id, 'seasonal-fig');
+  assert.equal(resolveSceneDraftStrict({ schemaVersion: 4, sceneId: 'home', objects: [] }), null);
 });
