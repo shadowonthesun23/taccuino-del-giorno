@@ -858,7 +858,7 @@ export default function DailyPostcard({
     </aside>
       {mobileExportFace && typeof document !== 'undefined' ? createPortal(
         <div
-          className="daily-postcard-mobile-export-source"
+          className={`${garamond.className} daily-postcard-mobile-export-source`}
           aria-hidden="true"
           style={{
             '--postcard-paper': '#f0e6d4',
