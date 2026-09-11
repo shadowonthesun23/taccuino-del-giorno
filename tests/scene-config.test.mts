@@ -25,6 +25,9 @@ test('baseline compiles only numeric scene data into responsive CSS', () => {
   assert.match(css, /@media \(min-width: 1440px\) and \(max-height: 920px\)/);
   assert.match(css, /bottom: clamp\(1\.4rem, 4\.6vh, 3\.6rem\)/);
   assert.doesNotMatch(css, /summer-herbarium|url\(|expression\(/);
+  const figRule = css.slice(css.indexOf('[data-scene-object="seasonal-fig"]'));
+  assert.match(figRule, /opacity: 1/);
+  assert.doesNotMatch(figRule, /opacity: 0\.62/);
 });
 
 test('typed lengths reproduce the production clamp and calc formulas', () => {

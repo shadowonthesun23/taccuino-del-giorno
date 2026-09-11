@@ -130,8 +130,8 @@ export const HOME_SCENE_BASELINE_V1 = {
         scale: 1,
         rotation: 0,
         zIndex: 4,
-        opacity: 0.82,
-        darkModeOpacity: 0.62,
+        opacity: 1,
+        darkModeOpacity: 1,
       },
       responsive: {
         width: [
