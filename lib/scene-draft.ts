@@ -1,4 +1,4 @@
-export const SCENE_DRAFT_SCHEMA_VERSION = 3 as const;
+export const SCENE_DRAFT_SCHEMA_VERSION = 4 as const;
 export type SceneObjectId = string;
 export type SceneObjectRendererType = 'image' | 'coffeeCup';
 export type SceneAssetReference = { source: 'bundled'; path: string; darkPath?: string } | { source: 'storage'; path: string };
@@ -12,17 +12,17 @@ export type SceneObjectTransform = { offsetX: number; offsetY: number; scale: nu
 export type SceneObjectResponsiveOverride = Partial<SceneObjectTransform>;
 export type SceneObjectDraft = SceneObjectTransform & {
   id: SceneObjectId; name: string; rendererType: SceneObjectRendererType; asset: SceneAssetReference;
-  anchorX: SceneAnchorX; anchorY: SceneAnchorY; zIndex: number; locked: boolean;
+  anchorX: SceneAnchorX; anchorY: SceneAnchorY; zIndex: number; locked: boolean; availability: 'permanent' | 'seasonal';
   responsiveOverrides: Partial<Record<SceneResponsiveBreakpointId, SceneObjectResponsiveOverride>>;
-  seasonal?: { activeFrom: string; activeUntil: string; activation: 'metadata-only' | 'calendar'; legacySeason?: 'spring' | 'summer' | 'autumn' | 'winter' };
+  seasonal?: { activeFrom: string; activeUntil: string };
 };
 export type SceneDraft = { schemaVersion: typeof SCENE_DRAFT_SCHEMA_VERSION; sceneId: 'home'; objects: SceneObjectDraft[] };
-export type SceneObjectDraftPatch = Partial<Pick<SceneObjectDraft, 'offsetX' | 'offsetY' | 'scale' | 'rotation' | 'visible' | 'locked'>>;
+export type SceneObjectDraftPatch = Partial<Pick<SceneObjectDraft, 'offsetX' | 'offsetY' | 'scale' | 'rotation' | 'visible' | 'locked' | 'zIndex' | 'availability' | 'seasonal'>>;
 export type SceneDraftValidation = { ok: true; value: SceneDraft } | { ok: false; issues: readonly string[] };
 export const SCENE_DRAFT_TRANSFORM_BOUNDS = { offsetX: [-4000, 4000], offsetY: [-4000, 4000], scale: [0.1, 4], rotation: [-360, 360] } as const;
 export const SCENE_RESPONSIVE_BREAKPOINTS: Readonly<Record<SceneResponsiveBreakpointId, string>> = { wide: '≥1600 px', desktop: '1440–1599 px', compactDesktop: '1181–1439 px', narrowDesktop: '1024–1180 px', wideShort: '≥1600 px · ≤920 px h', desktopShort: '1440–1599 px · ≤920 px h', veryShortDesktop: '≥1440 px · ≤700 px h' };
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
-const STORAGE_PATH_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9/_-]{0,511}$/;
+const STORAGE_PATH_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9/_.-]{0,511}$/;
 export function isSceneObjectId(value: unknown): value is SceneObjectId { return typeof value === 'string' && ID_PATTERN.test(value); }
 export function getSceneObject(draft: SceneDraft, id: SceneObjectId) { return draft.objects.find((object) => object.id === id); }
 export function sceneObjectIds(draft: SceneDraft) { return draft.objects.map((object) => object.id); }
@@ -44,13 +44,18 @@ function validateObjectDraft(value: unknown, path: string, issues: string[]) {
   validateAsset(value.asset, `${path}.asset`, issues);
   if (value.anchorX !== 'left' && value.anchorX !== 'right') issues.push(`${path}.anchorX is unsupported.`);
   if (value.anchorY !== 'top' && value.anchorY !== 'bottom') issues.push(`${path}.anchorY is unsupported.`);
-  if (typeof value.zIndex !== 'number' || !Number.isFinite(value.zIndex) || value.zIndex < -100 || value.zIndex > 1000) issues.push(`${path}.zIndex is invalid.`);
+  if (!Number.isInteger(value.zIndex) || (value.zIndex as number) < 1 || (value.zIndex as number) > 9) issues.push(`${path}.zIndex must be an integer between 1 and 9.`);
   if (typeof value.locked !== 'boolean') issues.push(`${path}.locked must be boolean.`);
+  if (value.availability !== 'permanent' && value.availability !== 'seasonal') issues.push(`${path}.availability is unsupported.`);
   if (!isRecord(value.responsiveOverrides)) issues.push(`${path}.responsiveOverrides must be an object.`); else for (const [id, override] of Object.entries(value.responsiveOverrides)) { if (!(SCENE_RESPONSIVE_BREAKPOINT_IDS as readonly string[]).includes(id)) issues.push(`${path}.responsiveOverrides.${id} is unsupported.`); else validateTransform(override, `${path}.responsiveOverrides.${id}`, issues, true); }
-  const allowed = new Set(['id', 'name', 'rendererType', 'asset', 'anchorX', 'anchorY', 'zIndex', 'offsetX', 'offsetY', 'scale', 'rotation', 'visible', 'locked', 'responsiveOverrides', 'seasonal']); for (const key of Object.keys(value)) if (!allowed.has(key)) issues.push(`${path}.${key} is unsupported.`);
+  if (value.availability === 'seasonal') {
+    if (!isRecord(value.seasonal) || !isMonthDay(value.seasonal.activeFrom) || !isMonthDay(value.seasonal.activeUntil)) issues.push(`${path}.seasonal must contain valid MM-DD dates.`);
+  } else if (value.seasonal !== undefined) issues.push(`${path}.seasonal is only supported for seasonal objects.`);
+  const allowed = new Set(['id', 'name', 'rendererType', 'asset', 'anchorX', 'anchorY', 'zIndex', 'offsetX', 'offsetY', 'scale', 'rotation', 'visible', 'locked', 'availability', 'responsiveOverrides', 'seasonal']); for (const key of Object.keys(value)) if (!allowed.has(key)) issues.push(`${path}.${key} is unsupported.`);
 }
-export function validateSceneDraft(input: unknown): SceneDraftValidation { const issues: string[] = []; if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] }; if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 3.'); if (input.sceneId !== 'home') issues.push('sceneId must be home.'); if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 32) issues.push('objects must contain between one and thirty-two entries.'); else { const ids = new Set<string>(); input.objects.forEach((object, index) => { validateObjectDraft(object, `objects[${index}]`, issues); if (isRecord(object) && isSceneObjectId(object.id)) { if (ids.has(object.id)) issues.push(`objects[${index}].id must be unique.`); ids.add(object.id); } }); } return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues }; }
+function isMonthDay(value: unknown) { if (typeof value !== 'string' || !/^\d{2}-\d{2}$/.test(value)) return false; const [month, day] = value.split('-').map(Number); const date = new Date(Date.UTC(2000, month - 1, day)); return date.getUTCMonth() === month - 1 && date.getUTCDate() === day; }
+export function validateSceneDraft(input: unknown): SceneDraftValidation { const issues: string[] = []; if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] }; if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 4.'); if (input.sceneId !== 'home') issues.push('sceneId must be home.'); if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 32) issues.push('objects must contain between one and thirty-two entries.'); else { const ids = new Set<string>(); input.objects.forEach((object, index) => { validateObjectDraft(object, `objects[${index}]`, issues); if (isRecord(object) && isSceneObjectId(object.id)) { if (ids.has(object.id)) issues.push(`objects[${index}].id must be unique.`); ids.add(object.id); } }); } return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues }; }
 export function getSceneResponsiveBreakpoint(viewport: SceneViewport): SceneResponsiveBreakpointId | null { return getSceneResponsiveBreakpoints(viewport).at(-1) ?? null; }
 export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport) { const breakpointIds = getSceneResponsiveBreakpoints(viewport); const resolved = { ...object }; for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]); return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, object: resolved }; }
 function formatNumber(value: number) { return String(Math.round(value * 1000) / 1000); }
-export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport) { return draft.objects.map((entry) => { const object = resolveSceneObjectForViewport(entry, viewport).object; const declarations = [`translate: ${formatNumber(object.offsetX)}px ${formatNumber(object.offsetY)}px`, `--scene-object-scale: ${formatNumber(object.scale)}`, `--scene-object-rotation: ${formatNumber(object.rotation)}deg`, object.visible ? null : 'display: none !important'].filter((value): value is string => Boolean(value)); return `[data-scene-object="${object.id}"] { ${declarations.join('; ')}; }`; }).join('\n'); }
+export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport) { return draft.objects.map((entry) => { const object = resolveSceneObjectForViewport(entry, viewport).object; const declarations = [`translate: ${formatNumber(object.offsetX)}px ${formatNumber(object.offsetY)}px`, `--scene-object-scale: ${formatNumber(object.scale)}`, `--scene-object-rotation: ${formatNumber(object.rotation)}deg`, `z-index: ${object.zIndex}`, object.visible ? null : 'display: none !important'].filter((value): value is string => Boolean(value)); return `[data-scene-object="${object.id}"] { ${declarations.join('; ')}; }`; }).join('\n'); }

@@ -4,7 +4,7 @@ import { getSceneObject, getSceneResponsiveBreakpoints, resolveSceneObjectForVie
 import { cloneBaselineSceneDraft, createSceneResponsiveOverride, removeSceneResponsiveOverride, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
-const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, responsiveOverrides: {} };
+const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {} };
 
 test('base and partial responsive overrides resolve deterministically', () => {
   let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
@@ -51,7 +51,7 @@ test('v2 migration preserves transforms, overrides, visibility and lock', () => 
     'seasonal-fig': { offsetX: 80, offsetY: -20, scale: 1.2, rotation: 5, locked: false, visible: false, responsiveOverrides: { compactDesktop: { offsetX: 35 } } },
   } };
   const migrated = resolveSceneDraft(v2); const object = fig(migrated);
-  assert.equal(migrated.schemaVersion, 3); assert.equal(object.offsetX, 80); assert.equal(object.visible, false); assert.equal(object.locked, false); assert.equal(object.responsiveOverrides.compactDesktop?.offsetX, 35);
+  assert.equal(migrated.schemaVersion, 4); assert.equal(object.offsetX, 80); assert.equal(object.visible, false); assert.equal(object.locked, false); assert.equal(object.responsiveOverrides.compactDesktop?.offsetX, 35);
 });
 
 test('corrupt drafts fall back to the baseline safely', () => {

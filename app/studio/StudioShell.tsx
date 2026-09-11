@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- local blob preview is intentionally not image-optimized. */
 
 import {
   useCallback,
@@ -12,6 +13,7 @@ import {
 import type { SceneMode } from '@/lib/scene-config';
 import {
   HOME_SCENE_DRAFT_BASELINE_V1,
+  addSceneObject,
   createSceneResponsiveOverride,
   cloneBaselineSceneDraft,
   removeSceneResponsiveOverride,
@@ -27,8 +29,10 @@ import {
   resolveSceneObjectForViewport,
   type SceneDraft,
   type SceneObjectDraftPatch,
+  type SceneObjectDraft,
   type SceneObjectId,
 } from '@/lib/scene-draft';
+import { resolvePublishedScene } from '@/lib/scene-publication';
 import {
   STUDIO_DRAFT_CHANGE_MESSAGE,
   STUDIO_PREVIEW_MESSAGE,
@@ -254,6 +258,11 @@ export default function StudioShell() {
   const [collisions, setCollisions] = useState<SceneCollision[]>([]);
   const [draft, setDraft] = useState<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [publishedScene, setPublishedScene] = useState<SceneDraft | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [assetFile, setAssetFile] = useState<File | null>(null);
+  const [assetPreviewUrl, setAssetPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 1440, height: 900 });
   const [positions, setPositions] = useState<PanelPositions>(INITIAL_POSITIONS);
   const [positionsRestored, setPositionsRestored] = useState(false);
@@ -274,7 +283,7 @@ export default function StudioShell() {
         type: STUDIO_PREVIEW_MESSAGE,
         mode,
         viewport: viewport.id,
-        sceneDraft: draft,
+        sceneDraft: mode === 'online' ? publishedScene : draft,
         selectedObjectId,
         editingTarget: effectiveEditingTarget,
         guideMode,
@@ -282,7 +291,7 @@ export default function StudioShell() {
       },
       window.location.origin,
     );
-  }, [draft, effectiveEditingTarget, guideMode, mode, selectedObjectId, uiHidden, viewport.id]);
+  }, [draft, effectiveEditingTarget, guideMode, mode, publishedScene, selectedObjectId, uiHidden, viewport.id]);
 
   useEffect(() => {
     const updateWindowSize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -328,19 +337,28 @@ export default function StudioShell() {
         objects: storedPositions.objects ?? { x: rightX, y: 24 },
         properties: storedPositions.properties ?? { x: rightX, y: 254 },
       });
-      const storedDraft = window.localStorage.getItem(DRAFT_STORAGE_KEY);
       const storedGuideMode = window.localStorage.getItem(GUIDE_STORAGE_KEY);
       if (isSceneGuideMode(storedGuideMode)) setGuideMode(storedGuideMode);
-      if (storedDraft) {
-        try {
-          setDraft(resolveSceneDraft(JSON.parse(storedDraft)));
-        } catch {
-          setDraft(cloneBaselineSceneDraft());
-        }
-      }
       setPositionsRestored(true);
-      setDraftRestored(true);
     });
+    const loadDraft = async () => {
+      const storedDraft = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      let recovery = cloneBaselineSceneDraft();
+      if (storedDraft) try { recovery = resolveSceneDraft(JSON.parse(storedDraft)); } catch { /* Baseline fallback */ }
+      try {
+        const response = await fetch('/api/studio/scene', { cache: 'no-store' });
+        if (!response.ok) throw new Error('online scene unavailable');
+        const payload = await response.json() as { draft?: unknown; published?: unknown };
+        setDraft(payload.draft ? resolveSceneDraft(payload.draft) : recovery);
+        setPublishedScene(resolvePublishedScene(payload.published));
+      } catch {
+        setDraft(recovery);
+        setSaveStatus('error');
+      } finally {
+        setDraftRestored(true);
+      }
+    };
+    void loadDraft();
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
@@ -352,7 +370,19 @@ export default function StudioShell() {
   useEffect(() => {
     if (!draftRestored) return;
     window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    const frame = window.requestAnimationFrame(() => setSaveStatus('saving'));
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await fetch('/api/studio/scene', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draft) });
+        setSaveStatus(response.ok ? 'saved' : 'error');
+      } catch { setSaveStatus('error'); }
+    }, 1000);
+    return () => { window.cancelAnimationFrame(frame); window.clearTimeout(timeout); };
   }, [draft, draftRestored]);
+
+  useEffect(() => {
+    return () => { if (assetPreviewUrl) URL.revokeObjectURL(assetPreviewUrl); };
+  }, [assetPreviewUrl]);
 
   useEffect(() => {
     window.localStorage.setItem(GUIDE_STORAGE_KEY, guideMode);
@@ -365,7 +395,7 @@ export default function StudioShell() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey || isTypingTarget(event.target)) return;
-      if (event.key === 'Escape' && mode === 'preview') {
+      if (event.key === 'Escape' && mode !== 'edit') {
         event.preventDefault();
         setMode('edit');
         setUiHidden(false);
@@ -412,6 +442,35 @@ export default function StudioShell() {
   function resetDraft() {
     setDraft(cloneBaselineSceneDraft());
     setSelectedObjectId('seasonal-fig');
+  }
+
+  async function uploadAsset() {
+    if (!assetFile) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.set('file', assetFile);
+      const response = await fetch('/api/studio/assets', { method: 'POST', body: form });
+      if (!response.ok) throw new Error(await response.text());
+      const uploaded = await response.json() as Pick<SceneObjectDraft, 'id' | 'name' | 'asset'>;
+      const object: SceneObjectDraft = { ...uploaded, rendererType: 'image', anchorX: 'right', anchorY: 'bottom', zIndex: 4, offsetX: -48, offsetY: -48, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent', responsiveOverrides: {} };
+      setDraft((current) => addSceneObject(current, object));
+      setSelectedObjectId(object.id);
+      setAssetFile(null);
+      setAssetPreviewUrl(null);
+    } catch { setSaveStatus('error'); } finally { setUploading(false); }
+  }
+
+  async function publishDraft() {
+    setSaveStatus('saving');
+    try {
+      const response = await fetch('/api/studio/scene', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draft) });
+      if (!response.ok) throw new Error('publish failed');
+      const payload = await response.json() as { scene: unknown };
+      setPublishedScene(resolvePublishedScene(payload.scene));
+      setSaveStatus('saved');
+      enterMode('online');
+    } catch { setSaveStatus('error'); }
   }
 
   function enterMode(nextMode: SceneMode) {
@@ -480,13 +539,14 @@ export default function StudioShell() {
               >
                 Anteprima
               </button>
-              <button type="button" className={styles.modeButton} disabled title="Disponibile con la pubblicazione">
+              <button type="button" className={styles.modeButton} disabled={!publishedScene} onClick={() => enterMode('online')} title="Scena pubblicata corrente">
                 Online
               </button>
             </div>
             <p className={styles.statusText}>
               {viewport.width} × {viewport.height} CSS px · {activeBreakpoint ? `${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint]}` : 'Baseline tecnica'} · scala {Math.round(scale * 100)}%
             </p>
+            <p className={styles.statusText}>{saveStatus === 'saving' ? 'Salvataggio…' : saveStatus === 'saved' ? 'Bozza salvata' : saveStatus === 'error' ? 'Errore' : ''}</p>
             <label className={styles.fieldLabel} htmlFor="studio-guides">
               Guide
             </label>
@@ -499,6 +559,7 @@ export default function StudioShell() {
             <button type="button" className={styles.primaryButton} onClick={() => setUiHidden(true)}>
               Nascondi UI <kbd>H</kbd>
             </button>
+            <button type="button" className={styles.primaryButton} onClick={publishDraft}>PUBBLICA</button>
           </FloatingPanel>
 
           <FloatingPanel
@@ -530,6 +591,10 @@ export default function StudioShell() {
                 );
               })}
             </ul>
+            <label className={styles.fieldLabel} htmlFor="studio-asset-upload">Carica asset · PNG/WebP · max 1 MB</label>
+            <input id="studio-asset-upload" type="file" accept="image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0] ?? null; setAssetFile(file); setAssetPreviewUrl(file ? URL.createObjectURL(file) : null); }} />
+            {assetPreviewUrl ? <img src={assetPreviewUrl} alt="Anteprima asset" style={{ display: 'block', maxWidth: '100%', maxHeight: 120, objectFit: 'contain' }} /> : null}
+            <button type="button" className={styles.secondaryButton} disabled={!assetFile || uploading} onClick={uploadAsset}>{uploading ? 'Caricamento…' : 'Aggiungi alla scena'}</button>
           </FloatingPanel>
 
           <FloatingPanel
@@ -556,7 +621,17 @@ export default function StudioShell() {
               <NumericField label="Y · px" value={selectedObject.offsetY} step={1} disabled={selectedBaseObject.locked} onChange={(offsetY) => patchSelectedObject({ offsetY })} />
               <NumericField label="Scala" value={selectedObject.scale} step={0.05} disabled={selectedBaseObject.locked} onChange={(scaleValue) => patchSelectedObject({ scale: scaleValue })} />
               <NumericField label="Rotazione · °" value={selectedObject.rotation} step={1} disabled={selectedBaseObject.locked} onChange={(rotation) => patchSelectedObject({ rotation })} />
+              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked} onChange={(zIndex) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { zIndex }, { mode: 'base' }))} />
             </div>
+            <label className={styles.fieldLabel} htmlFor="studio-availability">Durata</label>
+            <select id="studio-availability" className={styles.select} value={selectedBaseObject.availability} onChange={(event) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { availability: event.target.value as 'permanent' | 'seasonal' }, { mode: 'base' }))}>
+              <option value="permanent">Permanente</option>
+              <option value="seasonal">Stagionale</option>
+            </select>
+            {selectedBaseObject.availability === 'seasonal' ? <div className={styles.numericGrid}>
+              <label className={styles.numericField}><span>Da · MM-DD</span><input value={selectedBaseObject.seasonal?.activeFrom ?? '01-01'} pattern="\d{2}-\d{2}" onChange={(event) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { seasonal: { activeFrom: event.target.value, activeUntil: selectedBaseObject.seasonal?.activeUntil ?? '12-31' } }, { mode: 'base' }))} /></label>
+              <label className={styles.numericField}><span>A · MM-DD</span><input value={selectedBaseObject.seasonal?.activeUntil ?? '12-31'} pattern="\d{2}-\d{2}" onChange={(event) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { seasonal: { activeFrom: selectedBaseObject.seasonal?.activeFrom ?? '01-01', activeUntil: event.target.value } }, { mode: 'base' }))} /></label>
+            </div> : null}
             <div className={styles.propertyActions}>
               <button type="button" className={styles.secondaryButton} onClick={() => setDraft((current) => updateSceneDraft(current, selectedObjectId, { locked: !selectedBaseObject.locked }))}>
                 {selectedBaseObject.locked ? 'Sblocca' : 'Blocca'}

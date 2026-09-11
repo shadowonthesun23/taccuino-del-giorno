@@ -1,6 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element -- generic Studio assets are validated paths and are not public LCP content. */
 
+import { useEffect, useState } from 'react';
 import EspressoCorner from '@/components/ui/EspressoCorner';
 import InkBottleCorner from '@/components/ui/InkBottleCorner';
 import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
@@ -8,6 +9,7 @@ import { HOME_SCENE_BASELINE_V1 } from '@/lib/scene-baseline';
 import { resolveSceneConfig, sceneConfigToCss } from '@/lib/scene-config';
 import { getSceneObject, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft, type SceneDraft, type SceneObjectDraft, type SceneViewport } from '@/lib/scene-draft';
 import type { SeasonId } from '@/lib/seasonal-artwork';
+import { getSceneAssetUrl } from '@/lib/scene-assets';
 
 type SceneRendererProps = {
   config?: unknown;
@@ -20,14 +22,24 @@ type SceneRendererProps = {
 export default function SceneRenderer({ config, draft, isDark, season, viewport }: SceneRendererProps) {
   const scene = resolveSceneConfig(config, HOME_SCENE_BASELINE_V1);
   const safeDraft = draft && validateSceneDraft(draft).ok ? draft : undefined;
+  const [browserViewport, setBrowserViewport] = useState<SceneViewport>({ width: 1440, height: 900 });
+  useEffect(() => {
+    if (!safeDraft || viewport) return;
+    const update = () => setBrowserViewport({ width: window.innerWidth, height: window.innerHeight });
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [safeDraft, viewport]);
+  const effectiveViewport = viewport ?? browserViewport;
 
   return (
     <>
       <style data-scene-styles={scene.id}>{sceneConfigToCss(scene)}</style>
-      {safeDraft && viewport ? <style data-scene-draft={safeDraft.sceneId}>{sceneDraftToCss(safeDraft, viewport)}</style> : null}
+      {safeDraft ? <style data-scene-draft={safeDraft.sceneId}>{sceneDraftToCss(safeDraft, effectiveViewport)}</style> : null}
       {scene.objects.map((object) => {
         const objectDraft = safeDraft ? getSceneObject(safeDraft, object.id) : undefined;
-        const resolvedDraft = objectDraft && viewport ? resolveSceneObjectForViewport(objectDraft, viewport).object : objectDraft;
+        const resolvedDraft = objectDraft ? resolveSceneObjectForViewport(objectDraft, effectiveViewport).object : objectDraft;
+        if (safeDraft && !objectDraft) return null;
         if (!object.visible || resolvedDraft?.visible === false) return null;
 
         const sceneProps = {
@@ -51,16 +63,17 @@ export default function SceneRenderer({ config, draft, isDark, season, viewport 
             );
         }
       })}
-      {safeDraft && viewport ? safeDraft.objects
+      {safeDraft ? safeDraft.objects
         .filter((object) => !scene.objects.some((baseline) => baseline.id === object.id))
-        .map((object) => <StudioImageObject key={object.id} object={object} viewport={viewport} />) : null}
+        .map((object) => <StudioImageObject key={object.id} object={object} viewport={effectiveViewport} />) : null}
     </>
   );
 }
 
 function StudioImageObject({ object, viewport }: { object: SceneObjectDraft; viewport: SceneViewport }) {
   const resolved = resolveSceneObjectForViewport(object, viewport).object;
-  if (resolved.rendererType !== 'image' || !resolved.visible || resolved.asset.source !== 'bundled') return null;
+  const src = getSceneAssetUrl(resolved.asset);
+  if (resolved.rendererType !== 'image' || !resolved.visible || !src) return null;
   return (
     <div
       data-scene-object={resolved.id}
@@ -74,7 +87,7 @@ function StudioImageObject({ object, viewport }: { object: SceneObjectDraft; vie
       }}
     >
       {/* Generic editor-only image renderer; storage is validated now but intentionally not loaded before Storage exists. */}
-      <img src={resolved.asset.path} alt="" draggable={false} style={{ display: 'block', width: '100%', height: 'auto' }} />
+      <img src={src} alt="" draggable={false} style={{ display: 'block', width: '100%', height: 'auto' }} />
     </div>
   );
 }
