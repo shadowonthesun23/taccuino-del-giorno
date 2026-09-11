@@ -5,6 +5,24 @@
   z-index: 40;
 }
 
+.returnToEdit {
+  background: rgba(47, 41, 34, 0.92);
+  border: 1px solid rgba(255, 250, 240, 0.28);
+  border-radius: 999px;
+  bottom: 18px;
+  color: #fffaf0;
+  cursor: pointer;
+  font: 600 12px/1 var(--font-geist-sans), sans-serif;
+  left: 18px;
+  padding: 10px 14px;
+  position: fixed;
+  z-index: 70;
+}
+
+.returnToEdit:hover {
+  background: #40372d;
+}
+
 .safeAreaLayer {
   inset: 0;
   pointer-events: none;

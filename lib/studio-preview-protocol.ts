@@ -27,6 +27,7 @@ export type StudioDraftChangeMessage = {
   objectId: SceneObjectId;
   patch: SceneObjectDraftPatch;
   editingTarget?: SceneEditingTarget;
+  phase?: 'start' | 'move' | 'end' | 'commit';
 };
 
 export type StudioSceneSafetyMessage = {

@@ -147,7 +147,7 @@ function SceneObjectEditor({
   draft: SceneDraft;
   selectedObjectId: SceneObjectId;
   onSelect: (objectId: SceneObjectId) => void;
-  onPatch: (objectId: SceneObjectId, patch: SceneObjectDraftPatch) => void;
+  onPatch: (objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase?: 'start' | 'move' | 'end' | 'commit') => void;
   onSelectedRectChange: (rect: SceneRect | null) => void;
   viewport: { width: number; height: number };
 }) {
@@ -234,6 +234,7 @@ function SceneObjectEditor({
       originX: object.offsetX,
       originY: object.offsetY,
     };
+    onPatch(objectId, {}, 'start');
   }
 
   function startResize(event: ReactPointerEvent<HTMLSpanElement>, objectId: SceneObjectId) {
@@ -252,6 +253,7 @@ function SceneObjectEditor({
       startDistance: Math.max(1, Math.hypot(event.clientX - rect.centerX, event.clientY - rect.centerY)),
       originScale: resolveSceneObjectForViewport(baseObject, viewport).object.scale,
     };
+    onPatch(objectId, {}, 'start');
   }
 
   function startRotate(event: ReactPointerEvent<HTMLSpanElement>, objectId: SceneObjectId) {
@@ -270,16 +272,17 @@ function SceneObjectEditor({
       startAngle: Math.atan2(event.clientY - rect.centerY, event.clientX - rect.centerX),
       originRotation: resolveSceneObjectForViewport(baseObject, viewport).object.rotation,
     };
+    onPatch(objectId, {}, 'start');
   }
 
-  function handlePointerMove(event: ReactPointerEvent<HTMLElement>) {
+  function applyInteraction(event: ReactPointerEvent<HTMLElement>, phase: 'move' | 'end') {
     const interaction = interactionRef.current;
     if (!interaction || interaction.pointerId !== event.pointerId) return;
     if (interaction.kind === 'drag') {
       onPatch(interaction.objectId, {
         offsetX: interaction.originX + event.clientX - interaction.startX,
         offsetY: interaction.originY + event.clientY - interaction.startY,
-      });
+      }, phase);
       return;
     }
     if (interaction.kind === 'resize') {
@@ -289,7 +292,7 @@ function SceneObjectEditor({
       );
       onPatch(interaction.objectId, {
         scale: interaction.originScale * distance / interaction.startDistance,
-      });
+      }, phase);
       return;
     }
     const angle = Math.atan2(event.clientY - interaction.centerY, event.clientX - interaction.centerX);
@@ -297,10 +300,15 @@ function SceneObjectEditor({
     let rotation = interaction.originRotation + degrees;
     while (rotation > 180) rotation -= 360;
     while (rotation < -180) rotation += 360;
-    onPatch(interaction.objectId, { rotation });
+    onPatch(interaction.objectId, { rotation }, phase);
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLElement>) {
+    applyInteraction(event, 'move');
   }
 
   function endInteraction(event: ReactPointerEvent<HTMLElement>) {
+    applyInteraction(event, 'end');
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -410,10 +418,10 @@ export default function StudioPreviewBridge({
     );
   }, []);
 
-  const applyPatch = useCallback((objectId: SceneObjectId, patch: SceneObjectDraftPatch) => {
+  const applyPatch = useCallback((objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase: 'start' | 'move' | 'end' | 'commit' = 'commit') => {
     setDraft((current) => updateSceneDraft(current, objectId, patch, editingTarget));
     window.parent.postMessage(
-      { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch, editingTarget },
+      { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch, editingTarget, phase },
       window.location.origin,
     );
   }, [editingTarget]);
@@ -496,6 +504,15 @@ export default function StudioPreviewBridge({
   return (
     <>
       <NotebookHome sceneDraft={draft} sceneViewport={viewport} />
+      {mode === 'preview' ? (
+        <button
+          type="button"
+          className={styles.returnToEdit}
+          onClick={() => window.parent.postMessage({ type: STUDIO_RETURN_TO_EDIT_MESSAGE }, window.location.origin)}
+        >
+          ← Torna a Modifica
+        </button>
+      ) : null}
       {showEditor && mode === 'edit' ? <SceneSafeAreaOverlay safeAreas={safeAreas} guideMode={guideMode} collisions={collisions} /> : null}
       {showEditor && mode === 'edit' ? <SceneObjectEditor draft={draft} selectedObjectId={selectedObjectId} onSelect={sendSelection} onPatch={applyPatch} onSelectedRectChange={handleSelectedRectChange} viewport={viewport} /> : null}
     </>

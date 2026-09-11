@@ -191,6 +191,12 @@
   margin: 0;
 }
 
+.historyControls {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .collisionWarning {
   background: rgba(166, 98, 45, 0.1);
   border-left: 2px solid #a6622d;

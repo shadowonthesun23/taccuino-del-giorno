@@ -31,8 +31,19 @@ test('generic valid objects are accepted and inherit Base plus override', () => 
   assert.equal(resolved.visible, false);
   assert.equal(resolved.locked, false);
   assert.match(sceneDraftToCss(changed, { width: 1366, height: 768 }), /data-scene-object="test-object"/);
+  assert.match(sceneDraftToCss(changed, { width: 1366, height: 768 }), /transform-origin: 50% 50%/);
   changed = removeSceneResponsiveOverride(changed, 'test-object', 'compactDesktop');
   assert.equal(resolveSceneObjectForViewport(getSceneObject(changed, 'test-object')!, { width: 1366, height: 768 }).object.visible, true);
+});
+
+test('central pivot is independent from left/top and right/bottom anchors', () => {
+  const draft = cloneBaselineSceneDraft();
+  const leftTop = getSceneObject(draft, 'coffee-cup')!;
+  const rightBottom = getSceneObject(draft, 'seasonal-fig')!;
+  const css = sceneDraftToCss({ ...draft, objects: [leftTop, rightBottom] }, { width: 1440, height: 900 });
+  assert.equal((css.match(/transform-origin: 50% 50%/g) ?? []).length, 2);
+  assert.equal(resolveSceneObjectForViewport(rightBottom, { width: 1440, height: 900 }).object.anchorX, 'right');
+  assert.equal(resolveSceneObjectForViewport(leftTop, { width: 1440, height: 900 }).object.anchorX, 'left');
 });
 
 test('validator rejects duplicate IDs, unknown renderers and unsafe assets', () => {

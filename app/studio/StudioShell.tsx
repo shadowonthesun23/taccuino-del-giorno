@@ -257,6 +257,11 @@ export default function StudioShell() {
   const [guideMode, setGuideMode] = useState<SceneGuideMode>('off');
   const [collisions, setCollisions] = useState<SceneCollision[]>([]);
   const [draft, setDraft] = useState<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
+  const [undoStack, setUndoStack] = useState<SceneDraft[]>([]);
+  const [redoStack, setRedoStack] = useState<SceneDraft[]>([]);
+  const draftRef = useRef(draft);
+  const resetReferenceRef = useRef<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
+  const interactionHistoryRef = useRef(false);
   const [draftRestored, setDraftRestored] = useState(false);
   const [publishedScene, setPublishedScene] = useState<SceneDraft | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -276,6 +281,40 @@ export default function StudioShell() {
       ? editingTarget
       : { mode: 'base' }
   ), [activeBreakpoint, editingTarget]);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  const commitDraftMutation = useCallback((mutator: (current: SceneDraft) => SceneDraft) => {
+    setDraft((current) => {
+      const next = mutator(current);
+      if (JSON.stringify(next) === JSON.stringify(current)) return current;
+      setUndoStack((history) => [...history, current].slice(-80));
+      setRedoStack([]);
+      return next;
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    setUndoStack((history) => {
+      const previous = history.at(-1);
+      if (!previous) return history;
+      setRedoStack((redo) => [...redo, draftRef.current].slice(-80));
+      setDraft(previous);
+      return history.slice(0, -1);
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setRedoStack((history) => {
+      const next = history.at(-1);
+      if (!next) return history;
+      setUndoStack((undoHistory) => [...undoHistory, draftRef.current].slice(-80));
+      setDraft(next);
+      return history.slice(0, -1);
+    });
+  }, []);
 
   const sendPreviewEnvironment = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -316,7 +355,14 @@ export default function StudioShell() {
       } else if (candidate.type === STUDIO_DRAFT_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId) && getSceneObject(draft, candidate.objectId)) {
         const patch = candidate.patch;
         if (patch && typeof patch === 'object' && !Array.isArray(patch)) {
+          const phase = candidate.phase;
+          if (phase === 'start' && !interactionHistoryRef.current) {
+            interactionHistoryRef.current = true;
+            setUndoStack((history) => [...history, draftRef.current].slice(-80));
+            setRedoStack([]);
+          }
           setDraft((current) => updateSceneDraft(current, candidate.objectId as SceneObjectId, patch as SceneObjectDraftPatch, effectiveEditingTarget));
+          if (phase === 'end') interactionHistoryRef.current = false;
         }
       } else if (candidate.type === STUDIO_SCENE_SAFETY_MESSAGE && isSceneCollisionList(candidate.collisions)) {
         setCollisions(candidate.collisions);
@@ -349,10 +395,17 @@ export default function StudioShell() {
         const response = await fetch('/api/studio/scene', { cache: 'no-store' });
         if (!response.ok) throw new Error('online scene unavailable');
         const payload = await response.json() as { draft?: unknown; published?: unknown };
-        setDraft(payload.draft ? resolveSceneDraft(payload.draft) : recovery);
+        const loadedDraft = payload.draft ? resolveSceneDraft(payload.draft) : recovery;
+        resetReferenceRef.current = structuredClone(loadedDraft);
+        setDraft(loadedDraft);
+        setUndoStack([]);
+        setRedoStack([]);
         setPublishedScene(resolvePublishedScene(payload.published));
       } catch {
+        resetReferenceRef.current = structuredClone(recovery);
         setDraft(recovery);
+        setUndoStack([]);
+        setRedoStack([]);
         setSaveStatus('error');
       } finally {
         setDraftRestored(true);
@@ -394,7 +447,13 @@ export default function StudioShell() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey || isTypingTarget(event.target)) return;
+      if (event.altKey || isTypingTarget(event.target)) return;
+      const modifier = event.metaKey || event.ctrlKey;
+      if (modifier && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) redo(); else undo();
+        return;
+      }
       if (event.key === 'Escape' && mode !== 'edit') {
         event.preventDefault();
         setMode('edit');
@@ -407,7 +466,7 @@ export default function StudioShell() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode]);
+  }, [mode, redo, undo]);
 
   const scale = calculatePreviewScale(viewport, windowSize);
 
@@ -424,24 +483,41 @@ export default function StudioShell() {
   }
 
   function patchSelectedObject(patch: SceneObjectDraftPatch) {
-    setDraft((current) => updateSceneDraft(current, selectedObjectId, patch, effectiveEditingTarget));
+    commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, patch, effectiveEditingTarget));
   }
 
   function createOverride() {
     if (!activeBreakpoint) return;
-    setDraft((current) => createSceneResponsiveOverride(current, selectedObjectId, activeBreakpoint));
+    commitDraftMutation((current) => createSceneResponsiveOverride(current, selectedObjectId, activeBreakpoint));
     setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint });
   }
 
   function removeOverride() {
     if (!activeBreakpoint) return;
-    setDraft((current) => removeSceneResponsiveOverride(current, selectedObjectId, activeBreakpoint));
+    commitDraftMutation((current) => removeSceneResponsiveOverride(current, selectedObjectId, activeBreakpoint));
+    setEditingTarget({ mode: 'base' });
+  }
+
+  function resetSelectedObject() {
+    const original = getSceneObject(resetReferenceRef.current, selectedObjectId);
+    if (!original) return;
+    commitDraftMutation((current) => {
+      return {
+        ...current,
+        objects: current.objects.map((object) => object.id === selectedObjectId
+          ? { ...object, offsetX: original.offsetX, offsetY: original.offsetY, scale: original.scale, rotation: original.rotation, visible: original.visible }
+          : object),
+      };
+    });
     setEditingTarget({ mode: 'base' });
   }
 
   function resetDraft() {
-    setDraft(cloneBaselineSceneDraft());
+    const baseline = cloneBaselineSceneDraft();
+    resetReferenceRef.current = structuredClone(baseline);
+    commitDraftMutation(() => baseline);
     setSelectedObjectId('seasonal-fig');
+    setEditingTarget({ mode: 'base' });
   }
 
   async function uploadAsset() {
@@ -454,7 +530,8 @@ export default function StudioShell() {
       if (!response.ok) throw new Error(await response.text());
       const uploaded = await response.json() as Pick<SceneObjectDraft, 'id' | 'name' | 'asset'>;
       const object: SceneObjectDraft = { ...uploaded, rendererType: 'image', anchorX: 'right', anchorY: 'bottom', zIndex: 4, offsetX: -48, offsetY: -48, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent', responsiveOverrides: {} };
-      setDraft((current) => addSceneObject(current, object));
+      commitDraftMutation((current) => addSceneObject(current, object));
+      resetReferenceRef.current = addSceneObject(resetReferenceRef.current, object);
       setSelectedObjectId(object.id);
       setAssetFile(null);
       setAssetPreviewUrl(null);
@@ -522,7 +599,9 @@ export default function StudioShell() {
                 <option key={preset.id} value={preset.id}>
                   {preset.width} × {preset.height} · {(() => {
                     const breakpoints = getSceneResponsiveBreakpoints(preset);
-                    return breakpoints.some((breakpoint) => draft.objects.some((object) => object.responsiveOverrides[breakpoint])) ? 'OVERRIDE' : 'BASE';
+                    const active = breakpoints.find((breakpoint) => draft.objects.some((object) => object.responsiveOverrides[breakpoint]));
+                    const hidden = active ? draft.objects.some((object) => object.responsiveOverrides[active]?.visible === false) : false;
+                    return active ? `OVERRIDE · ${SCENE_RESPONSIVE_BREAKPOINTS[active]}${hidden ? ' · HIDDEN' : ''}` : 'BASE';
                   })()}
                 </option>
               ))}
@@ -547,6 +626,10 @@ export default function StudioShell() {
               {viewport.width} × {viewport.height} CSS px · {activeBreakpoint ? `${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint]}` : 'Baseline tecnica'} · scala {Math.round(scale * 100)}%
             </p>
             <p className={styles.statusText}>{saveStatus === 'saving' ? 'Salvataggio…' : saveStatus === 'saved' ? 'Bozza salvata' : saveStatus === 'error' ? 'Errore' : ''}</p>
+            <div className={styles.historyControls} aria-label="Cronologia bozza">
+              <button type="button" className={styles.secondaryButton} onClick={undo} disabled={undoStack.length === 0}>Undo</button>
+              <button type="button" className={styles.secondaryButton} onClick={redo} disabled={redoStack.length === 0}>Redo</button>
+            </div>
             <label className={styles.fieldLabel} htmlFor="studio-guides">
               Guide
             </label>
@@ -612,7 +695,7 @@ export default function StudioShell() {
               <button type="button" className={effectiveEditingTarget.mode === 'base' ? styles.modeActive : styles.modeButton} onClick={() => setEditingTarget({ mode: 'base' })}>Base</button>
               <button type="button" className={effectiveEditingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override corrente</button>
             </div>
-            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? 'Usa Base' : `Override: ${SCENE_RESPONSIVE_BREAKPOINTS[effectiveEditingTarget.breakpointId]}`}</p>
+            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? (hasCurrentOverride ? `MODIFICA · Base · override presente per ${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint!]}` : 'MODIFICA · Base · Questo viewport eredita dalla Base') : `MODIFICA · Override · ${SCENE_RESPONSIVE_BREAKPOINTS[effectiveEditingTarget.breakpointId]}`}</p>
             {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
             {activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override</button> : null}
             {activeBreakpoint && hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={removeOverride}>Rimuovi override</button> : null}
@@ -621,25 +704,33 @@ export default function StudioShell() {
               <NumericField label="Y · px" value={selectedObject.offsetY} step={1} disabled={selectedBaseObject.locked} onChange={(offsetY) => patchSelectedObject({ offsetY })} />
               <NumericField label="Scala" value={selectedObject.scale} step={0.05} disabled={selectedBaseObject.locked} onChange={(scaleValue) => patchSelectedObject({ scale: scaleValue })} />
               <NumericField label="Rotazione · °" value={selectedObject.rotation} step={1} disabled={selectedBaseObject.locked} onChange={(rotation) => patchSelectedObject({ rotation })} />
-              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked} onChange={(zIndex) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { zIndex }, { mode: 'base' }))} />
+              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked || effectiveEditingTarget.mode === 'override'} onChange={(zIndex) => patchSelectedObject({ zIndex })} />
             </div>
+            {effectiveEditingTarget.mode === 'override' ? <label className={styles.fieldLabel} htmlFor="studio-override-visibility">Visibile in questa fascia</label> : null}
+            {effectiveEditingTarget.mode === 'override' ? <select id="studio-override-visibility" className={styles.select} value={selectedObject.visible ? 'on' : 'off'} onChange={(event) => patchSelectedObject({ visible: event.target.value === 'on' })}>
+              <option value="on">ON</option>
+              <option value="off">OFF</option>
+            </select> : null}
             <label className={styles.fieldLabel} htmlFor="studio-availability">Durata</label>
-            <select id="studio-availability" className={styles.select} value={selectedBaseObject.availability} onChange={(event) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { availability: event.target.value as 'permanent' | 'seasonal' }, { mode: 'base' }))}>
+            <select id="studio-availability" className={styles.select} value={selectedBaseObject.availability} onChange={(event) => commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, { availability: event.target.value as 'permanent' | 'seasonal' }, { mode: 'base' }))}>
               <option value="permanent">Permanente</option>
               <option value="seasonal">Stagionale</option>
             </select>
             {selectedBaseObject.availability === 'seasonal' ? <div className={styles.numericGrid}>
-              <label className={styles.numericField}><span>Da · MM-DD</span><input value={selectedBaseObject.seasonal?.activeFrom ?? '01-01'} pattern="\d{2}-\d{2}" onChange={(event) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { seasonal: { activeFrom: event.target.value, activeUntil: selectedBaseObject.seasonal?.activeUntil ?? '12-31' } }, { mode: 'base' }))} /></label>
-              <label className={styles.numericField}><span>A · MM-DD</span><input value={selectedBaseObject.seasonal?.activeUntil ?? '12-31'} pattern="\d{2}-\d{2}" onChange={(event) => setDraft((current) => updateSceneDraft(current, selectedObjectId, { seasonal: { activeFrom: selectedBaseObject.seasonal?.activeFrom ?? '01-01', activeUntil: event.target.value } }, { mode: 'base' }))} /></label>
+              <label className={styles.numericField}><span>Da · MM-DD</span><input value={selectedBaseObject.seasonal?.activeFrom ?? '01-01'} pattern="\d{2}-\d{2}" onChange={(event) => commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, { seasonal: { activeFrom: event.target.value, activeUntil: selectedBaseObject.seasonal?.activeUntil ?? '12-31' } }, { mode: 'base' }))} /></label>
+              <label className={styles.numericField}><span>A · MM-DD</span><input value={selectedBaseObject.seasonal?.activeUntil ?? '12-31'} pattern="\d{2}-\d{2}" onChange={(event) => commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, { seasonal: { activeFrom: selectedBaseObject.seasonal?.activeFrom ?? '01-01', activeUntil: event.target.value } }, { mode: 'base' }))} /></label>
             </div> : null}
             <div className={styles.propertyActions}>
-              <button type="button" className={styles.secondaryButton} onClick={() => setDraft((current) => updateSceneDraft(current, selectedObjectId, { locked: !selectedBaseObject.locked }))}>
+              <button type="button" className={styles.secondaryButton} onClick={() => commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, { locked: !selectedBaseObject.locked }))}>
                 {selectedBaseObject.locked ? 'Sblocca' : 'Blocca'}
               </button>
               <button type="button" className={styles.secondaryButton} onClick={() => patchSelectedObject({ visible: !selectedObject.visible })}>
                 {selectedObject.visible ? 'Nascondi' : 'Mostra'}
               </button>
             </div>
+            <button type="button" className={styles.secondaryButton} onClick={effectiveEditingTarget.mode === 'override' ? removeOverride : resetSelectedObject}>
+              {effectiveEditingTarget.mode === 'override' ? 'Ripristina override' : 'Reset oggetto'}
+            </button>
             <button type="button" className={styles.resetDraftButton} onClick={resetDraft}>
               Reset bozza
             </button>

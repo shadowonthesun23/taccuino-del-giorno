@@ -83,7 +83,8 @@ function StudioImageObject({ object, viewport }: { object: SceneObjectDraft; vie
         position: 'absolute', display: 'block', pointerEvents: 'none',
         [resolved.anchorX]: 0, [resolved.anchorY]: 0, width: 180, zIndex: resolved.zIndex,
         transform: 'scale(var(--scene-object-scale)) rotate(var(--scene-object-rotation))',
-        transformOrigin: `${resolved.anchorX} ${resolved.anchorY}`,
+        // Anchors position the object; scale/rotation always use its visual centre.
+        transformOrigin: '50% 50%',
       }}
     >
       {/* Generic editor-only image renderer; storage is validated now but intentionally not loaded before Storage exists. */}
