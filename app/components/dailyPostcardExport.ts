@@ -17,12 +17,12 @@ const POSTCARD_EXPORT_VARIABLES = [
 export type DailyPostcardFace = 'front' | 'back';
 
 function decodeImage(image: HTMLImageElement) {
-  if (image.naturalWidth <= 0 || typeof image.decode !== 'function') return Promise.resolve();
-  return image.decode().catch(() => undefined);
+  if (typeof image.decode !== 'function') return Promise.resolve();
+  return image.decode();
 }
 
 function waitForImage(image: HTMLImageElement) {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((resolve, reject) => {
     let timeoutId: number | null = null;
     let settled = false;
     const finish = () => {
@@ -31,7 +31,17 @@ function waitForImage(image: HTMLImageElement) {
       image.removeEventListener('load', finish);
       image.removeEventListener('error', finish);
       if (timeoutId !== null) window.clearTimeout(timeoutId);
-      void decodeImage(image).finally(resolve);
+      if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+        reject(new Error('Immagine della cartolina non disponibile.'));
+        return;
+      }
+      void decodeImage(image).then(() => {
+        if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+          reject(new Error('Immagine della cartolina non decodificata.'));
+          return;
+        }
+        resolve();
+      }).catch(() => reject(new Error('Immagine della cartolina non decodificata.')));
     };
 
     if (image.complete) {
@@ -40,8 +50,16 @@ function waitForImage(image: HTMLImageElement) {
     }
 
     image.addEventListener('load', finish, { once: true });
-    image.addEventListener('error', finish, { once: true });
-    timeoutId = window.setTimeout(finish, IMAGE_WAIT_TIMEOUT_MS);
+    image.addEventListener('error', () => {
+      if (settled) return;
+      settled = true;
+      reject(new Error('Immagine della cartolina non caricata.'));
+    }, { once: true });
+    timeoutId = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error('Timeout caricamento immagine della cartolina.'));
+    }, IMAGE_WAIT_TIMEOUT_MS);
   });
 }
 
@@ -75,13 +93,21 @@ async function inlineCloneImages(root: HTMLElement, sourceRoot: HTMLElement) {
   await Promise.all(cloneImages.map(async (image, index) => {
     const sourceImage = sourceImages[index] ?? image;
     const source = sourceImage.currentSrc || sourceImage.src || image.currentSrc || image.src;
-    if (!source || /^(?:data|blob):/iu.test(source)) return;
+    if (!source) throw new Error('Sorgente immagine della cartolina mancante.');
 
     const dataUrl = await fetchImageDataUrl(source);
     image.removeAttribute('srcset');
     image.removeAttribute('loading');
     image.src = dataUrl;
-    await decodeImage(image);
+    image.style.backgroundImage = `url(${JSON.stringify(dataUrl)})`;
+    image.style.backgroundRepeat = 'no-repeat';
+    const computed = window.getComputedStyle(sourceImage);
+    const objectFit = computed.objectFit;
+    image.style.backgroundSize = objectFit === 'contain' || objectFit === 'scale-down'
+      ? 'contain'
+      : objectFit === 'fill' ? '100% 100%' : 'cover';
+    image.style.backgroundPosition = computed.objectPosition || '50% 50%';
+    await waitForImage(image);
   }));
 }
 

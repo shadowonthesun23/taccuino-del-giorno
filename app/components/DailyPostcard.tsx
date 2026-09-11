@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Check, Download, Loader2, PenLine, Sparkles, X } from 'lucide-react';
 import type { LanguageCode, SeasonId } from '@/lib/types';
@@ -740,7 +741,8 @@ export default function DailyPostcard({
   }, []);
 
   return (
-    <aside
+    <>
+      <aside
       className={`daily-postcard ${!isActive ? 'is-inactive' : ''} ${postcardOpen ? 'is-open' : ''} ${isClosing ? 'is-closing' : ''}`}
       data-scene-safe="postcard"
       aria-hidden={!desktopEnabled || !isActive}
@@ -853,8 +855,18 @@ export default function DailyPostcard({
         </>
       ) : null}
 
-      {mobileExportFace ? (
-        <div className="daily-postcard-mobile-export-source" aria-hidden="true">
+    </aside>
+      {mobileExportFace && typeof document !== 'undefined' ? createPortal(
+        <div
+          className="daily-postcard-mobile-export-source"
+          aria-hidden="true"
+          style={{
+            '--postcard-paper': '#f0e6d4',
+            '--postcard-paper-deep': '#e6d8c0',
+            '--postcard-ink': '#2a241d',
+            '--postcard-rule': 'rgba(58, 43, 28, 0.27)',
+          } as CSSProperties}
+        >
           <div ref={mobileExportCardRef} className="daily-postcard-card">
             <PostcardFront
               artwork={seasonalArtwork}
@@ -883,8 +895,9 @@ export default function DailyPostcard({
               setAddressInputRef={setAddressInputRef}
             />
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
-    </aside>
+    </>
   );
 }

@@ -5786,11 +5786,16 @@ body.museum-room-open :is(
 .daily-postcard-mobile-export-source {
   height: 480px;
   left: -10000px;
+  --postcard-paper: #f0e6d4;
+  --postcard-paper-deep: #e6d8c0;
+  --postcard-ink: #2a241d;
+  --postcard-rule: rgba(58, 43, 28, 0.27);
+  min-height: 480px;
   opacity: 0.001;
   pointer-events: none;
   position: fixed;
   top: 0;
-  width: 420px;
+  width: 720px;
   z-index: -1;
 }
 
@@ -5799,7 +5804,7 @@ body.museum-room-open :is(
   min-height: 480px;
   transform: none;
   transition: none;
-  width: 420px;
+  width: 720px;
 }
 
 .daily-postcard.is-closing {

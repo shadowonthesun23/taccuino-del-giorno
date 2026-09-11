@@ -1553,7 +1553,7 @@ export default function Home({
                   aria-label={{ IT: 'Scarica cartolina · fronte', EN: 'Download postcard · front', FR: 'Télécharger la carte · recto', DE: 'Postkarte herunterladen · Vorderseite', ES: 'Descargar postal · anverso', PT: 'Descarregar postal · frente' }[lingua] || 'Download postcard · front'}
                 >
                   <FileDown className="h-4 w-4" />
-                  <span>{{ IT: 'Scarica cartolina · fronte', EN: 'Download postcard · front', FR: 'Télécharger la carte · recto', DE: 'Postkarte herunterladen · Vorderseite', ES: 'Descargar postal · anverso', PT: 'Descarregar postal · frente' }[lingua] || 'Download postcard · front'}</span>
+                  <span>{{ IT: 'Cartolina · fronte', EN: 'Postcard · front', FR: 'Carte · recto', DE: 'Postkarte · vorne', ES: 'Postal · anverso', PT: 'Postal · frente' }[lingua] || 'Postcard · front'}</span>
                 </button>
                 <button
                   type="button"
@@ -1564,16 +1564,16 @@ export default function Home({
                   aria-label={{ IT: 'Scarica cartolina · retro', EN: 'Download postcard · back', FR: 'Télécharger la carte · verso', DE: 'Postkarte herunterladen · Rückseite', ES: 'Descargar postal · reverso', PT: 'Descarregar postal · verso' }[lingua] || 'Download postcard · back'}
                 >
                   <FileDown className="h-4 w-4" />
-                  <span>{{ IT: 'Scarica cartolina · retro', EN: 'Download postcard · back', FR: 'Télécharger la carte · verso', DE: 'Postkarte herunterladen · Rückseite', ES: 'Descargar postal · reverso', PT: 'Descarregar postal · verso' }[lingua] || 'Download postcard · back'}</span>
+                  <span>{{ IT: 'Cartolina · retro', EN: 'Postcard · back', FR: 'Carte · verso', DE: 'Postkarte · hinten', ES: 'Postal · reverso', PT: 'Postal · verso' }[lingua] || 'Postcard · back'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setMobileMenuTab('theme')}
                 >
                   <ThemeModeIcon mode={themeMode} className="h-4 w-4" />
-                  <div className="flex items-center justify-between w-full pr-1">
-                    <span>{THEME_MODE_COPY[lingua].label}</span>
-                    <span className="text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
+                  <div className="flex min-w-0 items-center gap-3 justify-between w-full pr-1">
+                    <span className="min-w-0">{THEME_MODE_COPY[lingua].label}</span>
+                    <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
                       {THEME_MODE_COPY[lingua][themeMode]}
                       <ChevronRight className="w-3 h-3 text-[#DE6B58]" />
                     </span>
