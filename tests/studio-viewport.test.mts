@@ -7,10 +7,10 @@ import {
   getStudioViewportPreset,
 } from '../lib/studio-viewport.ts';
 
-test('studio exposes the five requested real viewport presets', () => {
+test('studio exposes the requested desktop, tablet and mobile viewport presets', () => {
   assert.deepEqual(
     STUDIO_VIEWPORT_PRESETS.map(({ width, height }) => [width, height]),
-    [[1920, 1080], [1680, 1050], [1440, 900], [1366, 768], [1280, 800]],
+    [[1920, 1080], [1680, 1050], [1440, 900], [1366, 768], [1280, 800], [768, 1024], [390, 844]],
   );
   assert.equal(getStudioViewportPreset('unknown').id, '1440x900');
 });

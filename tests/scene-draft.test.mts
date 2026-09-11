@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getSceneObject, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
+import { getSceneObject, getSceneObjectResponsiveState, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
 import { cloneBaselineSceneDraft, createSceneResponsiveOverride, removeSceneResponsiveOverride, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
@@ -17,6 +17,40 @@ test('base and partial responsive overrides resolve deterministically', () => {
   assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 921 }), ['desktop']);
   assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 920 }), ['desktop', 'desktopShort']);
   assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1440, height: 700 }), ['desktop', 'veryShortDesktop']);
+});
+
+test('mobile and tablet bands use the exact width thresholds', () => {
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 767, height: 844 }), ['mobile']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 768, height: 1024 }), ['tablet']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1023, height: 800 }), ['tablet']);
+  assert.deepEqual(getSceneResponsiveBreakpoints({ width: 1024, height: 800 }), ['narrowDesktop']);
+});
+
+test('responsive state is calculated only for the selected object', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = createSceneResponsiveOverride(draft, 'seasonal-fig', 'mobile');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { visible: false }, { mode: 'override', breakpointId: 'mobile' });
+  const cupState = getSceneObjectResponsiveState(getSceneObject(draft, 'coffee-cup')!, { width: 390, height: 844 });
+  const figState = getSceneObjectResponsiveState(getSceneObject(draft, 'seasonal-fig')!, { width: 390, height: 844 });
+  assert.equal(cupState.status, 'base');
+  assert.equal(figState.status, 'hidden');
+  assert.equal(figState.overrideBreakpointId, 'mobile');
+});
+
+test('an override with inherited visibility is not marked hidden', () => {
+  const draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'tablet');
+  const state = getSceneObjectResponsiveState(getSceneObject(draft, 'seasonal-fig')!, { width: 768, height: 1024 });
+  assert.equal(state.status, 'override');
+  assert.equal(state.object.visible, true);
+});
+
+test('baseline technical hiding cannot be forced visible by a scene override', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'mobile');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { visible: true }, { mode: 'override', breakpointId: 'mobile' });
+  const state = getSceneObjectResponsiveState(getSceneObject(draft, 'seasonal-fig')!, { width: 390, height: 844 });
+  assert.equal(state.object.visible, true);
+  assert.equal(state.status, 'override');
+  assert.equal(getSceneResponsiveBreakpoints({ width: 390, height: 844 })[0], 'mobile');
 });
 
 test('generic valid objects are accepted and inherit Base plus override', () => {

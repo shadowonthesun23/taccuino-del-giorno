@@ -22,10 +22,10 @@ import {
   type SceneEditingTarget,
 } from '@/lib/scene-draft-editor';
 import {
-  SCENE_RESPONSIVE_BREAKPOINTS,
+  SCENE_RESPONSIVE_LABELS,
   getSceneObject,
   getSceneResponsiveBreakpoint,
-  getSceneResponsiveBreakpoints,
+  getSceneObjectResponsiveState,
   resolveSceneObjectForViewport,
   type SceneDraft,
   type SceneObjectDraftPatch,
@@ -273,10 +273,11 @@ export default function StudioShell() {
   const [positions, setPositions] = useState<PanelPositions>(INITIAL_POSITIONS);
   const [positionsRestored, setPositionsRestored] = useState(false);
   const viewport = getStudioViewportPreset(viewportId);
-  const activeBreakpoint = getSceneResponsiveBreakpoint(viewport);
   const selectedBaseObject = getSceneObject(draft, selectedObjectId) ?? draft.objects[0];
-  const selectedObject = resolveSceneObjectForViewport(selectedBaseObject, viewport).object;
-  const hasCurrentOverride = activeBreakpoint ? Boolean(selectedBaseObject.responsiveOverrides[activeBreakpoint]) : false;
+  const selectedResponsiveState = getSceneObjectResponsiveState(selectedBaseObject, viewport);
+  const activeBreakpoint = selectedResponsiveState.overrideBreakpointId ?? getSceneResponsiveBreakpoint(viewport);
+  const selectedObject = selectedResponsiveState.object;
+  const hasCurrentOverride = Boolean(selectedResponsiveState.overrideBreakpointId);
   const effectiveEditingTarget = useMemo<SceneEditingTarget>(() => (
     editingTarget.mode === 'override' && editingTarget.breakpointId === activeBreakpoint
       ? editingTarget
@@ -599,10 +600,10 @@ export default function StudioShell() {
               {STUDIO_VIEWPORT_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>
                   {preset.width} × {preset.height} · {(() => {
-                    const breakpoints = getSceneResponsiveBreakpoints(preset);
-                    const active = breakpoints.find((breakpoint) => draft.objects.some((object) => object.responsiveOverrides[breakpoint]));
-                    const hidden = active ? draft.objects.some((object) => object.responsiveOverrides[active]?.visible === false) : false;
-                    return active ? `OVERRIDE · ${SCENE_RESPONSIVE_BREAKPOINTS[active]}${hidden ? ' · HIDDEN' : ''}` : 'BASE';
+                    const selected = getSceneObject(draft, selectedObjectId) ?? draft.objects[0];
+                    const state = getSceneObjectResponsiveState(selected, preset);
+                    const band = state.bandId ? SCENE_RESPONSIVE_LABELS[state.bandId] : 'BASELINE';
+                    return `${band} · ${state.status === 'hidden' ? 'HIDDEN' : state.status === 'override' ? 'OVERRIDE' : 'BASE'}`;
                   })()}
                 </option>
               ))}
@@ -624,7 +625,7 @@ export default function StudioShell() {
               </button>
             </div>
             <p className={styles.statusText}>
-              {viewport.width} × {viewport.height} CSS px · {activeBreakpoint ? `${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint]}` : 'Baseline tecnica'} · scala {Math.round(scale * 100)}%
+              {viewport.width} × {viewport.height} CSS px · {selectedResponsiveState.bandId ? SCENE_RESPONSIVE_LABELS[selectedResponsiveState.bandId] : 'BASELINE'} · scala {Math.round(scale * 100)}%
             </p>
             <p className={styles.statusText}>{saveStatus === 'saving' ? 'Salvataggio…' : saveStatus === 'saved' ? 'Bozza salvata' : saveStatus === 'error' ? 'Errore' : ''}</p>
             <div className={styles.historyControls} aria-label="Cronologia bozza">
@@ -696,7 +697,7 @@ export default function StudioShell() {
               <button type="button" className={effectiveEditingTarget.mode === 'base' ? styles.modeActive : styles.modeButton} onClick={() => setEditingTarget({ mode: 'base' })}>Base</button>
               <button type="button" className={effectiveEditingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override corrente</button>
             </div>
-            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? (hasCurrentOverride ? `MODIFICA · Base · override presente per ${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint!]}` : 'MODIFICA · Base · Questo viewport eredita dalla Base') : `MODIFICA · Override · ${SCENE_RESPONSIVE_BREAKPOINTS[effectiveEditingTarget.breakpointId]}`}</p>
+            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? (hasCurrentOverride ? `MODIFICA · BASE · override presente per ${SCENE_RESPONSIVE_LABELS[activeBreakpoint!]}` : `MODIFICA · BASE · ${selectedResponsiveState.status === 'hidden' ? 'HIDDEN' : 'Questo viewport eredita dalla Base'}`) : `MODIFICA · OVERRIDE · ${SCENE_RESPONSIVE_LABELS[effectiveEditingTarget.breakpointId]}`}</p>
             {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
             {activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override</button> : null}
             <div className={styles.numericGrid}>

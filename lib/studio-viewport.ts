@@ -4,6 +4,8 @@ export const STUDIO_VIEWPORT_PRESETS = [
   { id: '1440x900', width: 1440, height: 900 },
   { id: '1366x768', width: 1366, height: 768 },
   { id: '1280x800', width: 1280, height: 800 },
+  { id: '768x1024', width: 768, height: 1024 },
+  { id: '390x844', width: 390, height: 844 },
 ] as const;
 
 export type StudioViewportPreset = (typeof STUDIO_VIEWPORT_PRESETS)[number];

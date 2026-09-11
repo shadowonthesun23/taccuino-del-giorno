@@ -6,7 +6,7 @@ export type SceneAnchorX = 'left' | 'right';
 export type SceneAnchorY = 'top' | 'bottom';
 export type SceneViewport = { width: number; height: number };
 /** Studio offsets are visual screen-space deltas: +X moves right and +Y moves down, regardless of the production anchor. */
-export const SCENE_RESPONSIVE_BREAKPOINT_IDS = ['wide', 'desktop', 'compactDesktop', 'narrowDesktop', 'wideShort', 'desktopShort', 'veryShortDesktop'] as const;
+export const SCENE_RESPONSIVE_BREAKPOINT_IDS = ['mobile', 'tablet', 'wide', 'desktop', 'compactDesktop', 'narrowDesktop', 'wideShort', 'desktopShort', 'veryShortDesktop'] as const;
 export type SceneResponsiveBreakpointId = (typeof SCENE_RESPONSIVE_BREAKPOINT_IDS)[number];
 export type SceneObjectTransform = { offsetX: number; offsetY: number; scale: number; rotation: number; visible: boolean };
 export type SceneObjectResponsiveOverride = Partial<SceneObjectTransform>;
@@ -20,7 +20,8 @@ export type SceneDraft = { schemaVersion: typeof SCENE_DRAFT_SCHEMA_VERSION; sce
 export type SceneObjectDraftPatch = Partial<Pick<SceneObjectDraft, 'offsetX' | 'offsetY' | 'scale' | 'rotation' | 'visible' | 'locked' | 'zIndex' | 'availability' | 'seasonal'>>;
 export type SceneDraftValidation = { ok: true; value: SceneDraft } | { ok: false; issues: readonly string[] };
 export const SCENE_DRAFT_TRANSFORM_BOUNDS = { offsetX: [-4000, 4000], offsetY: [-4000, 4000], scale: [0.1, 4], rotation: [-360, 360] } as const;
-export const SCENE_RESPONSIVE_BREAKPOINTS: Readonly<Record<SceneResponsiveBreakpointId, string>> = { wide: '≥1600 px', desktop: '1440–1599 px', compactDesktop: '1181–1439 px', narrowDesktop: '1024–1180 px', wideShort: '≥1600 px · ≤920 px h', desktopShort: '1440–1599 px · ≤920 px h', veryShortDesktop: '≥1440 px · ≤700 px h' };
+export const SCENE_RESPONSIVE_BREAKPOINTS: Readonly<Record<SceneResponsiveBreakpointId, string>> = { mobile: '0–767 px', tablet: '768–1023 px', wide: '≥1600 px', desktop: '1440–1599 px', compactDesktop: '1181–1439 px', narrowDesktop: '1024–1180 px', wideShort: '≥1600 px · ≤920 px h', desktopShort: '1440–1599 px · ≤920 px h', veryShortDesktop: '≥1440 px · ≤700 px h' };
+export const SCENE_RESPONSIVE_LABELS: Readonly<Record<SceneResponsiveBreakpointId, string>> = { mobile: 'MOBILE', tablet: 'TABLET', wide: 'WIDE', desktop: 'DESKTOP', compactDesktop: 'COMPACT DESKTOP', narrowDesktop: 'NARROW DESKTOP', wideShort: 'WIDE · SHORT', desktopShort: 'DESKTOP · SHORT', veryShortDesktop: 'VERY SHORT DESKTOP' };
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const STORAGE_PATH_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9/_.-]{0,511}$/;
 export function isSceneObjectId(value: unknown): value is SceneObjectId { return typeof value === 'string' && ID_PATTERN.test(value); }
@@ -28,7 +29,7 @@ export function getSceneObject(draft: SceneDraft, id: SceneObjectId) { return dr
 export function sceneObjectIds(draft: SceneDraft) { return draft.objects.map((object) => object.id); }
 /** Deterministic precedence: Base → one width band → one vertical refinement. */
 export function getSceneResponsiveBreakpoints({ width, height }: SceneViewport): readonly SceneResponsiveBreakpointId[] {
-  const widthBreakpoint = width >= 1600 ? 'wide' : width >= 1440 ? 'desktop' : width >= 1181 ? 'compactDesktop' : width >= 1024 ? 'narrowDesktop' : null;
+  const widthBreakpoint = width >= 1600 ? 'wide' : width >= 1440 ? 'desktop' : width >= 1181 ? 'compactDesktop' : width >= 1024 ? 'narrowDesktop' : width >= 768 ? 'tablet' : 'mobile';
   const heightBreakpoint = width >= 1440 && height <= 700 ? 'veryShortDesktop' : width >= 1600 && height <= 920 ? 'wideShort' : width >= 1440 && height <= 920 ? 'desktopShort' : null;
   return [widthBreakpoint, heightBreakpoint].filter((value): value is SceneResponsiveBreakpointId => value !== null);
 }
@@ -57,5 +58,10 @@ function isMonthDay(value: unknown) { if (typeof value !== 'string' || !/^\d{2}-
 export function validateSceneDraft(input: unknown): SceneDraftValidation { const issues: string[] = []; if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] }; if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 4.'); if (input.sceneId !== 'home') issues.push('sceneId must be home.'); if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 32) issues.push('objects must contain between one and thirty-two entries.'); else { const ids = new Set<string>(); input.objects.forEach((object, index) => { validateObjectDraft(object, `objects[${index}]`, issues); if (isRecord(object) && isSceneObjectId(object.id)) { if (ids.has(object.id)) issues.push(`objects[${index}].id must be unique.`); ids.add(object.id); } }); } return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues }; }
 export function getSceneResponsiveBreakpoint(viewport: SceneViewport): SceneResponsiveBreakpointId | null { return getSceneResponsiveBreakpoints(viewport).at(-1) ?? null; }
 export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport) { const breakpointIds = getSceneResponsiveBreakpoints(viewport); const resolved = { ...object }; for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]); return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, object: resolved }; }
+export function getSceneObjectResponsiveState(object: SceneObjectDraft, viewport: SceneViewport) {
+  const resolved = resolveSceneObjectForViewport(object, viewport);
+  const overrideBreakpointId = resolved.breakpointIds.filter((breakpointId) => object.responsiveOverrides[breakpointId] !== undefined).at(-1) ?? null;
+  return { bandId: resolved.breakpointIds[0] ?? null, overrideBreakpointId, status: resolved.object.visible === false ? 'hidden' as const : overrideBreakpointId ? 'override' as const : 'base' as const, object: resolved.object };
+}
 function formatNumber(value: number) { return String(Math.round(value * 1000) / 1000); }
 export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport) { return draft.objects.map((entry) => { const object = resolveSceneObjectForViewport(entry, viewport).object; const declarations = [`translate: ${formatNumber(object.offsetX)}px ${formatNumber(object.offsetY)}px`, 'transform-origin: 50% 50%', `--scene-object-scale: ${formatNumber(object.scale)}`, `--scene-object-rotation: ${formatNumber(object.rotation)}deg`, `z-index: ${object.zIndex}`, object.visible ? null : 'display: none !important'].filter((value): value is string => Boolean(value)); return `[data-scene-object="${object.id}"] { ${declarations.join('; ')}; }`; }).join('\n'); }
