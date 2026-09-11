@@ -694,7 +694,7 @@ export default function StudioShell() {
             onReset={() => resetPanelPosition('viewport')}
           >
             <label className={styles.fieldLabel} htmlFor="studio-viewport">
-              Preset reale
+              Viewport CSS
             </label>
             <select
               id="studio-viewport"
@@ -714,6 +714,8 @@ export default function StudioShell() {
                 </option>
               ))}
             </select>
+            <p className={styles.statusText}>Dimensioni logiche del browser, non risoluzione fisica del monitor.</p>
+            <p className={styles.statusText}>Finestra attuale: {windowSize.width} × {windowSize.height} CSS px</p>
             <div className={styles.modeGroup} aria-label="Modalità Studio">
               <button type="button" className={styles.modeActive} onClick={() => enterMode('edit')}>
                 Modifica

@@ -1,9 +1,8 @@
 export const STUDIO_VIEWPORT_PRESETS = [
-  { id: '5120x2880', width: 5120, height: 2880 },
-  { id: '3840x2160', width: 3840, height: 2160 },
   { id: '2560x1440', width: 2560, height: 1440 },
   { id: '1920x1080', width: 1920, height: 1080 },
   { id: '1680x1050', width: 1680, height: 1050 },
+  { id: '1536x864', width: 1536, height: 864 },
   { id: '1440x900', width: 1440, height: 900 },
   { id: '1366x768', width: 1366, height: 768 },
   { id: '1280x800', width: 1280, height: 800 },

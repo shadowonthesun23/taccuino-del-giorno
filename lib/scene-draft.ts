@@ -5,7 +5,8 @@ export type SceneAssetReference = { source: 'bundled'; path: string; darkPath?: 
 export type SceneAnchorX = 'left' | 'right';
 export type SceneAnchorY = 'top' | 'bottom';
 export type SceneViewport = { width: number; height: number };
-export const SCENE_PRESET_OVERRIDE_IDS = ['5120x2880', '3840x2160', '2560x1440', '1920x1080', '1680x1050', '1440x900', '1366x768', '1280x800', '768x1024', '390x844'] as const;
+/** Includes legacy physical-pixel keys for backwards-compatible draft reads. */
+export const SCENE_PRESET_OVERRIDE_IDS = ['5120x2880', '3840x2160', '2560x1440', '1920x1080', '1680x1050', '1536x864', '1440x900', '1366x768', '1280x800', '768x1024', '390x844'] as const;
 export type ScenePresetOverrideId = (typeof SCENE_PRESET_OVERRIDE_IDS)[number];
 /** Studio offsets are visual screen-space deltas: +X moves right and +Y moves down, regardless of the production anchor. */
 export const SCENE_RESPONSIVE_BREAKPOINT_IDS = ['mobile', 'tablet', 'wide', 'desktop', 'compactDesktop', 'narrowDesktop', 'wideShort', 'desktopShort', 'veryShortDesktop'] as const;

@@ -10,9 +10,11 @@ import {
 test('studio exposes the requested desktop, tablet and mobile viewport presets', () => {
   assert.deepEqual(
     STUDIO_VIEWPORT_PRESETS.map(({ width, height }) => [width, height]),
-    [[5120, 2880], [3840, 2160], [2560, 1440], [1920, 1080], [1680, 1050], [1440, 900], [1366, 768], [1280, 800], [768, 1024], [390, 844]],
+    [[2560, 1440], [1920, 1080], [1680, 1050], [1536, 864], [1440, 900], [1366, 768], [1280, 800], [768, 1024], [390, 844]],
   );
   assert.equal(getStudioViewportPreset('unknown').id, '1440x900');
+  assert.equal((STUDIO_VIEWPORT_PRESETS as readonly { id: string }[]).some(({ id }) => id === '5120x2880' || id === '3840x2160'), false);
+  assert.equal(STUDIO_VIEWPORT_PRESETS.some(({ id }) => id === '1536x864'), true);
 });
 
 test('preview scale fits the selected viewport without changing its dimensions', () => {
