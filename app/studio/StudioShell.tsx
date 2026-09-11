@@ -21,7 +21,7 @@ import {
 } from '@/lib/scene-draft-editor';
 import {
   SCENE_RESPONSIVE_BREAKPOINTS,
-  SCENE_OBJECT_IDS,
+  getSceneObject,
   getSceneResponsiveBreakpoint,
   getSceneResponsiveBreakpoints,
   resolveSceneObjectForViewport,
@@ -61,11 +61,6 @@ const INITIAL_POSITIONS: PanelPositions = {
   properties: { x: 1124, y: 254 },
 };
 
-const OBJECT_LABELS: Record<SceneObjectId, string> = {
-  'coffee-cup': 'Tazza',
-  'ink-bottle': 'Boccetta',
-  'seasonal-fig': 'Fico',
-};
 
 function isPoint(value: unknown): value is Point {
   return Boolean(
@@ -96,7 +91,7 @@ function isTypingTarget(target: EventTarget | null) {
 }
 
 function isSceneObjectId(value: unknown): value is SceneObjectId {
-  return typeof value === 'string' && SCENE_OBJECT_IDS.some((id) => id === value);
+  return typeof value === 'string' && /^[a-z0-9][a-z0-9-]{0,63}$/.test(value);
 }
 
 function isSceneGuideMode(value: unknown): value is SceneGuideMode {
@@ -264,7 +259,7 @@ export default function StudioShell() {
   const [positionsRestored, setPositionsRestored] = useState(false);
   const viewport = getStudioViewportPreset(viewportId);
   const activeBreakpoint = getSceneResponsiveBreakpoint(viewport);
-  const selectedBaseObject = draft.objects[selectedObjectId];
+  const selectedBaseObject = getSceneObject(draft, selectedObjectId) ?? draft.objects[0];
   const selectedObject = resolveSceneObjectForViewport(selectedBaseObject, viewport).object;
   const hasCurrentOverride = activeBreakpoint ? Boolean(selectedBaseObject.responsiveOverrides[activeBreakpoint]) : false;
   const effectiveEditingTarget = useMemo<SceneEditingTarget>(() => (
@@ -307,9 +302,9 @@ export default function StudioShell() {
       } else if (candidate.type === STUDIO_RETURN_TO_EDIT_MESSAGE) {
         setMode('edit');
         setUiHidden(false);
-      } else if (candidate.type === STUDIO_SELECTION_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId)) {
+      } else if (candidate.type === STUDIO_SELECTION_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId) && getSceneObject(draft, candidate.objectId)) {
         setSelectedObjectId(candidate.objectId);
-      } else if (candidate.type === STUDIO_DRAFT_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId)) {
+      } else if (candidate.type === STUDIO_DRAFT_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId) && getSceneObject(draft, candidate.objectId)) {
         const patch = candidate.patch;
         if (patch && typeof patch === 'object' && !Array.isArray(patch)) {
           setDraft((current) => updateSceneDraft(current, candidate.objectId as SceneObjectId, patch as SceneObjectDraftPatch, effectiveEditingTarget));
@@ -322,7 +317,7 @@ export default function StudioShell() {
     };
     window.addEventListener('message', handlePreviewMessage);
     return () => window.removeEventListener('message', handlePreviewMessage);
-  }, [effectiveEditingTarget, sendPreviewEnvironment]);
+  }, [draft, effectiveEditingTarget, sendPreviewEnvironment]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -468,7 +463,7 @@ export default function StudioShell() {
                 <option key={preset.id} value={preset.id}>
                   {preset.width} × {preset.height} · {(() => {
                     const breakpoints = getSceneResponsiveBreakpoints(preset);
-                    return breakpoints.some((breakpoint) => SCENE_OBJECT_IDS.some((id) => draft.objects[id].responsiveOverrides[breakpoint])) ? 'OVERRIDE' : 'BASE';
+                    return breakpoints.some((breakpoint) => draft.objects.some((object) => object.responsiveOverrides[breakpoint])) ? 'OVERRIDE' : 'BASE';
                   })()}
                 </option>
               ))}
@@ -514,8 +509,9 @@ export default function StudioShell() {
             onReset={() => resetPanelPosition('objects')}
           >
             <ul className={styles.objectList}>
-              {SCENE_OBJECT_IDS.map((objectId) => {
-                const object = resolveSceneObjectForViewport(draft.objects[objectId], viewport).object;
+              {draft.objects.map((baseObject) => {
+                const objectId = baseObject.id;
+                const object = resolveSceneObjectForViewport(baseObject, viewport).object;
                 return (
                   <li key={objectId}>
                     <button
@@ -525,7 +521,7 @@ export default function StudioShell() {
                       aria-pressed={selectedObjectId === objectId}
                     >
                       <span aria-hidden="true">{object.visible ? '●' : '○'}</span>
-                      <span>{OBJECT_LABELS[objectId]}</span>
+                      <span>{object.name}</span>
                       <span className={styles.objectState} aria-label={object.locked ? 'Bloccato' : 'Modificabile'}>
                         {object.locked ? '🔒' : '↗'}
                       </span>
@@ -544,7 +540,7 @@ export default function StudioShell() {
             onReset={() => resetPanelPosition('properties')}
           >
             <div className={styles.propertyHeading}>
-              <strong>{OBJECT_LABELS[selectedObjectId]}</strong>
+              <strong>{selectedBaseObject.name}</strong>
               <span>{selectedBaseObject.locked ? 'Bloccato' : 'Modificabile'}</span>
             </div>
             <div className={styles.modeGroup} aria-label="Target di modifica">

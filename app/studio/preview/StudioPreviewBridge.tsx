@@ -17,7 +17,8 @@ import {
   type SceneEditingTarget,
 } from '@/lib/scene-draft-editor';
 import {
-  SCENE_OBJECT_IDS,
+  getSceneObject,
+  isSceneObjectId,
   SCENE_RESPONSIVE_BREAKPOINT_IDS,
   resolveSceneObjectForViewport,
   type SceneDraft,
@@ -56,7 +57,7 @@ type ObjectRect = {
   visualRect: SceneRect;
 };
 
-type ObjectRects = Partial<Record<SceneObjectId, ObjectRect>>;
+type ObjectRects = Record<SceneObjectId, ObjectRect | undefined>;
 
 function isSceneEditingTarget(value: unknown): value is SceneEditingTarget {
   if (!value || typeof value !== 'object') return false;
@@ -68,11 +69,6 @@ function isSceneEditingTarget(value: unknown): value is SceneEditingTarget {
   );
 }
 
-const OBJECT_LABELS: Record<SceneObjectId, string> = {
-  'coffee-cup': 'Tazza',
-  'ink-bottle': 'Boccetta',
-  'seasonal-fig': 'Fico',
-};
 
 function isSceneSafeAreaCategory(value: string | null): value is SceneSafeArea['category'] {
   return value === 'content' || value === 'interactive' || value === 'postcard';
@@ -191,7 +187,7 @@ function SceneObjectEditor({
     let frame = 0;
     const measure = () => {
       const next: ObjectRects = {};
-      for (const objectId of SCENE_OBJECT_IDS) {
+      for (const objectId of draft.objects.map((object) => object.id)) {
         const element = document.querySelector<HTMLElement>(`[data-scene-object="${objectId}"]`);
         if (!element || getComputedStyle(element).display === 'none') continue;
         const rect = element.getBoundingClientRect();
@@ -223,7 +219,9 @@ function SceneObjectEditor({
   function startDrag(event: ReactPointerEvent<HTMLDivElement>, objectId: SceneObjectId) {
     if (event.button !== 0) return;
     onSelect(objectId);
-    const object = resolveSceneObjectForViewport(draft.objects[objectId], viewport).object;
+    const baseObject = getSceneObject(draft, objectId);
+    if (!baseObject) return;
+    const object = resolveSceneObjectForViewport(baseObject, viewport).object;
     if (object.locked) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -240,7 +238,8 @@ function SceneObjectEditor({
 
   function startResize(event: ReactPointerEvent<HTMLSpanElement>, objectId: SceneObjectId) {
     const rect = rects[objectId];
-    if (!rect || draft.objects[objectId].locked || event.button !== 0) return;
+    const baseObject = getSceneObject(draft, objectId);
+    if (!rect || !baseObject || baseObject.locked || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -251,13 +250,14 @@ function SceneObjectEditor({
       centerX: rect.centerX,
       centerY: rect.centerY,
       startDistance: Math.max(1, Math.hypot(event.clientX - rect.centerX, event.clientY - rect.centerY)),
-      originScale: resolveSceneObjectForViewport(draft.objects[objectId], viewport).object.scale,
+      originScale: resolveSceneObjectForViewport(baseObject, viewport).object.scale,
     };
   }
 
   function startRotate(event: ReactPointerEvent<HTMLSpanElement>, objectId: SceneObjectId) {
     const rect = rects[objectId];
-    if (!rect || draft.objects[objectId].locked || event.button !== 0) return;
+    const baseObject = getSceneObject(draft, objectId);
+    if (!rect || !baseObject || baseObject.locked || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -268,7 +268,7 @@ function SceneObjectEditor({
       centerX: rect.centerX,
       centerY: rect.centerY,
       startAngle: Math.atan2(event.clientY - rect.centerY, event.clientX - rect.centerX),
-      originRotation: resolveSceneObjectForViewport(draft.objects[objectId], viewport).object.rotation,
+      originRotation: resolveSceneObjectForViewport(baseObject, viewport).object.rotation,
     };
   }
 
@@ -309,9 +309,10 @@ function SceneObjectEditor({
 
   return (
     <div className={styles.editorLayer} data-studio-editor-layer="true">
-      {SCENE_OBJECT_IDS.map((objectId) => {
+      {draft.objects.map((baseObject) => {
+        const objectId = baseObject.id;
         const rect = rects[objectId];
-        const object = resolveSceneObjectForViewport(draft.objects[objectId], viewport).object;
+        const object = resolveSceneObjectForViewport(baseObject, viewport).object;
         if (!rect || !object.visible) return null;
         const selected = selectedObjectId === objectId;
         return (
@@ -321,7 +322,7 @@ function SceneObjectEditor({
             data-studio-object-hitbox={objectId}
             data-studio-selected={selected ? 'true' : 'false'}
             data-studio-locked={object.locked ? 'true' : 'false'}
-            aria-label={`Seleziona ${OBJECT_LABELS[objectId]}`}
+            aria-label={`Seleziona ${object.name}`}
             role="button"
             tabIndex={0}
             style={{
@@ -345,7 +346,7 @@ function SceneObjectEditor({
           >
             {selected ? (
               <>
-                <span className={styles.objectLabel}>{OBJECT_LABELS[objectId]}{object.locked ? ' · bloccato' : ''}</span>
+                <span className={styles.objectLabel}>{object.name}{object.locked ? ' · bloccato' : ''}</span>
                 {object.locked ? null : (
                   <>
                     <span
@@ -395,7 +396,7 @@ export default function StudioPreviewBridge({
   const [selectedRect, setSelectedRect] = useState<SceneRect | null>(null);
   const viewport = getStudioViewportPreset(viewportId);
   const safeAreas = useSceneSafeAreas(viewport);
-  const selectedObject = resolveSceneObjectForViewport(draft.objects[selectedObjectId], viewport).object;
+  const selectedObject = resolveSceneObjectForViewport(getSceneObject(draft, selectedObjectId) ?? draft.objects[0], viewport).object;
   const collisions = useMemo(
     () => selectedObject.visible ? findSceneCollisions(selectedRect, safeAreas) : [],
     [safeAreas, selectedObject.visible, selectedRect],
@@ -457,7 +458,7 @@ export default function StudioPreviewBridge({
       setMode(candidate.mode);
       setShowEditor(candidate.showEditor === true && candidate.mode === 'edit');
       setGuideMode(candidate.guideMode === 'content' || candidate.guideMode === 'interactive' || candidate.guideMode === 'all' ? candidate.guideMode : 'off');
-      if (candidate.selectedObjectId && SCENE_OBJECT_IDS.includes(candidate.selectedObjectId)) {
+      if (candidate.selectedObjectId && isSceneObjectId(candidate.selectedObjectId) && getSceneObject(draft, candidate.selectedObjectId)) {
         setSelectedObjectId(candidate.selectedObjectId);
       }
       if (isSceneEditingTarget(candidate.editingTarget)) setEditingTarget(candidate.editingTarget);
@@ -490,7 +491,7 @@ export default function StudioPreviewBridge({
       delete root.dataset.studioMode;
       delete root.dataset.studioViewport;
     };
-  }, [initialMode, initialViewport]);
+  }, [draft, initialMode, initialViewport]);
 
   return (
     <>
