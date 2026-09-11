@@ -698,7 +698,6 @@ export default function StudioShell() {
             <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? (hasCurrentOverride ? `MODIFICA · Base · override presente per ${SCENE_RESPONSIVE_BREAKPOINTS[activeBreakpoint!]}` : 'MODIFICA · Base · Questo viewport eredita dalla Base') : `MODIFICA · Override · ${SCENE_RESPONSIVE_BREAKPOINTS[effectiveEditingTarget.breakpointId]}`}</p>
             {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
             {activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override</button> : null}
-            {activeBreakpoint && hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={removeOverride}>Rimuovi override</button> : null}
             <div className={styles.numericGrid}>
               <NumericField label="X · px" value={selectedObject.offsetX} step={1} disabled={selectedBaseObject.locked} onChange={(offsetX) => patchSelectedObject({ offsetX })} />
               <NumericField label="Y · px" value={selectedObject.offsetY} step={1} disabled={selectedBaseObject.locked} onChange={(offsetY) => patchSelectedObject({ offsetY })} />
