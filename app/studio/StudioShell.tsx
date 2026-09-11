@@ -579,7 +579,7 @@ export default function StudioShell() {
         }
       }
       setSaveStatus('saved');
-      enterMode('online');
+      enterMode('edit');
     } catch { setSaveStatus('error'); }
   }
 
@@ -608,7 +608,7 @@ export default function StudioShell() {
         setVersions((current) => [nextVersion, ...current.map((entry) => ({ ...entry, is_current: false }))]);
       }
       setSaveStatus('saved');
-      setMode('online');
+      enterMode('edit');
     } catch { setSaveStatus('error'); }
   }
 
