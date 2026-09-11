@@ -1032,7 +1032,7 @@ body {
     display: block;
     height: 100%;
     object-fit: contain;
-    opacity: 0.82;
+    opacity: 1;
     position: relative;
     scale: var(--scene-object-scale, 1);
     transform: rotate(var(--scene-object-rotation, 0deg));
@@ -1042,7 +1042,7 @@ body {
   }
 
   .seasonal-desk-object.is-dark .seasonal-desk-object-image {
-    opacity: 0.62;
+    opacity: 1;
   }
 }
 
