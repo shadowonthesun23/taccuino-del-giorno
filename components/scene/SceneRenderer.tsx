@@ -58,6 +58,7 @@ export default function SceneRenderer({ config, draft, isDark, season, viewport 
                 key={object.id}
                 season={season}
                 isDark={isDark}
+                asset={objectDraft?.asset}
                 {...sceneProps}
               />
             );

@@ -15,3 +15,8 @@ export function getSceneAssetUrl(asset: { source: 'bundled' | 'storage'; path: s
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
   return baseUrl ? `${baseUrl}/storage/v1/object/public/${SCENE_ASSET_BUCKET}/${asset.path.split('/').map(encodeURIComponent).join('/')}` : '';
 }
+
+export function resolveSceneAssetUrl(asset: { source: 'bundled' | 'storage'; path: string } | undefined, fallbackPath: string) {
+  if (!asset || (asset.source === 'bundled' && asset.path === fallbackPath)) return null;
+  return getSceneAssetUrl(asset) || null;
+}
