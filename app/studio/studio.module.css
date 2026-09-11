@@ -461,6 +461,17 @@
 .versionMeta span,
 .versionMeta time { color: #756755; font-size: 0.68rem; }
 
+.versionNameInput {
+  background: rgba(255, 253, 247, 0.9);
+  border: 1px solid rgba(47, 37, 26, 0.2);
+  border-radius: 6px;
+  color: #282018;
+  font: inherit;
+  min-width: 0;
+  max-width: 100%;
+  padding: 5px 6px;
+}
+
 .versionActions {
   display: grid;
   gap: 4px;

@@ -62,6 +62,7 @@ type SceneVersionRecord = {
   id: string;
   version_number: number;
   label: string;
+  display_name: string | null;
   scene: SceneDraft;
   is_baseline: boolean;
   is_current: boolean;
@@ -277,6 +278,8 @@ export default function StudioShell() {
   const [publishedScene, setPublishedScene] = useState<SceneDraft | null>(null);
   const [versions, setVersions] = useState<SceneVersionRecord[]>([]);
   const [versionPreview, setVersionPreview] = useState<SceneVersionRecord | null>(null);
+  const [renamingVersionId, setRenamingVersionId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [assetFile, setAssetFile] = useState<File | null>(null);
   const [assetPreviewUrl, setAssetPreviewUrl] = useState<string | null>(null);
@@ -424,7 +427,7 @@ export default function StudioShell() {
             let scene: SceneDraft;
             try { scene = resolveSceneDraft(candidate.scene); } catch { return []; }
             if (typeof candidate.id !== 'string' || typeof candidate.version_number !== 'number' || typeof candidate.label !== 'string' || typeof candidate.created_at !== 'string') return [];
-            return [{ id: candidate.id, version_number: candidate.version_number, label: candidate.label, scene, is_baseline: candidate.is_baseline === true, is_current: candidate.is_current === true, source_version_id: typeof candidate.source_version_id === 'string' ? candidate.source_version_id : null, created_at: candidate.created_at }];
+            return [{ id: candidate.id, version_number: candidate.version_number, label: candidate.label, display_name: typeof candidate.display_name === 'string' ? candidate.display_name : null, scene, is_baseline: candidate.is_baseline === true, is_current: candidate.is_current === true, source_version_id: typeof candidate.source_version_id === 'string' ? candidate.source_version_id : null, created_at: candidate.created_at }];
           }));
         }
       } catch {
@@ -574,12 +577,23 @@ export default function StudioShell() {
       if (payload && 'version' in payload && payload.version && typeof payload.version === 'object') {
         const version = payload.version as Record<string, unknown>;
         if (typeof version.id === 'string' && typeof version.version_number === 'number' && typeof version.label === 'string' && typeof version.created_at === 'string') {
-          const nextVersion: SceneVersionRecord = { id: version.id, version_number: version.version_number, label: version.label, scene: draft, is_baseline: false, is_current: true, source_version_id: typeof version.source_version_id === 'string' ? version.source_version_id : null, created_at: version.created_at };
+          const nextVersion: SceneVersionRecord = { id: version.id, version_number: version.version_number, label: version.label, display_name: null, scene: draft, is_baseline: false, is_current: true, source_version_id: typeof version.source_version_id === 'string' ? version.source_version_id : null, created_at: version.created_at };
           setVersions((current) => [nextVersion, ...current.map((entry) => ({ ...entry, is_current: false }))]);
         }
       }
       setSaveStatus('saved');
       enterMode('edit');
+    } catch { setSaveStatus('error'); }
+  }
+
+  async function renameVersion(version: SceneVersionRecord) {
+    const displayName = renameValue.trim().slice(0, 60);
+    try {
+      const response = await fetch('/api/studio/scene', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ versionId: version.id, displayName }) });
+      if (!response.ok) throw new Error('rename failed');
+      setVersions((current) => current.map((entry) => entry.id === version.id ? { ...entry, display_name: displayName || null } : entry));
+      setRenamingVersionId(null);
+      setRenameValue('');
     } catch { setSaveStatus('error'); }
   }
 
@@ -604,7 +618,7 @@ export default function StudioShell() {
       setRedoStack([]);
       setVersionPreview(null);
       if (payload.version && typeof payload.version.id === 'string' && typeof payload.version.version_number === 'number' && typeof payload.version.label === 'string' && typeof payload.version.created_at === 'string') {
-        const nextVersion: SceneVersionRecord = { id: payload.version.id, version_number: payload.version.version_number, label: payload.version.label, scene: nextScene, is_baseline: false, is_current: true, source_version_id: version.id, created_at: payload.version.created_at };
+        const nextVersion: SceneVersionRecord = { id: payload.version.id, version_number: payload.version.version_number, label: payload.version.label, display_name: null, scene: nextScene, is_baseline: false, is_current: true, source_version_id: version.id, created_at: payload.version.created_at };
         setVersions((current) => [nextVersion, ...current.map((entry) => ({ ...entry, is_current: false }))]);
       }
       setSaveStatus('saved');
@@ -713,12 +727,15 @@ export default function StudioShell() {
                   <div key={version.id} className={styles.versionRow}>
                     <div className={styles.versionMeta}>
                       <strong>v{version.version_number}</strong>
-                      <span>{version.is_current ? 'CURRENT · ' : ''}{version.is_baseline ? 'BASELINE' : version.label}</span>
+                      {renamingVersionId === version.id ? (
+                        <input className={styles.versionNameInput} value={renameValue} maxLength={60} autoFocus onChange={(event) => setRenameValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void renameVersion(version); if (event.key === 'Escape') { setRenamingVersionId(null); setRenameValue(''); } }} aria-label={`Nome v${version.version_number}`} />
+                      ) : <span>{version.is_current ? 'CURRENT · ' : ''}{version.is_baseline ? `BASELINE${version.display_name ? ` · ${version.display_name}` : ''}` : (version.display_name || version.label)}</span>}
                       <time dateTime={version.created_at}>{new Date(version.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</time>
                     </div>
                     <div className={styles.versionActions}>
                       <button type="button" className={styles.modeButton} onClick={() => previewVersion(version)}>Anteprima</button>
                       <button type="button" className={styles.modeButton} disabled={version.is_current} onClick={() => void rollbackVersion(version)}>Ripristina</button>
+                      {renamingVersionId === version.id ? <><button type="button" className={styles.modeButton} onClick={() => void renameVersion(version)}>Salva</button><button type="button" className={styles.modeButton} onClick={() => { setRenamingVersionId(null); setRenameValue(''); }}>Annulla</button></> : <button type="button" className={styles.modeButton} onClick={() => { setRenamingVersionId(version.id); setRenameValue(version.display_name ?? ''); }}>Rinomina</button>}
                     </div>
                   </div>
                 ))}

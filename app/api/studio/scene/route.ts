@@ -4,6 +4,7 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 import { validateSceneDraft } from '@/lib/scene-draft';
 import { HOME_SCENE_DRAFT_BASELINE_V1 } from '@/lib/scene-draft-editor';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { normalizeSceneVersionDisplayName } from '@/lib/scene-versioning';
 
 export async function GET(request: Request) {
   const authorization = await getEditorAuthorization(request);
@@ -15,9 +16,21 @@ export async function GET(request: Request) {
     supabase.from('scene_drafts').select('scene').eq('scene_id', 'home').maybeSingle(),
     supabase.from('scene_published').select('scene').eq('scene_id', 'home').maybeSingle(),
   ]);
-  const versionsResult = await supabase.from('scene_versions').select('id, scene_id, version_number, label, scene, is_baseline, is_current, source_version_id, created_at').eq('scene_id', 'home').order('version_number', { ascending: false });
+  const versionsResult = await supabase.from('scene_versions').select('id, scene_id, version_number, label, display_name, scene, is_baseline, is_current, source_version_id, created_at').eq('scene_id', 'home').order('version_number', { ascending: false });
   if (draftResult.error || publishedResult.error || versionsResult.error) return new Response('Errore caricamento scena.', { status: 500 });
   return NextResponse.json({ draft: draftResult.data?.scene ?? null, published: publishedResult.data?.scene ?? null, versions: versionsResult.data ?? [] });
+}
+
+export async function PATCH(request: Request) {
+  const authorization = await getEditorAuthorization(request);
+  if (!authorization.ok) return new Response(authorization.message, { status: authorization.status });
+  const body = await request.json().catch(() => null) as { versionId?: unknown; displayName?: unknown } | null;
+  if (typeof body?.versionId !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.versionId)) return NextResponse.json({ error: 'Versione non valida.' }, { status: 400 });
+  if (body.displayName !== null && typeof body.displayName !== 'string') return NextResponse.json({ error: 'Nome non valido.' }, { status: 400 });
+  const displayName = normalizeSceneVersionDisplayName(body.displayName);
+  const { data, error } = await createAdminClient().from('scene_versions').update({ display_name: displayName }).eq('scene_id', 'home').eq('id', body.versionId).select('id, display_name').maybeSingle();
+  if (error || !data) return new Response('Errore rinomina versione.', { status: error ? 500 : 404 });
+  return NextResponse.json({ ok: true, version: data });
 }
 
 export async function PUT(request: Request) {

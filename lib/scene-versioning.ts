@@ -20,3 +20,9 @@ export function rollbackVersionLabel(versionNumber: number) {
 export function canDeleteSceneVersion() {
   return false;
 }
+
+export function normalizeSceneVersionDisplayName(value: unknown) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim().slice(0, 60);
+  return trimmed || null;
+}
