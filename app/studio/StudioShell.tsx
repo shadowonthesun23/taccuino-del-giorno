@@ -17,6 +17,7 @@ import {
   createSceneResponsiveOverride,
   cloneBaselineSceneDraft,
   removeSceneResponsiveOverride,
+  replaceSceneObjectAsset,
   resolveSceneDraft,
   updateSceneDraft,
   type SceneEditingTarget,
@@ -283,6 +284,8 @@ export default function StudioShell() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [assetFile, setAssetFile] = useState<File | null>(null);
   const [assetPreviewUrl, setAssetPreviewUrl] = useState<string | null>(null);
+  const [replacingAsset, setReplacingAsset] = useState(false);
+  const replaceAssetInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 1440, height: 900 });
   const [positions, setPositions] = useState<PanelPositions>(INITIAL_POSITIONS);
@@ -567,6 +570,19 @@ export default function StudioShell() {
     } catch { setSaveStatus('error'); } finally { setUploading(false); }
   }
 
+  async function replaceSelectedAsset(file: File) {
+    setReplacingAsset(true);
+    try {
+      const form = new FormData();
+      form.set('file', file);
+      const response = await fetch('/api/studio/assets', { method: 'POST', body: form });
+      if (!response.ok) throw new Error(await response.text());
+      const uploaded = await response.json() as Pick<SceneObjectDraft, 'asset'>;
+      if (!uploaded.asset) throw new Error('asset missing');
+      commitDraftMutation((current) => replaceSceneObjectAsset(current, selectedObjectId, uploaded.asset));
+    } catch { setSaveStatus('error'); } finally { setReplacingAsset(false); }
+  }
+
   async function publishDraft() {
     setSaveStatus('saving');
     try {
@@ -825,6 +841,8 @@ export default function StudioShell() {
                 {selectedObject.visible ? 'Nascondi' : 'Mostra'}
               </button>
             </div>
+            <input ref={replaceAssetInputRef} className={styles.hiddenFileInput} type="file" accept="image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0]; event.currentTarget.value = ''; if (file) void replaceSelectedAsset(file); }} />
+            <button type="button" className={styles.secondaryButton} disabled={replacingAsset} onClick={() => replaceAssetInputRef.current?.click()}>{replacingAsset ? 'Sostituzione…' : 'Sostituisci asset'}</button>
             <button type="button" className={styles.secondaryButton} onClick={effectiveEditingTarget.mode === 'override' ? removeOverride : resetSelectedObject}>
               {effectiveEditingTarget.mode === 'override' ? 'Ripristina override' : 'Reset oggetto'}
             </button>

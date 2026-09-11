@@ -367,6 +367,14 @@
   width: 100%;
 }
 
+.hiddenFileInput {
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
 .numericGrid {
   display: grid;
   gap: 8px;

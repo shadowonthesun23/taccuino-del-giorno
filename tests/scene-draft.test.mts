@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getSceneObject, getSceneObjectResponsiveState, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
-import { cloneBaselineSceneDraft, createSceneResponsiveOverride, removeSceneResponsiveOverride, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
+import { cloneBaselineSceneDraft, createSceneResponsiveOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
 const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {} };
@@ -78,6 +78,21 @@ test('central pivot is independent from left/top and right/bottom anchors', () =
   assert.equal((css.match(/transform-origin: 50% 50%/g) ?? []).length, 2);
   assert.equal(resolveSceneObjectForViewport(rightBottom, { width: 1440, height: 900 }).object.anchorX, 'right');
   assert.equal(resolveSceneObjectForViewport(leftTop, { width: 1440, height: 900 }).object.anchorX, 'left');
+});
+
+test('replacing an asset preserves the selected object identity and editing state', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = createSceneResponsiveOverride(draft, 'seasonal-fig', 'mobile');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 80, scale: .8 }, { mode: 'override', breakpointId: 'mobile' });
+  const before = getSceneObject(draft, 'seasonal-fig')!;
+  const replaced = replaceSceneObjectAsset(draft, 'seasonal-fig', { source: 'storage', path: 'editor/new-fig.webp' });
+  const after = getSceneObject(replaced, 'seasonal-fig')!;
+  assert.deepEqual(after.asset, { source: 'storage', path: 'editor/new-fig.webp' });
+  assert.equal(after.id, before.id);
+  assert.equal(after.offsetX, before.offsetX);
+  assert.equal(after.scale, before.scale);
+  assert.deepEqual(after.responsiveOverrides, before.responsiveOverrides);
+  assert.equal(replaced.objects.length, draft.objects.length);
 });
 
 test('validator rejects duplicate IDs, unknown renderers and unsafe assets', () => {
