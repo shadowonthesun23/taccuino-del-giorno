@@ -22,6 +22,14 @@ test('exact preset overrides are distinct and fall back to responsive/base', () 
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, object.offsetX);
 });
 
+test('first edit on a preset creates only that preset override', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 100 }, { mode: 'preset', presetId: '1920x1080' });
+  assert.deepEqual(draft.objects.find((object) => object.id === 'seasonal-fig')?.presetOverrides, { '1920x1080': { offsetX: 100 } });
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 100);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 0);
+});
+
 test('base and partial responsive overrides resolve deterministically', () => {
   let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: .9 }, { mode: 'override', breakpointId: 'desktop' });

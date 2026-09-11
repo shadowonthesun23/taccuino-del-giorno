@@ -15,7 +15,6 @@ import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   addSceneObject,
   createSceneResponsiveOverride,
-  createScenePresetOverride,
   cloneBaselineSceneDraft,
   removeSceneResponsiveOverride,
   removeScenePresetOverride,
@@ -270,6 +269,7 @@ export default function StudioShell() {
   const [uiHidden, setUiHidden] = useState(false);
   const [selectedObjectId, setSelectedObjectId] = useState<SceneObjectId>('seasonal-fig');
   const [editingTarget, setEditingTarget] = useState<SceneEditingTarget>({ mode: 'base' });
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [guideMode, setGuideMode] = useState<SceneGuideMode>('off');
   const [collisions, setCollisions] = useState<SceneCollision[]>([]);
   const [draft, setDraft] = useState<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
@@ -301,10 +301,12 @@ export default function StudioShell() {
   const selectedObject = selectedResponsiveState.object;
   const hasCurrentOverride = Boolean(selectedResponsiveState.overrideBreakpointId);
   const effectiveEditingTarget = useMemo<SceneEditingTarget>(() => {
-    if (editingTarget.mode === 'preset' && editingTarget.presetId === viewport.id) return editingTarget;
-    if (editingTarget.mode === 'override' && editingTarget.breakpointId === activeBreakpoint) return editingTarget;
-    return { mode: 'base' };
-  }, [activeBreakpoint, editingTarget, viewport.id]);
+    if (advancedOpen) {
+      if (editingTarget.mode === 'override' && editingTarget.breakpointId === activeBreakpoint) return editingTarget;
+      if (editingTarget.mode === 'base') return editingTarget;
+    }
+    return { mode: 'preset', presetId: viewport.id as ScenePresetOverrideId };
+  }, [activeBreakpoint, advancedOpen, editingTarget, viewport.id]);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -532,11 +534,6 @@ export default function StudioShell() {
     if (!activeBreakpoint) return;
     commitDraftMutation((current) => removeSceneResponsiveOverride(current, selectedObjectId, activeBreakpoint));
     setEditingTarget({ mode: 'base' });
-  }
-
-  function createPresetOverride() {
-    commitDraftMutation((current) => createScenePresetOverride(current, selectedObjectId, viewport.id as ScenePresetOverrideId));
-    setEditingTarget({ mode: 'preset', presetId: viewport.id as ScenePresetOverrideId });
   }
 
   function removePresetOverride() {
@@ -822,15 +819,19 @@ export default function StudioShell() {
               <strong>{selectedBaseObject.name}</strong>
               <span>{selectedBaseObject.locked ? 'Bloccato' : 'Modificabile'}</span>
             </div>
-            <div className={styles.modeGroup} aria-label="Target di modifica">
-              <button type="button" className={effectiveEditingTarget.mode === 'base' ? styles.modeActive : styles.modeButton} onClick={() => setEditingTarget({ mode: 'base' })}>Base</button>
-              <button type="button" className={effectiveEditingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override fascia</button>
-              <button type="button" className={effectiveEditingTarget.mode === 'preset' ? styles.modeActive : styles.modeButton} disabled={!presetOverride} onClick={() => presetOverride && setEditingTarget({ mode: 'preset', presetId: viewport.id as ScenePresetOverrideId })}>Override preset</button>
-            </div>
-            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? `MODIFICA · BASE · ${presetOverride ? 'override preset presente' : hasCurrentOverride ? `override fascia presente per ${SCENE_RESPONSIVE_LABELS[activeBreakpoint!]}` : selectedResponsiveState.status === 'hidden' ? 'HIDDEN' : 'Questo viewport eredita dalla Base'}` : effectiveEditingTarget.mode === 'preset' ? `MODIFICA · OVERRIDE PRESET · ${viewport.width}×${viewport.height}` : `MODIFICA · OVERRIDE FASCIA · ${SCENE_RESPONSIVE_LABELS[effectiveEditingTarget.breakpointId]}`}</p>
+            <p className={styles.statusText}>Modifica: {viewport.width} × {viewport.height}</p>
+            <p className={styles.statusText}>{presetOverride ? 'Personalizzato' : `Eredita da ${selectedResponsiveState.bandId ? SCENE_RESPONSIVE_LABELS[selectedResponsiveState.bandId] : 'BASE'}`}</p>
             {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
-            {effectiveEditingTarget.mode === 'base' && activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override fascia</button> : null}
-            {effectiveEditingTarget.mode === 'base' && !presetOverride ? <button type="button" className={styles.secondaryButton} onClick={createPresetOverride}>Crea override preset</button> : null}
+            {presetOverride ? <button type="button" className={styles.secondaryButton} onClick={removePresetOverride}>Ripristina questa risoluzione</button> : null}
+            <button type="button" className={styles.secondaryButton} onClick={() => setAdvancedOpen((open) => !open)} aria-expanded={advancedOpen}>Avanzate {advancedOpen ? '−' : '+'}</button>
+            {advancedOpen ? <div className={styles.advancedSection}>
+              <div className={styles.modeGroup} aria-label="Target avanzato">
+                <button type="button" className={editingTarget.mode === 'base' ? styles.modeActive : styles.modeButton} onClick={() => setEditingTarget({ mode: 'base' })}>Base</button>
+                <button type="button" className={editingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override fascia</button>
+              </div>
+              <p className={styles.statusText}>{editingTarget.mode === 'override' && activeBreakpoint ? `MODIFICA · OVERRIDE FASCIA · ${SCENE_RESPONSIVE_LABELS[activeBreakpoint]}` : 'MODIFICA · BASE'}</p>
+              {activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override fascia</button> : null}
+            </div> : null}
             <div className={styles.numericGrid}>
               <NumericField label="X · px" value={selectedObject.offsetX} step={1} disabled={selectedBaseObject.locked} onChange={(offsetX) => patchSelectedObject({ offsetX })} />
               <NumericField label="Y · px" value={selectedObject.offsetY} step={1} disabled={selectedBaseObject.locked} onChange={(offsetY) => patchSelectedObject({ offsetY })} />
