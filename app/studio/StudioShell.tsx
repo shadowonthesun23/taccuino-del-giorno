@@ -265,7 +265,7 @@ function NumericField({
 
 export default function StudioShell() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [viewportId, setViewportId] = useState<StudioViewportPresetId>('1440x900');
+  const [viewportId, setViewportId] = useState<StudioViewportPresetId>('1920x1080');
   const [mode, setMode] = useState<SceneMode>('edit');
   const [uiHidden, setUiHidden] = useState(false);
   const [selectedObjectId, setSelectedObjectId] = useState<SceneObjectId>('seasonal-fig');
