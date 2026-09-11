@@ -443,9 +443,12 @@ export default function DailyPostcard({
   const [isFlipped, setIsFlipped] = useState(false);
   const [dayPermalink, setDayPermalink] = useState('');
   const [exportingPostcard, setExportingPostcard] = useState<DailyPostcardFace | null>(null);
+  const [mobileExportFace, setMobileExportFace] = useState<DailyPostcardFace | null>(null);
   const [addressText, setAddressText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const postcardCardRef = useRef<HTMLDivElement>(null);
+  const mobileExportCardRef = useRef<HTMLDivElement>(null);
+  const exportInFlightRef = useRef(false);
   const postcardMotionRef = useRef<HTMLDivElement>(null);
   const postcardMotionFrameRef = useRef<number | null>(null);
   const postcardClosingTimerRef = useRef<number | null>(null);
@@ -588,18 +591,62 @@ export default function DailyPostcard({
 
   const postcardOpen = desktopEnabled && isActive && isOpen;
 
-  const downloadPostcard = useCallback(async (face: DailyPostcardFace) => {
-    if (!postcardOpen || isClosing || !postcardCardRef.current || exportingPostcard) return;
-
+  const downloadPostcardFromCard = useCallback(async (sourceCard: HTMLElement, face: DailyPostcardFace) => {
+    if (exportInFlightRef.current) return;
+    exportInFlightRef.current = true;
     setExportingPostcard(face);
     try {
-      await downloadDailyPostcardFace(postcardCardRef.current, dataIso, face);
+      await downloadDailyPostcardFace(sourceCard, dataIso, face);
     } catch (error) {
       console.error('Errore durante il download della cartolina:', error);
     } finally {
       setExportingPostcard(null);
+      exportInFlightRef.current = false;
     }
-  }, [dataIso, exportingPostcard, isClosing, postcardOpen]);
+  }, [dataIso]);
+
+  const downloadPostcard = useCallback(async (face: DailyPostcardFace) => {
+    if (!postcardOpen || isClosing || !postcardCardRef.current) return;
+    await downloadPostcardFromCard(postcardCardRef.current, face);
+  }, [downloadPostcardFromCard, isClosing, postcardOpen]);
+
+  useEffect(() => {
+    const handleMobilePostcardDownload = (event: Event) => {
+      const face = (event as CustomEvent<{ face?: DailyPostcardFace }>).detail?.face;
+      if (face !== 'front' && face !== 'back') return;
+      if (exportInFlightRef.current) return;
+
+      if (postcardOpen && !isClosing && postcardCardRef.current) {
+        void downloadPostcardFromCard(postcardCardRef.current, face);
+        return;
+      }
+
+      setMobileExportFace(face);
+    };
+
+    window.addEventListener('taccuino:download-postcard', handleMobilePostcardDownload);
+    return () => window.removeEventListener('taccuino:download-postcard', handleMobilePostcardDownload);
+  }, [downloadPostcardFromCard, isClosing, postcardOpen]);
+
+  useEffect(() => {
+    if (!mobileExportFace || exportInFlightRef.current) return;
+    const face = mobileExportFace;
+    let cancelled = false;
+    const frame = window.requestAnimationFrame(() => {
+      const card = mobileExportCardRef.current;
+      if (!card) {
+        setMobileExportFace(null);
+        return;
+      }
+      void downloadPostcardFromCard(card, face).finally(() => {
+        if (!cancelled) setMobileExportFace(null);
+      });
+    });
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+    };
+  }, [downloadPostcardFromCard, mobileExportFace]);
 
   const applyPostcardMotion = useCallback((x: number, y: number) => {
     const motionLayer = postcardMotionRef.current;
@@ -804,6 +851,39 @@ export default function DailyPostcard({
             </button>
           </section>
         </>
+      ) : null}
+
+      {mobileExportFace ? (
+        <div className="daily-postcard-mobile-export-source" aria-hidden="true">
+          <div ref={mobileExportCardRef} className="daily-postcard-card">
+            <PostcardFront
+              artwork={seasonalArtwork}
+              dateLabel={dateLabel}
+              seasonLabel={seasonLabel}
+              day={day}
+              total={total}
+              dayToKeep={copy.dayToKeep}
+            />
+            <PostcardBack
+              dataIso={dataIso}
+              lingua={lingua}
+              sourceUrl={sourceUrl}
+              dateLabel={dateLabel}
+              day={day}
+              total={total}
+              quote={quote}
+              authorName={authorName}
+              authorBirthDate={authorBirthDate}
+              authorDeathDate={authorDeathDate}
+              authorImageUrl={authorImageUrl}
+              authorImageCrop={authorImageCrop}
+              addressText={addressText}
+              isEditing={false}
+              onAddressTextChange={handleAddressTextChange}
+              setAddressInputRef={setAddressInputRef}
+            />
+          </div>
+        </div>
       ) : null}
     </aside>
   );

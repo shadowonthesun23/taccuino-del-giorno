@@ -1546,6 +1546,28 @@ export default function Home({
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    setMobileToolsOpen(false);
+                    window.dispatchEvent(new CustomEvent('taccuino:download-postcard', { detail: { face: 'front' } }));
+                  }}
+                  aria-label={{ IT: 'Scarica cartolina · fronte', EN: 'Download postcard · front', FR: 'Télécharger la carte · recto', DE: 'Postkarte herunterladen · Vorderseite', ES: 'Descargar postal · anverso', PT: 'Descarregar postal · frente' }[lingua] || 'Download postcard · front'}
+                >
+                  <FileDown className="h-4 w-4" />
+                  <span>{{ IT: 'Scarica cartolina · fronte', EN: 'Download postcard · front', FR: 'Télécharger la carte · recto', DE: 'Postkarte herunterladen · Vorderseite', ES: 'Descargar postal · anverso', PT: 'Descarregar postal · frente' }[lingua] || 'Download postcard · front'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileToolsOpen(false);
+                    window.dispatchEvent(new CustomEvent('taccuino:download-postcard', { detail: { face: 'back' } }));
+                  }}
+                  aria-label={{ IT: 'Scarica cartolina · retro', EN: 'Download postcard · back', FR: 'Télécharger la carte · verso', DE: 'Postkarte herunterladen · Rückseite', ES: 'Descargar postal · reverso', PT: 'Descarregar postal · verso' }[lingua] || 'Download postcard · back'}
+                >
+                  <FileDown className="h-4 w-4" />
+                  <span>{{ IT: 'Scarica cartolina · retro', EN: 'Download postcard · back', FR: 'Télécharger la carte · verso', DE: 'Postkarte herunterladen · Rückseite', ES: 'Descargar postal · reverso', PT: 'Descarregar postal · verso' }[lingua] || 'Download postcard · back'}</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setMobileMenuTab('theme')}
                 >
                   <ThemeModeIcon mode={themeMode} className="h-4 w-4" />

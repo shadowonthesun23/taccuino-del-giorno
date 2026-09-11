@@ -5782,6 +5782,26 @@ body.museum-room-open :is(
   z-index: 34;
 }
 
+/* Temporary offscreen source used for postcard exports on mobile. */
+.daily-postcard-mobile-export-source {
+  height: 480px;
+  left: -10000px;
+  opacity: 0.001;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 420px;
+  z-index: -1;
+}
+
+.daily-postcard-mobile-export-source .daily-postcard-card {
+  height: 480px;
+  min-height: 480px;
+  transform: none;
+  transition: none;
+  width: 420px;
+}
+
 .daily-postcard.is-closing {
   pointer-events: none;
 }
