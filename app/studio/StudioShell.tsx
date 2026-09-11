@@ -58,6 +58,16 @@ const GUIDE_STORAGE_KEY = 'day-atlas-scene-studio-guides-v1';
 
 type PanelId = 'viewport' | 'objects' | 'properties';
 type PanelPositions = Record<PanelId, Point>;
+type SceneVersionRecord = {
+  id: string;
+  version_number: number;
+  label: string;
+  scene: SceneDraft;
+  is_baseline: boolean;
+  is_current: boolean;
+  source_version_id: string | null;
+  created_at: string;
+};
 
 const INITIAL_POSITIONS: PanelPositions = {
   viewport: { x: 24, y: 24 },
@@ -265,6 +275,8 @@ export default function StudioShell() {
   const interactionHistoryRef = useRef(false);
   const [draftRestored, setDraftRestored] = useState(false);
   const [publishedScene, setPublishedScene] = useState<SceneDraft | null>(null);
+  const [versions, setVersions] = useState<SceneVersionRecord[]>([]);
+  const [versionPreview, setVersionPreview] = useState<SceneVersionRecord | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [assetFile, setAssetFile] = useState<File | null>(null);
   const [assetPreviewUrl, setAssetPreviewUrl] = useState<string | null>(null);
@@ -324,7 +336,8 @@ export default function StudioShell() {
         type: STUDIO_PREVIEW_MESSAGE,
         mode,
         viewport: viewport.id,
-        sceneDraft: mode === 'online' ? publishedScene : draft,
+        sceneDraft: mode === 'online' ? publishedScene : mode === 'preview' && versionPreview ? versionPreview.scene : draft,
+        previewLabel: mode === 'preview' ? versionPreview?.label : undefined,
         selectedObjectId,
         editingTarget: effectiveEditingTarget,
         guideMode,
@@ -332,7 +345,7 @@ export default function StudioShell() {
       },
       window.location.origin,
     );
-  }, [draft, effectiveEditingTarget, guideMode, mode, publishedScene, selectedObjectId, uiHidden, viewport.id]);
+  }, [draft, effectiveEditingTarget, guideMode, mode, publishedScene, selectedObjectId, uiHidden, versionPreview, viewport.id]);
 
   useEffect(() => {
     const updateWindowSize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -350,6 +363,7 @@ export default function StudioShell() {
       if (candidate.type === STUDIO_TOGGLE_UI_MESSAGE) {
         setUiHidden((current) => !current);
       } else if (candidate.type === STUDIO_RETURN_TO_EDIT_MESSAGE) {
+        setVersionPreview(null);
         setMode('edit');
         setUiHidden(false);
       } else if (candidate.type === STUDIO_SELECTION_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId) && getSceneObject(draft, candidate.objectId)) {
@@ -396,13 +410,23 @@ export default function StudioShell() {
       try {
         const response = await fetch('/api/studio/scene', { cache: 'no-store' });
         if (!response.ok) throw new Error('online scene unavailable');
-        const payload = await response.json() as { draft?: unknown; published?: unknown };
+        const payload = await response.json() as { draft?: unknown; published?: unknown; versions?: unknown };
         const loadedDraft = payload.draft ? resolveSceneDraft(payload.draft) : recovery;
         resetReferenceRef.current = structuredClone(loadedDraft);
         setDraft(loadedDraft);
         setUndoStack([]);
         setRedoStack([]);
         setPublishedScene(resolvePublishedScene(payload.published));
+        if (Array.isArray(payload.versions)) {
+          setVersions(payload.versions.flatMap((entry) => {
+            if (!entry || typeof entry !== 'object') return [];
+            const candidate = entry as Record<string, unknown>;
+            let scene: SceneDraft;
+            try { scene = resolveSceneDraft(candidate.scene); } catch { return []; }
+            if (typeof candidate.id !== 'string' || typeof candidate.version_number !== 'number' || typeof candidate.label !== 'string' || typeof candidate.created_at !== 'string') return [];
+            return [{ id: candidate.id, version_number: candidate.version_number, label: candidate.label, scene, is_baseline: candidate.is_baseline === true, is_current: candidate.is_current === true, source_version_id: typeof candidate.source_version_id === 'string' ? candidate.source_version_id : null, created_at: candidate.created_at }];
+          }));
+        }
       } catch {
         resetReferenceRef.current = structuredClone(recovery);
         setDraft(recovery);
@@ -547,12 +571,49 @@ export default function StudioShell() {
       if (!response.ok) throw new Error('publish failed');
       const payload = await response.json() as { scene: unknown };
       setPublishedScene(resolvePublishedScene(payload.scene));
+      if (payload && 'version' in payload && payload.version && typeof payload.version === 'object') {
+        const version = payload.version as Record<string, unknown>;
+        if (typeof version.id === 'string' && typeof version.version_number === 'number' && typeof version.label === 'string' && typeof version.created_at === 'string') {
+          const nextVersion: SceneVersionRecord = { id: version.id, version_number: version.version_number, label: version.label, scene: draft, is_baseline: false, is_current: true, source_version_id: typeof version.source_version_id === 'string' ? version.source_version_id : null, created_at: version.created_at };
+          setVersions((current) => [nextVersion, ...current.map((entry) => ({ ...entry, is_current: false }))]);
+        }
+      }
       setSaveStatus('saved');
       enterMode('online');
     } catch { setSaveStatus('error'); }
   }
 
+  function previewVersion(version: SceneVersionRecord) {
+    setVersionPreview(version);
+    setMode('preview');
+    setUiHidden(false);
+  }
+
+  async function rollbackVersion(version: SceneVersionRecord) {
+    if (version.is_current || !window.confirm(`Ripristinare v${version.version_number}?\nVerrà creata una nuova versione.\nLa cronologia esistente non verrà cancellata.`)) return;
+    setSaveStatus('saving');
+    try {
+      const response = await fetch('/api/studio/scene', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'rollback', scene: version.scene, sourceVersionId: version.id }) });
+      if (!response.ok) throw new Error('rollback failed');
+      const payload = await response.json() as { scene?: unknown; version?: Record<string, unknown> };
+      const nextScene = resolveSceneDraft(payload.scene);
+      setDraft(nextScene);
+      setPublishedScene(resolvePublishedScene(nextScene));
+      resetReferenceRef.current = structuredClone(nextScene);
+      setUndoStack([]);
+      setRedoStack([]);
+      setVersionPreview(null);
+      if (payload.version && typeof payload.version.id === 'string' && typeof payload.version.version_number === 'number' && typeof payload.version.label === 'string' && typeof payload.version.created_at === 'string') {
+        const nextVersion: SceneVersionRecord = { id: payload.version.id, version_number: payload.version.version_number, label: payload.version.label, scene: nextScene, is_baseline: false, is_current: true, source_version_id: version.id, created_at: payload.version.created_at };
+        setVersions((current) => [nextVersion, ...current.map((entry) => ({ ...entry, is_current: false }))]);
+      }
+      setSaveStatus('saved');
+      setMode('online');
+    } catch { setSaveStatus('error'); }
+  }
+
   function enterMode(nextMode: SceneMode) {
+    if (nextMode !== 'preview') setVersionPreview(null);
     setMode(nextMode);
     setUiHidden(false);
   }
@@ -645,6 +706,24 @@ export default function StudioShell() {
               Nascondi UI <kbd>H</kbd>
             </button>
             <button type="button" className={styles.primaryButton} onClick={publishDraft}>PUBBLICA</button>
+            <section className={styles.versionHistory} aria-label="Cronologia versioni">
+              <div className={styles.propertyHeading}><strong>Cronologia</strong><span>{versions.length} versioni</span></div>
+              <div className={styles.versionList}>
+                {versions.map((version) => (
+                  <div key={version.id} className={styles.versionRow}>
+                    <div className={styles.versionMeta}>
+                      <strong>v{version.version_number}</strong>
+                      <span>{version.is_current ? 'CURRENT · ' : ''}{version.is_baseline ? 'BASELINE' : version.label}</span>
+                      <time dateTime={version.created_at}>{new Date(version.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</time>
+                    </div>
+                    <div className={styles.versionActions}>
+                      <button type="button" className={styles.modeButton} onClick={() => previewVersion(version)}>Anteprima</button>
+                      <button type="button" className={styles.modeButton} disabled={version.is_current} onClick={() => void rollbackVersion(version)}>Ripristina</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           </FloatingPanel>
 
           <FloatingPanel

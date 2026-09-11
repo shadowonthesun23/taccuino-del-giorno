@@ -401,6 +401,7 @@ export default function StudioPreviewBridge({
   const [viewportId, setViewportId] = useState<StudioViewportPresetId>(initialViewport);
   const [editingTarget, setEditingTarget] = useState<SceneEditingTarget>({ mode: 'base' });
   const [guideMode, setGuideMode] = useState<SceneGuideMode>('off');
+  const [previewLabel, setPreviewLabel] = useState<string | null>(null);
   const [selectedRect, setSelectedRect] = useState<SceneRect | null>(null);
   const viewport = getStudioViewportPreset(viewportId);
   const safeAreas = useSceneSafeAreas(viewport);
@@ -465,6 +466,7 @@ export default function StudioPreviewBridge({
       modeRef.current = candidate.mode;
       setMode(candidate.mode);
       setShowEditor(candidate.showEditor === true && candidate.mode === 'edit');
+      setPreviewLabel(typeof candidate.previewLabel === 'string' ? candidate.previewLabel : null);
       setGuideMode(candidate.guideMode === 'content' || candidate.guideMode === 'interactive' || candidate.guideMode === 'all' ? candidate.guideMode : 'off');
       if (candidate.selectedObjectId && isSceneObjectId(candidate.selectedObjectId) && getSceneObject(draft, candidate.selectedObjectId)) {
         setSelectedObjectId(candidate.selectedObjectId);
@@ -510,7 +512,7 @@ export default function StudioPreviewBridge({
           className={styles.returnToEdit}
           onClick={() => window.parent.postMessage({ type: STUDIO_RETURN_TO_EDIT_MESSAGE }, window.location.origin)}
         >
-          ← Torna a Modifica
+          ← {previewLabel ? 'Torna alla scena corrente' : 'Torna a Modifica'}
         </button>
       ) : null}
       {showEditor && mode === 'edit' ? <SceneSafeAreaOverlay safeAreas={safeAreas} guideMode={guideMode} collisions={collisions} /> : null}

@@ -20,6 +20,7 @@ export type StudioPreviewMessage = {
   editingTarget?: SceneEditingTarget;
   guideMode?: SceneGuideMode;
   showEditor?: boolean;
+  previewLabel?: string;
 };
 
 export type StudioDraftChangeMessage = {
