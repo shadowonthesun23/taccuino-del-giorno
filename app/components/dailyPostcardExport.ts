@@ -16,6 +16,10 @@ const POSTCARD_EXPORT_VARIABLES = [
 
 export type DailyPostcardFace = 'front' | 'back';
 
+function describeImageSource(source: string) {
+  return source.length > 160 ? `${source.slice(0, 157)}…` : source;
+}
+
 function decodeImage(image: HTMLImageElement) {
   if (typeof image.decode !== 'function') return Promise.resolve();
   return image.decode();
@@ -25,23 +29,34 @@ function waitForImage(image: HTMLImageElement) {
   return new Promise<void>((resolve, reject) => {
     let timeoutId: number | null = null;
     let settled = false;
+    const source = image.currentSrc || image.src || '(sorgente sconosciuta)';
+    const cleanup = () => {
+      image.removeEventListener('load', handleLoad);
+      image.removeEventListener('error', handleError);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
     const finish = () => {
       if (settled) return;
       settled = true;
-      image.removeEventListener('load', finish);
-      image.removeEventListener('error', finish);
-      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      cleanup();
       if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
-        reject(new Error('Immagine della cartolina non disponibile.'));
+        reject(new Error(`Immagine della cartolina non disponibile: ${describeImageSource(source)}`));
         return;
       }
       void decodeImage(image).then(() => {
         if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
-          reject(new Error('Immagine della cartolina non decodificata.'));
+          reject(new Error(`Immagine della cartolina non decodificata: ${describeImageSource(source)}`));
           return;
         }
         resolve();
-      }).catch(() => reject(new Error('Immagine della cartolina non decodificata.')));
+      }).catch(() => reject(new Error(`Immagine della cartolina non decodificata: ${describeImageSource(source)}`)));
+    };
+    const handleLoad = () => finish();
+    const handleError = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error(`Immagine della cartolina non caricata: ${describeImageSource(source)}`));
     };
 
     if (image.complete) {
@@ -49,16 +64,13 @@ function waitForImage(image: HTMLImageElement) {
       return;
     }
 
-    image.addEventListener('load', finish, { once: true });
-    image.addEventListener('error', () => {
-      if (settled) return;
-      settled = true;
-      reject(new Error('Immagine della cartolina non caricata.'));
-    }, { once: true });
+    image.addEventListener('load', handleLoad, { once: true });
+    image.addEventListener('error', handleError, { once: true });
     timeoutId = window.setTimeout(() => {
       if (settled) return;
       settled = true;
-      reject(new Error('Timeout caricamento immagine della cartolina.'));
+      cleanup();
+      reject(new Error(`Timeout caricamento immagine della cartolina: ${describeImageSource(source)}`));
     }, IMAGE_WAIT_TIMEOUT_MS);
   });
 }
@@ -78,15 +90,53 @@ function resolveImageSource(source: string) {
 }
 
 async function fetchImageDataUrl(source: string) {
-  const response = await fetch(resolveImageSource(source), {
-    cache: 'force-cache',
-    credentials: 'same-origin',
-  });
-  if (!response.ok) throw new Error(`Immagine non disponibile (${response.status}).`);
-  return blobToDataUrl(await response.blob());
+  if (/^data:image\//iu.test(source)) return source;
+
+  const resolvedSource = /^blob:/iu.test(source) ? source : resolveImageSource(source);
+  try {
+    const response = await fetch(resolvedSource, {
+      cache: 'force-cache',
+      credentials: 'same-origin',
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const blob = await response.blob();
+    if (!blob.type.startsWith('image/')) throw new Error(`tipo ${blob.type || 'sconosciuto'}`);
+    return await blobToDataUrl(blob);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'errore sconosciuto';
+    throw new Error(`Immagine non recuperabile (${describeImageSource(source)}): ${reason}`);
+  }
 }
 
-async function inlineCloneImages(root: HTMLElement, sourceRoot: HTMLElement) {
+function copyRasterPresentation(source: HTMLImageElement, replacement: HTMLDivElement, dataUrl: string) {
+  replacement.className = source.className;
+  replacement.style.cssText = source.style.cssText;
+
+  const computed = window.getComputedStyle(source);
+  const preservedProperties = [
+    'position', 'inset', 'top', 'right', 'bottom', 'left', 'width', 'height',
+    'transform', 'transform-origin', 'opacity', 'border-radius', 'outline',
+    'outline-offset', 'mix-blend-mode', 'z-index',
+  ] as const;
+  preservedProperties.forEach((property) => {
+    replacement.style.setProperty(property, computed.getPropertyValue(property));
+  });
+
+  replacement.style.backgroundImage = `url(${JSON.stringify(dataUrl)})`;
+  replacement.style.backgroundRepeat = 'no-repeat';
+  replacement.style.backgroundSize = computed.objectFit === 'contain' || computed.objectFit === 'scale-down'
+    ? 'contain'
+    : computed.objectFit === 'fill' ? '100% 100%' : 'cover';
+  replacement.style.backgroundPosition = computed.objectPosition || '50% 50%';
+  replacement.setAttribute('role', 'img');
+  const alt = source.getAttribute('alt');
+  if (alt) replacement.setAttribute('aria-label', alt);
+  else replacement.setAttribute('aria-hidden', 'true');
+}
+
+async function replaceCloneRasterImages(root: HTMLElement, sourceRoot: HTMLElement) {
   const cloneImages = Array.from(root.querySelectorAll<HTMLImageElement>('img'));
   const sourceImages = Array.from(sourceRoot.querySelectorAll<HTMLImageElement>('img'));
 
@@ -96,19 +146,15 @@ async function inlineCloneImages(root: HTMLElement, sourceRoot: HTMLElement) {
     if (!source) throw new Error('Sorgente immagine della cartolina mancante.');
 
     const dataUrl = await fetchImageDataUrl(source);
-    image.removeAttribute('srcset');
-    image.removeAttribute('loading');
-    image.src = dataUrl;
-    image.style.backgroundImage = `url(${JSON.stringify(dataUrl)})`;
-    image.style.backgroundRepeat = 'no-repeat';
-    const computed = window.getComputedStyle(sourceImage);
-    const objectFit = computed.objectFit;
-    image.style.backgroundSize = objectFit === 'contain' || objectFit === 'scale-down'
-      ? 'contain'
-      : objectFit === 'fill' ? '100% 100%' : 'cover';
-    image.style.backgroundPosition = computed.objectPosition || '50% 50%';
-    await waitForImage(image);
+    const replacement = document.createElement('div');
+    copyRasterPresentation(image, replacement, dataUrl);
+    if (image.classList.contains('daily-postcard-image')) replacement.style.zIndex = '0';
+    image.replaceWith(replacement);
   }));
+
+  const vignette = root.querySelector<HTMLElement>('.daily-postcard-front-vignette');
+  if (vignette) vignette.style.zIndex = '1';
+  if (root.querySelector('img')) throw new Error('La conversione raster della cartolina è incompleta.');
 }
 
 function waitForNextPaint() {
@@ -261,8 +307,7 @@ export async function downloadDailyPostcardFace(
   const { clone, exportFrame } = createExportFrame(sourceCard, face, sourceFontFamily, exportHeight);
 
   try {
-    await inlineCloneImages(clone, sourceFace);
-    await waitForImages(clone);
+    await replaceCloneRasterImages(clone, sourceFace);
     await waitForNextPaint();
 
     const dataUrl = await toJpeg(exportFrame, {

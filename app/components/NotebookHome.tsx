@@ -1568,16 +1568,17 @@ export default function Home({
                 </button>
                 <button
                   type="button"
+                  className="mobile-tools-theme-row"
                   onClick={() => setMobileMenuTab('theme')}
                 >
                   <ThemeModeIcon mode={themeMode} className="h-4 w-4" />
-                  <div className="flex min-w-0 items-center gap-3 justify-between w-full pr-1">
-                    <span className="min-w-0">{THEME_MODE_COPY[lingua].label}</span>
-                    <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wider opacity-60 flex items-center gap-0.5 not-italic font-sans">
+                  <div className="mobile-tools-theme-copy">
+                    <span>{THEME_MODE_COPY[lingua].label}</span>
+                    <span className="mobile-tools-theme-value">
                       {THEME_MODE_COPY[lingua][themeMode]}
-                      <ChevronRight className="w-3 h-3 text-[#DE6B58]" />
                     </span>
                   </div>
+                  <ChevronRight className="mobile-tools-theme-chevron w-3 h-3 text-[#DE6B58]" />
                 </button>
               </div>
             ) : mobileMenuTab === 'theme' ? (

@@ -5791,7 +5791,6 @@ body.museum-room-open :is(
   --postcard-ink: #2a241d;
   --postcard-rule: rgba(58, 43, 28, 0.27);
   min-height: 480px;
-  opacity: 0.001;
   pointer-events: none;
   position: fixed;
   top: 0;
@@ -9778,6 +9777,34 @@ body.museum-room-open :is(
     padding: 7px 10px;
     text-align: left;
     white-space: nowrap;
+  }
+
+  .mobile-tools-menu button.mobile-tools-theme-row {
+    grid-template-columns: 20px minmax(0, 1fr) 12px;
+  }
+
+  .mobile-tools-theme-copy {
+    align-items: flex-start;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .mobile-tools-theme-value {
+    font-family: var(--font-geist-sans), ui-sans-serif, sans-serif;
+    font-size: 0.625rem;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    margin-top: 2px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .mobile-tools-theme-chevron {
+    flex-shrink: 0;
   }
 
   .mobile-tools-menu button:hover,
