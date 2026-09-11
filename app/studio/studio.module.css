@@ -47,6 +47,8 @@
 
 .panel {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   background: rgba(247, 241, 226, 0.96);
   border-radius: 16px;
   box-shadow:
@@ -55,6 +57,7 @@
     0 3px 9px rgba(12, 9, 6, 0.16);
   color: #282018;
   max-width: calc(100dvw - 24px);
+  max-height: calc(100dvh - 24px);
   min-width: 0;
   width: min(268px, calc(100dvw - 24px));
   overflow: hidden;
@@ -67,6 +70,7 @@
   align-items: center;
   cursor: grab;
   display: flex;
+  flex: 0 0 auto;
   font-family: var(--font-instrument-sans), sans-serif;
   font-size: 0.72rem;
   justify-content: space-between;
@@ -93,11 +97,15 @@
 .panelBody {
   border-top: 1px solid rgba(47, 37, 26, 0.1);
   display: grid;
+  flex: 1 1 auto;
   gap: 10px;
   padding: 14px;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  touch-action: pan-y;
 }
 
 .panelBody > * {
@@ -199,11 +207,13 @@
   border-radius: 9px;
   font-family: var(--font-instrument-sans), sans-serif;
   font-size: 0.69rem;
-  padding: 0 8px;
+  line-height: 1.15;
+  min-height: 40px;
+  padding: 6px 5px;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
   text-transform: uppercase;
 }
 

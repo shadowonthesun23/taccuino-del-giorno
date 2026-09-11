@@ -1,10 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getSceneObject, getSceneObjectResponsiveState, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
-import { cloneBaselineSceneDraft, createSceneResponsiveOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
+import { getSceneObject, getSceneObjectResponsiveState, getScenePresetOverrideId, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
+import { cloneBaselineSceneDraft, createScenePresetOverride, createSceneResponsiveOverride, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, updateSceneDraft } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
-const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {} };
+const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {}, presetOverrides: {} };
+
+test('exact preset overrides are distinct and fall back to responsive/base', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = createScenePresetOverride(draft, 'seasonal-fig', '1920x1080');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 120 }, { mode: 'preset', presetId: '1920x1080' });
+  draft = createScenePresetOverride(draft, 'seasonal-fig', '1680x1050');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 30 }, { mode: 'preset', presetId: '1680x1050' });
+  const object = fig(draft);
+  assert.equal(resolveSceneObjectForViewport(object, { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 120);
+  assert.equal(resolveSceneObjectForViewport(object, { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 30);
+  assert.equal(resolveSceneObjectForViewport(object, { width: 1440, height: 900 }, '1440x900').object.offsetX, object.offsetX);
+  assert.equal(getScenePresetOverrideId({ width: 3840, height: 2160 }), '3840x2160');
+  assert.equal(getScenePresetOverrideId({ width: 5120, height: 2880 }), '5120x2880');
+  draft = removeScenePresetOverride(draft, 'seasonal-fig', '1920x1080');
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, object.offsetX);
+});
 
 test('base and partial responsive overrides resolve deterministically', () => {
   let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
@@ -111,7 +127,7 @@ test('v2 migration preserves transforms, overrides, visibility and lock', () => 
     'seasonal-fig': { offsetX: 80, offsetY: -20, scale: 1.2, rotation: 5, locked: false, visible: false, responsiveOverrides: { compactDesktop: { offsetX: 35 } } },
   } };
   const migrated = resolveSceneDraft(v2); const object = fig(migrated);
-  assert.equal(migrated.schemaVersion, 4); assert.equal(object.offsetX, 80); assert.equal(object.visible, false); assert.equal(object.locked, false); assert.equal(object.responsiveOverrides.compactDesktop?.offsetX, 35);
+  assert.equal(migrated.schemaVersion, 5); assert.equal(object.offsetX, 80); assert.equal(object.visible, false); assert.equal(object.locked, false); assert.equal(object.responsiveOverrides.compactDesktop?.offsetX, 35); assert.deepEqual(object.presetOverrides, {});
 });
 
 test('corrupt drafts fall back to the baseline safely', () => {

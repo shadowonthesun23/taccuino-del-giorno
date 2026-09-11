@@ -7,7 +7,7 @@ import InkBottleCorner from '@/components/ui/InkBottleCorner';
 import SeasonalDeskObject from '@/components/ui/SeasonalDeskObject';
 import { HOME_SCENE_BASELINE_V1 } from '@/lib/scene-baseline';
 import { resolveSceneConfig, sceneConfigToCss } from '@/lib/scene-config';
-import { getSceneObject, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft, type SceneDraft, type SceneObjectDraft, type SceneViewport } from '@/lib/scene-draft';
+import { getSceneObject, getScenePresetOverrideId, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft, type SceneDraft, type SceneObjectDraft, type SceneViewport } from '@/lib/scene-draft';
 import type { SeasonId } from '@/lib/seasonal-artwork';
 import { getSceneAssetUrl } from '@/lib/scene-assets';
 
@@ -31,14 +31,15 @@ export default function SceneRenderer({ config, draft, isDark, season, viewport 
     return () => window.removeEventListener('resize', update);
   }, [safeDraft, viewport]);
   const effectiveViewport = viewport ?? browserViewport;
+  const presetId = getScenePresetOverrideId(effectiveViewport);
 
   return (
     <>
       <style data-scene-styles={scene.id}>{sceneConfigToCss(scene)}</style>
-      {safeDraft ? <style data-scene-draft={safeDraft.sceneId}>{sceneDraftToCss(safeDraft, effectiveViewport)}</style> : null}
+      {safeDraft ? <style data-scene-draft={safeDraft.sceneId}>{sceneDraftToCss(safeDraft, effectiveViewport, presetId)}</style> : null}
       {scene.objects.map((object) => {
         const objectDraft = safeDraft ? getSceneObject(safeDraft, object.id) : undefined;
-        const resolvedDraft = objectDraft ? resolveSceneObjectForViewport(objectDraft, effectiveViewport).object : objectDraft;
+        const resolvedDraft = objectDraft ? resolveSceneObjectForViewport(objectDraft, effectiveViewport, presetId).object : objectDraft;
         if (safeDraft && !objectDraft) return null;
         if (!object.visible || resolvedDraft?.visible === false) return null;
 
@@ -66,13 +67,13 @@ export default function SceneRenderer({ config, draft, isDark, season, viewport 
       })}
       {safeDraft ? safeDraft.objects
         .filter((object) => !scene.objects.some((baseline) => baseline.id === object.id))
-        .map((object) => <StudioImageObject key={object.id} object={object} viewport={effectiveViewport} />) : null}
+        .map((object) => <StudioImageObject key={object.id} object={object} viewport={effectiveViewport} presetId={presetId} />) : null}
     </>
   );
 }
 
-function StudioImageObject({ object, viewport }: { object: SceneObjectDraft; viewport: SceneViewport }) {
-  const resolved = resolveSceneObjectForViewport(object, viewport).object;
+function StudioImageObject({ object, viewport, presetId }: { object: SceneObjectDraft; viewport: SceneViewport; presetId?: import('@/lib/scene-draft').ScenePresetOverrideId }) {
+  const resolved = resolveSceneObjectForViewport(object, viewport, presetId).object;
   const src = getSceneAssetUrl(resolved.asset);
   if (resolved.rendererType !== 'image' || !resolved.visible || !src) return null;
   return (

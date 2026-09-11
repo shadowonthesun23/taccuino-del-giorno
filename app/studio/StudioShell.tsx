@@ -15,8 +15,10 @@ import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   addSceneObject,
   createSceneResponsiveOverride,
+  createScenePresetOverride,
   cloneBaselineSceneDraft,
   removeSceneResponsiveOverride,
+  removeScenePresetOverride,
   replaceSceneObjectAsset,
   resolveSceneDraft,
   updateSceneDraft,
@@ -32,6 +34,7 @@ import {
   type SceneObjectDraftPatch,
   type SceneObjectDraft,
   type SceneObjectId,
+  type ScenePresetOverrideId,
 } from '@/lib/scene-draft';
 import { resolvePublishedScene } from '@/lib/scene-publication';
 import {
@@ -292,15 +295,16 @@ export default function StudioShell() {
   const [positionsRestored, setPositionsRestored] = useState(false);
   const viewport = getStudioViewportPreset(viewportId);
   const selectedBaseObject = getSceneObject(draft, selectedObjectId) ?? draft.objects[0];
-  const selectedResponsiveState = getSceneObjectResponsiveState(selectedBaseObject, viewport);
+  const selectedResponsiveState = getSceneObjectResponsiveState(selectedBaseObject, viewport, viewport.id as ScenePresetOverrideId);
   const activeBreakpoint = selectedResponsiveState.overrideBreakpointId ?? getSceneResponsiveBreakpoint(viewport);
+  const presetOverride = selectedBaseObject.presetOverrides[viewport.id];
   const selectedObject = selectedResponsiveState.object;
   const hasCurrentOverride = Boolean(selectedResponsiveState.overrideBreakpointId);
-  const effectiveEditingTarget = useMemo<SceneEditingTarget>(() => (
-    editingTarget.mode === 'override' && editingTarget.breakpointId === activeBreakpoint
-      ? editingTarget
-      : { mode: 'base' }
-  ), [activeBreakpoint, editingTarget]);
+  const effectiveEditingTarget = useMemo<SceneEditingTarget>(() => {
+    if (editingTarget.mode === 'preset' && editingTarget.presetId === viewport.id) return editingTarget;
+    if (editingTarget.mode === 'override' && editingTarget.breakpointId === activeBreakpoint) return editingTarget;
+    return { mode: 'base' };
+  }, [activeBreakpoint, editingTarget, viewport.id]);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -530,6 +534,16 @@ export default function StudioShell() {
     setEditingTarget({ mode: 'base' });
   }
 
+  function createPresetOverride() {
+    commitDraftMutation((current) => createScenePresetOverride(current, selectedObjectId, viewport.id as ScenePresetOverrideId));
+    setEditingTarget({ mode: 'preset', presetId: viewport.id as ScenePresetOverrideId });
+  }
+
+  function removePresetOverride() {
+    commitDraftMutation((current) => removeScenePresetOverride(current, selectedObjectId, viewport.id as ScenePresetOverrideId));
+    setEditingTarget({ mode: 'base' });
+  }
+
   function resetSelectedObject() {
     const original = getSceneObject(resetReferenceRef.current, selectedObjectId);
     if (!original) return;
@@ -561,7 +575,7 @@ export default function StudioShell() {
       const response = await fetch('/api/studio/assets', { method: 'POST', body: form });
       if (!response.ok) throw new Error(await response.text());
       const uploaded = await response.json() as Pick<SceneObjectDraft, 'id' | 'name' | 'asset'>;
-      const object: SceneObjectDraft = { ...uploaded, rendererType: 'image', anchorX: 'right', anchorY: 'bottom', zIndex: 4, offsetX: -48, offsetY: -48, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent', responsiveOverrides: {} };
+      const object: SceneObjectDraft = { ...uploaded, rendererType: 'image', anchorX: 'right', anchorY: 'bottom', zIndex: 4, offsetX: -48, offsetY: -48, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent', responsiveOverrides: {}, presetOverrides: {} };
       commitDraftMutation((current) => addSceneObject(current, object));
       resetReferenceRef.current = addSceneObject(resetReferenceRef.current, object);
       setSelectedObjectId(object.id);
@@ -692,9 +706,10 @@ export default function StudioShell() {
                 <option key={preset.id} value={preset.id}>
                   {preset.width} × {preset.height} · {(() => {
                     const selected = getSceneObject(draft, selectedObjectId) ?? draft.objects[0];
-                    const state = getSceneObjectResponsiveState(selected, preset);
+                    const state = getSceneObjectResponsiveState(selected, preset, preset.id as ScenePresetOverrideId);
                     const band = state.bandId ? SCENE_RESPONSIVE_LABELS[state.bandId] : 'BASELINE';
-                    return `${band} · ${state.status === 'hidden' ? 'HIDDEN' : state.status === 'override' ? 'OVERRIDE' : 'BASE'}`;
+                    const level = state.status === 'hidden' ? 'HIDDEN' : state.overridePresetId ? 'OVERRIDE PRESET' : state.status === 'override' ? 'OVERRIDE FASCIA' : 'BASE';
+                    return `${band} · ${level}`;
                   })()}
                 </option>
               ))}
@@ -769,7 +784,7 @@ export default function StudioShell() {
             <ul className={styles.objectList}>
               {draft.objects.map((baseObject) => {
                 const objectId = baseObject.id;
-                const object = resolveSceneObjectForViewport(baseObject, viewport).object;
+                const object = resolveSceneObjectForViewport(baseObject, viewport, viewport.id as ScenePresetOverrideId).object;
                 return (
                   <li key={objectId}>
                     <button
@@ -807,20 +822,22 @@ export default function StudioShell() {
             </div>
             <div className={styles.modeGroup} aria-label="Target di modifica">
               <button type="button" className={effectiveEditingTarget.mode === 'base' ? styles.modeActive : styles.modeButton} onClick={() => setEditingTarget({ mode: 'base' })}>Base</button>
-              <button type="button" className={effectiveEditingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override corrente</button>
+              <button type="button" className={effectiveEditingTarget.mode === 'override' ? styles.modeActive : styles.modeButton} disabled={!activeBreakpoint || !hasCurrentOverride} onClick={() => activeBreakpoint && setEditingTarget({ mode: 'override', breakpointId: activeBreakpoint })}>Override fascia</button>
+              <button type="button" className={effectiveEditingTarget.mode === 'preset' ? styles.modeActive : styles.modeButton} disabled={!presetOverride} onClick={() => presetOverride && setEditingTarget({ mode: 'preset', presetId: viewport.id as ScenePresetOverrideId })}>Override preset</button>
             </div>
-            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? (hasCurrentOverride ? `MODIFICA · BASE · override presente per ${SCENE_RESPONSIVE_LABELS[activeBreakpoint!]}` : `MODIFICA · BASE · ${selectedResponsiveState.status === 'hidden' ? 'HIDDEN' : 'Questo viewport eredita dalla Base'}`) : `MODIFICA · OVERRIDE · ${SCENE_RESPONSIVE_LABELS[effectiveEditingTarget.breakpointId]}`}</p>
+            <p className={styles.statusText}>{effectiveEditingTarget.mode === 'base' ? `MODIFICA · BASE · ${presetOverride ? 'override preset presente' : hasCurrentOverride ? `override fascia presente per ${SCENE_RESPONSIVE_LABELS[activeBreakpoint!]}` : selectedResponsiveState.status === 'hidden' ? 'HIDDEN' : 'Questo viewport eredita dalla Base'}` : effectiveEditingTarget.mode === 'preset' ? `MODIFICA · OVERRIDE PRESET · ${viewport.width}×${viewport.height}` : `MODIFICA · OVERRIDE FASCIA · ${SCENE_RESPONSIVE_LABELS[effectiveEditingTarget.breakpointId]}`}</p>
             {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
-            {activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override</button> : null}
+            {effectiveEditingTarget.mode === 'base' && activeBreakpoint && !hasCurrentOverride ? <button type="button" className={styles.secondaryButton} onClick={createOverride}>Crea override fascia</button> : null}
+            {effectiveEditingTarget.mode === 'base' && !presetOverride ? <button type="button" className={styles.secondaryButton} onClick={createPresetOverride}>Crea override preset</button> : null}
             <div className={styles.numericGrid}>
               <NumericField label="X · px" value={selectedObject.offsetX} step={1} disabled={selectedBaseObject.locked} onChange={(offsetX) => patchSelectedObject({ offsetX })} />
               <NumericField label="Y · px" value={selectedObject.offsetY} step={1} disabled={selectedBaseObject.locked} onChange={(offsetY) => patchSelectedObject({ offsetY })} />
               <NumericField label="Scala" value={selectedObject.scale} step={0.05} disabled={selectedBaseObject.locked} onChange={(scaleValue) => patchSelectedObject({ scale: scaleValue })} />
               <NumericField label="Rotazione · °" value={selectedObject.rotation} step={1} disabled={selectedBaseObject.locked} onChange={(rotation) => patchSelectedObject({ rotation })} />
-              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked || effectiveEditingTarget.mode === 'override'} onChange={(zIndex) => patchSelectedObject({ zIndex })} />
+              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked || effectiveEditingTarget.mode !== 'base'} onChange={(zIndex) => patchSelectedObject({ zIndex })} />
             </div>
-            {effectiveEditingTarget.mode === 'override' ? <label className={styles.fieldLabel} htmlFor="studio-override-visibility">Visibile in questa fascia</label> : null}
-            {effectiveEditingTarget.mode === 'override' ? <select id="studio-override-visibility" className={styles.select} value={selectedObject.visible ? 'on' : 'off'} onChange={(event) => patchSelectedObject({ visible: event.target.value === 'on' })}>
+            {effectiveEditingTarget.mode !== 'base' ? <label className={styles.fieldLabel} htmlFor="studio-override-visibility">Visibile in questo livello</label> : null}
+            {effectiveEditingTarget.mode !== 'base' ? <select id="studio-override-visibility" className={styles.select} value={selectedObject.visible ? 'on' : 'off'} onChange={(event) => patchSelectedObject({ visible: event.target.value === 'on' })}>
               <option value="on">ON</option>
               <option value="off">OFF</option>
             </select> : null}
@@ -843,8 +860,8 @@ export default function StudioShell() {
             </div>
             <input ref={replaceAssetInputRef} className={styles.hiddenFileInput} type="file" accept="image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0]; event.currentTarget.value = ''; if (file) void replaceSelectedAsset(file); }} />
             <button type="button" className={styles.secondaryButton} disabled={replacingAsset} onClick={() => replaceAssetInputRef.current?.click()}>{replacingAsset ? 'Sostituzione…' : 'Sostituisci asset'}</button>
-            <button type="button" className={styles.secondaryButton} onClick={effectiveEditingTarget.mode === 'override' ? removeOverride : resetSelectedObject}>
-              {effectiveEditingTarget.mode === 'override' ? 'Ripristina override' : 'Reset oggetto'}
+            <button type="button" className={styles.secondaryButton} onClick={effectiveEditingTarget.mode === 'override' ? removeOverride : effectiveEditingTarget.mode === 'preset' ? removePresetOverride : resetSelectedObject}>
+              {effectiveEditingTarget.mode === 'override' ? 'Ripristina override fascia' : effectiveEditingTarget.mode === 'preset' ? 'Ripristina override preset' : 'Reset oggetto'}
             </button>
             <button type="button" className={styles.resetDraftButton} onClick={resetDraft}>
               Reset bozza

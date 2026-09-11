@@ -10,7 +10,7 @@ import {
 test('studio exposes the requested desktop, tablet and mobile viewport presets', () => {
   assert.deepEqual(
     STUDIO_VIEWPORT_PRESETS.map(({ width, height }) => [width, height]),
-    [[1920, 1080], [1680, 1050], [1440, 900], [1366, 768], [1280, 800], [768, 1024], [390, 844]],
+    [[5120, 2880], [3840, 2160], [2560, 1440], [1920, 1080], [1680, 1050], [1440, 900], [1366, 768], [1280, 800], [768, 1024], [390, 844]],
   );
   assert.equal(getStudioViewportPreset('unknown').id, '1440x900');
 });
@@ -28,5 +28,9 @@ test('floating panels remain inside the visible viewport', () => {
   assert.deepEqual(
     clampPanelPosition({ x: 900, y: 10 }, { width: 268, height: 180 }, { width: 320, height: 640 }),
     { x: 40, y: 12 },
+  );
+  assert.deepEqual(
+    clampPanelPosition({ x: 40, y: 900 }, { width: 268, height: 500 }, { width: 1280, height: 700 }),
+    { x: 40, y: 188 },
   );
 });

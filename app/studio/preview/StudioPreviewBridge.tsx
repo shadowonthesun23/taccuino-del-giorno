@@ -18,8 +18,10 @@ import {
 } from '@/lib/scene-draft-editor';
 import {
   getSceneObject,
+  getScenePresetOverrideId,
   isSceneObjectId,
   SCENE_RESPONSIVE_BREAKPOINT_IDS,
+  SCENE_PRESET_OVERRIDE_IDS,
   resolveSceneObjectForViewport,
   type SceneDraft,
   type SceneObjectDraftPatch,
@@ -63,6 +65,10 @@ function isSceneEditingTarget(value: unknown): value is SceneEditingTarget {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Record<string, unknown>;
   return candidate.mode === 'base' || (
+    candidate.mode === 'preset'
+    && typeof candidate.presetId === 'string'
+    && SCENE_PRESET_OVERRIDE_IDS.includes(candidate.presetId as (typeof SCENE_PRESET_OVERRIDE_IDS)[number])
+  ) || (
     candidate.mode === 'override'
     && typeof candidate.breakpointId === 'string'
     && SCENE_RESPONSIVE_BREAKPOINT_IDS.includes(candidate.breakpointId as (typeof SCENE_RESPONSIVE_BREAKPOINT_IDS)[number])
@@ -221,7 +227,7 @@ function SceneObjectEditor({
     onSelect(objectId);
     const baseObject = getSceneObject(draft, objectId);
     if (!baseObject) return;
-    const object = resolveSceneObjectForViewport(baseObject, viewport).object;
+    const object = resolveSceneObjectForViewport(baseObject, viewport, getScenePresetOverrideId(viewport)).object;
     if (object.locked) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -251,7 +257,7 @@ function SceneObjectEditor({
       centerX: rect.centerX,
       centerY: rect.centerY,
       startDistance: Math.max(1, Math.hypot(event.clientX - rect.centerX, event.clientY - rect.centerY)),
-      originScale: resolveSceneObjectForViewport(baseObject, viewport).object.scale,
+      originScale: resolveSceneObjectForViewport(baseObject, viewport, getScenePresetOverrideId(viewport)).object.scale,
     };
     onPatch(objectId, {}, 'start');
   }
@@ -270,7 +276,7 @@ function SceneObjectEditor({
       centerX: rect.centerX,
       centerY: rect.centerY,
       startAngle: Math.atan2(event.clientY - rect.centerY, event.clientX - rect.centerX),
-      originRotation: resolveSceneObjectForViewport(baseObject, viewport).object.rotation,
+      originRotation: resolveSceneObjectForViewport(baseObject, viewport, getScenePresetOverrideId(viewport)).object.rotation,
     };
     onPatch(objectId, {}, 'start');
   }
@@ -320,7 +326,7 @@ function SceneObjectEditor({
       {draft.objects.map((baseObject) => {
         const objectId = baseObject.id;
         const rect = rects[objectId];
-        const object = resolveSceneObjectForViewport(baseObject, viewport).object;
+        const object = resolveSceneObjectForViewport(baseObject, viewport, getScenePresetOverrideId(viewport)).object;
         if (!rect || !object.visible) return null;
         const selected = selectedObjectId === objectId;
         return (
@@ -404,8 +410,9 @@ export default function StudioPreviewBridge({
   const [previewLabel, setPreviewLabel] = useState<string | null>(null);
   const [selectedRect, setSelectedRect] = useState<SceneRect | null>(null);
   const viewport = getStudioViewportPreset(viewportId);
+  const presetId = getScenePresetOverrideId(viewport);
   const safeAreas = useSceneSafeAreas(viewport);
-  const selectedObject = resolveSceneObjectForViewport(getSceneObject(draft, selectedObjectId) ?? draft.objects[0], viewport).object;
+  const selectedObject = resolveSceneObjectForViewport(getSceneObject(draft, selectedObjectId) ?? draft.objects[0], viewport, presetId).object;
   const collisions = useMemo(
     () => selectedObject.visible ? findSceneCollisions(selectedRect, safeAreas) : [],
     [safeAreas, selectedObject.visible, selectedRect],

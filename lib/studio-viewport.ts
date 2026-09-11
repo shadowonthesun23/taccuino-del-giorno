@@ -1,4 +1,7 @@
 export const STUDIO_VIEWPORT_PRESETS = [
+  { id: '5120x2880', width: 5120, height: 2880 },
+  { id: '3840x2160', width: 3840, height: 2160 },
+  { id: '2560x1440', width: 2560, height: 1440 },
   { id: '1920x1080', width: 1920, height: 1080 },
   { id: '1680x1050', width: 1680, height: 1050 },
   { id: '1440x900', width: 1440, height: 900 },
@@ -15,7 +18,7 @@ export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
 
 export function getStudioViewportPreset(value: unknown): StudioViewportPreset {
-  return STUDIO_VIEWPORT_PRESETS.find((preset) => preset.id === value) ?? STUDIO_VIEWPORT_PRESETS[2];
+  return STUDIO_VIEWPORT_PRESETS.find((preset) => preset.id === value) ?? STUDIO_VIEWPORT_PRESETS.find((preset) => preset.id === '1440x900')!;
 }
 
 export function calculatePreviewScale(viewport: Size, available: Size, padding = 32) {

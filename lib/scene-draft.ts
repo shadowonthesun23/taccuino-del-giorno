@@ -1,10 +1,12 @@
-export const SCENE_DRAFT_SCHEMA_VERSION = 4 as const;
+export const SCENE_DRAFT_SCHEMA_VERSION = 5 as const;
 export type SceneObjectId = string;
 export type SceneObjectRendererType = 'image' | 'coffeeCup';
 export type SceneAssetReference = { source: 'bundled'; path: string; darkPath?: string } | { source: 'storage'; path: string };
 export type SceneAnchorX = 'left' | 'right';
 export type SceneAnchorY = 'top' | 'bottom';
 export type SceneViewport = { width: number; height: number };
+export const SCENE_PRESET_OVERRIDE_IDS = ['5120x2880', '3840x2160', '2560x1440', '1920x1080', '1680x1050', '1440x900', '1366x768', '1280x800', '768x1024', '390x844'] as const;
+export type ScenePresetOverrideId = (typeof SCENE_PRESET_OVERRIDE_IDS)[number];
 /** Studio offsets are visual screen-space deltas: +X moves right and +Y moves down, regardless of the production anchor. */
 export const SCENE_RESPONSIVE_BREAKPOINT_IDS = ['mobile', 'tablet', 'wide', 'desktop', 'compactDesktop', 'narrowDesktop', 'wideShort', 'desktopShort', 'veryShortDesktop'] as const;
 export type SceneResponsiveBreakpointId = (typeof SCENE_RESPONSIVE_BREAKPOINT_IDS)[number];
@@ -14,6 +16,7 @@ export type SceneObjectDraft = SceneObjectTransform & {
   id: SceneObjectId; name: string; rendererType: SceneObjectRendererType; asset: SceneAssetReference;
   anchorX: SceneAnchorX; anchorY: SceneAnchorY; zIndex: number; locked: boolean; availability: 'permanent' | 'seasonal';
   responsiveOverrides: Partial<Record<SceneResponsiveBreakpointId, SceneObjectResponsiveOverride>>;
+  presetOverrides: Partial<Record<ScenePresetOverrideId, SceneObjectResponsiveOverride>>;
   seasonal?: { activeFrom: string; activeUntil: string };
 };
 export type SceneDraft = { schemaVersion: typeof SCENE_DRAFT_SCHEMA_VERSION; sceneId: 'home'; objects: SceneObjectDraft[] };
@@ -49,19 +52,22 @@ function validateObjectDraft(value: unknown, path: string, issues: string[]) {
   if (typeof value.locked !== 'boolean') issues.push(`${path}.locked must be boolean.`);
   if (value.availability !== 'permanent' && value.availability !== 'seasonal') issues.push(`${path}.availability is unsupported.`);
   if (!isRecord(value.responsiveOverrides)) issues.push(`${path}.responsiveOverrides must be an object.`); else for (const [id, override] of Object.entries(value.responsiveOverrides)) { if (!(SCENE_RESPONSIVE_BREAKPOINT_IDS as readonly string[]).includes(id)) issues.push(`${path}.responsiveOverrides.${id} is unsupported.`); else validateTransform(override, `${path}.responsiveOverrides.${id}`, issues, true); }
+  if (!isRecord(value.presetOverrides)) issues.push(`${path}.presetOverrides must be an object.`); else for (const [id, override] of Object.entries(value.presetOverrides)) { if (!(SCENE_PRESET_OVERRIDE_IDS as readonly string[]).includes(id)) issues.push(`${path}.presetOverrides.${id} is unsupported.`); else validateTransform(override, `${path}.presetOverrides.${id}`, issues, true); }
   if (value.availability === 'seasonal') {
     if (!isRecord(value.seasonal) || !isMonthDay(value.seasonal.activeFrom) || !isMonthDay(value.seasonal.activeUntil)) issues.push(`${path}.seasonal must contain valid MM-DD dates.`);
   } else if (value.seasonal !== undefined) issues.push(`${path}.seasonal is only supported for seasonal objects.`);
-  const allowed = new Set(['id', 'name', 'rendererType', 'asset', 'anchorX', 'anchorY', 'zIndex', 'offsetX', 'offsetY', 'scale', 'rotation', 'visible', 'locked', 'availability', 'responsiveOverrides', 'seasonal']); for (const key of Object.keys(value)) if (!allowed.has(key)) issues.push(`${path}.${key} is unsupported.`);
+  const allowed = new Set(['id', 'name', 'rendererType', 'asset', 'anchorX', 'anchorY', 'zIndex', 'offsetX', 'offsetY', 'scale', 'rotation', 'visible', 'locked', 'availability', 'responsiveOverrides', 'presetOverrides', 'seasonal']); for (const key of Object.keys(value)) if (!allowed.has(key)) issues.push(`${path}.${key} is unsupported.`);
 }
 function isMonthDay(value: unknown) { if (typeof value !== 'string' || !/^\d{2}-\d{2}$/.test(value)) return false; const [month, day] = value.split('-').map(Number); const date = new Date(Date.UTC(2000, month - 1, day)); return date.getUTCMonth() === month - 1 && date.getUTCDate() === day; }
-export function validateSceneDraft(input: unknown): SceneDraftValidation { const issues: string[] = []; if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] }; if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 4.'); if (input.sceneId !== 'home') issues.push('sceneId must be home.'); if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 32) issues.push('objects must contain between one and thirty-two entries.'); else { const ids = new Set<string>(); input.objects.forEach((object, index) => { validateObjectDraft(object, `objects[${index}]`, issues); if (isRecord(object) && isSceneObjectId(object.id)) { if (ids.has(object.id)) issues.push(`objects[${index}].id must be unique.`); ids.add(object.id); } }); } return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues }; }
+export function validateSceneDraft(input: unknown): SceneDraftValidation { const issues: string[] = []; if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] }; if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 5.'); if (input.sceneId !== 'home') issues.push('sceneId must be home.'); if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 32) issues.push('objects must contain between one and thirty-two entries.'); else { const ids = new Set<string>(); input.objects.forEach((object, index) => { validateObjectDraft(object, `objects[${index}]`, issues); if (isRecord(object) && isSceneObjectId(object.id)) { if (ids.has(object.id)) issues.push(`objects[${index}].id must be unique.`); ids.add(object.id); } }); } return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues }; }
 export function getSceneResponsiveBreakpoint(viewport: SceneViewport): SceneResponsiveBreakpointId | null { return getSceneResponsiveBreakpoints(viewport).at(-1) ?? null; }
-export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport) { const breakpointIds = getSceneResponsiveBreakpoints(viewport); const resolved = { ...object }; for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]); return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, object: resolved }; }
-export function getSceneObjectResponsiveState(object: SceneObjectDraft, viewport: SceneViewport) {
-  const resolved = resolveSceneObjectForViewport(object, viewport);
+export function getScenePresetOverrideId(viewport: SceneViewport): ScenePresetOverrideId | undefined { const id = `${viewport.width}x${viewport.height}`; return SCENE_PRESET_OVERRIDE_IDS.includes(id as ScenePresetOverrideId) ? id as ScenePresetOverrideId : undefined; }
+export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport, presetId?: ScenePresetOverrideId) { const breakpointIds = getSceneResponsiveBreakpoints(viewport); const resolved = { ...object }; for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]); if (presetId && object.presetOverrides[presetId]) Object.assign(resolved, object.presetOverrides[presetId]); return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, presetId, object: resolved }; }
+export function getSceneObjectResponsiveState(object: SceneObjectDraft, viewport: SceneViewport, presetId?: ScenePresetOverrideId) {
+  const resolved = resolveSceneObjectForViewport(object, viewport, presetId);
+  const overridePresetId = presetId && object.presetOverrides[presetId] !== undefined ? presetId : null;
   const overrideBreakpointId = resolved.breakpointIds.filter((breakpointId) => object.responsiveOverrides[breakpointId] !== undefined).at(-1) ?? null;
-  return { bandId: resolved.breakpointIds[0] ?? null, overrideBreakpointId, status: resolved.object.visible === false ? 'hidden' as const : overrideBreakpointId ? 'override' as const : 'base' as const, object: resolved.object };
+  return { bandId: resolved.breakpointIds[0] ?? null, overrideBreakpointId, overridePresetId, status: resolved.object.visible === false ? 'hidden' as const : overridePresetId || overrideBreakpointId ? 'override' as const : 'base' as const, object: resolved.object };
 }
 function formatNumber(value: number) { return String(Math.round(value * 1000) / 1000); }
-export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport) { return draft.objects.map((entry) => { const object = resolveSceneObjectForViewport(entry, viewport).object; const declarations = [`translate: ${formatNumber(object.offsetX)}px ${formatNumber(object.offsetY)}px`, 'transform-origin: 50% 50%', `--scene-object-scale: ${formatNumber(object.scale)}`, `--scene-object-rotation: ${formatNumber(object.rotation)}deg`, `z-index: ${object.zIndex}`, object.visible ? null : 'display: none !important'].filter((value): value is string => Boolean(value)); return `[data-scene-object="${object.id}"] { ${declarations.join('; ')}; }`; }).join('\n'); }
+export function sceneDraftToCss(draft: SceneDraft, viewport: SceneViewport, presetId?: ScenePresetOverrideId) { return draft.objects.map((entry) => { const object = resolveSceneObjectForViewport(entry, viewport, presetId).object; const declarations = [`translate: ${formatNumber(object.offsetX)}px ${formatNumber(object.offsetY)}px`, 'transform-origin: 50% 50%', `--scene-object-scale: ${formatNumber(object.scale)}`, `--scene-object-rotation: ${formatNumber(object.rotation)}deg`, `z-index: ${object.zIndex}`, object.visible ? null : 'display: none !important'].filter((value): value is string => Boolean(value)); return `[data-scene-object="${object.id}"] { ${declarations.join('; ')}; }`; }).join('\n'); }
