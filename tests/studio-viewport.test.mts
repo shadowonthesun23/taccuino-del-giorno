@@ -25,4 +25,8 @@ test('floating panels remain inside the visible viewport', () => {
     clampPanelPosition({ x: -200, y: 900 }, { width: 280, height: 180 }, { width: 1280, height: 800 }),
     { x: 12, y: 608 },
   );
+  assert.deepEqual(
+    clampPanelPosition({ x: 900, y: 10 }, { width: 268, height: 180 }, { width: 320, height: 640 }),
+    { x: 40, y: 12 },
+  );
 });

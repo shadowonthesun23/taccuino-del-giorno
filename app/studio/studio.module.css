@@ -36,6 +36,7 @@
 }
 
 .panel {
+  box-sizing: border-box;
   background: rgba(247, 241, 226, 0.96);
   border-radius: 16px;
   box-shadow:
@@ -43,8 +44,9 @@
     0 14px 36px rgba(12, 9, 6, 0.28),
     0 3px 9px rgba(12, 9, 6, 0.16);
   color: #282018;
-  min-width: 268px;
-  width: 268px;
+  max-width: calc(100dvw - 24px);
+  min-width: 0;
+  width: min(268px, calc(100dvw - 24px));
   overflow: hidden;
   pointer-events: auto;
   position: fixed;
@@ -60,10 +62,18 @@
   justify-content: space-between;
   letter-spacing: 0.13em;
   min-height: 44px;
+  min-width: 0;
   padding: 4px 6px 4px 16px;
   text-transform: uppercase;
   touch-action: none;
   user-select: none;
+}
+
+.panelHeader strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .panelHeader:active {
@@ -75,6 +85,14 @@
   display: grid;
   gap: 10px;
   padding: 14px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.panelBody > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .iconButton,
@@ -89,6 +107,9 @@
   font: inherit;
   justify-content: center;
   min-height: 40px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   transition-property: background-color, box-shadow, color, opacity, transform;
   transition-duration: 150ms;
   transition-timing-function: ease-out;
@@ -132,6 +153,9 @@
   color: #282018;
   font: 500 0.85rem/1 var(--font-geist-mono), monospace;
   min-height: 42px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
   padding: 0 36px 0 12px;
 }
 
@@ -156,6 +180,8 @@
   gap: 3px;
   grid-template-columns: repeat(3, 1fr);
   padding: 3px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .modeButton,
@@ -164,6 +190,10 @@
   font-family: var(--font-geist-sans), sans-serif;
   font-size: 0.69rem;
   padding: 0 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-transform: uppercase;
 }
 
@@ -189,6 +219,8 @@
   color: #6e604f;
   font: 0.7rem/1.45 var(--font-geist-mono), monospace;
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .historyControls {
@@ -243,10 +275,13 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .objectList li {
   margin: 0;
+  min-width: 0;
 }
 
 .objectButton,
@@ -265,6 +300,15 @@
   padding: 0 9px;
   text-align: left;
   width: 100%;
+  min-width: 0;
+}
+
+.objectButton > span:nth-child(2),
+.objectButtonActive > span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .objectButton:hover {
@@ -286,15 +330,31 @@
   display: flex;
   font-family: var(--font-geist-sans), sans-serif;
   justify-content: space-between;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .propertyHeading strong {
   font-size: 0.92rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .propertyHeading span {
   color: #7b6b59;
   font-size: 0.68rem;
+  flex: 0 0 auto;
+}
+
+.fileInput {
+  display: block;
+  font-size: 0.72rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
 }
 
 .numericGrid {

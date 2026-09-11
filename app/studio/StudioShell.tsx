@@ -136,9 +136,10 @@ function FloatingPanel({
 
   const clampToViewport = useCallback((nextPosition: Point) => {
     const panel = panelRef.current;
+    const bounds = panel?.getBoundingClientRect();
     return clampPanelPosition(
       nextPosition,
-      { width: panel?.offsetWidth ?? 280, height: panel?.offsetHeight ?? 180 },
+      { width: bounds?.width ?? 280, height: bounds?.height ?? 180 },
       { width: window.innerWidth, height: window.innerHeight },
     );
   }, []);
@@ -675,7 +676,7 @@ export default function StudioShell() {
               })}
             </ul>
             <label className={styles.fieldLabel} htmlFor="studio-asset-upload">Carica asset · PNG/WebP · max 1 MB</label>
-            <input id="studio-asset-upload" type="file" accept="image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0] ?? null; setAssetFile(file); setAssetPreviewUrl(file ? URL.createObjectURL(file) : null); }} />
+            <input className={styles.fileInput} id="studio-asset-upload" type="file" accept="image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0] ?? null; setAssetFile(file); setAssetPreviewUrl(file ? URL.createObjectURL(file) : null); }} />
             {assetPreviewUrl ? <img src={assetPreviewUrl} alt="Anteprima asset" style={{ display: 'block', maxWidth: '100%', maxHeight: 120, objectFit: 'contain' }} /> : null}
             <button type="button" className={styles.secondaryButton} disabled={!assetFile || uploading} onClick={uploadAsset}>{uploading ? 'Caricamento…' : 'Aggiungi alla scena'}</button>
           </FloatingPanel>
