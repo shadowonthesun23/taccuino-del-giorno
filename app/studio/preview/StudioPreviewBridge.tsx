@@ -42,6 +42,8 @@ import {
   STUDIO_RETURN_TO_EDIT_MESSAGE,
   STUDIO_SELECTION_CHANGE_MESSAGE,
   STUDIO_SCENE_SAFETY_MESSAGE,
+  STUDIO_UNDO_MESSAGE,
+  STUDIO_REDO_MESSAGE,
   STUDIO_TOGGLE_UI_MESSAGE,
   isSceneMode,
   type StudioPreviewMessage,
@@ -483,9 +485,14 @@ export default function StudioPreviewBridge({
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target;
       if (target instanceof HTMLElement && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        window.parent.postMessage({ type: event.shiftKey ? STUDIO_REDO_MESSAGE : STUDIO_UNDO_MESSAGE }, window.location.origin);
+        return;
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'Escape' && modeRef.current !== 'edit') {
         event.preventDefault();
         window.parent.postMessage({ type: STUDIO_RETURN_TO_EDIT_MESSAGE }, window.location.origin);

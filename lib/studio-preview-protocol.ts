@@ -10,6 +10,8 @@ export const STUDIO_DRAFT_CHANGE_MESSAGE = 'day-atlas:studio-draft-change' as co
 export const STUDIO_SELECTION_CHANGE_MESSAGE = 'day-atlas:studio-selection-change' as const;
 export const STUDIO_RETURN_TO_EDIT_MESSAGE = 'day-atlas:studio-return-to-edit' as const;
 export const STUDIO_SCENE_SAFETY_MESSAGE = 'day-atlas:studio-scene-safety' as const;
+export const STUDIO_UNDO_MESSAGE = 'day-atlas:studio-undo' as const;
+export const STUDIO_REDO_MESSAGE = 'day-atlas:studio-redo' as const;
 
 export type StudioPreviewMessage = {
   type: typeof STUDIO_PREVIEW_MESSAGE;

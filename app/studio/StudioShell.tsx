@@ -42,6 +42,8 @@ import {
   STUDIO_RETURN_TO_EDIT_MESSAGE,
   STUDIO_SELECTION_CHANGE_MESSAGE,
   STUDIO_SCENE_SAFETY_MESSAGE,
+  STUDIO_UNDO_MESSAGE,
+  STUDIO_REDO_MESSAGE,
   STUDIO_TOGGLE_UI_MESSAGE,
 } from '@/lib/studio-preview-protocol';
 import type { SceneCollision, SceneGuideMode } from '@/lib/scene-safe-areas';
@@ -378,6 +380,10 @@ export default function StudioShell() {
         setVersionPreview(null);
         setMode('edit');
         setUiHidden(false);
+      } else if (candidate.type === STUDIO_UNDO_MESSAGE) {
+        undo();
+      } else if (candidate.type === STUDIO_REDO_MESSAGE) {
+        redo();
       } else if (candidate.type === STUDIO_SELECTION_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId) && getSceneObject(draft, candidate.objectId)) {
         setSelectedObjectId(candidate.objectId);
       } else if (candidate.type === STUDIO_DRAFT_CHANGE_MESSAGE && isSceneObjectId(candidate.objectId) && getSceneObject(draft, candidate.objectId)) {
@@ -400,7 +406,7 @@ export default function StudioShell() {
     };
     window.addEventListener('message', handlePreviewMessage);
     return () => window.removeEventListener('message', handlePreviewMessage);
-  }, [draft, effectiveEditingTarget, sendPreviewEnvironment]);
+  }, [draft, effectiveEditingTarget, redo, sendPreviewEnvironment, undo]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
