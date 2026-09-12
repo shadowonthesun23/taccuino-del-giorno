@@ -6,6 +6,7 @@ on:
       - feat/autumn-seasonal-artworks
     paths:
       - scripts/build-autumn-artworks.mjs
+      - scripts/apply-autumn-preview.mjs
       - .github/workflows/build-autumn-artworks.yml
   workflow_dispatch:
 
@@ -25,14 +26,15 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node scripts/build-autumn-artworks.mjs
-      - name: Commit generated WebP assets
+      - run: node scripts/apply-autumn-preview.mjs
+      - name: Commit generated autumn preview
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/images/seasonal/*.webp
+          git add public/images/seasonal/*.webp lib/seasonal-artwork.ts
           if git diff --cached --quiet; then
-            echo "No generated asset changes"
+            echo "No generated preview changes"
             exit 0
           fi
-          git commit -m "chore: add autumn seasonal artwork assets"
+          git commit -m "feat: add curated autumn preview"
           git push origin HEAD:feat/autumn-seasonal-artworks
