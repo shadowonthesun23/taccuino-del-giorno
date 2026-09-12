@@ -13,8 +13,10 @@ const assets = [
   { out: 'goya-vendimia-otono.webp', commons: 'Francisco de Goya - La vendimia o El Otoño (1786).jpg' },
   { out: 'poussin-automne.webp', commons: 'Four-seasons-autumn.jpg' },
   { out: 'boucher-autumn.webp', commons: 'The Four Seasons, Autumn - Boucher 1755.jpg' },
-  { out: 'monet-autumn-argenteuil.webp', commons: 'Monet, Autumn Effect at Argenteuil, Courtauld Gallery.jpg' },
-  { out: 'levitan-golden-autumn.webp', commons: 'Golden Autumn by Isaac Levitan in the State Tretyakov Gallery IMG 5116.jpg' },
+  // Clean flat reproduction: avoid the Courtauld gallery photograph with frame/wall.
+  { out: 'monet-autumn-argenteuil.webp', commons: 'Claude Monet 027.jpg' },
+  // Clean flat reproduction: avoid the in-gallery phone photograph.
+  { out: 'levitan-golden-autumn.webp', commons: 'Levitan Zolotaya Osen.jpg' },
   { out: 'church-autumn.webp', commons: 'Autumn by Frederic Edwin Church, 1875 AD, oil on canvas - Museo Nacional Centro de Arte Reina Sofía - DSC08703.JPG' },
   { out: 'valckenborch-autumn-september.webp', commons: 'Lucas van Valckenborch - Autumn landscape (September).jpg' },
   { out: 'renoir-autumn-landscape.webp', commons: "Pierre-Auguste Renoir - Autumn Landscape (Paysage d'automne) - BF933 - Barnes Foundation.jpg" },
