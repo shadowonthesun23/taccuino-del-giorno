@@ -249,8 +249,8 @@ function PostcardFront({
           decoding="async"
           fetchPriority={eagerImageProps.fetchPriority}
           style={{
-            objectPosition: artwork.revealPosition,
-            objectFit: artwork.id === 'chase-gathering-autumn-flowers' ? 'contain' : 'cover',
+            objectPosition: artwork.id === 'chase-gathering-autumn-flowers' ? '54% 50%' : artwork.revealPosition,
+            objectFit: 'cover',
           }}
         />
       ) : null}
