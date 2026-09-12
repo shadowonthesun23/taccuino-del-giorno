@@ -54,6 +54,14 @@ class EditorialQualityError extends Error {
 
 type TechnicalErrorKind = 'timeout' | 'network' | 'api' | 'json' | 'response' | 'budget';
 
+type DryRunDiagnostics = {
+  modelCalls: Array<{ operation: string; model: string; timeoutMs: number }>;
+  retryCount: number;
+  authorRepairAttempts: number;
+  wordRepairAttempts: number;
+  editorialRejections: string[];
+};
+
 function getElapsedGenerationMs(startedAt: number): number {
   return Math.max(0, Date.now() - startedAt);
 }
@@ -139,10 +147,11 @@ function getUserFacingGenerationError(error: unknown): string {
   }
 }
 
-async function waitBeforeRetry(startedAt: number) {
+async function waitBeforeRetry(startedAt: number, diagnostics?: DryRunDiagnostics) {
   const remainingMs = getRemainingGenerationMs(startedAt);
   const delayMs = Math.min(RETRY_BACKOFF_MS, Math.max(0, remainingMs - GEMINI_BUDGET_RESERVE_MS - GEMINI_MIN_REQUEST_TIMEOUT_MS));
   if (delayMs > 0) {
+    if (diagnostics) diagnostics.retryCount += 1;
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 }
@@ -154,6 +163,7 @@ async function generateWithBudget(
   startedAt: number,
   operation: string,
   options: GeminiAttemptOptions = {},
+  diagnostics?: DryRunDiagnostics,
 ): Promise<GenerateContentResult> {
   const timeoutMs = getGeminiAttemptTimeout(startedAt, options);
   if (timeoutMs === null) {
@@ -161,6 +171,7 @@ async function generateWithBudget(
   }
 
   console.info(`${operation} modello ${modelName}, timeout ${timeoutMs}ms; ${getGenerationTiming(startedAt)}.`);
+  diagnostics?.modelCalls.push({ operation, model: modelName, timeoutMs });
   const controller = new AbortController();
 
   try {
@@ -450,11 +461,12 @@ async function validateAutomaticAuthor(
   data: GeneratedDailyData,
   dataIso: string,
   dataDiOggiStr: string,
+  disablePersistentCache = false,
 ): Promise<string[]> {
   const author = getGeneratedAuthor(data);
   if (!author) return ["l'autore del giorno è assente"];
 
-  const metadata = await getAuthorMetadata(author);
+  const metadata = await getAuthorMetadata(author, disablePersistentCache ? { cache: 'no-store' } : undefined);
   const anniversary = getAuthorAnniversary(dataIso, metadata);
   if (!anniversary) {
     const availableDates = [metadata.birthDate, metadata.deathDate].filter(Boolean).join(' / ');
@@ -496,10 +508,11 @@ async function validateGeneratedContent(
   dataDiOggiStr: string,
   recentRows: RecentContentRecord[] | null,
   forcedAuthor: string,
+  disablePersistentCache = false,
 ): Promise<string[]> {
   const issues = validateEditorialQuality(data, recentRows, forcedAuthor);
   if (!forcedAuthor) {
-    issues.push(...await validateAutomaticAuthor(data, dataIso, dataDiOggiStr));
+    issues.push(...await validateAutomaticAuthor(data, dataIso, dataDiOggiStr, disablePersistentCache));
   }
   return issues;
 }
@@ -584,6 +597,8 @@ async function regenerateDailyAuthor(
   dataDiOggiStr: string,
   startedAt: number,
   initialAuthorIssues: string[],
+  diagnostics?: DryRunDiagnostics,
+  disablePersistentCache = false,
 ): Promise<GeneratedDailyData> {
   const rejectedAuthors = new Set<string>();
   const initialAuthor = getGeneratedAuthor(candidateData);
@@ -595,6 +610,7 @@ async function regenerateDailyAuthor(
 
   for (let attempt = 1; attempt <= MAX_AUTHOR_REPAIR_ATTEMPTS; attempt++) {
     try {
+      if (diagnostics) diagnostics.authorRepairAttempts += 1;
       const repairResult = await generateWithBudget(
         model,
         modelName,
@@ -605,6 +621,7 @@ async function regenerateDailyAuthor(
           maxTimeoutMs: GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS,
           reserveMs: GEMINI_FINALIZATION_RESERVE_MS,
         },
+        diagnostics,
       );
       const replacement = parseGeneratedAuthorRepair(getGeneratedResponseText(repairResult));
       const repairedData: GeneratedDailyData = {
@@ -613,7 +630,7 @@ async function regenerateDailyAuthor(
         breve_descrizione: replacement.breve_descrizione,
         citazione: replacement.citazione,
       };
-      authorIssues = await validateAutomaticAuthor(repairedData, dataIso, dataDiOggiStr);
+      authorIssues = await validateAutomaticAuthor(repairedData, dataIso, dataDiOggiStr, disablePersistentCache);
       if (authorIssues.length === 0) {
         console.info(`Autore sostitutivo verificato (${replacement.autore_giorno}); ${getGenerationTiming(startedAt)}.`);
         return repairedData;
@@ -623,6 +640,7 @@ async function regenerateDailyAuthor(
       if (replacement.autore_giorno) rejectedAuthors.add(replacement.autore_giorno);
       currentCandidateData = repairedData;
       console.warn(`Rifiuto editoriale autore sostitutivo: ${authorIssues.join('; ')}; ${getGenerationTiming(startedAt)}.`);
+      diagnostics?.editorialRejections.push(...authorIssues);
     } catch (error) {
       lastError = error;
       if (error instanceof GenerationBudgetError) break;
@@ -631,7 +649,7 @@ async function regenerateDailyAuthor(
 
     if (attempt < MAX_AUTHOR_REPAIR_ATTEMPTS) {
       if (getGeminiAttemptTimeout(startedAt) === null) break;
-      await waitBeforeRetry(startedAt);
+      await waitBeforeRetry(startedAt, diagnostics);
     }
   }
 
@@ -710,6 +728,7 @@ async function regenerateDailyWord(
   forcedAuthor: string,
   rejectedWord: string,
   startedAt: number,
+  diagnostics?: DryRunDiagnostics,
 ): Promise<GeneratedDailyData> {
   const rejectedWords = new Set<string>();
   if (rejectedWord) rejectedWords.add(rejectedWord);
@@ -718,6 +737,7 @@ async function regenerateDailyWord(
 
   for (let attempt = 1; attempt <= MAX_WORD_REPAIR_ATTEMPTS; attempt++) {
     try {
+      if (diagnostics) diagnostics.wordRepairAttempts += 1;
       const repairPrompt = buildDailyWordRepairPrompt(
         candidateData,
         dataDiOggiStr,
@@ -730,6 +750,8 @@ async function regenerateDailyWord(
         repairPrompt,
         startedAt,
         'Rigenerazione mirata parola_giorno...',
+        {},
+        diagnostics,
       );
       const replacementWord = parseGeneratedDailyWord(getGeneratedResponseText(attemptResult));
       const repairedData: GeneratedDailyData = {
@@ -746,6 +768,7 @@ async function regenerateDailyWord(
       lastError = new EditorialQualityError(qualityIssues);
       if (replacementWord.parola.trim()) rejectedWords.add(replacementWord.parola.trim());
       console.warn(`Rifiuto editoriale: ${qualityIssues.join('; ')}; ${getGenerationTiming(startedAt)}.`);
+      diagnostics?.editorialRejections.push(...qualityIssues);
       if (!isWordOnlyQualityIssue(qualityIssues)) break;
     } catch (error) {
       lastError = error;
@@ -763,7 +786,7 @@ async function regenerateDailyWord(
         lastError = createGenerationBudgetError('Rigenerazione mirata parola_giorno', startedAt);
         break;
       }
-      await waitBeforeRetry(startedAt);
+      await waitBeforeRetry(startedAt, diagnostics);
     }
   }
 
@@ -793,6 +816,17 @@ async function handleGenerate(request: Request, allowEditorRequest: boolean) {
     }
 
     const isManualCall = !isVercelCron;
+    const dryRun = requestUrl.searchParams.get('dryRun') === '1'
+      && process.env.VERCEL_ENV !== 'production';
+    const dryRunDiagnostics: DryRunDiagnostics | undefined = dryRun
+      ? {
+        modelCalls: [],
+        retryCount: 0,
+        authorRepairAttempts: 0,
+        wordRepairAttempts: 0,
+        editorialRejections: [],
+      }
+      : undefined;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -915,6 +949,7 @@ Restituisci questo JSON:
           // call fails technically, the second model can use the remaining
           // budget instead of being blocked by an unused reserve.
           { reserveMs: fullGenerationAttempts === 1 ? GEMINI_AUTHOR_REPAIR_RESERVE_MS : 0 },
+          dryRunDiagnostics,
         );
         const candidateData = parseGeneratedJson(getGeneratedResponseText(attemptResult));
         let acceptedCandidate = candidateData;
@@ -924,6 +959,7 @@ Restituisci questo JSON:
           dataDiOggiStr,
           recentRows,
           forcedAuthor,
+          dryRun,
         );
 
         if (!forcedAuthor && qualityIssues.some(isAutomaticAuthorIssue)) {
@@ -949,6 +985,8 @@ Restituisci questo JSON:
               dataDiOggiStr,
               generationStartedAt,
               authorIssues,
+              dryRunDiagnostics,
+              dryRun,
             );
             // regenerateDailyAuthor returns only after the replacement has
             // already passed validateAutomaticAuthor; validate the remaining
@@ -972,13 +1010,14 @@ Restituisci questo JSON:
             modelIndex += 1;
             qualityFeedback = '';
             console.info(`Ripiego su una nuova generazione dopo la riparazione autore; modello ${fallbackModel}; ${getGenerationTiming(generationStartedAt)}.`);
-            await waitBeforeRetry(generationStartedAt);
+            await waitBeforeRetry(generationStartedAt, dryRunDiagnostics);
             continue;
           }
         }
 
         if (qualityIssues.length > 0) {
           console.warn(`Rifiuto editoriale: ${qualityIssues.join('; ')}; ${getGenerationTiming(generationStartedAt)}.`);
+          dryRunDiagnostics?.editorialRejections.push(...qualityIssues);
 
           if (isWordOnlyQualityIssue(qualityIssues)) {
             try {
@@ -994,6 +1033,7 @@ Restituisci questo JSON:
                   ? candidateData.parola_giorno.parola.trim()
                   : '',
                 generationStartedAt,
+                dryRunDiagnostics,
               );
             } catch (error) {
               lastGenerationError = error;
@@ -1013,7 +1053,7 @@ Restituisci questo JSON:
 
           qualityFeedback = `\n\nLa proposta precedente è stata rifiutata perché ${qualityIssues.join('; ')}. `
             + 'Rigenera l’intero JSON correggendo rigorosamente questi problemi.';
-          await waitBeforeRetry(generationStartedAt);
+          await waitBeforeRetry(generationStartedAt, dryRunDiagnostics);
           continue;
         }
 
@@ -1039,7 +1079,7 @@ Restituisci questo JSON:
         modelIndex += 1;
         qualityFeedback = '';
         console.info(`Tentativo fallback Gemini... modello ${fallbackModel}; ${getGenerationTiming(generationStartedAt)}.`);
-        await waitBeforeRetry(generationStartedAt);
+        await waitBeforeRetry(generationStartedAt, dryRunDiagnostics);
       }
     }
 
@@ -1054,6 +1094,21 @@ Restituisci questo JSON:
       // The date is derived from the route timezone, never from model prose.
       data_odierna: dataDiOggiStr,
     };
+
+    if (dryRun) {
+      return Response.json({
+        dryRun: true,
+        success: true,
+        elapsedMs: getElapsedGenerationMs(generationStartedAt),
+        primaryModel: modelCandidates[0],
+        fallbackModel: FALLBACK_GEMINI_MODEL,
+        fullGenerationAttempts,
+        fallbackUsed: dryRunDiagnostics?.modelCalls.some((call) => call.model === FALLBACK_GEMINI_MODEL) ?? false,
+        budgetRemainingMs: getRemainingGenerationMs(generationStartedAt),
+        diagnostics: dryRunDiagnostics,
+        result: data,
+      });
+    }
 
     const { error } = await supabase.from('contenuti_giornalieri').upsert(
       { ...data, data: dataIso },

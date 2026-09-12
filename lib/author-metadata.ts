@@ -68,7 +68,10 @@ export function getAuthorAnniversary(dataIso: string, metadata: AuthorMetadata):
   return null;
 }
 
-export async function getAuthorMetadata(nomeAutore: string): Promise<AuthorMetadata> {
+export async function getAuthorMetadata(
+  nomeAutore: string,
+  options: { cache?: RequestCache } = {},
+): Promise<AuthorMetadata> {
   const emptyMetadata: AuthorMetadata = { imageUrl: null, birthDate: null, deathDate: null };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), AUTHOR_METADATA_TIMEOUT_MS);
@@ -79,7 +82,7 @@ export async function getAuthorMetadata(nomeAutore: string): Promise<AuthorMetad
       `https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`,
       {
         headers: { 'User-Agent': 'TaccuinoDelGiorno/1.0' },
-        next: { revalidate: 86400 },
+        ...(options.cache ? { cache: options.cache } : { next: { revalidate: 86400 } }),
         signal: controller.signal,
       },
     );
@@ -102,7 +105,7 @@ export async function getAuthorMetadata(nomeAutore: string): Promise<AuthorMetad
           `https://www.wikidata.org/wiki/Special:EntityData/${encodeURIComponent(json.wikibase_item)}.json`,
           {
             headers: { 'User-Agent': 'TaccuinoDelGiorno/1.0' },
-            next: { revalidate: 86400 },
+            ...(options.cache ? { cache: options.cache } : { next: { revalidate: 86400 } }),
             signal: controller.signal,
           },
         );
