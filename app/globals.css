@@ -21077,3 +21077,16 @@ body.museum-room-open :is(
     transform: translate3d(15%, 0, 0) rotate(18deg);
   }
 }
+/* Daily postcard: preserve physical 15x10 cm (3:2) ratio in the open modal. */
+.daily-postcard.is-open .daily-postcard-stage {
+  aspect-ratio: 3 / 2;
+  height: auto;
+}
+
+.daily-postcard.is-open .daily-postcard-card-motion,
+.daily-postcard.is-open .daily-postcard-card,
+.daily-postcard.is-open .daily-postcard-stage .daily-postcard-face {
+  height: 100%;
+  min-height: 0;
+}
+
