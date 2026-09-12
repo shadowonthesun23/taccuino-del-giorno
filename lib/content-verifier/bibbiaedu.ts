@@ -14,19 +14,48 @@ const METHOD = 'bibbiaedu-cei2008-structured-verse-dom';
 interface BibleBookRoute {
   testament: 'at' | 'nt';
   slug: string;
+  name: string;
 }
 
-interface ParsedBibleReference extends BibleBookRoute {
+export interface ParsedBibleReference extends BibleBookRoute {
   chapter: number;
   verseStart: number;
   verseEnd: number;
 }
 
+export interface Cei2008Verse {
+  number: number;
+  text: string;
+}
+
+export type Cei2008PassageResult = {
+  ok: true;
+  reference: string;
+  text: string;
+  verses: Cei2008Verse[];
+  sourceUrl: string;
+  sourceName: string;
+} | {
+  ok: false;
+  reference: string | null;
+  text: null;
+  verses: [];
+  sourceUrl: string | null;
+  sourceName: string;
+  error: {
+    code: 'invalid_reference' | 'http_error' | 'source_structure_error';
+    message: string;
+  };
+};
+
 const BOOKS = new Map<string, BibleBookRoute>();
 
 function addBooks(testament: BibleBookRoute['testament'], entries: Array<[string, string, ...string[]]>) {
   for (const [slug, ...names] of entries) {
-    for (const name of [slug, ...names]) BOOKS.set(normalizeBookName(name), { testament, slug });
+    const canonicalName = names[0] ?? slug;
+    for (const name of [slug, ...names]) {
+      BOOKS.set(normalizeBookName(name), { testament, slug, name: canonicalName });
+    }
   }
 }
 
@@ -68,7 +97,7 @@ export function parseCei2008Reference(reference: string): ParsedBibleReference |
 export function extractCei2008Verses(
   html: string,
   reference: ParsedBibleReference,
-): { ok: true; text: string } | { ok: false; reason: string } {
+): { ok: true; text: string; verses: Cei2008Verse[] } | { ok: false; reason: string } {
   const $ = load(html);
   const body = $('body');
   if (!body.hasClass('content-CEI2008')
@@ -92,13 +121,78 @@ export function extractCei2008Verses(
     if (text) verses.set(number, text);
   });
 
-  const selected: string[] = [];
+  const selected: Cei2008Verse[] = [];
   for (let number = reference.verseStart; number <= reference.verseEnd; number += 1) {
     const verse = verses.get(number);
     if (!verse) return { ok: false, reason: `missing_structured_verse_${number}` };
-    selected.push(verse);
+    selected.push({ number, text: verse });
   }
-  return { ok: true, text: selected.join('\n') };
+  return { ok: true, text: selected.map((verse) => verse.text).join('\n'), verses: selected };
+}
+
+export async function fetchCei2008Passage(
+  reference: string,
+  options: VerifierOptions = {},
+): Promise<Cei2008PassageResult> {
+  const parsed = parseCei2008Reference(reference);
+  if (!parsed) {
+    return {
+      ok: false,
+      reference: null,
+      text: null,
+      verses: [],
+      sourceUrl: null,
+      sourceName: SOURCE_NAME,
+      error: { code: 'invalid_reference', message: 'Riferimento biblico non supportato.' },
+    };
+  }
+
+  const normalizedReference = formatCei2008Reference(parsed);
+  const sourceUrl = createCei2008SourceUrl(parsed);
+  try {
+    const html = await fetchText(
+      new URL(sourceUrl),
+      options.fetch ?? fetch,
+      options.timeoutMs ?? 10_000,
+    );
+    const extracted = extractCei2008Verses(html, parsed);
+    if (!extracted.ok) {
+      return {
+        ok: false,
+        reference: normalizedReference,
+        text: null,
+        verses: [],
+        sourceUrl,
+        sourceName: SOURCE_NAME,
+        error: {
+          code: 'source_structure_error',
+          message: extracted.reason,
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      reference: normalizedReference,
+      text: extracted.text,
+      verses: extracted.verses,
+      sourceUrl,
+      sourceName: SOURCE_NAME,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      reference: normalizedReference,
+      text: null,
+      verses: [],
+      sourceUrl,
+      sourceName: SOURCE_NAME,
+      error: {
+        code: 'http_error',
+        message: error instanceof Error ? error.message : 'Errore HTTP sconosciuto.',
+      },
+    };
+  }
 }
 
 export async function verifyBibleWithBibbiaEdu(
@@ -109,36 +203,36 @@ export async function verifyBibleWithBibbiaEdu(
   if (!parsed || !input.text.trim()) {
     return result('unverified', ORIGIN, null, 'missing_text_or_unsupported_reference');
   }
-
-  const sourceUrl = new URL(
-    `/CEI2008/${parsed.testament}/${parsed.slug}/${parsed.chapter}/`,
-    ORIGIN,
-  ).toString();
-  try {
-    const html = await fetchText(
-      new URL(sourceUrl),
-      options.fetch ?? fetch,
-      options.timeoutMs ?? 10_000,
-    );
-    const extracted = extractCei2008Verses(html, parsed);
-    if (!extracted.ok) {
-      return result('error', sourceUrl, null, `source_structure_error: ${extracted.reason}`);
-    }
-    const match = matchConservativeExcerpt(input.text, extracted.text);
-    return result(
-      match.matched ? 'verified' : 'unverified',
-      sourceUrl,
-      match.matchedText,
-      match.matched ? 'exact_conservative_match' : 'passage_not_found_in_selected_verses',
-    );
-  } catch (error) {
+  const passage = await fetchCei2008Passage(input.reference, options);
+  if (!passage.ok) {
     return result(
       'error',
-      sourceUrl,
+      passage.sourceUrl ?? ORIGIN,
       null,
-      `http_or_source_error: ${error instanceof Error ? error.message : 'errore sconosciuto'}`,
+      `${passage.error.code}: ${passage.error.message}`,
     );
   }
+  const match = matchConservativeExcerpt(input.text, passage.text);
+  return result(
+    match.matched ? 'verified' : 'unverified',
+    passage.sourceUrl,
+    match.matchedText,
+    match.matched ? 'exact_conservative_match' : 'passage_not_found_in_selected_verses',
+  );
+}
+
+function createCei2008SourceUrl(reference: ParsedBibleReference): string {
+  return new URL(
+    `/CEI2008/${reference.testament}/${reference.slug}/${reference.chapter}/`,
+    ORIGIN,
+  ).toString();
+}
+
+function formatCei2008Reference(reference: ParsedBibleReference): string {
+  const verses = reference.verseStart === reference.verseEnd
+    ? String(reference.verseStart)
+    : `${reference.verseStart}-${reference.verseEnd}`;
+  return `${reference.name} ${reference.chapter},${verses}`;
 }
 
 function normalizeBookName(value: string): string {

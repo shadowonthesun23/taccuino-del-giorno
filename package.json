@@ -16,6 +16,7 @@
     "author-artwork:install": "node scripts/manage-author-artwork-launchagents.mjs",
     "author-artwork:uninstall": "node scripts/manage-author-artwork-launchagents.mjs uninstall",
     "audit:content-verifier": "node scripts/audit-content-verifier.mts",
+    "audit:content-retrieval": "node scripts/audit-content-retrieval-first.mts",
     "lint": "eslint",
     "test": "node --test tests/*.test.mts"
   },

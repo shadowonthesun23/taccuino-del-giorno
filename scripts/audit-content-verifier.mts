@@ -6,10 +6,11 @@ import {
   verifyQuoteWithWikiquote,
 } from '../lib/content-verifier/index.ts';
 import type { VerificationResult, VerificationStatus } from '../lib/content-verifier/types.ts';
+import { createPoliteCachedFetch } from '../lib/content-verifier/rate-limited-fetch.ts';
 
 const { loadEnvConfig } = nextEnv;
 const SAMPLE_SIZE = 15;
-const auditFetch = createAuditFetch();
+const auditFetch = createPoliteCachedFetch();
 
 interface DailyAuditRow {
   data: string;
@@ -206,47 +207,4 @@ function summarize(sourceItems: AuditItem[]) {
       technicalSourceProblem: sourceItems.filter((item) => item.failureClass === 'technical_source_problem').length,
     },
   };
-}
-
-function createAuditFetch(): typeof fetch {
-  const cache = new Map<string, Promise<{ body: string; headers: Headers; status: number }>>();
-  let mediaWikiQueue = Promise.resolve();
-
-  return async (input, init) => {
-    const url = new URL(input instanceof Request ? input.url : input.toString());
-    const cacheKey = url.toString();
-    let pending = cache.get(cacheKey);
-    if (!pending) {
-      const execute = async () => {
-        const isMediaWiki = url.hostname.endsWith('wikiquote.org') || url.hostname.endsWith('wikisource.org');
-        if (isMediaWiki) await wait(400);
-        let response = await fetch(input, init);
-        if (isMediaWiki && response.status === 429) {
-          const retryAfter = Math.min(Number(response.headers.get('retry-after') ?? 2), 8);
-          await wait(Number.isFinite(retryAfter) ? retryAfter * 1_000 : 2_000);
-          response = await fetch(input, init);
-        }
-        return {
-          body: await response.text(),
-          headers: new Headers(response.headers),
-          status: response.status,
-        };
-      };
-
-      pending = url.hostname.endsWith('wikiquote.org') || url.hostname.endsWith('wikisource.org')
-        ? mediaWikiQueue.then(execute)
-        : execute();
-      if (url.hostname.endsWith('wikiquote.org') || url.hostname.endsWith('wikisource.org')) {
-        mediaWikiQueue = pending.then(() => undefined, () => undefined);
-      }
-      cache.set(cacheKey, pending);
-    }
-
-    const cached = await pending;
-    return new Response(cached.body, { headers: cached.headers, status: cached.status });
-  };
-}
-
-function wait(milliseconds: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }
