@@ -449,11 +449,11 @@ export function getSeasonalArtwork(
   // Branch-only visual preview: reuse dates that already have editorial content.
   // This lets us inspect the real museum/ticket rendering before 23 September.
   const autumnPreviewSchedule: Record<string, string> = {
+    '09-08': 'levitan-golden-autumn',
     '09-09': 'halle-vendanges-automne',
     '09-10': 'goya-vendimia-otono',
     '09-11': 'bruegel-harvesters-autumn',
     '09-12': 'monet-autumn-argenteuil',
-    '09-13': 'levitan-golden-autumn',
   };
   const autumnPreviewId = autumnPreviewSchedule[dataIso.slice(5)];
   if (autumnPreviewId) {
