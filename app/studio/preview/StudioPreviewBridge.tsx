@@ -12,8 +12,10 @@ import NotebookHome from '@/app/components/NotebookHome';
 import type { SceneMode } from '@/lib/scene-config';
 import {
   HOME_SCENE_DRAFT_BASELINE_V1,
+  createSceneEditorPreviewDraft,
   resolveSceneDraft,
   updateSceneDraft,
+  updateSceneDraftWithPresetSeed,
   type SceneObjectAnchorInitialization,
   type SceneEditingTarget,
 } from '@/lib/scene-draft-editor';
@@ -435,8 +437,11 @@ export default function StudioPreviewBridge({
   const [selectedRect, setSelectedRect] = useState<SceneRect | null>(null);
   const viewport = getStudioViewportPreset(viewportId);
   const presetId = getScenePresetOverrideId(viewport);
+  const editorDraft = mode === 'edit'
+    ? createSceneEditorPreviewDraft(draft, { width: viewport.width, height: viewport.height })
+    : draft;
   const safeAreas = useSceneSafeAreas(viewport);
-  const selectedObject = resolveSceneObjectForViewport(getSceneObject(draft, selectedObjectId) ?? draft.objects[0], viewport, presetId).object;
+  const selectedObject = resolveSceneObjectForViewport(getSceneObject(editorDraft, selectedObjectId) ?? editorDraft.objects[0], viewport, presetId).object;
   const collisions = useMemo(
     () => selectedObject.visible ? findSceneCollisions(selectedRect, safeAreas) : [],
     [safeAreas, selectedObject.visible, selectedRect],
@@ -451,7 +456,9 @@ export default function StudioPreviewBridge({
   }, []);
 
   const applyPatch = useCallback((objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase: 'start' | 'move' | 'end' | 'commit' = 'commit', anchorInitialization?: SceneObjectAnchorInitialization) => {
-    setDraft((current) => updateSceneDraft(current, objectId, patch, editingTarget));
+    setDraft((current) => editingTarget.mode === 'preset'
+      ? updateSceneDraftWithPresetSeed(current, objectId, patch, editingTarget.presetId)
+      : updateSceneDraft(current, objectId, patch, editingTarget));
     window.parent.postMessage(
       { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch, editingTarget, phase, anchorInitialization },
       window.location.origin,
@@ -541,7 +548,7 @@ export default function StudioPreviewBridge({
 
   return (
     <>
-      <NotebookHome sceneDraft={draft} sceneViewport={viewport} />
+      <NotebookHome sceneDraft={editorDraft} sceneViewport={viewport} />
       {mode === 'preview' ? (
         <button
           type="button"
@@ -552,7 +559,7 @@ export default function StudioPreviewBridge({
         </button>
       ) : null}
       {showEditor && mode === 'edit' ? <SceneSafeAreaOverlay safeAreas={safeAreas} guideMode={guideMode} collisions={collisions} /> : null}
-      {showEditor && mode === 'edit' ? <SceneObjectEditor draft={draft} selectedObjectId={selectedObjectId} onSelect={sendSelection} onPatch={applyPatch} onSelectedRectChange={handleSelectedRectChange} viewport={viewport} /> : null}
+      {showEditor && mode === 'edit' ? <SceneObjectEditor draft={editorDraft} selectedObjectId={selectedObjectId} onSelect={sendSelection} onPatch={applyPatch} onSelectedRectChange={handleSelectedRectChange} viewport={viewport} /> : null}
     </>
   );
 }

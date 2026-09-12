@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getSceneObject, getSceneObjectResponsiveState, getScenePresetOverrideId, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
-import { addSceneObject, cloneBaselineSceneDraft, convertSceneObjectAnchorOffsets, createScenePresetOverride, createSceneResponsiveOverride, getNaturalSceneObjectAnchors, initializeSceneObjectAnchors, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, resolveSceneDraftStrict, updateSceneDraft } from '../lib/scene-draft-editor.ts';
+import { addSceneObject, cloneBaselineSceneDraft, convertSceneObjectAnchorOffsets, createSceneEditorPreviewDraft, createScenePresetOverride, createSceneResponsiveOverride, getNaturalSceneObjectAnchors, getSceneEditorPresetSeed, initializeSceneObjectAnchors, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, resolveSceneDraftStrict, resolveSceneObjectForEditorPreset, updateSceneDraft, updateSceneDraftWithPresetSeed } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
 const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {}, presetOverrides: {} };
@@ -169,6 +169,53 @@ test('first edit on a preset creates only that preset override', () => {
   assert.deepEqual(draft.objects.find((object) => object.id === 'seasonal-fig')?.presetOverrides, { '1920x1080': { offsetX: 100 } });
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 100);
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 100);
+});
+
+test('editor-only preset inheritance previews the closest desktop preset without mutating the draft', () => {
+  const draft = { ...cloneBaselineSceneDraft(), objects: [pencil] };
+  const before = JSON.stringify(draft);
+  const inherited = resolveSceneObjectForEditorPreset(pencil, { width: 1680, height: 1050 });
+  const preview = createSceneEditorPreviewDraft(draft, { width: 1680, height: 1050 });
+
+  assert.equal(inherited.sourcePresetId, '1920x1080');
+  assert.deepEqual({ offsetX: inherited.object.offsetX, offsetY: inherited.object.offsetY, scale: inherited.object.scale, rotation: inherited.object.rotation, visible: inherited.object.visible }, { offsetX: -103.6103515625, offsetY: -752.07, scale: 2.44, rotation: 0, visible: true });
+  assert.equal(JSON.stringify(draft), before);
+  assert.equal(preview.objects[0].presetOverrides['1680x1050']?.offsetY, -752.07);
+  assert.equal('1680x1050' in draft.objects[0].presetOverrides, false);
+});
+
+test('the first editor preset edit materializes its inherited geometry once', () => {
+  const draft = { ...cloneBaselineSceneDraft(), objects: [pencil] };
+  assert.strictEqual(updateSceneDraftWithPresetSeed(draft, 'pennamatita', {}, '1680x1050'), draft);
+  const changed = updateSceneDraftWithPresetSeed(draft, 'pennamatita', { offsetX: -80 }, '1680x1050');
+  const object = changed.objects[0];
+
+  assert.deepEqual(Object.keys(object.presetOverrides).sort(), ['1680x1050', '1920x1080']);
+  assert.deepEqual(object.presetOverrides['1680x1050'], { offsetX: -80, offsetY: -752.07, scale: 2.44, rotation: 0, visible: true });
+  assert.deepEqual(object.presetOverrides['1920x1080'], pencil.presetOverrides['1920x1080']);
+  assert.deepEqual(object.responsiveOverrides, {});
+  assert.equal(object.zIndex, pencil.zIndex);
+});
+
+test('editor preset inheritance chooses the nearest configured desktop profile and breaks ties by preset ID', () => {
+  const object = { ...pencil, presetOverrides: {
+    '1920x1080': pencil.presetOverrides['1920x1080'],
+    '1680x1050': { offsetX: -60, offsetY: -700, scale: 2, rotation: 4, visible: false },
+  } };
+  const seed = getSceneEditorPresetSeed(object, { width: 1536, height: 864 });
+  assert.equal(seed?.sourcePresetId, '1680x1050');
+  assert.deepEqual(seed?.transform, { offsetX: -60, offsetY: -700, scale: 2, rotation: 4, visible: false });
+
+  const tieObject = { ...pencil, presetOverrides: {
+    '5120x2880': { offsetX: 50 },
+    '2560x1440': { offsetX: 25 },
+  } };
+  assert.equal(getSceneEditorPresetSeed(tieObject, { width: 3840, height: 2160 })?.sourcePresetId, '2560x1440');
+});
+
+test('editor preset inheritance never seeds tablet or mobile from desktop presets', () => {
+  assert.equal(getSceneEditorPresetSeed(pencil, { width: 768, height: 1024 }), null);
+  assert.equal(getSceneEditorPresetSeed(pencil, { width: 390, height: 844 }), null);
 });
 
 test('global z-index edits write only to the Base object', () => {

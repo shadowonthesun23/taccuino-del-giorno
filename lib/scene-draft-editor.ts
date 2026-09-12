@@ -1,4 +1,4 @@
-import { SCENE_DRAFT_SCHEMA_VERSION, SCENE_DRAFT_TRANSFORM_BOUNDS, getSceneObject, resolveSceneObjectForViewport, validateSceneDraft, type SceneAnchorX, type SceneAnchorY, type SceneDraft, type SceneObjectDraft, type SceneObjectDraftPatch, type SceneObjectId, type SceneObjectResponsiveOverride, type SceneObjectTransform, type SceneResponsiveBreakpointId, type ScenePresetOverrideId, type SceneViewport } from './scene-draft.ts';
+import { SCENE_DRAFT_SCHEMA_VERSION, SCENE_DRAFT_TRANSFORM_BOUNDS, SCENE_PRESET_OVERRIDE_IDS, getSceneObject, getScenePresetOverrideId, resolveSceneObjectForViewport, validateSceneDraft, type SceneAnchorX, type SceneAnchorY, type SceneDraft, type SceneObjectDraft, type SceneObjectDraftPatch, type SceneObjectId, type SceneObjectResponsiveOverride, type SceneObjectTransform, type SceneResponsiveBreakpointId, type ScenePresetOverrideId, type SceneViewport } from './scene-draft.ts';
 
 export type SceneEditingTarget = { mode: 'base' } | { mode: 'override'; breakpointId: SceneResponsiveBreakpointId } | { mode: 'preset'; presetId: ScenePresetOverrideId };
 export type SceneObjectAnchorInitialization = { viewport: SceneViewport; centerX: number; centerY: number; renderedWidth: number; renderedHeight: number; scale: number };
@@ -27,6 +27,56 @@ export function resolveSceneDraftStrict(candidate: unknown): SceneDraft | null {
 export function resolveSceneDraft(candidate: unknown): SceneDraft { return resolveSceneDraftStrict(candidate) ?? cloneBaselineSceneDraft(); }
 function clampTransformPatch(patch: SceneObjectDraftPatch | SceneObjectResponsiveOverride) { const next: SceneObjectResponsiveOverride = {}; for (const key of ['offsetX', 'offsetY', 'scale', 'rotation'] as const) { const value = patch[key]; if (typeof value === 'number' && Number.isFinite(value)) { const [min, max] = SCENE_DRAFT_TRANSFORM_BOUNDS[key]; next[key] = Math.min(max, Math.max(min, value)); } } if (typeof patch.visible === 'boolean') next.visible = patch.visible; return next; }
 function replaceObject(draft: SceneDraft, object: SceneObjectDraft): SceneDraft { return { ...draft, objects: draft.objects.map((entry) => entry.id === object.id ? object : entry) }; }
+function getPresetViewport(id: ScenePresetOverrideId): SceneViewport { const [width, height] = id.split('x').map(Number); return { width, height }; }
+function getTransform(object: SceneObjectDraft): SceneObjectTransform { return { offsetX: object.offsetX, offsetY: object.offsetY, scale: object.scale, rotation: object.rotation, visible: object.visible }; }
+function hasTransformPatch(patch: SceneObjectDraftPatch) { return ['offsetX', 'offsetY', 'scale', 'rotation', 'visible'].some((key) => patch[key as keyof SceneObjectDraftPatch] !== undefined); }
+
+/** Editor-only preset inheritance. Ties use the lexicographically smaller preset ID for stable selection. */
+export function getSceneEditorPresetSeed(object: SceneObjectDraft, viewport: SceneViewport) {
+  const targetPresetId = getScenePresetOverrideId(viewport);
+  if (!targetPresetId || viewport.width < 1280 || object.presetOverrides[targetPresetId] !== undefined) return null;
+  const candidates = SCENE_PRESET_OVERRIDE_IDS.filter((id) => object.presetOverrides[id] !== undefined && getPresetViewport(id).width >= 1280);
+  if (candidates.length === 0) return null;
+  const sourcePresetId = candidates.reduce((closest, candidate) => {
+    const closestViewport = getPresetViewport(closest);
+    const candidateViewport = getPresetViewport(candidate);
+    const closestDistance = (closestViewport.width - viewport.width) ** 2 + (closestViewport.height - viewport.height) ** 2;
+    const candidateDistance = (candidateViewport.width - viewport.width) ** 2 + (candidateViewport.height - viewport.height) ** 2;
+    return candidateDistance < closestDistance || (candidateDistance === closestDistance && candidate.localeCompare(closest) < 0) ? candidate : closest;
+  });
+  const sourceObject = resolveSceneObjectForViewport(object, getPresetViewport(sourcePresetId), sourcePresetId).object;
+  return { sourcePresetId, transform: getTransform(sourceObject) };
+}
+
+export function resolveSceneObjectForEditorPreset(object: SceneObjectDraft, viewport: SceneViewport) {
+  const seed = getSceneEditorPresetSeed(object, viewport);
+  if (!seed) return { object: resolveSceneObjectForViewport(object, viewport, getScenePresetOverrideId(viewport)).object, sourcePresetId: null };
+  return { object: { ...object, ...seed.transform }, sourcePresetId: seed.sourcePresetId };
+}
+
+/** Returns a virtual draft for Studio rendering only; it never mutates or persists the source draft. */
+export function createSceneEditorPreviewDraft(draft: SceneDraft, viewport: SceneViewport) {
+  const targetPresetId = getScenePresetOverrideId(viewport);
+  if (!targetPresetId || viewport.width < 1280) return draft;
+  let changed = false;
+  const objects = draft.objects.map((object) => {
+    const seed = getSceneEditorPresetSeed(object, viewport);
+    if (!seed) return object;
+    changed = true;
+    return { ...object, presetOverrides: { ...object.presetOverrides, [targetPresetId]: seed.transform } };
+  });
+  return changed ? { ...draft, objects } : draft;
+}
+
+export function updateSceneDraftWithPresetSeed(draft: SceneDraft, objectId: SceneObjectId, patch: SceneObjectDraftPatch, presetId: ScenePresetOverrideId) {
+  const object = getSceneObject(draft, objectId);
+  if (!object || !hasTransformPatch(patch)) return draft;
+  if (object.presetOverrides[presetId] !== undefined) return updateSceneDraft(draft, objectId, patch, { mode: 'preset', presetId });
+  const seed = getSceneEditorPresetSeed(object, getPresetViewport(presetId));
+  if (!seed) return updateSceneDraft(draft, objectId, patch, { mode: 'preset', presetId });
+  const seeded = replaceObject(draft, { ...object, presetOverrides: { ...object.presetOverrides, [presetId]: seed.transform } });
+  return updateSceneDraft(seeded, objectId, patch, { mode: 'preset', presetId });
+}
 export function getNaturalSceneObjectAnchors(center: Pick<SceneObjectAnchorInitialization, 'centerX' | 'centerY' | 'viewport'>): { anchorX: SceneAnchorX; anchorY: SceneAnchorY } { return { anchorX: center.centerX < center.viewport.width / 2 ? 'left' : 'right', anchorY: center.centerY < center.viewport.height / 2 ? 'top' : 'bottom' }; }
 export function convertSceneObjectAnchorOffsets(transform: Pick<SceneObjectTransform, 'offsetX' | 'offsetY'>, current: { anchorX: SceneAnchorX; anchorY: SceneAnchorY }, next: { anchorX: SceneAnchorX; anchorY: SceneAnchorY }, geometry: Pick<SceneObjectAnchorInitialization, 'viewport' | 'renderedWidth' | 'renderedHeight' | 'scale'>) { const layoutWidth = geometry.renderedWidth / geometry.scale; const layoutHeight = geometry.renderedHeight / geometry.scale; return { offsetX: transform.offsetX + (current.anchorX === next.anchorX ? 0 : current.anchorX === 'left' ? layoutWidth - geometry.viewport.width : geometry.viewport.width - layoutWidth), offsetY: transform.offsetY + (current.anchorY === next.anchorY ? 0 : current.anchorY === 'top' ? layoutHeight - geometry.viewport.height : geometry.viewport.height - layoutHeight) }; }
 export function initializeSceneObjectAnchors(draft: SceneDraft, objectId: SceneObjectId, geometry: SceneObjectAnchorInitialization, target: SceneEditingTarget, pendingObjectIds: ReadonlySet<SceneObjectId>) { const object = getSceneObject(draft, objectId); if (!object || !pendingObjectIds.has(objectId) || geometry.scale <= 0 || geometry.renderedWidth <= 0 || geometry.renderedHeight <= 0) return { draft, initialized: false }; const nextAnchors = getNaturalSceneObjectAnchors(geometry); const currentAnchors = { anchorX: object.anchorX, anchorY: object.anchorY }; const baseOffsets = convertSceneObjectAnchorOffsets(object, currentAnchors, nextAnchors, geometry); const resolved = resolveSceneObjectForViewport(object, geometry.viewport, target.mode === 'preset' ? target.presetId : undefined).object; const targetOffsets = convertSceneObjectAnchorOffsets(resolved, currentAnchors, nextAnchors, geometry); let nextObject: SceneObjectDraft = { ...object, ...nextAnchors, ...baseOffsets }; if (target.mode === 'preset') nextObject = { ...nextObject, presetOverrides: { ...nextObject.presetOverrides, [target.presetId]: { ...nextObject.presetOverrides[target.presetId], ...targetOffsets } } }; else if (target.mode === 'override') nextObject = { ...nextObject, responsiveOverrides: { ...nextObject.responsiveOverrides, [target.breakpointId]: { ...nextObject.responsiveOverrides[target.breakpointId], ...targetOffsets } } }; else nextObject = { ...nextObject, ...targetOffsets }; return { draft: replaceObject(draft, nextObject), initialized: true }; }

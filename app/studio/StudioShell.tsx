@@ -14,7 +14,10 @@ import type { SceneMode } from '@/lib/scene-config';
 import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   addSceneObject,
+  getSceneEditorPresetSeed,
+  resolveSceneObjectForEditorPreset,
   createSceneResponsiveOverride,
+  updateSceneDraftWithPresetSeed,
   cloneBaselineSceneDraft,
   initializeSceneObjectAnchors,
   removeSceneResponsiveOverride,
@@ -315,9 +318,10 @@ export default function StudioShell() {
   const viewport = getStudioViewportPreset(viewportId);
   const selectedBaseObject = getSceneObject(draft, selectedObjectId) ?? draft.objects[0];
   const selectedResponsiveState = getSceneObjectResponsiveState(selectedBaseObject, viewport, viewport.id as ScenePresetOverrideId);
+  const selectedPresetSeed = getSceneEditorPresetSeed(selectedBaseObject, viewport);
   const activeBreakpoint = selectedResponsiveState.overrideBreakpointId ?? getSceneResponsiveBreakpoint(viewport);
   const presetOverride = selectedBaseObject.presetOverrides[viewport.id];
-  const selectedObject = selectedResponsiveState.object;
+  const selectedObject = resolveSceneObjectForEditorPreset(selectedBaseObject, viewport).object;
   const hasCurrentOverride = Boolean(selectedResponsiveState.overrideBreakpointId);
   const effectiveEditingTarget = useMemo<SceneEditingTarget>(() => {
     if (advancedOpen) {
@@ -414,7 +418,9 @@ export default function StudioShell() {
           }
           setDraft((current) => {
             const objectId = candidate.objectId as SceneObjectId;
-            const patched = updateSceneDraft(current, objectId, patch as SceneObjectDraftPatch, effectiveEditingTarget);
+            const patched = effectiveEditingTarget.mode === 'preset'
+              ? updateSceneDraftWithPresetSeed(current, objectId, patch as SceneObjectDraftPatch, effectiveEditingTarget.presetId)
+              : updateSceneDraft(current, objectId, patch as SceneObjectDraftPatch, effectiveEditingTarget);
             if (phase !== 'end' || !isSceneObjectAnchorInitialization(candidate.anchorInitialization)) return patched;
             const result = initializeSceneObjectAnchors(patched, objectId, candidate.anchorInitialization, effectiveEditingTarget, pendingAnchorObjectIdsRef.current);
             if (result.initialized) {
@@ -555,7 +561,9 @@ export default function StudioShell() {
   }
 
   function patchSelectedObject(patch: SceneObjectDraftPatch) {
-    commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, patch, effectiveEditingTarget));
+    commitDraftMutation((current) => effectiveEditingTarget.mode === 'preset'
+      ? updateSceneDraftWithPresetSeed(current, selectedObjectId, patch, effectiveEditingTarget.presetId)
+      : updateSceneDraft(current, selectedObjectId, patch, effectiveEditingTarget));
   }
 
   function patchSelectedBaseObject(patch: SceneObjectDraftPatch) {
@@ -859,7 +867,7 @@ export default function StudioShell() {
               <span>{selectedBaseObject.locked ? 'Bloccato' : 'Modificabile'}</span>
             </div>
             <p className={styles.statusText}>Modifica: {viewport.width} × {viewport.height}</p>
-            <p className={styles.statusText}>{presetOverride ? 'Personalizzato' : `Eredita da ${selectedResponsiveState.bandId ? SCENE_RESPONSIVE_LABELS[selectedResponsiveState.bandId] : 'BASE'}`}</p>
+            <p className={styles.statusText}>{presetOverride ? 'Personalizzato' : selectedPresetSeed ? `Eredita da ${selectedPresetSeed.sourcePresetId.replace('x', ' × ')}` : `Eredita da ${selectedResponsiveState.bandId ? SCENE_RESPONSIVE_LABELS[selectedResponsiveState.bandId] : 'BASE'}`}</p>
             {collisions.length > 0 ? <p className={styles.collisionWarning}>⚠ Interferenza: {[...new Set(collisions.map((collision) => collision.category === 'postcard' ? 'cartolina' : collision.category))].join(', ')}</p> : null}
             {presetOverride ? <button type="button" className={styles.secondaryButton} onClick={removePresetOverride}>Ripristina questa risoluzione</button> : null}
             <button type="button" className={styles.secondaryButton} onClick={() => setAdvancedOpen((open) => !open)} aria-expanded={advancedOpen}>Avanzate {advancedOpen ? '−' : '+'}</button>
