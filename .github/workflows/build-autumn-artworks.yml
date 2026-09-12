@@ -8,6 +8,7 @@ on:
       - scripts/build-autumn-artworks.mjs
       - scripts/add-autumn-full-preview.mjs
       - scripts/fix-chase-postcard.mjs
+      - scripts/fix-postcard-ratio.mjs
       - .github/workflows/build-autumn-artworks.yml
   workflow_dispatch:
 
@@ -29,14 +30,15 @@ jobs:
       - run: node scripts/build-autumn-artworks.mjs
       - run: node scripts/add-autumn-full-preview.mjs
       - run: node scripts/fix-chase-postcard.mjs
+      - run: node scripts/fix-postcard-ratio.mjs
       - name: Commit generated autumn preview
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/images/seasonal/*.webp lib/seasonal-artwork.ts app/components/DailyPostcard.tsx
+          git add public/images/seasonal/*.webp lib/seasonal-artwork.ts app/components/DailyPostcard.tsx app/globals.css
           if git diff --cached --quiet; then
             echo "No generated preview changes"
             exit 0
           fi
-          git commit -m "fix: preserve Chase postcard proportions"
+          git commit -m "fix: preserve postcard 3:2 ratio"
           git push origin HEAD:feat/autumn-seasonal-artworks
