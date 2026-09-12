@@ -6,7 +6,6 @@ on:
       - feat/autumn-seasonal-artworks
     paths:
       - scripts/build-autumn-artworks.mjs
-      - scripts/apply-autumn-preview.mjs
       - scripts/add-autumn-full-preview.mjs
       - .github/workflows/build-autumn-artworks.yml
   workflow_dispatch:
@@ -27,7 +26,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node scripts/build-autumn-artworks.mjs
-      - run: node scripts/apply-autumn-preview.mjs
       - run: node scripts/add-autumn-full-preview.mjs
       - name: Commit generated autumn preview
         run: |
