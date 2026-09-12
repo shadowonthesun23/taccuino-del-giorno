@@ -5,6 +5,8 @@ import { cloneBaselineSceneDraft, createScenePresetOverride, createSceneResponsi
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
 const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {}, presetOverrides: {} };
+const profiledFig = { ...testObject, id: 'seasonal-fig', offsetX: 23.66, offsetY: -91.69219970703125, scale: 1.6769914095350518, responsiveOverrides: { wide: { scale: 1.481995695194387, offsetX: 11.66, offsetY: -89.60687255859375 }, wideShort: { offsetX: 999, offsetY: 999, scale: .5 }, desktopShort: { offsetX: -2.95, offsetY: -91.96173095703125 }, mobile: { visible: false }, tablet: { visible: false } }, presetOverrides: { '1536x864': { offsetX: -25.95 }, '1680x1050': { scale: 1.28, offsetX: 35.66000000000008, offsetY: -89.60687255859375 }, '1920x1080': { scale: 1.28, offsetX: 11.66 } } };
+const pencil = { ...testObject, id: 'pennamatita', offsetX: -48, offsetY: -48, presetOverrides: { '1920x1080': { scale: 2.44, offsetX: -103.6103515625, offsetY: -752.07 } } };
 
 test('exact preset overrides are distinct and fall back to the nearest compatible preset', () => {
   let draft = cloneBaselineSceneDraft();
@@ -69,15 +71,37 @@ test('resolves the nearest configured preset only within the viewport responsive
   assert.equal(resolved.object.offsetX, 90);
 });
 
-test('active responsive overrides bypass nearest presets and their compensation', () => {
-  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'wideShort');
-  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, offsetY: -16, scale: .9 }, { mode: 'override', breakpointId: 'wideShort' });
-  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 11, offsetY: 0 }, { mode: 'preset', presetId: '1920x1080' });
+test('same-width fig presets materialize their nominal responsive profile before geometry compensation', () => {
+  const studio = resolveSceneObjectForViewport(profiledFig, { width: 1920, height: 1080 });
+  const home = resolveSceneObjectForViewport(profiledFig, { width: 1920, height: 851 });
 
-  const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 851 });
-  assert.equal(resolved.presetId, undefined);
-  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: 40, y: -16, scale: .9 });
-  assert.match(sceneDraftToCss(draft, { width: 1920, height: 851 }), /translate: 40px -16px/);
+  assert.equal(studio.presetId, '1920x1080');
+  assert.deepEqual({ x: studio.object.offsetX, y: studio.object.offsetY, scale: studio.object.scale, rotation: studio.object.rotation, visible: studio.object.visible }, { x: 11.66, y: -89.60687255859375, scale: 1.28, rotation: 0, visible: true });
+  assert.equal(home.presetId, '1920x1080');
+  assert.deepEqual({ x: home.object.offsetX, y: home.object.offsetY, scale: home.object.scale, rotation: home.object.rotation, visible: home.object.visible }, { x: 11.66, y: 139.39312744140625, scale: 1.28, rotation: 0, visible: true });
+  assert.match(sceneDraftToCss({ ...cloneBaselineSceneDraft(), objects: [profiledFig] }, { width: 1920, height: 851 }), /translate: 11\.66px 139\.393px/);
+});
+
+test('same-width presets preserve pennamatita geometry at a shorter browser height', () => {
+  const resolved = resolveSceneObjectForViewport(pencil, { width: 1920, height: 851 });
+  assert.equal(resolved.presetId, '1920x1080');
+  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: -103.6103515625, y: -523.07, scale: 2.44 });
+});
+
+test('fig keeps its existing responsive fallback when no same-width preset exists', () => {
+  const compact = resolveSceneObjectForViewport(profiledFig, { width: 1440, height: 900 });
+  const wide = resolveSceneObjectForViewport(profiledFig, { width: 2560, height: 1440 });
+  assert.equal(compact.presetId, undefined);
+  assert.deepEqual({ x: compact.object.offsetX, y: compact.object.offsetY, scale: compact.object.scale }, { x: -2.95, y: -91.96173095703125, scale: 1.6769914095350518 });
+  assert.equal(wide.presetId, undefined);
+  assert.deepEqual({ x: wide.object.offsetX, y: wide.object.offsetY, scale: wide.object.scale }, { x: 11.66, y: -89.60687255859375, scale: 1.481995695194387 });
+});
+
+test('responsive visibility remains active without a same-width preset', () => {
+  const mobile = resolveSceneObjectForViewport(profiledFig, { width: 390, height: 844 });
+  const tablet = resolveSceneObjectForViewport(profiledFig, { width: 768, height: 1024 });
+  assert.equal(mobile.object.visible, false);
+  assert.equal(tablet.object.visible, false);
 });
 
 test('exact presets retain priority over active responsive overrides', () => {
