@@ -885,14 +885,38 @@ export function getSeasonalArtwork(
   season: SeasonId,
   dataIso = 'seasonal-default',
 ): SeasonalArtwork | undefined {
-  // Branch-only visual preview: reuse dates that already have editorial content.
-  // This lets us inspect the real museum/ticket rendering before 23 September.
+  // Branch-only visual preview. These mappings are temporary and must never be merged to main.
   const autumnPreviewSchedule: Record<string, string> = {
-    '09-08': 'levitan-golden-autumn',
-    '09-09': 'halle-vendanges-automne',
-    '09-10': 'goya-vendimia-otono',
-    '09-11': 'bruegel-harvesters-autumn',
-    '09-12': 'monet-autumn-argenteuil',
+      "08-14": "poussin-automne",
+      "08-15": "valckenborch-autumn-september",
+      "08-16": "cole-catskill-early-autumn",
+      "08-17": "renoir-autumn-landscape",
+      "08-18": "church-autumn",
+      "08-19": "chase-gathering-autumn-flowers",
+      "08-20": "homer-autumn-tree-tops",
+      "08-21": "millet-haystacks-autumn",
+      "08-22": "boucher-autumn",
+      "08-23": "bastien-lepage-october",
+      "08-24": "millais-autumn-leaves",
+      "08-25": "grimshaw-october-gold",
+      "08-26": "klimt-beech-grove",
+      "08-27": "bruegel-return-herd",
+      "08-28": "cropsey-hudson-autumn",
+      "08-29": "inness-october",
+      "08-30": "levitan-sokolniki",
+      "08-31": "shishkin-autumn",
+      "09-01": "van-gogh-four-trees",
+      "09-02": "inness-near-village-october",
+      "09-03": "cropsey-sugar-loaf",
+      "09-04": "van-gogh-red-vineyard",
+      "09-05": "cole-crawford-notch",
+      "09-06": "gifford-october-catskills",
+      "09-07": "richards-october",
+      "09-08": "levitan-golden-autumn",
+      "09-09": "halle-vendanges-automne",
+      "09-10": "goya-vendimia-otono",
+      "09-11": "bruegel-harvesters-autumn",
+      "09-12": "monet-autumn-argenteuil"
   };
   const autumnPreviewId = autumnPreviewSchedule[dataIso.slice(5)];
   if (autumnPreviewId) {
