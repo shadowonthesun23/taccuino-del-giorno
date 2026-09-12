@@ -152,7 +152,7 @@ test('the route finalizes CEI after Gemini and before the only upsert', async ()
     'utf8',
   );
   const geminiSdkCalls = route.match(/\.generateContent\(/gu) ?? [];
-  const finalizationIndex = route.indexOf('await finalizeGeneratedBible(generatedData');
+  const finalizationIndex = route.indexOf('await finalizeAuthenticatedContent(generatedData');
   const upsertIndex = route.indexOf(".from('contenuti_giornalieri').upsert(");
 
   assert.equal(geminiSdkCalls.length, 1);

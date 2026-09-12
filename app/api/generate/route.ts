@@ -9,7 +9,7 @@ import {
 } from "@google/generative-ai";
 import { getEditorAuthorization } from '@/lib/editor-auth';
 import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
-import { finalizeGeneratedBible } from '@/lib/finalize-generated-bible';
+import { finalizeAuthenticatedContent } from '@/lib/finalize-authenticated-content';
 import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-history';
 
 export const maxDuration = 180;
@@ -1053,8 +1053,8 @@ Restituisci questo JSON:
 
     let finalizedData: GeneratedDailyData;
     try {
-      finalizedData = await finalizeGeneratedBible(generatedData, { timeoutMs: 8_000 });
-      console.info(`Passaggio biblico sostituito con testo BibbiaEdu CEI 2008; ${getGenerationTiming(generationStartedAt)}.`);
+      finalizedData = await finalizeAuthenticatedContent(generatedData, { timeoutMs: 8_000 });
+      console.info(`Citazione Wikiquote e passaggio BibbiaEdu CEI 2008 finalizzati prima dell'upsert; ${getGenerationTiming(generationStartedAt)}.`);
     } catch (error) {
       console.error(
         `Finalizzazione BibbiaEdu CEI 2008 interrotta prima dell'upsert: ${getSafeErrorMessage(error)}`,
