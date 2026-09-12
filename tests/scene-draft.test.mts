@@ -19,7 +19,7 @@ test('exact preset overrides are distinct and fall back to the nearest compatibl
   assert.equal(getScenePresetOverrideId({ width: 3840, height: 2160 }), '3840x2160');
   assert.equal(getScenePresetOverrideId({ width: 5120, height: 2880 }), '5120x2880');
   draft = removeScenePresetOverride(draft, 'seasonal-fig', '1920x1080');
-  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 30);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, -210);
 });
 
 test('resolves same-width presets when the browser height differs', () => {
@@ -39,6 +39,26 @@ test('resolves same-width presets when the browser height differs', () => {
   assert.equal(fifteenThirtySix.object.offsetX, 75);
 });
 
+test('preserves preset geometry with anchor-aware viewport compensation', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 11, offsetY: 0 }, { mode: 'preset', presetId: '1920x1080' });
+
+  const exact = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 });
+  const shorter = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 851 });
+  const narrower = resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1080 });
+  assert.deepEqual({ x: exact.object.offsetX, y: exact.object.offsetY }, { x: 11, y: 0 });
+  assert.deepEqual({ x: shorter.object.offsetX, y: shorter.object.offsetY }, { x: 11, y: 229 });
+  assert.equal(narrower.object.offsetX, 251);
+  assert.match(sceneDraftToCss(draft, { width: 1920, height: 851 }), /translate: 11px 229px/);
+});
+
+test('left and top anchors do not receive viewport compensation', () => {
+  const leftTopObject = { ...testObject, anchorX: 'left' as const, anchorY: 'top' as const, presetOverrides: { '1920x1080': { offsetX: 11, offsetY: -12 } } };
+  const resolved = resolveSceneObjectForViewport(leftTopObject, { width: 1680, height: 851 });
+  assert.equal(resolved.presetId, '1920x1080');
+  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY }, { x: 11, y: -12 });
+});
+
 test('resolves the nearest configured preset only within the viewport responsive band', () => {
   let draft = cloneBaselineSceneDraft();
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 10 }, { mode: 'preset', presetId: '1280x800' });
@@ -47,7 +67,7 @@ test('resolves the nearest configured preset only within the viewport responsive
 
   const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1200, height: 800 });
   assert.equal(resolved.presetId, '1280x800');
-  assert.equal(resolved.object.offsetX, 10);
+  assert.equal(resolved.object.offsetX, 90);
 });
 
 test('falls back to responsive overrides when no configured preset is compatible', () => {
@@ -75,7 +95,7 @@ test('first edit on a preset creates only that preset override', () => {
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 100 }, { mode: 'preset', presetId: '1920x1080' });
   assert.deepEqual(draft.objects.find((object) => object.id === 'seasonal-fig')?.presetOverrides, { '1920x1080': { offsetX: 100 } });
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 100);
-  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 100);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 340);
 });
 
 test('base and partial responsive overrides resolve deterministically', () => {
