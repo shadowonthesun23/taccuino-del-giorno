@@ -171,6 +171,29 @@ test('first edit on a preset creates only that preset override', () => {
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 100);
 });
 
+test('global z-index edits write only to the Base object', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = createSceneResponsiveOverride(draft, 'seasonal-fig', 'desktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40 }, { mode: 'override', breakpointId: 'desktop' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { scale: 1.2 }, { mode: 'preset', presetId: '1920x1080' });
+  const before = fig(draft);
+  const responsiveOverrides = structuredClone(before.responsiveOverrides);
+  const presetOverrides = structuredClone(before.presetOverrides);
+  const anchorX = before.anchorX;
+  const anchorY = before.anchorY;
+
+  draft = updateSceneDraft(draft, 'seasonal-fig', { zIndex: 8 }, { mode: 'base' });
+  const after = fig(draft);
+
+  assert.equal(after.zIndex, 8);
+  assert.deepEqual(after.responsiveOverrides, responsiveOverrides);
+  assert.deepEqual(after.presetOverrides, presetOverrides);
+  assert.equal(after.anchorX, anchorX);
+  assert.equal(after.anchorY, anchorY);
+  assert.equal(resolveSceneObjectForViewport(after, { width: 1920, height: 1080 }).object.zIndex, 8);
+  assert.equal(validateSceneDraft(draft).ok, true);
+});
+
 test('base and partial responsive overrides resolve deterministically', () => {
   let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: .9 }, { mode: 'override', breakpointId: 'desktop' });

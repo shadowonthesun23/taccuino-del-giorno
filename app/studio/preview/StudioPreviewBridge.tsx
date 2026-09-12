@@ -161,6 +161,7 @@ function SceneObjectEditor({
   viewport: { width: number; height: number };
 }) {
   const [rects, setRects] = useState<ObjectRects>({});
+  const maximumEditorZIndex = Math.max(0, ...Object.values(rects).flatMap((rect) => rect ? [rect.zIndex] : []));
   const interactionRef = useRef<
     | {
         kind: 'drag';
@@ -368,7 +369,7 @@ function SceneObjectEditor({
               width: rect.width,
               height: rect.height,
               transform: `translate(-50%, -50%) rotate(${rect.rotation}deg)`,
-              zIndex: rect.zIndex,
+              zIndex: selected ? maximumEditorZIndex + 1 : rect.zIndex,
             }}
             onPointerDown={(event) => startDrag(event, objectId)}
             onPointerMove={handlePointerMove}

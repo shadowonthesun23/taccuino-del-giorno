@@ -558,6 +558,10 @@ export default function StudioShell() {
     commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, patch, effectiveEditingTarget));
   }
 
+  function patchSelectedBaseObject(patch: SceneObjectDraftPatch) {
+    commitDraftMutation((current) => updateSceneDraft(current, selectedObjectId, patch, { mode: 'base' }));
+  }
+
   function createOverride() {
     if (!activeBreakpoint) return;
     commitDraftMutation((current) => createSceneResponsiveOverride(current, selectedObjectId, activeBreakpoint));
@@ -872,7 +876,7 @@ export default function StudioShell() {
               <NumericField label="Y · px" value={selectedObject.offsetY} step={1} disabled={selectedBaseObject.locked} onChange={(offsetY) => patchSelectedObject({ offsetY })} />
               <NumericField label="Scala" value={selectedObject.scale} step={0.05} disabled={selectedBaseObject.locked} onChange={(scaleValue) => patchSelectedObject({ scale: scaleValue })} />
               <NumericField label="Rotazione · °" value={selectedObject.rotation} step={1} disabled={selectedBaseObject.locked} onChange={(rotation) => patchSelectedObject({ rotation })} />
-              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked || effectiveEditingTarget.mode !== 'base'} onChange={(zIndex) => patchSelectedObject({ zIndex })} />
+              <NumericField label="Livello" value={selectedBaseObject.zIndex} step={1} disabled={selectedBaseObject.locked} onChange={(zIndex) => patchSelectedBaseObject({ zIndex })} />
             </div>
             {effectiveEditingTarget.mode !== 'base' ? <label className={styles.fieldLabel} htmlFor="studio-override-visibility">Visibile in questo livello</label> : null}
             {effectiveEditingTarget.mode !== 'base' ? <select id="studio-override-visibility" className={styles.select} value={selectedObject.visible ? 'on' : 'off'} onChange={(event) => patchSelectedObject({ visible: event.target.value === 'on' })}>
