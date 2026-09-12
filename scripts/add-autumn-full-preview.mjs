@@ -41,10 +41,9 @@ const block = `  // Branch-only visual preview. These mappings are temporary and
 const fnMarker = `export function getSeasonalArtwork(\n  season: SeasonId,\n  dataIso = 'seasonal-default',\n): SeasonalArtwork | undefined {\n`;
 if (!source.includes(fnMarker)) throw new Error('getSeasonalArtwork marker not found.');
 
-source = source.replace(
-  /(  \/\/ Branch-only visual preview:[\s\S]*?  if \(autumnPreviewId\) \{[\s\S]*?  \}\n\n)?(?=  const artworks = SEASONAL_ARTWORKS\[season\];)/,
-  block,
-);
+const previewBlockRegex = /  \/\/ Branch-only visual preview\. These mappings are temporary and must never be merged to main\.[\s\S]*?    if \(previewArtwork\) return previewArtwork;\n  \}\n\n/g;
+source = source.replace(previewBlockRegex, '');
+source = source.replace(fnMarker, `${fnMarker}${block}`);
 
 await writeFile(file, source);
 console.log(`Mapped ${Object.keys(previewSchedule).length} autumn artworks to populated past dates for branch-only review.`);
