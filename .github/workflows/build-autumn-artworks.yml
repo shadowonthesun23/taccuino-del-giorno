@@ -7,6 +7,7 @@ on:
     paths:
       - scripts/build-autumn-artworks.mjs
       - scripts/apply-autumn-preview.mjs
+      - scripts/add-autumn-full-preview.mjs
       - .github/workflows/build-autumn-artworks.yml
   workflow_dispatch:
 
@@ -27,6 +28,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: node scripts/build-autumn-artworks.mjs
       - run: node scripts/apply-autumn-preview.mjs
+      - run: node scripts/add-autumn-full-preview.mjs
       - name: Commit generated autumn preview
         run: |
           git config user.name "github-actions[bot]"
@@ -36,5 +38,5 @@ jobs:
             echo "No generated preview changes"
             exit 0
           fi
-          git commit -m "feat: add curated autumn preview"
+          git commit -m "feat: add full autumn review preview"
           git push origin HEAD:feat/autumn-seasonal-artworks
