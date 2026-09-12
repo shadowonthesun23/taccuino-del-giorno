@@ -248,7 +248,10 @@ function PostcardFront({
           loading="eager"
           decoding="async"
           fetchPriority={eagerImageProps.fetchPriority}
-          style={{ objectPosition: artwork.revealPosition }}
+          style={{
+            objectPosition: artwork.revealPosition,
+            objectFit: artwork.id === 'chase-gathering-autumn-flowers' ? 'contain' : 'cover',
+          }}
         />
       ) : null}
       <span className="daily-postcard-front-vignette" aria-hidden="true" />
