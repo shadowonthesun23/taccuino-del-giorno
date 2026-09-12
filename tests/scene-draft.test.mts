@@ -6,7 +6,7 @@ import { cloneBaselineSceneDraft, createScenePresetOverride, createSceneResponsi
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
 const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {}, presetOverrides: {} };
 
-test('exact preset overrides are distinct and fall back to responsive/base', () => {
+test('exact preset overrides are distinct and fall back to the nearest compatible preset', () => {
   let draft = cloneBaselineSceneDraft();
   draft = createScenePresetOverride(draft, 'seasonal-fig', '1920x1080');
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 120 }, { mode: 'preset', presetId: '1920x1080' });
@@ -19,7 +19,55 @@ test('exact preset overrides are distinct and fall back to responsive/base', () 
   assert.equal(getScenePresetOverrideId({ width: 3840, height: 2160 }), '3840x2160');
   assert.equal(getScenePresetOverrideId({ width: 5120, height: 2880 }), '5120x2880');
   draft = removeScenePresetOverride(draft, 'seasonal-fig', '1920x1080');
-  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, object.offsetX);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 30);
+});
+
+test('resolves same-width presets when the browser height differs', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 120 }, { mode: 'preset', presetId: '1920x1080' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 30 }, { mode: 'preset', presetId: '1680x1050' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 75 }, { mode: 'preset', presetId: '1536x864' });
+
+  const fullHd = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 950 });
+  const sixteenEighty = resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 970 });
+  const fifteenThirtySix = resolveSceneObjectForViewport(fig(draft), { width: 1536, height: 800 });
+  assert.equal(fullHd.presetId, '1920x1080');
+  assert.equal(fullHd.object.offsetX, 120);
+  assert.equal(sixteenEighty.presetId, '1680x1050');
+  assert.equal(sixteenEighty.object.offsetX, 30);
+  assert.equal(fifteenThirtySix.presetId, '1536x864');
+  assert.equal(fifteenThirtySix.object.offsetX, 75);
+});
+
+test('resolves the nearest configured preset only within the viewport responsive band', () => {
+  let draft = cloneBaselineSceneDraft();
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 10 }, { mode: 'preset', presetId: '1280x800' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 20 }, { mode: 'preset', presetId: '1366x768' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 999 }, { mode: 'preset', presetId: '768x1024' });
+
+  const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1200, height: 800 });
+  assert.equal(resolved.presetId, '1280x800');
+  assert.equal(resolved.object.offsetX, 10);
+});
+
+test('falls back to responsive overrides when no configured preset is compatible', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: .9 }, { mode: 'override', breakpointId: 'desktop' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 999 }, { mode: 'preset', presetId: '390x844' });
+
+  const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1440, height: 900 });
+  assert.equal(resolved.presetId, undefined);
+  assert.equal(resolved.object.offsetX, 40);
+  assert.equal(resolved.object.scale, .9);
+});
+
+test('configured preset overrides retain responsive values they do not replace', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: .9 }, { mode: 'override', breakpointId: 'desktop' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetY: -30 }, { mode: 'preset', presetId: '1440x900' });
+
+  const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1440, height: 900 });
+  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: 40, y: -30, scale: .9 });
 });
 
 test('first edit on a preset creates only that preset override', () => {
@@ -27,7 +75,7 @@ test('first edit on a preset creates only that preset override', () => {
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 100 }, { mode: 'preset', presetId: '1920x1080' });
   assert.deepEqual(draft.objects.find((object) => object.id === 'seasonal-fig')?.presetOverrides, { '1920x1080': { offsetX: 100 } });
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 100);
-  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 0);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 100);
 });
 
 test('base and partial responsive overrides resolve deterministically', () => {

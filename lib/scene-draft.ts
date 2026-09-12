@@ -63,10 +63,34 @@ function isMonthDay(value: unknown) { if (typeof value !== 'string' || !/^\d{2}-
 export function validateSceneDraft(input: unknown): SceneDraftValidation { const issues: string[] = []; if (!isRecord(input)) return { ok: false, issues: ['Scene draft must be an object.'] }; if (input.schemaVersion !== SCENE_DRAFT_SCHEMA_VERSION) issues.push('schemaVersion must be 5.'); if (input.sceneId !== 'home') issues.push('sceneId must be home.'); if (!Array.isArray(input.objects) || input.objects.length < 1 || input.objects.length > 32) issues.push('objects must contain between one and thirty-two entries.'); else { const ids = new Set<string>(); input.objects.forEach((object, index) => { validateObjectDraft(object, `objects[${index}]`, issues); if (isRecord(object) && isSceneObjectId(object.id)) { if (ids.has(object.id)) issues.push(`objects[${index}].id must be unique.`); ids.add(object.id); } }); } return issues.length === 0 ? { ok: true, value: input as SceneDraft } : { ok: false, issues }; }
 export function getSceneResponsiveBreakpoint(viewport: SceneViewport): SceneResponsiveBreakpointId | null { return getSceneResponsiveBreakpoints(viewport).at(-1) ?? null; }
 export function getScenePresetOverrideId(viewport: SceneViewport): ScenePresetOverrideId | undefined { const id = `${viewport.width}x${viewport.height}`; return SCENE_PRESET_OVERRIDE_IDS.includes(id as ScenePresetOverrideId) ? id as ScenePresetOverrideId : undefined; }
-export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport, presetId?: ScenePresetOverrideId) { const breakpointIds = getSceneResponsiveBreakpoints(viewport); const resolved = { ...object }; for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]); if (presetId && object.presetOverrides[presetId]) Object.assign(resolved, object.presetOverrides[presetId]); return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, presetId, object: resolved }; }
+function getScenePresetSize(id: ScenePresetOverrideId): SceneViewport { const [width, height] = id.split('x').map(Number); return { width, height }; }
+function getConfiguredScenePresetIds(object: SceneObjectDraft): ScenePresetOverrideId[] { return SCENE_PRESET_OVERRIDE_IDS.filter((id) => object.presetOverrides[id] !== undefined); }
+function resolveScenePresetOverrideId(object: SceneObjectDraft, viewport: SceneViewport, preferredPresetId?: ScenePresetOverrideId): ScenePresetOverrideId | undefined {
+  const configuredPresetIds = getConfiguredScenePresetIds(object);
+  if (configuredPresetIds.length === 0) return undefined;
+
+  const exactPresetId = getScenePresetOverrideId(viewport);
+  if (exactPresetId && object.presetOverrides[exactPresetId] !== undefined) return exactPresetId;
+  if (preferredPresetId && preferredPresetId === exactPresetId && object.presetOverrides[preferredPresetId] !== undefined) return preferredPresetId;
+
+  const sameWidth = configuredPresetIds.filter((id) => getScenePresetSize(id).width === viewport.width);
+  if (sameWidth.length > 0) return sameWidth.reduce((closest, id) => Math.abs(getScenePresetSize(id).height - viewport.height) < Math.abs(getScenePresetSize(closest).height - viewport.height) ? id : closest);
+
+  const viewportBand = getSceneResponsiveBreakpoints(viewport)[0];
+  const sameBand = configuredPresetIds.filter((id) => getSceneResponsiveBreakpoints(getScenePresetSize(id))[0] === viewportBand);
+  if (sameBand.length === 0) return undefined;
+  return sameBand.reduce((closest, id) => {
+    const candidate = getScenePresetSize(id);
+    const current = getScenePresetSize(closest);
+    const candidateDistance = (candidate.width - viewport.width) ** 2 + (candidate.height - viewport.height) ** 2;
+    const currentDistance = (current.width - viewport.width) ** 2 + (current.height - viewport.height) ** 2;
+    return candidateDistance < currentDistance ? id : closest;
+  });
+}
+export function resolveSceneObjectForViewport(object: SceneObjectDraft, viewport: SceneViewport, presetId?: ScenePresetOverrideId) { const breakpointIds = getSceneResponsiveBreakpoints(viewport); const resolved = { ...object }; for (const breakpointId of breakpointIds) Object.assign(resolved, object.responsiveOverrides[breakpointId]); const resolvedPresetId = resolveScenePresetOverrideId(object, viewport, presetId); if (resolvedPresetId) Object.assign(resolved, object.presetOverrides[resolvedPresetId]); return { breakpointId: breakpointIds.at(-1) ?? null, breakpointIds, presetId: resolvedPresetId, object: resolved }; }
 export function getSceneObjectResponsiveState(object: SceneObjectDraft, viewport: SceneViewport, presetId?: ScenePresetOverrideId) {
   const resolved = resolveSceneObjectForViewport(object, viewport, presetId);
-  const overridePresetId = presetId && object.presetOverrides[presetId] !== undefined ? presetId : null;
+  const overridePresetId = resolved.presetId && object.presetOverrides[resolved.presetId] !== undefined ? resolved.presetId : null;
   const overrideBreakpointId = resolved.breakpointIds.filter((breakpointId) => object.responsiveOverrides[breakpointId] !== undefined).at(-1) ?? null;
   return { bandId: resolved.breakpointIds[0] ?? null, overrideBreakpointId, overridePresetId, status: resolved.object.visible === false ? 'hidden' as const : overridePresetId || overrideBreakpointId ? 'override' as const : 'base' as const, object: resolved.object };
 }
