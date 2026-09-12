@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getSceneObject, getSceneObjectResponsiveState, getScenePresetOverrideId, getSceneResponsiveBreakpoints, resolveSceneObjectForViewport, sceneDraftToCss, validateSceneDraft } from '../lib/scene-draft.ts';
-import { cloneBaselineSceneDraft, createScenePresetOverride, createSceneResponsiveOverride, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, resolveSceneDraftStrict, updateSceneDraft } from '../lib/scene-draft-editor.ts';
+import { addSceneObject, cloneBaselineSceneDraft, convertSceneObjectAnchorOffsets, createScenePresetOverride, createSceneResponsiveOverride, getNaturalSceneObjectAnchors, initializeSceneObjectAnchors, removeScenePresetOverride, removeSceneResponsiveOverride, replaceSceneObjectAsset, resolveSceneDraft, resolveSceneDraftStrict, updateSceneDraft } from '../lib/scene-draft-editor.ts';
 
 const fig = (draft = cloneBaselineSceneDraft()) => getSceneObject(draft, 'seasonal-fig')!;
 const testObject = { id: 'test-object', name: 'Oggetto test', rendererType: 'image' as const, asset: { source: 'bundled' as const, path: '/images/test-object.png' }, anchorX: 'right' as const, anchorY: 'bottom' as const, zIndex: 7, offsetX: 12, offsetY: -4, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent' as const, responsiveOverrides: {}, presetOverrides: {} };
@@ -21,7 +21,7 @@ test('exact preset overrides are distinct and fall back to the nearest compatibl
   assert.equal(getScenePresetOverrideId({ width: 3840, height: 2160 }), '3840x2160');
   assert.equal(getScenePresetOverrideId({ width: 5120, height: 2880 }), '5120x2880');
   draft = removeScenePresetOverride(draft, 'seasonal-fig', '1920x1080');
-  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, -210);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 30);
 });
 
 test('resolves same-width presets when the browser height differs', () => {
@@ -41,16 +41,16 @@ test('resolves same-width presets when the browser height differs', () => {
   assert.equal(fifteenThirtySix.object.offsetX, 75);
 });
 
-test('objects without responsive overrides preserve nearest preset geometry with anchor-aware compensation', () => {
+test('same-width presets retain their offsets without viewport compensation', () => {
   const object = { ...testObject, presetOverrides: { '1920x1080': { offsetX: 11, offsetY: 0 } } };
 
   const exact = resolveSceneObjectForViewport(object, { width: 1920, height: 1080 });
   const shorter = resolveSceneObjectForViewport(object, { width: 1920, height: 851 });
   const narrower = resolveSceneObjectForViewport(object, { width: 1680, height: 1080 });
   assert.deepEqual({ x: exact.object.offsetX, y: exact.object.offsetY }, { x: 11, y: 0 });
-  assert.deepEqual({ x: shorter.object.offsetX, y: shorter.object.offsetY }, { x: 11, y: 229 });
-  assert.equal(narrower.object.offsetX, 251);
-  assert.match(sceneDraftToCss({ ...cloneBaselineSceneDraft(), objects: [object] }, { width: 1920, height: 851 }), /translate: 11px 229px/);
+  assert.deepEqual({ x: shorter.object.offsetX, y: shorter.object.offsetY }, { x: 11, y: 0 });
+  assert.equal(narrower.object.offsetX, 11);
+  assert.match(sceneDraftToCss({ ...cloneBaselineSceneDraft(), objects: [object] }, { width: 1920, height: 851 }), /translate: 11px 0px/);
 });
 
 test('left and top anchors do not receive viewport compensation', () => {
@@ -68,24 +68,54 @@ test('resolves the nearest configured preset only within the viewport responsive
 
   const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1200, height: 800 });
   assert.equal(resolved.presetId, '1280x800');
-  assert.equal(resolved.object.offsetX, 90);
+  assert.equal(resolved.object.offsetX, 10);
 });
 
-test('same-width fig presets materialize their nominal responsive profile before geometry compensation', () => {
+test('same-width fig presets materialize their nominal responsive profile without geometry compensation', () => {
   const studio = resolveSceneObjectForViewport(profiledFig, { width: 1920, height: 1080 });
   const home = resolveSceneObjectForViewport(profiledFig, { width: 1920, height: 851 });
 
   assert.equal(studio.presetId, '1920x1080');
   assert.deepEqual({ x: studio.object.offsetX, y: studio.object.offsetY, scale: studio.object.scale, rotation: studio.object.rotation, visible: studio.object.visible }, { x: 11.66, y: -89.60687255859375, scale: 1.28, rotation: 0, visible: true });
   assert.equal(home.presetId, '1920x1080');
-  assert.deepEqual({ x: home.object.offsetX, y: home.object.offsetY, scale: home.object.scale, rotation: home.object.rotation, visible: home.object.visible }, { x: 11.66, y: 139.39312744140625, scale: 1.28, rotation: 0, visible: true });
-  assert.match(sceneDraftToCss({ ...cloneBaselineSceneDraft(), objects: [profiledFig] }, { width: 1920, height: 851 }), /translate: 11\.66px 139\.393px/);
+  assert.deepEqual({ x: home.object.offsetX, y: home.object.offsetY, scale: home.object.scale, rotation: home.object.rotation, visible: home.object.visible }, { x: 11.66, y: -89.60687255859375, scale: 1.28, rotation: 0, visible: true });
+  assert.match(sceneDraftToCss({ ...cloneBaselineSceneDraft(), objects: [profiledFig] }, { width: 1920, height: 851 }), /translate: 11\.66px -89\.607px/);
 });
 
 test('same-width presets preserve pennamatita geometry at a shorter browser height', () => {
   const resolved = resolveSceneObjectForViewport(pencil, { width: 1920, height: 851 });
   assert.equal(resolved.presetId, '1920x1080');
-  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: -103.6103515625, y: -523.07, scale: 2.44 });
+  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: -103.6103515625, y: -752.07, scale: 2.44 });
+});
+
+test('natural anchor selection follows the final visual centre', () => {
+  assert.deepEqual(getNaturalSceneObjectAnchors({ viewport: { width: 1920, height: 1080 }, centerX: 1500, centerY: 200 }), { anchorX: 'right', anchorY: 'top' });
+  assert.deepEqual(getNaturalSceneObjectAnchors({ viewport: { width: 1920, height: 1080 }, centerX: 1500, centerY: 900 }), { anchorX: 'right', anchorY: 'bottom' });
+});
+
+test('anchor conversion preserves the exact visual position using rendered asset dimensions', () => {
+  const viewport = { width: 1920, height: 1080 };
+  const geometry = { viewport, renderedWidth: 360, renderedHeight: 180, scale: 2 };
+  const converted = convertSceneObjectAnchorOffsets({ offsetX: 1400, offsetY: 100 }, { anchorX: 'left', anchorY: 'top' }, { anchorX: 'right', anchorY: 'top' }, geometry);
+  assert.deepEqual(converted, { offsetX: -340, offsetY: 100 });
+  const oldCenter = { x: 1400 + 90, y: 100 + 45 };
+  const newCenter = { x: viewport.width - 180 - 340 + 90, y: 100 + 45 };
+  assert.deepEqual(newCenter, oldCenter);
+});
+
+test('a new asset initializes its natural anchor once and then keeps it stable', () => {
+  const object = { ...testObject, id: 'new-upload', asset: { source: 'storage' as const, path: 'editor/new-upload.webp' }, anchorX: 'left' as const, anchorY: 'top' as const, offsetX: 1400, offsetY: 100 };
+  const draft = addSceneObject(cloneBaselineSceneDraft(), object);
+  const pending = new Set([object.id]);
+  const first = initializeSceneObjectAnchors(draft, object.id, { viewport: { width: 1920, height: 1080 }, centerX: 1490, centerY: 145, renderedWidth: 360, renderedHeight: 180, scale: 2 }, { mode: 'preset', presetId: '1920x1080' }, pending);
+  assert.equal(first.initialized, true);
+  assert.deepEqual({ anchorX: getSceneObject(first.draft, object.id)?.anchorX, anchorY: getSceneObject(first.draft, object.id)?.anchorY }, { anchorX: 'right', anchorY: 'top' });
+  assert.deepEqual(getSceneObject(first.draft, object.id)?.presetOverrides['1920x1080'], { offsetX: -340, offsetY: 100 });
+
+  pending.delete(object.id);
+  const second = initializeSceneObjectAnchors(first.draft, object.id, { viewport: { width: 1920, height: 1080 }, centerX: 200, centerY: 900, renderedWidth: 360, renderedHeight: 180, scale: 2 }, { mode: 'preset', presetId: '1920x1080' }, pending);
+  assert.equal(second.initialized, false);
+  assert.deepEqual(second.draft, first.draft);
 });
 
 test('fig keeps its existing responsive fallback when no same-width preset exists', () => {
@@ -138,7 +168,7 @@ test('first edit on a preset creates only that preset override', () => {
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 100 }, { mode: 'preset', presetId: '1920x1080' });
   assert.deepEqual(draft.objects.find((object) => object.id === 'seasonal-fig')?.presetOverrides, { '1920x1080': { offsetX: 100 } });
   assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 }, '1920x1080').object.offsetX, 100);
-  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 340);
+  assert.equal(resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1050 }, '1680x1050').object.offsetX, 100);
 });
 
 test('base and partial responsive overrides resolve deterministically', () => {

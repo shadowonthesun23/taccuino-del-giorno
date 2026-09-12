@@ -16,12 +16,14 @@ import {
   addSceneObject,
   createSceneResponsiveOverride,
   cloneBaselineSceneDraft,
+  initializeSceneObjectAnchors,
   removeSceneResponsiveOverride,
   removeScenePresetOverride,
   replaceSceneObjectAsset,
   resolveSceneDraft,
   updateSceneDraft,
   type SceneEditingTarget,
+  type SceneObjectAnchorInitialization,
 } from '@/lib/scene-draft-editor';
 import {
   SCENE_RESPONSIVE_LABELS,
@@ -124,6 +126,20 @@ function isSceneCollisionList(value: unknown): value is SceneCollision[] {
       && typeof (collision as SceneCollision).id === 'string'
       && ['content', 'interactive', 'postcard'].includes((collision as SceneCollision).category),
   ));
+}
+
+function isSceneObjectAnchorInitialization(value: unknown): value is SceneObjectAnchorInitialization {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  const viewport = candidate.viewport;
+  return Boolean(viewport && typeof viewport === 'object'
+    && Number.isFinite((viewport as Record<string, unknown>).width)
+    && Number.isFinite((viewport as Record<string, unknown>).height)
+    && Number.isFinite(candidate.centerX)
+    && Number.isFinite(candidate.centerY)
+    && Number.isFinite(candidate.renderedWidth) && Number(candidate.renderedWidth) > 0
+    && Number.isFinite(candidate.renderedHeight) && Number(candidate.renderedHeight) > 0
+    && Number.isFinite(candidate.scale) && Number(candidate.scale) > 0);
 }
 
 function FloatingPanel({
@@ -280,6 +296,7 @@ export default function StudioShell() {
   const draftRef = useRef(draft);
   const resetReferenceRef = useRef<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
   const interactionHistoryRef = useRef(false);
+  const pendingAnchorObjectIdsRef = useRef(new Set<SceneObjectId>());
   const [draftRestored, setDraftRestored] = useState(false);
   const [publishedScene, setPublishedScene] = useState<SceneDraft | null>(null);
   const [versions, setVersions] = useState<SceneVersionRecord[]>([]);
@@ -395,7 +412,18 @@ export default function StudioShell() {
             setUndoStack((history) => [...history, draftRef.current].slice(-80));
             setRedoStack([]);
           }
-          setDraft((current) => updateSceneDraft(current, candidate.objectId as SceneObjectId, patch as SceneObjectDraftPatch, effectiveEditingTarget));
+          setDraft((current) => {
+            const objectId = candidate.objectId as SceneObjectId;
+            const patched = updateSceneDraft(current, objectId, patch as SceneObjectDraftPatch, effectiveEditingTarget);
+            if (phase !== 'end' || !isSceneObjectAnchorInitialization(candidate.anchorInitialization)) return patched;
+            const result = initializeSceneObjectAnchors(patched, objectId, candidate.anchorInitialization, effectiveEditingTarget, pendingAnchorObjectIdsRef.current);
+            if (result.initialized) {
+              pendingAnchorObjectIdsRef.current.delete(objectId);
+              const initializedObject = getSceneObject(result.draft, objectId);
+              if (initializedObject) resetReferenceRef.current = { ...resetReferenceRef.current, objects: resetReferenceRef.current.objects.map((object) => object.id === objectId ? initializedObject : object) };
+            }
+            return result.draft;
+          });
           if (phase === 'end') interactionHistoryRef.current = false;
         }
       } else if (candidate.type === STUDIO_SCENE_SAFETY_MESSAGE && isSceneCollisionList(candidate.collisions)) {
@@ -578,9 +606,10 @@ export default function StudioShell() {
       const response = await fetch('/api/studio/assets', { method: 'POST', body: form });
       if (!response.ok) throw new Error(await response.text());
       const uploaded = await response.json() as Pick<SceneObjectDraft, 'id' | 'name' | 'asset'>;
-      const object: SceneObjectDraft = { ...uploaded, rendererType: 'image', anchorX: 'right', anchorY: 'bottom', zIndex: 4, offsetX: -48, offsetY: -48, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent', responsiveOverrides: {}, presetOverrides: {} };
+      const object: SceneObjectDraft = { ...uploaded, rendererType: 'image', anchorX: 'left', anchorY: 'top', zIndex: 4, offsetX: viewport.width / 2 - 90, offsetY: viewport.height / 2 - 90, scale: 1, rotation: 0, visible: true, locked: false, availability: 'permanent', responsiveOverrides: {}, presetOverrides: {} };
       commitDraftMutation((current) => addSceneObject(current, object));
       resetReferenceRef.current = addSceneObject(resetReferenceRef.current, object);
+      pendingAnchorObjectIdsRef.current.add(object.id);
       setSelectedObjectId(object.id);
       setAssetFile(null);
       setAssetPreviewUrl(null);

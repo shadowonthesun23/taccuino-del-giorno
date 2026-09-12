@@ -1,6 +1,6 @@
 import type { SceneMode } from './scene-config';
 import type { SceneObjectDraftPatch, SceneObjectId } from './scene-draft';
-import type { SceneEditingTarget } from './scene-draft-editor';
+import type { SceneEditingTarget, SceneObjectAnchorInitialization } from './scene-draft-editor';
 import type { SceneCollision, SceneGuideMode, SceneSafeArea } from './scene-safe-areas';
 import type { StudioViewportPresetId } from './studio-viewport';
 
@@ -31,6 +31,7 @@ export type StudioDraftChangeMessage = {
   patch: SceneObjectDraftPatch;
   editingTarget?: SceneEditingTarget;
   phase?: 'start' | 'move' | 'end' | 'commit';
+  anchorInitialization?: SceneObjectAnchorInitialization;
 };
 
 export type StudioSceneSafetyMessage = {

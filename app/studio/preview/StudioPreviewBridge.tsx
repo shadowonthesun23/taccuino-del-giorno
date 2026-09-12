@@ -14,6 +14,7 @@ import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   resolveSceneDraft,
   updateSceneDraft,
+  type SceneObjectAnchorInitialization,
   type SceneEditingTarget,
 } from '@/lib/scene-draft-editor';
 import {
@@ -155,7 +156,7 @@ function SceneObjectEditor({
   draft: SceneDraft;
   selectedObjectId: SceneObjectId;
   onSelect: (objectId: SceneObjectId) => void;
-  onPatch: (objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase?: 'start' | 'move' | 'end' | 'commit') => void;
+  onPatch: (objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase?: 'start' | 'move' | 'end' | 'commit', anchorInitialization?: SceneObjectAnchorInitialization) => void;
   onSelectedRectChange: (rect: SceneRect | null) => void;
   viewport: { width: number; height: number };
 }) {
@@ -169,6 +170,11 @@ function SceneObjectEditor({
         startY: number;
         originX: number;
         originY: number;
+        originCenterX: number;
+        originCenterY: number;
+        renderedWidth: number;
+        renderedHeight: number;
+        scale: number;
       }
     | {
         kind: 'resize';
@@ -227,8 +233,9 @@ function SceneObjectEditor({
   function startDrag(event: ReactPointerEvent<HTMLDivElement>, objectId: SceneObjectId) {
     if (event.button !== 0) return;
     onSelect(objectId);
+    const rect = rects[objectId];
     const baseObject = getSceneObject(draft, objectId);
-    if (!baseObject) return;
+    if (!baseObject || !rect) return;
     const object = resolveSceneObjectForViewport(baseObject, viewport, getScenePresetOverrideId(viewport)).object;
     if (object.locked) return;
     event.preventDefault();
@@ -241,6 +248,11 @@ function SceneObjectEditor({
       startY: event.clientY,
       originX: object.offsetX,
       originY: object.offsetY,
+      originCenterX: rect.centerX,
+      originCenterY: rect.centerY,
+      renderedWidth: rect.width,
+      renderedHeight: rect.height,
+      scale: object.scale,
     };
     onPatch(objectId, {}, 'start');
   }
@@ -287,10 +299,19 @@ function SceneObjectEditor({
     const interaction = interactionRef.current;
     if (!interaction || interaction.pointerId !== event.pointerId) return;
     if (interaction.kind === 'drag') {
+      const deltaX = event.clientX - interaction.startX;
+      const deltaY = event.clientY - interaction.startY;
       onPatch(interaction.objectId, {
-        offsetX: interaction.originX + event.clientX - interaction.startX,
-        offsetY: interaction.originY + event.clientY - interaction.startY,
-      }, phase);
+        offsetX: interaction.originX + deltaX,
+        offsetY: interaction.originY + deltaY,
+      }, phase, phase === 'end' ? {
+        viewport,
+        centerX: interaction.originCenterX + deltaX,
+        centerY: interaction.originCenterY + deltaY,
+        renderedWidth: interaction.renderedWidth,
+        renderedHeight: interaction.renderedHeight,
+        scale: interaction.scale,
+      } : undefined);
       return;
     }
     if (interaction.kind === 'resize') {
@@ -428,10 +449,10 @@ export default function StudioPreviewBridge({
     );
   }, []);
 
-  const applyPatch = useCallback((objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase: 'start' | 'move' | 'end' | 'commit' = 'commit') => {
+  const applyPatch = useCallback((objectId: SceneObjectId, patch: SceneObjectDraftPatch, phase: 'start' | 'move' | 'end' | 'commit' = 'commit', anchorInitialization?: SceneObjectAnchorInitialization) => {
     setDraft((current) => updateSceneDraft(current, objectId, patch, editingTarget));
     window.parent.postMessage(
-      { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch, editingTarget, phase },
+      { type: STUDIO_DRAFT_CHANGE_MESSAGE, objectId, patch, editingTarget, phase, anchorInitialization },
       window.location.origin,
     );
   }, [editingTarget]);
