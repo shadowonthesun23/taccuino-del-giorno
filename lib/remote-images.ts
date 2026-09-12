@@ -10,6 +10,8 @@ const TRUSTED_IMAGE_HOST_SUFFIXES = [
   'wikipedia.org',
   'youtube.com',
   'ytimg.com',
+  'mzstatic.com',
+  'dzcdn.net',
 ];
 
 export const MAX_REMOTE_IMAGE_BYTES = 10 * 1024 * 1024;
