@@ -17,7 +17,8 @@ const assets = [
   { out: 'monet-autumn-argenteuil.webp', commons: 'Claude Monet 027.jpg' },
   // Clean flat reproduction: avoid the in-gallery phone photograph.
   { out: 'levitan-golden-autumn.webp', commons: 'Levitan Zolotaya Osen.jpg' },
-  { out: 'church-autumn.webp', commons: 'Autumn by Frederic Edwin Church, 1875 AD, oil on canvas - Museo Nacional Centro de Arte Reina Sofía - DSC08703.JPG' },
+  // Clean museum reproduction: avoid the photographed/framed gallery view.
+  { out: 'church-autumn.webp', commons: 'Frederic Edwin Church - Autumn.jpg' },
   { out: 'valckenborch-autumn-september.webp', commons: 'Lucas van Valckenborch - Autumn landscape (September).jpg' },
   { out: 'renoir-autumn-landscape.webp', commons: "Pierre-Auguste Renoir - Autumn Landscape (Paysage d'automne) - BF933 - Barnes Foundation.jpg" },
   { out: 'cole-catskill-early-autumn.webp', commons: 'View on the Catskill—Early Autumn MET DT2639.jpg' },
