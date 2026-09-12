@@ -446,6 +446,22 @@ export function getSeasonalArtwork(
   season: SeasonId,
   dataIso = 'seasonal-default',
 ): SeasonalArtwork | undefined {
+  // Branch-only visual preview: reuse dates that already have editorial content.
+  // This lets us inspect the real museum/ticket rendering before 23 September.
+  const autumnPreviewSchedule: Record<string, string> = {
+    '09-09': 'halle-vendanges-automne',
+    '09-10': 'goya-vendimia-otono',
+    '09-11': 'bruegel-harvesters-autumn',
+    '09-12': 'monet-autumn-argenteuil',
+    '09-13': 'levitan-golden-autumn',
+  };
+  const autumnPreviewId = autumnPreviewSchedule[dataIso.slice(5)];
+  if (autumnPreviewId) {
+    const autumnArtworks = SEASONAL_ARTWORKS.autumn;
+    const previewArtwork = autumnArtworks?.find((artwork) => artwork.id === autumnPreviewId);
+    if (previewArtwork) return previewArtwork;
+  }
+
   const artworks = SEASONAL_ARTWORKS[season];
   if (!artworks?.length) return undefined;
   if (artworks.length === 1) return artworks[0];
