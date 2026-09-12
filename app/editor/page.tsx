@@ -287,12 +287,41 @@ export default function EditorPage() {
   const [contentOverrides, setContentOverrides] = useState<EditorialContentOverrides>({});
   const [contentStatus, setContentStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [contentMessage, setContentMessage] = useState('');
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState<boolean | null>(null);
+  const [maintenanceStatus, setMaintenanceStatus] = useState<'loading' | 'ready' | 'saving' | 'error'>('loading');
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
   const previewSaintName = previewData?.santi?.[0]?.nome?.trim() ?? '';
   const previewPoetName = previewData?.poesia?.autore?.trim() ?? '';
 
   useEffect(() => {
     // Remove the legacy secret that older editor versions stored in localStorage.
     window.localStorage.removeItem('taccuino-editor-secret');
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/site-status', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Impossibile leggere lo stato del sito.');
+        return response.json() as Promise<{ maintenance_enabled?: unknown }>;
+      })
+      .then((result) => {
+        if (!cancelled) {
+          setMaintenanceEnabled(result.maintenance_enabled === true);
+          setMaintenanceStatus('ready');
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setMaintenanceStatus('error');
+          setMaintenanceMessage(error instanceof Error ? error.message : 'Impossibile leggere lo stato del sito.');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -843,6 +872,33 @@ export default function EditorPage() {
     window.location.replace('/login');
   }
 
+  async function handleMaintenanceChange() {
+    if (maintenanceEnabled === null || maintenanceStatus === 'saving') return;
+    const nextEnabled = !maintenanceEnabled;
+    if (nextEnabled && !window.confirm('Mettere Day Atlas in modalità manutenzione?')) return;
+
+    setMaintenanceStatus('saving');
+    setMaintenanceMessage('');
+
+    try {
+      const response = await fetch('/api/site-status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maintenance_enabled: nextEnabled }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Impossibile aggiornare lo stato del sito.');
+      }
+      const result = await response.json() as { maintenance_enabled?: unknown };
+      setMaintenanceEnabled(result.maintenance_enabled === true);
+      setMaintenanceStatus('ready');
+    } catch (error) {
+      setMaintenanceStatus('error');
+      setMaintenanceMessage(error instanceof Error ? error.message : 'Impossibile aggiornare lo stato del sito.');
+    }
+  }
+
   return (
     <main className={`${garamond.className} editor-page min-h-screen bg-[#f8f6f0] px-5 py-10 text-[#2a2522]`}>
       <section className="editor-card mx-auto max-w-5xl rounded-[18px] border border-[#b5956a]/25 bg-[#fffdf6]/82 p-6 shadow-[0_24px_70px_-52px_rgba(42,37,34,0.42)] md:p-9">
@@ -886,7 +942,45 @@ export default function EditorPage() {
               <small>Correzioni e override</small>
             </span>
           </a>
+          <a href="#editor-section-site-status">
+            <span className="editor-section-nav-index">04</span>
+            <span>
+              <strong>Stato del sito</strong>
+              <small>Online e manutenzione</small>
+            </span>
+          </a>
         </nav>
+
+        <section id="editor-section-site-status" className="editor-section editor-site-status" aria-labelledby="editor-site-status-title">
+          <div className="editor-section-heading">
+            <div className="editor-section-title-group">
+              <span className="editor-section-number" aria-hidden="true">04</span>
+              <div>
+                <p className="editor-section-kicker">Controllo globale</p>
+                <h2 id="editor-site-status-title">Stato del sito</h2>
+                <p className="editor-section-description">Un solo stato per tutte le lingue pubbliche. Editor, Studio, Login e API restano disponibili.</p>
+              </div>
+            </div>
+            <span className="editor-section-meta">Aggiornamento immediato</span>
+          </div>
+          <div className="editor-site-status-control">
+            <div>
+              <span className="editor-site-status-label">Stato attuale</span>
+              <strong className={maintenanceEnabled === true ? 'is-maintenance' : maintenanceEnabled === false ? 'is-online' : 'is-unavailable'}>
+                {maintenanceEnabled === true ? 'MANUTENZIONE' : maintenanceEnabled === false ? 'ONLINE' : maintenanceStatus === 'loading' ? 'VERIFICA…' : 'NON DISPONIBILE'}
+              </strong>
+            </div>
+            <button
+              type="button"
+              className={maintenanceEnabled ? 'editor-media-clear' : 'editor-media-save'}
+              disabled={maintenanceStatus === 'loading' || maintenanceStatus === 'saving' || maintenanceEnabled === null}
+              onClick={() => void handleMaintenanceChange()}
+            >
+              <span>{maintenanceStatus === 'saving' ? 'Aggiornamento…' : maintenanceEnabled ? 'Rimetti online' : 'Attiva manutenzione'}</span>
+            </button>
+          </div>
+          {maintenanceMessage ? <p className="editor-media-message is-error" role="status">{maintenanceMessage}</p> : null}
+        </section>
 
         <section id="editor-section-day" className="editor-section editor-section-day" aria-labelledby="editor-section-day-title">
           <div className="editor-section-heading">

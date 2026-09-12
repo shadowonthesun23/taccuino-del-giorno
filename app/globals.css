@@ -105,6 +105,130 @@
   color: #e0d4bb;
 }
 
+.maintenance-screen {
+  align-items: center;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(133, 102, 59, 0.09), transparent 28rem),
+    radial-gradient(circle at 85% 82%, rgba(158, 42, 43, 0.05), transparent 24rem),
+    #f8f6f0;
+  box-sizing: border-box;
+  color: #2a2522;
+  display: flex;
+  justify-content: center;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: clamp(1.5rem, 6vw, 5rem);
+}
+
+.maintenance-screen-paper {
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.62), transparent 44%),
+    radial-gradient(ellipse at 18% 22%, rgba(91, 67, 39, 0.06) 0 0.65px, transparent 0.9px) 0 0 / 23px 29px,
+    #fffdf6;
+  border: 1px solid rgba(139, 107, 66, 0.25);
+  border-radius: 3px 6px 4px 5px;
+  box-shadow: 0 28px 80px -48px rgba(42, 37, 34, 0.56), inset 0 1px rgba(255, 255, 255, 0.88);
+  box-sizing: border-box;
+  max-width: 43rem;
+  min-height: min(36rem, calc(100svh - 3rem));
+  padding: clamp(2rem, 8vw, 5.5rem) clamp(1.65rem, 8vw, 6rem) clamp(1.75rem, 5vw, 3.2rem);
+  position: relative;
+  width: 100%;
+}
+
+.maintenance-screen-kicker {
+  color: #9e2a2b;
+  display: block;
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.maintenance-screen-ink {
+  animation: maintenance-ink-breathe 4.8s ease-in-out infinite;
+  background: #9e2a2b;
+  border-radius: 99px;
+  display: block;
+  height: 2px;
+  margin: clamp(2rem, 7vw, 4rem) 0 clamp(1.5rem, 4vw, 2.4rem);
+  opacity: 0.72;
+  transform-origin: left;
+  width: clamp(3rem, 12vw, 5rem);
+}
+
+.maintenance-screen h1 {
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  font-size: clamp(2.1rem, 6vw, 4.3rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 11ch;
+}
+
+.maintenance-screen p {
+  color: #5f5548;
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  font-size: clamp(1.08rem, 2.2vw, 1.3rem);
+  line-height: 1.5;
+  margin: clamp(1.5rem, 5vw, 2.5rem) 0 0;
+  max-width: 34rem;
+  white-space: pre-line;
+}
+
+.maintenance-screen footer {
+  bottom: clamp(1.75rem, 5vw, 3.1rem);
+  color: #756957;
+  font-family: "IM Fell Double Pica", Georgia, serif;
+  font-size: 0.82rem;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  position: absolute;
+}
+
+@keyframes maintenance-ink-breathe {
+  0%, 100% { opacity: 0.48; transform: scaleX(0.86); }
+  50% { opacity: 0.86; transform: scaleX(1); }
+}
+
+.editor-site-status-control {
+  align-items: center;
+  background: rgba(248, 241, 223, 0.72);
+  border: 1px solid rgba(181, 149, 106, 0.25);
+  border-radius: 14px 12px 15px 11px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1.6rem;
+  padding: 1.15rem 1.2rem;
+}
+
+.editor-site-status-label {
+  color: #756957;
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.28rem;
+  text-transform: uppercase;
+}
+
+.editor-site-status-control strong { font-size: 1rem; letter-spacing: 0.14em; }
+.editor-site-status-control strong.is-online { color: #557044; }
+.editor-site-status-control strong.is-maintenance { color: #9e2a2b; }
+.editor-site-status-control strong.is-unavailable { color: #756957; }
+
+@media (max-width: 560px) {
+  .editor-site-status-control { align-items: flex-start; flex-direction: column; }
+  .editor-site-status-control button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maintenance-screen-ink { animation: none; }
+}
+
 :root {
   --background: #F8F6F0;
   --foreground: #1f2933;
@@ -1290,6 +1414,47 @@ body {
     max-width: none;
   }
 }
+
+.dark .maintenance-screen,
+[data-theme="dark"] .maintenance-screen {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(203, 177, 139, 0.08), transparent 28rem),
+    #171614;
+  color: #f0e5d4;
+}
+
+.dark .maintenance-screen-paper,
+[data-theme="dark"] .maintenance-screen-paper {
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.035), transparent 44%),
+    radial-gradient(ellipse at 18% 22%, rgba(255, 255, 255, 0.025) 0 0.65px, transparent 0.9px) 0 0 / 23px 29px,
+    #292722;
+  border-color: rgba(224, 196, 161, 0.2);
+  box-shadow: 0 28px 80px -48px rgba(0, 0, 0, 0.9), inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.dark .maintenance-screen p,
+.dark .maintenance-screen footer,
+[data-theme="dark"] .maintenance-screen p,
+[data-theme="dark"] .maintenance-screen footer { color: #c9bdab; }
+
+.dark .editor-site-status-control,
+[data-theme="dark"] .editor-site-status-control {
+  background: rgba(244, 237, 219, 0.06);
+  border-color: rgba(224, 196, 161, 0.18);
+}
+
+.dark .editor-site-status-label,
+[data-theme="dark"] .editor-site-status-label { color: #b9ad9a; }
+
+.dark .editor-site-status-control strong.is-online,
+[data-theme="dark"] .editor-site-status-control strong.is-online { color: #b8d0ae; }
+
+.dark .editor-site-status-control strong.is-maintenance,
+[data-theme="dark"] .editor-site-status-control strong.is-maintenance { color: #f0b0a2; }
+
+.dark .editor-site-status-control strong.is-unavailable,
+[data-theme="dark"] .editor-site-status-control strong.is-unavailable { color: #b9ad9a; }
 
 /* ── Editorial refinement: hierarchy without a rigid grid ── */
 /* The correspondence plate needs room for an unbroken daily word. Before the

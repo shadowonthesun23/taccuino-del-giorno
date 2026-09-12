@@ -1,5 +1,7 @@
 import NotebookHome from '../components/NotebookHome';
+import MaintenanceScreen from '../components/MaintenanceScreen';
 import { Metadata } from 'next';
+import { getMaintenanceEnabled } from '@/lib/maintenance-server';
 
 const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -28,6 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FrenchPage() {
+export default async function FrenchPage() {
+  if (await getMaintenanceEnabled()) return <MaintenanceScreen locale="FR" />;
   return <NotebookHome initialLang="FR" />;
 }
