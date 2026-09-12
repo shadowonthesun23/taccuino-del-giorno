@@ -1,0 +1,38 @@
+name: Build autumn seasonal artworks
+
+on:
+  push:
+    branches:
+      - feat/autumn-seasonal-artworks
+    paths:
+      - scripts/build-autumn-artworks.mjs
+      - .github/workflows/build-autumn-artworks.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-artworks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/autumn-seasonal-artworks
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/build-autumn-artworks.mjs
+      - name: Commit generated WebP assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/images/seasonal/*.webp
+          if git diff --cached --quiet; then
+            echo "No generated asset changes"
+            exit 0
+          fi
+          git commit -m "chore: add autumn seasonal artwork assets"
+          git push origin HEAD:feat/autumn-seasonal-artworks
