@@ -9,6 +9,7 @@ import {
 } from "@google/generative-ai";
 import { getEditorAuthorization } from '@/lib/editor-auth';
 import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
+import { finalizeGeneratedBible } from '@/lib/finalize-generated-bible';
 import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-history';
 
 export const maxDuration = 180;
@@ -280,6 +281,7 @@ function extractFirstJsonObject(text: string) {
 type GeneratedDailyData = Record<string, unknown> & {
   citazione?: Record<string, unknown>;
   parola_giorno?: { parola?: unknown };
+  bibbia?: { testo?: unknown; fonte?: unknown; nota?: unknown };
   poesia?: { autore?: unknown; fonte?: unknown; testo?: unknown };
 };
 
@@ -1049,8 +1051,19 @@ Restituisci questo JSON:
         : new Error('Nessuna risposta ricevuta dal modello.');
     }
 
+    let finalizedData: GeneratedDailyData;
+    try {
+      finalizedData = await finalizeGeneratedBible(generatedData, { timeoutMs: 8_000 });
+      console.info(`Passaggio biblico sostituito con testo BibbiaEdu CEI 2008; ${getGenerationTiming(generationStartedAt)}.`);
+    } catch (error) {
+      console.error(
+        `Finalizzazione BibbiaEdu CEI 2008 interrotta prima dell'upsert: ${getSafeErrorMessage(error)}`,
+      );
+      throw error;
+    }
+
     const data = {
-      ...generatedData,
+      ...finalizedData,
       // The date is derived from the route timezone, never from model prose.
       data_odierna: dataDiOggiStr,
     };
