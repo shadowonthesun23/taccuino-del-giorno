@@ -11,16 +11,16 @@ import { getEditorAuthorization } from '@/lib/editor-auth';
 import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
 import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-history';
 
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 // Keep a stable, lighter model available when the primary model is busy or
 // returns a transient error. Both models support structured JSON responses.
 const FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash-lite';
-// Leave a bounded window for a second full attempt inside Vercel's 60-second
-// function limit. The remaining time is computed dynamically per attempt.
+// Keep each request bounded so retry, repair, and fallback can share the
+// global generation budget. The remaining time is computed per attempt.
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
-const GEMINI_GENERATION_BUDGET_MS = 52_000;
+const GEMINI_GENERATION_BUDGET_MS = 165_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
 // Keep one compact author repair possible after the full JSON has been checked.
 // This is a time reserve, not an extra daily call: it is spent only when the
@@ -813,6 +813,8 @@ async function handleGenerate(request: Request, allowEditorRequest: boolean) {
       ? getDatePartsFromIso(dataParam)
       : getRomeDateParts();
 
+    console.info(`Avvio /api/generate per ${dataIso}; ${getGenerationTiming(generationStartedAt)}.`);
+
     const { data: recentContentRows, error: recentContentError } = await supabase
       .from('contenuti_giornalieri')
       .select('autore_giorno, musica, parola_giorno, poesia')
@@ -1063,11 +1065,13 @@ Restituisci questo JSON:
       throw error;
     }
 
+    console.info(`Salvataggio Supabase e /api/generate completati; ${getGenerationTiming(generationStartedAt)}.`);
+
     return new Response('Successo!');
   } catch (err) {
     const message = getUserFacingGenerationError(err);
 
-    console.error("Errore fatale in /api/generate:", err);
+    console.error(`Errore fatale in /api/generate; ${getGenerationTiming(generationStartedAt)}:`, err);
     return new Response(message, { status: 500 });
   }
 }
