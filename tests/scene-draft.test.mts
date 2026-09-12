@@ -39,17 +39,16 @@ test('resolves same-width presets when the browser height differs', () => {
   assert.equal(fifteenThirtySix.object.offsetX, 75);
 });
 
-test('preserves preset geometry with anchor-aware viewport compensation', () => {
-  let draft = cloneBaselineSceneDraft();
-  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 11, offsetY: 0 }, { mode: 'preset', presetId: '1920x1080' });
+test('objects without responsive overrides preserve nearest preset geometry with anchor-aware compensation', () => {
+  const object = { ...testObject, presetOverrides: { '1920x1080': { offsetX: 11, offsetY: 0 } } };
 
-  const exact = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 });
-  const shorter = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 851 });
-  const narrower = resolveSceneObjectForViewport(fig(draft), { width: 1680, height: 1080 });
+  const exact = resolveSceneObjectForViewport(object, { width: 1920, height: 1080 });
+  const shorter = resolveSceneObjectForViewport(object, { width: 1920, height: 851 });
+  const narrower = resolveSceneObjectForViewport(object, { width: 1680, height: 1080 });
   assert.deepEqual({ x: exact.object.offsetX, y: exact.object.offsetY }, { x: 11, y: 0 });
   assert.deepEqual({ x: shorter.object.offsetX, y: shorter.object.offsetY }, { x: 11, y: 229 });
   assert.equal(narrower.object.offsetX, 251);
-  assert.match(sceneDraftToCss(draft, { width: 1920, height: 851 }), /translate: 11px 229px/);
+  assert.match(sceneDraftToCss({ ...cloneBaselineSceneDraft(), objects: [object] }, { width: 1920, height: 851 }), /translate: 11px 229px/);
 });
 
 test('left and top anchors do not receive viewport compensation', () => {
@@ -70,15 +69,35 @@ test('resolves the nearest configured preset only within the viewport responsive
   assert.equal(resolved.object.offsetX, 90);
 });
 
-test('falls back to responsive overrides when no configured preset is compatible', () => {
-  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'desktop');
-  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: .9 }, { mode: 'override', breakpointId: 'desktop' });
+test('active responsive overrides bypass nearest presets and their compensation', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'wideShort');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, offsetY: -16, scale: .9 }, { mode: 'override', breakpointId: 'wideShort' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 11, offsetY: 0 }, { mode: 'preset', presetId: '1920x1080' });
+
+  const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 851 });
+  assert.equal(resolved.presetId, undefined);
+  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: 40, y: -16, scale: .9 });
+  assert.match(sceneDraftToCss(draft, { width: 1920, height: 851 }), /translate: 40px -16px/);
+});
+
+test('exact presets retain priority over active responsive overrides', () => {
+  let draft = createSceneResponsiveOverride(cloneBaselineSceneDraft(), 'seasonal-fig', 'wide');
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 40, scale: .9 }, { mode: 'override', breakpointId: 'wide' });
+  draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 11, offsetY: 0 }, { mode: 'preset', presetId: '1920x1080' });
+
+  const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1920, height: 1080 });
+  assert.equal(resolved.presetId, '1920x1080');
+  assert.deepEqual({ x: resolved.object.offsetX, y: resolved.object.offsetY, scale: resolved.object.scale }, { x: 11, y: 0, scale: .9 });
+});
+
+test('falls back to Base unchanged when no configured preset is compatible', () => {
+  let draft = cloneBaselineSceneDraft();
   draft = updateSceneDraft(draft, 'seasonal-fig', { offsetX: 999 }, { mode: 'preset', presetId: '390x844' });
 
   const resolved = resolveSceneObjectForViewport(fig(draft), { width: 1440, height: 900 });
   assert.equal(resolved.presetId, undefined);
-  assert.equal(resolved.object.offsetX, 40);
-  assert.equal(resolved.object.scale, .9);
+  assert.equal(resolved.object.offsetX, fig(draft).offsetX);
+  assert.equal(resolved.object.scale, fig(draft).scale);
 });
 
 test('configured preset overrides retain responsive values they do not replace', () => {
