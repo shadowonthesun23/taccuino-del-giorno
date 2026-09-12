@@ -16,7 +16,7 @@ export const maxDuration = 180;
 const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 // Keep a stable, lighter model available when the primary model is busy or
 // returns a transient error. Both models support structured JSON responses.
-const FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 // Keep each request bounded so retry, repair, and fallback can share the
 // global generation budget. The remaining time is computed per attempt.
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
