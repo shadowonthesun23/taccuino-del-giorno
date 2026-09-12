@@ -15,6 +15,7 @@
     "author-artwork:bridge": "node scripts/local-author-artwork-bridge.mjs",
     "author-artwork:install": "node scripts/manage-author-artwork-launchagents.mjs",
     "author-artwork:uninstall": "node scripts/manage-author-artwork-launchagents.mjs uninstall",
+    "audit:content-verifier": "node scripts/audit-content-verifier.mts",
     "lint": "eslint",
     "test": "node --test tests/*.test.mts"
   },
@@ -25,6 +26,7 @@
     "@supabase/supabase-js": "2.114.0",
     "@vercel/analytics": "^1.5.0",
     "astronomy-engine": "^2.1.19",
+    "cheerio": "1.1.2",
     "html-to-image": "^1.11.11",
     "lucide-react": "^1.8.0",
     "next": "16.2.4",
