@@ -21078,14 +21078,17 @@ body.museum-room-open :is(
   }
 }
 /* Daily postcard: preserve physical 15x10 cm (3:2) ratio in the open modal. */
-.daily-postcard.is-open .daily-postcard-stage {
+/* Keep only the visible FRONT at the physical postcard ratio.
+   Once flipped, the stage returns to content-sized layout so the back can
+   grow naturally for longer quotes instead of being clipped. */
+.daily-postcard.is-open .daily-postcard-stage:not(.is-flipped) {
   aspect-ratio: 3 / 2;
   height: auto;
 }
 
-.daily-postcard.is-open .daily-postcard-card-motion,
-.daily-postcard.is-open .daily-postcard-card,
-.daily-postcard.is-open .daily-postcard-stage .daily-postcard-face {
+.daily-postcard.is-open .daily-postcard-stage:not(.is-flipped) .daily-postcard-card-motion,
+.daily-postcard.is-open .daily-postcard-stage:not(.is-flipped) .daily-postcard-card,
+.daily-postcard.is-open .daily-postcard-stage:not(.is-flipped) .daily-postcard-face {
   height: 100%;
   min-height: 0;
 }

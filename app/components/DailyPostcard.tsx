@@ -783,7 +783,7 @@ export default function DailyPostcard({
               <X aria-hidden="true" strokeWidth={1.5} />
             </button>
             <div
-              className={`daily-postcard-stage ${isEditing ? 'is-editing' : ''}`}
+              className={`daily-postcard-stage ${isFlipped ? 'is-flipped' : ''} ${isEditing ? 'is-editing' : ''}`}
               role={isEditing ? undefined : 'button'}
               tabIndex={isEditing ? undefined : 0}
               aria-pressed={isEditing ? undefined : isFlipped}
