@@ -13,6 +13,7 @@ import { getEditorialMediaCropImageStyle, DEFAULT_EDITORIAL_MEDIA_CROP, type Edi
 import { caveat, garamond, janeAust } from '@/lib/fonts';
 import { SITE_WATERMARK } from '@/lib/constants';
 import { downloadDailyPostcardFace, type DailyPostcardFace } from './dailyPostcardExport';
+import { useAudio } from './AudioProvider';
 
 const eagerImageProps = getImageLoadingProps(true);
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
@@ -440,6 +441,7 @@ export default function DailyPostcard({
   authorDeathDate?: string | null;
   isActive: boolean;
 }) {
+  const { playEffect } = useAudio();
   const [desktopEnabled, setDesktopEnabled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -509,7 +511,8 @@ export default function DailyPostcard({
     }
     setIsClosing(false);
     setIsOpen(true);
-  }, [desktopEnabled, isActive]);
+    playEffect('paperOpen');
+  }, [desktopEnabled, isActive, playEffect]);
 
   const closePostcard = useCallback(() => {
     if (!isOpen || isClosing) return;

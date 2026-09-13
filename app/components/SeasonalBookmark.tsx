@@ -14,6 +14,7 @@ import { getSeason, formatBookmarkDate, getBookmarkMonth, getDayOfYearInfo, form
 import { getMoonPhase, getNextFullMoonDate } from '@/lib/astronomy';
 import { isMobileChromiumBrowser, blobToDataUrl } from '@/lib/browser-utils';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork } from '@/lib/seasonal-artwork';
+import { useAudio } from './AudioProvider';
 
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
 const TICKET_EXIT_DURATION_MS = 420;
@@ -29,6 +30,7 @@ export default function SeasonalBookmark({
   isDark: boolean;
   isActive: boolean;
 }) {
+  const { playEffect } = useAudio();
   const bookmarkRef = useRef<HTMLElement>(null);
   const ticketRef = useRef<HTMLSpanElement>(null);
   const ticketMotionFrameRef = useRef<number | null>(null);
@@ -180,7 +182,8 @@ export default function SeasonalBookmark({
     }
     setIsTicketClosing(false);
     setIsTicketOpen(true);
-  }, [desktopTicketEnabled, isActive]);
+    playEffect('paperOpen');
+  }, [desktopTicketEnabled, isActive, playEffect]);
 
   const applyTicketMotion = useCallback((x: number, y: number) => {
     const bookmark = bookmarkRef.current;

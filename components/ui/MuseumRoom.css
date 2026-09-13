@@ -171,7 +171,6 @@
 
 /* Navigation stays outside the moving room. */
 
-.museum-ambience-control,
 .museum-room-signage { display: none; }
 
 @media (min-width: 768px) {
@@ -239,38 +238,6 @@
       );
   }
 
-  .museum-ambience-control {
-    position: absolute;
-    right: max(22px, env(safe-area-inset-right));
-    bottom: max(22px, env(safe-area-inset-bottom));
-    z-index: 40;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 44px;
-    padding: 9px 13px;
-    border: 1px solid rgb(255 247 226 / 0.14);
-    border-radius: 11px;
-    background:
-      linear-gradient(145deg, rgb(255 255 255 / 0.09), transparent 48%, rgb(8 10 7 / 0.1)),
-      rgb(25 29 23 / 0.46);
-    -webkit-backdrop-filter: blur(6px) saturate(0.72);
-    backdrop-filter: blur(6px) saturate(0.72);
-    color: rgb(246 239 220 / 0.72);
-    font-family: Georgia, serif;
-    font-size: 12px;
-    letter-spacing: 0.035em;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.1),
-      0 5px 17px rgb(8 10 7 / 0.14);
-    cursor: pointer;
-    transition: color 180ms ease-out, border-color 180ms ease-out, background-color 180ms ease-out, scale 180ms ease-out;
-  }
-  .museum-ambience-control svg { width: 15px; height: 15px; stroke-width: 1.45; opacity: 0.76; }
-  .museum-ambience-control:hover { color: rgb(255 248 231 / 0.94); border-color: rgb(255 247 226 / 0.22); }
-  .museum-ambience-control.is-on { color: rgb(255 244 215 / 0.9); border-color: rgb(232 199 138 / 0.23); }
-  .museum-ambience-control:active { scale: 0.97; }
-  .museum-ambience-control:focus-visible { outline: 2px solid #f4ead5; outline-offset: 5px; }
 }
 
 @media (min-width: 1200px) and (min-height: 680px) {

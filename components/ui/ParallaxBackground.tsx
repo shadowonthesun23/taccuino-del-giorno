@@ -5,8 +5,8 @@ import './MuseumRoom.css';
 import { clampMuseumCamera, getMuseumCameraPose, museumCameraTransform, RESTING_MUSEUM_CAMERA, type MuseumCameraPose } from '@/lib/museum-camera';
 import SceneRenderer from '@/components/scene/SceneRenderer';
 import type { SceneDraft, SceneViewport } from '@/lib/scene-draft';
-import MuseumAmbienceControl from '@/components/ui/MuseumAmbienceControl';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
+import { useAudio } from '@/app/components/AudioProvider';
 
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
@@ -85,6 +85,7 @@ export default function ParallaxBackground({
   sceneDraft?: SceneDraft;
   sceneViewport?: SceneViewport;
 }) {
+  const { setAmbience } = useAudio();
   const imageRef = useRef<HTMLDivElement>(null);
   const deskLayerRef = useRef<HTMLDivElement>(null);
   const lineArtRef = useRef<HTMLDivElement>(null);
@@ -266,6 +267,12 @@ export default function ParallaxBackground({
     document.body.classList.toggle('museum-room-open', isArtworkSolo);
     return () => document.body.classList.remove('museum-room-open');
   }, [isArtworkSolo]);
+
+  useEffect(() => {
+    setAmbience(isArtworkSolo ? 'museum' : 'home');
+  }, [isArtworkSolo, setAmbience]);
+
+  useEffect(() => () => setAmbience('home'), [setAmbience]);
 
   useEffect(() => {
     let frame: number | null = null;
@@ -576,8 +583,6 @@ export default function ParallaxBackground({
           >
             {clickToShowText}
           </button>
-
-          <MuseumAmbienceControl active={isArtworkSolo} language={langKey} />
 
           {/* The wall, floor, frame and label share exactly one camera transform. */}
           <div

@@ -23,6 +23,8 @@ import { TypewriterText, DecorativeInitialText, EditorialQuoteText } from '@/com
 import { DoodleArrow } from '@/components/ui/Doodles';
 import { XIcon, InstagramIcon, CoffeeIcon, SpotifyIcon, YouTubeIcon } from '@/components/ui/Icons';
 import WatercolorDivider from '@/components/ui/WatercolorDivider';
+import GlobalAudioControl from './GlobalAudioControl';
+import { AudioProvider } from './AudioProvider';
 
 // Library utilities & types
 import type { SaintArtwork } from '@/lib/saint-artwork';
@@ -395,15 +397,17 @@ function ThemeModeSelector({
   );
 }
 
-export default function Home({
-  initialLang = 'IT',
-  sceneDraft,
-  sceneViewport,
-}: {
+interface NotebookHomeProps {
   initialLang?: LanguageCode;
   sceneDraft?: SceneDraft;
   sceneViewport?: SceneViewport;
-}) {
+}
+
+function NotebookHomeContent({
+  initialLang = 'IT',
+  sceneDraft,
+  sceneViewport,
+}: NotebookHomeProps) {
   const { themeMode, isDark, setThemeMode } = useTheme();
   const [data, setData] = useState<DatiTaccuino | null>(null);
   const [dataOriginale, setDataOriginale] = useState<DatiTaccuino | null>(null);
@@ -1485,6 +1489,10 @@ export default function Home({
           </div>,
           document.body
         ) : null}
+        {isMounted ? createPortal(
+          <GlobalAudioControl language={lingua} />,
+          document.body,
+        ) : null}
         <div
           ref={mobileToolsRef}
           className={`mobile-tools ${isDark ? 'is-dark' : ''} ${mobileToolsOpen ? 'is-open' : ''} ${controlsHidden && !mobileToolsOpen && !popoverOpen && !savedDrawerOpen ? 'is-hidden' : ''}`}
@@ -2505,5 +2513,13 @@ export default function Home({
       </div>
       </ParallaxBackground>
     </>
+  );
+}
+
+export default function NotebookHome(props: NotebookHomeProps) {
+  return (
+    <AudioProvider>
+      <NotebookHomeContent {...props} />
+    </AudioProvider>
   );
 }
