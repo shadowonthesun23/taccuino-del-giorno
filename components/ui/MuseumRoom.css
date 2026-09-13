@@ -129,6 +129,8 @@
 .museum-gallery-room .museum-label-mount.right { right: 5px; }
 .museum-gallery-room .museum-wall-label:focus-visible,
 .museum-room-exit:focus-visible { outline: 2px solid #f4ead5; outline-offset: 5px; }
+.museum-room-download-trigger:focus-visible,
+.museum-room-download-menu button:focus-visible { outline: 2px solid #f4ead5; outline-offset: 4px; }
 
 .museum-room-exit {
   position: absolute;
@@ -166,6 +168,83 @@
     0 7px 22px rgb(10 12 9 / 0.18);
 }
 .museum-room-exit:active { scale: 0.96; }
+.museum-room-download {
+  position: absolute;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(22px, env(safe-area-inset-right));
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 7px;
+  font-family: Georgia, serif;
+}
+.museum-room-download-trigger {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  color: rgb(246 241 227 / 0.88);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.035) 42%, rgb(9 12 9 / 0.12)),
+    rgb(30 34 28 / 0.34);
+  border: 0;
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(14px) saturate(0.78);
+  backdrop-filter: blur(14px) saturate(0.78);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.14),
+    inset 0 1px 0 rgb(255 255 255 / 0.15),
+    0 5px 18px rgb(10 12 9 / 0.14);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+.museum-room-download-trigger:disabled { cursor: wait; opacity: 0.7; }
+.museum-room-download-menu {
+  display: grid;
+  min-width: 184px;
+  padding: 5px;
+  overflow: hidden;
+  background: rgb(37 40 33 / 0.9);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(18px) saturate(0.8);
+  backdrop-filter: blur(18px) saturate(0.8);
+  box-shadow: 0 12px 32px rgb(8 10 7 / 0.24);
+}
+.museum-room-download-menu button {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 9px;
+  color: rgb(248 242 226 / 0.91);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+}
+.museum-room-download-menu button:first-child { background: rgb(255 255 255 / 0.065); }
+.museum-room-download-menu button:hover { background: rgb(255 255 255 / 0.11); }
+.museum-room-download-menu small { opacity: 0.61; font-size: 8.5px; font-style: italic; }
+.museum-room-download-error {
+  max-width: 230px;
+  margin: 0;
+  padding: 7px 9px;
+  color: #fff5e2;
+  background: rgb(75 31 26 / 0.9);
+  border-radius: 7px;
+  box-shadow: 0 6px 20px rgb(10 8 6 / 0.2);
+  font-size: 10.5px;
+  line-height: 1.3;
+}
 .seasonal-artwork-caption.is-solo-mode { display: none !important; }
 
 /* Navigation stays outside the moving room. */
@@ -314,6 +393,46 @@
   }
   .museum-gallery-room .museum-main-exhibit { gap: 12px; }
   .museum-room-exit { left: 15px; font-size: 12px; }
+  .museum-room-download { right: 15px; }
+  .museum-room-download-trigger span { display: none; }
+}
+
+.museum-gallery-room.is-export-clone *,
+.museum-gallery-room.is-export-clone *::before,
+.museum-gallery-room.is-export-clone *::after {
+  animation: none !important;
+  caret-color: transparent !important;
+  transition: none !important;
+}
+.museum-gallery-room.is-export-clone,
+.museum-gallery-room.is-export-clone * { cursor: default !important; }
+.museum-gallery-room.is-export-clone .museum-bench-foreground {
+  position: absolute;
+  z-index: 20;
+  bottom: -32px;
+  left: 50%;
+  display: block;
+  width: clamp(350px, 27vw, 470px);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+.museum-gallery-room.is-export-clone .museum-bench-foreground::before {
+  position: absolute;
+  z-index: -1;
+  bottom: 16%;
+  left: 11%;
+  width: 78%;
+  height: 14px;
+  border-radius: 50%;
+  background: rgb(17 13 9 / 0.31);
+  box-shadow: 0 8px 16px rgb(12 10 7 / 0.2);
+  content: '';
+}
+.museum-gallery-room.is-export-clone .museum-bench-foreground img {
+  display: block;
+  width: 100%;
+  height: auto;
+  clip-path: inset(0 2.25% 0 0);
 }
 
 @media (max-height: 500px) and (orientation: landscape) {

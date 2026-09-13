@@ -7,6 +7,8 @@ import SceneRenderer from '@/components/scene/SceneRenderer';
 import type { SceneDraft, SceneViewport } from '@/lib/scene-draft';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 import { useAudio } from '@/app/components/AudioProvider';
+import { FileDown } from 'lucide-react';
+import type { MuseumRoomExportFormat } from './museumRoomExport';
 
 const revealSeasons: SeasonId[] = ['spring', 'summer'];
 // Keep the line-only variant available for a one-line dark-mode swap.
@@ -65,6 +67,15 @@ const MUSEUM_DATE_LOCALES = {
   PT: 'pt-PT',
 } as const;
 
+const MUSEUM_DOWNLOAD_TRANSLATIONS = {
+  IT: { action: 'Download', preparing: 'Preparazione…', menu: 'Scegli il formato', jpeg: 'JPEG · leggero', png: 'PNG · massima qualità', recommended: 'Consigliato', error: 'Non è stato possibile esportare la stanza. Riprova.' },
+  EN: { action: 'Download', preparing: 'Preparing…', menu: 'Choose format', jpeg: 'JPEG · light', png: 'PNG · maximum quality', recommended: 'Recommended', error: 'The room could not be exported. Please try again.' },
+  FR: { action: 'Télécharger', preparing: 'Préparation…', menu: 'Choisir le format', jpeg: 'JPEG · léger', png: 'PNG · qualité maximale', recommended: 'Recommandé', error: 'Impossible d’exporter la salle. Réessayez.' },
+  DE: { action: 'Download', preparing: 'Vorbereitung…', menu: 'Format wählen', jpeg: 'JPEG · kompakt', png: 'PNG · höchste Qualität', recommended: 'Empfohlen', error: 'Der Raum konnte nicht exportiert werden. Bitte erneut versuchen.' },
+  ES: { action: 'Descargar', preparing: 'Preparando…', menu: 'Elegir formato', jpeg: 'JPEG · ligero', png: 'PNG · máxima calidad', recommended: 'Recomendado', error: 'No se pudo exportar la sala. Inténtalo de nuevo.' },
+  PT: { action: 'Transferir', preparing: 'A preparar…', menu: 'Escolher formato', jpeg: 'JPEG · leve', png: 'PNG · qualidade máxima', recommended: 'Recomendado', error: 'Não foi possível exportar a sala. Tente novamente.' },
+} as const;
+
 export default function ParallaxBackground({
   children,
   season,
@@ -93,6 +104,7 @@ export default function ParallaxBackground({
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const mainArtworkRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<HTMLDivElement>(null);
+  const museumRoomRef = useRef<HTMLDivElement>(null);
   const roomExitRef = useRef<HTMLButtonElement>(null);
   const roomTriggerRef = useRef<HTMLElement | null>(null);
   const [dark, setDark] = useState(false);
@@ -101,6 +113,10 @@ export default function ParallaxBackground({
   const [isArtworkZoomed, setIsArtworkZoomed] = useState(false);
   const [cameraPose, setCameraPose] = useState<MuseumCameraPose>(RESTING_MUSEUM_CAMERA);
   const [isDraggingCamera, setIsDraggingCamera] = useState(false);
+  const [isExportingRoom, setIsExportingRoom] = useState(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+  const [museumExportError, setMuseumExportError] = useState<string | null>(null);
+  const roomExportInFlightRef = useRef(false);
   const cameraDragRef = useRef<{ pointerId: number; startX: number; startY: number; pose: MuseumCameraPose; moved: boolean } | null>(null);
   const suppressCameraClickRef = useRef(false);
   const prevSolo = useRef(isArtworkSolo);
@@ -221,6 +237,7 @@ export default function ParallaxBackground({
   const seasonalBadgeText = CAPTION_TRANSLATIONS.badge[langKey] || CAPTION_TRANSLATIONS.badge.EN;
   const clickToShowText = CAPTION_TRANSLATIONS.clickToShowText[langKey] || CAPTION_TRANSLATIONS.clickToShowText.EN;
   const museumRoomTitle = MUSEUM_ROOM_TRANSLATIONS[langKey] || MUSEUM_ROOM_TRANSLATIONS.EN;
+  const museumDownloadText = MUSEUM_DOWNLOAD_TRANSLATIONS[langKey] || MUSEUM_DOWNLOAD_TRANSLATIONS.EN;
   const museumDate = dataIso
     ? new Intl.DateTimeFormat(MUSEUM_DATE_LOCALES[langKey] || MUSEUM_DATE_LOCALES.EN, {
         day: 'numeric',
@@ -242,12 +259,23 @@ export default function ParallaxBackground({
   }, []);
 
   useEffect(() => {
-    const handleToggle = () => setIsArtworkSolo((previous) => {
-      if (previous) closeArtworkZoom();
-      return !previous;
-    });
-    const handleOpen = () => setIsArtworkSolo(true);
+    const resetMuseumDownload = () => {
+      setIsDownloadMenuOpen(false);
+      setMuseumExportError(null);
+    };
+    const handleToggle = () => {
+      resetMuseumDownload();
+      setIsArtworkSolo((previous) => {
+        if (previous) closeArtworkZoom();
+        return !previous;
+      });
+    };
+    const handleOpen = () => {
+      resetMuseumDownload();
+      setIsArtworkSolo(true);
+    };
     const handleClose = () => {
+      resetMuseumDownload();
       closeArtworkZoom();
       setIsArtworkSolo(false);
     };
@@ -273,6 +301,24 @@ export default function ParallaxBackground({
   }, [isArtworkSolo, setAmbience]);
 
   useEffect(() => () => setAmbience('home'), [setAmbience]);
+
+  const exportMuseumRoom = async (format: MuseumRoomExportFormat) => {
+    if (roomExportInFlightRef.current || !museumRoomRef.current || !dataIso) return;
+    roomExportInFlightRef.current = true;
+    setIsDownloadMenuOpen(false);
+    setMuseumExportError(null);
+    setIsExportingRoom(true);
+    try {
+      const { downloadMuseumRoom } = await import('./museumRoomExport');
+      await downloadMuseumRoom(museumRoomRef.current, dataIso, format);
+    } catch (error) {
+      console.error('Museum room export failed', error);
+      setMuseumExportError(museumDownloadText.error);
+    } finally {
+      roomExportInFlightRef.current = false;
+      setIsExportingRoom(false);
+    }
+  };
 
   useEffect(() => {
     let frame: number | null = null;
@@ -558,6 +604,8 @@ export default function ParallaxBackground({
 
       {hasSeasonalReveal && seasonalArtwork && (
         <div
+          ref={museumRoomRef}
+          data-museum-export-root
           aria-hidden={!isArtworkSolo}
           className={`museum-gallery-room safe-viewport-backdrop fixed inset-0 z-20 overflow-hidden ${
             isArtworkSolo ? 'is-open pointer-events-auto' : 'pointer-events-none'
@@ -573,6 +621,7 @@ export default function ParallaxBackground({
         >
           <button
             ref={roomExitRef}
+            data-export-ignore
             type="button"
             className="museum-room-exit"
             onClick={(event) => {
@@ -583,6 +632,42 @@ export default function ParallaxBackground({
           >
             {clickToShowText}
           </button>
+
+          <div
+            className="museum-room-download"
+            data-export-ignore
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="museum-room-download-trigger"
+              aria-expanded={isDownloadMenuOpen}
+              aria-haspopup="menu"
+              aria-label={isExportingRoom ? museumDownloadText.preparing : museumDownloadText.action}
+              disabled={isExportingRoom}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (roomExportInFlightRef.current) return;
+                setMuseumExportError(null);
+                setIsDownloadMenuOpen((open) => !open);
+              }}
+            >
+              <FileDown aria-hidden="true" size={15} strokeWidth={1.7} />
+              <span>{isExportingRoom ? museumDownloadText.preparing : museumDownloadText.action}</span>
+            </button>
+            {isDownloadMenuOpen && !isExportingRoom ? (
+              <div className="museum-room-download-menu" role="menu" aria-label={museumDownloadText.menu}>
+                <button type="button" role="menuitem" onClick={(event) => { event.stopPropagation(); void exportMuseumRoom('jpeg'); }}>
+                  {museumDownloadText.jpeg}
+                  <small>{museumDownloadText.recommended}</small>
+                </button>
+                <button type="button" role="menuitem" onClick={(event) => { event.stopPropagation(); void exportMuseumRoom('png'); }}>
+                  {museumDownloadText.png}
+                </button>
+              </div>
+            ) : null}
+            {museumExportError ? <p className="museum-room-download-error" role="alert">{museumExportError}</p> : null}
+          </div>
 
           {/* The wall, floor, frame and label share exactly one camera transform. */}
           <div
