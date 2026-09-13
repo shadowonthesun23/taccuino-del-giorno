@@ -150,8 +150,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const activeTrack = activeAmbienceRef.current;
     const activeAudio = ambienceRef.current[activeTrack];
 
-    // Prime each configured ambience element inside a real user gesture. This
-    // lets mobile browsers allow a later room transition without autoplay.
     for (const [track, audio] of Object.entries(ambienceRef.current) as [AmbientTrack, HTMLAudioElement][]) {
       if (track === activeTrack) continue;
       audio.volume = 0;
@@ -225,8 +223,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     lastEffectRef.current = { effect, playedAt: now };
     audio.pause();
     audio.currentTime = 0;
-    // Postcard/ticket micro-effects are intentionally independent from the
-    // ambience play/mute/volume controls and keep their own discreet gain.
     audio.volume = getEffectVolume(effect, 1);
     void audio.play().catch(() => {
       audio.pause();
@@ -292,6 +288,16 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       effectsRef.current = {};
     };
   }, [stopTransition]);
+
+  useEffect(() => {
+    const handleSurfaceSwitch = (event: MouseEvent) => {
+      const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>('.daily-surface-switch-option');
+      if (!button || button.getAttribute('aria-pressed') === 'true') return;
+      playEffect('paperFlip');
+    };
+    document.addEventListener('click', handleSurfaceSwitch, true);
+    return () => document.removeEventListener('click', handleSurfaceSwitch, true);
+  }, [playEffect]);
 
   useEffect(() => {
     if (!enabled || muted || activatedRef.current) return;
