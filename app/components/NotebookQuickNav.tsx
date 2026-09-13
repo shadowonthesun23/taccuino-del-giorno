@@ -29,6 +29,21 @@ export default function NotebookQuickNav({
     return true;
   });
 
+  const handleSectionClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    event.preventDefault();
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+
+    window.history.replaceState(null, '', `#${id}`);
+  };
+
   const navigation = (
     <nav
       aria-label={{ IT: 'Sezioni del taccuino', EN: 'Notebook sections', FR: 'Sections du carnet', DE: 'Notizbuchabschnitte', ES: 'Secciones del cuaderno', PT: 'Seções do caderno' }[lingua] || 'Notebook sections'}
@@ -44,6 +59,7 @@ export default function NotebookQuickNav({
           <a
             key={id}
             href={`#${id}`}
+            onClick={(event) => handleSectionClick(event, id)}
             aria-label={label}
             title={label}
             data-label={label}
