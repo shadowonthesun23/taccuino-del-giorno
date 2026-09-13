@@ -315,6 +315,8 @@ function PostcardBack({
   const authorDates = formattedBirthDate && formattedDeathDate
     ? `${formattedBirthDate} — ${formattedDeathDate}`
     : null;
+  const quoteLength = quote.testo.length;
+  const quoteDensity = quoteLength > 420 ? 'is-long' : quoteLength > 240 ? 'is-medium' : 'is-short';
 
   return (
     <div className="daily-postcard-face daily-postcard-back" aria-hidden={ariaHidden}>
@@ -325,7 +327,7 @@ function PostcardBack({
       </header>
 
       <div className="daily-postcard-back-body">
-        <section className="daily-postcard-quote" aria-label={copy.quoteOfDay}>
+        <section className={`daily-postcard-quote ${quoteDensity}`} aria-label={copy.quoteOfDay}>
           <div className="daily-postcard-section-heading">
             <span>{copy.quoteOfDay}</span>
           </div>
