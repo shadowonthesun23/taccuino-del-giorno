@@ -196,10 +196,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
     activatedRef.current = false;
     fadeOutAll();
-    for (const audio of Object.values(effectsRef.current)) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
   }, [activateFromGesture, fadeOutAll, persistSettings]);
 
   const setMuted = useCallback((nextMuted: boolean) => {
@@ -211,10 +207,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       return;
     }
     fadeOutAll();
-    for (const audio of Object.values(effectsRef.current)) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
   }, [activateFromGesture, fadeOutAll, persistSettings]);
 
   const setAmbience = useCallback((track: AmbientTrack) => {
@@ -225,7 +217,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [transitionTo]);
 
   const playEffect = useCallback((effect: AudioEffect) => {
-    if (!enabledRef.current || mutedRef.current || !activatedRef.current || document.hidden) return;
+    if (document.hidden) return;
     const audio = effectsRef.current[effect];
     if (!audio) return;
     const now = performance.now();
@@ -233,7 +225,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     lastEffectRef.current = { effect, playedAt: now };
     audio.pause();
     audio.currentTime = 0;
-    audio.volume = getEffectVolume(effect, masterVolumeRef.current);
+    // Postcard/ticket micro-effects are intentionally independent from the
+    // ambience play/mute/volume controls and keep their own discreet gain.
+    audio.volume = getEffectVolume(effect, 1);
     void audio.play().catch(() => {
       audio.pause();
       audio.currentTime = 0;
