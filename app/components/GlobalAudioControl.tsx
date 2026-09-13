@@ -62,7 +62,7 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
   return (
     <div
       ref={rootRef}
-      className={`global-audio-control min-[1180px]:max-[1660px]:!right-[209px] ${open ? 'is-open' : ''} ${audible ? 'is-audible' : ''} ${activeAmbience === 'museum' ? 'is-museum' : 'is-home'}`}
+      className={`global-audio-control ${activeAmbience === 'museum' ? 'is-museum' : 'is-home min-[1180px]:max-[1660px]:!right-[209px]'} ${open ? 'is-open' : ''} ${audible ? 'is-audible' : ''}`}
       data-scene-safe="interactive"
     >
       {open ? (
