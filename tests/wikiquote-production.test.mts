@@ -21,6 +21,11 @@ test('replaces a different Gemini quote deterministically and requires the defin
   assert.equal(data.citazione.autore, 'Dante Alighieri');
 });
 
+test('uses tema_guida as the primary editorial ranking signal', async () => {
+  const data = await finalizeGeneratedQuote({ autore_giorno: 'Dante Alighieri', tema_guida: 'memoria infanzia', citazione: { testo: 'segnale distante', fonte: '' } }, { fetchCandidates: async () => candidateResult([{ text: 'La luce del mattino e il viaggio' }, { text: 'Memoria dell infanzia, dolce e remota' }]) });
+  assert.equal(data.citazione.testo, 'Memoria dell infanzia, dolce e remota');
+});
+
 test('fails closed when Wikiquote has no candidates or an HTTP error', async () => {
   await assert.rejects(() => finalizeGeneratedQuote({ autore_giorno: 'Dante Alighieri', citazione: { testo: 'inventata' } }, { fetchCandidates: async () => ({ ...candidateResult([]), pageFound: false, candidates: [] }) }), /Nessuna citazione/);
   await assert.rejects(() => finalizeGeneratedQuote({ autore_giorno: 'Dante Alighieri', citazione: { testo: 'inventata' } }, { fetchCandidates: async () => ({ ok: false, requestedAuthor: 'Dante Alighieri', resolvedAuthor: null, pageFound: false, sourceUrl: null, sourceName: 'Wikiquote in italiano', candidates: [], error: { code: 'http_error', message: 'offline' } }) }), /offline/);

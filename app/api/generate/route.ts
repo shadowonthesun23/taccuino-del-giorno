@@ -279,6 +279,7 @@ function extractFirstJsonObject(text: string) {
 }
 
 type GeneratedDailyData = Record<string, unknown> & {
+  tema_guida?: unknown;
   citazione?: Record<string, unknown>;
   parola_giorno?: { parola?: unknown };
   bibbia?: { testo?: unknown; fonte?: unknown; nota?: unknown };
@@ -646,6 +647,7 @@ function formatGeneratedContentContext(data: GeneratedDailyData): string {
   return JSON.stringify({
     data_odierna: data.data_odierna,
     autore_giorno: data.autore_giorno,
+    tema_guida: data.tema_guida,
     breve_descrizione: data.breve_descrizione,
     citazione: data.citazione,
     avvenimenti: data.avvenimenti,
@@ -659,6 +661,7 @@ function formatGeneratedContentContext(data: GeneratedDailyData): string {
 function formatAuthorRepairContext(data: GeneratedDailyData): string {
   return JSON.stringify({
     autore_giorno: data.autore_giorno,
+    tema_guida: data.tema_guida,
     breve_descrizione: data.breve_descrizione,
     citazione: data.citazione,
     parola_giorno: data.parola_giorno,
@@ -849,6 +852,7 @@ ${forcedAuthor ? '- Verifica prima il giorno e il mese di nascita e di morte del
 ${manualDirection}
 
 REGOLE DI CURATELA:
+0. TEMA GUIDA: dopo aver scelto l'autore, definisci "tema_guida" in 1-4 parole, derivato dalla sua opera e dalla giornata. Tutti i contenuti devono seguire questo filo editoriale.
 1. AUTORE: Per la generazione automatica scegli esclusivamente scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta la cui nascita o morte sia verificabile e cada esattamente il ${dataDiOggiStr} (giorno e mese della data ${dataIso}). Prediligi una nascita; usa una morte solo per una figura molto più illustre. Evita musicisti e compositori quando esiste una figura letteraria adatta. La data esatta viene prima del tema: non scegliere un autore soltanto perché è affine e non inventare date.
 2. DESCRIZIONE AUTORE: Per la generazione automatica la descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," se la nascita coincide oppure con "Scomparso in questa data nel [anno]," se la morte coincide. L'anno deve essere quello della data biografica verificata. L'eccezione per un autore non legato alla data vale soltanto quando è indicato esplicitamente nella DIREZIONE EDITORIALE MANUALE.
 3. CITAZIONE: Solo in ITALIANO. Usa una citazione autentica dell'autore con fonte verificabile e riporta una traduzione italiana pubblicata quando l'originale è in un'altra lingua; non lasciare la citazione in lingua originale.
@@ -868,12 +872,15 @@ ${recentPoemExclusions || '- Nessuno storico disponibile: scegli comunque un aut
 CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
 ${recentMusicExclusions || '- Nessuno storico disponibile: varia comunque genere, epoca e area geografica.'}
 
+COERENZA EDITORIALE: parola_giorno deve illuminare una sfumatura del tema_guida; poesia deve mostrare il tema in un estratto significativo di norma 5-10 versi (non un incipit casuale o 2-3 versi introduttivi) e la nota deve riferirsi a ciò che si legge; Bibbia deve seguire il tema_guida e non la sola parola; musica e keyword_arte_en devono seguire lo stesso tema.
+
 Restituisci esclusivamente un unico oggetto JSON valido. Non aggiungere testo prima o dopo il JSON.
 
 Restituisci questo JSON:
 {
   "data_odierna": "${dataDiOggiStr}",
   "autore_giorno": "...",
+  "tema_guida": "1-4 parole",
   "breve_descrizione": "...",
   "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
   "avvenimenti": [ "ANNO: Descrizione evento o brevetto..." ],
@@ -1062,8 +1069,9 @@ Restituisci questo JSON:
       throw error;
     }
 
+    const { tema_guida: _temaGuida, ...persistableData } = finalizedData;
     const data = {
-      ...finalizedData,
+      ...persistableData,
       // The date is derived from the route timezone, never from model prose.
       data_odierna: dataDiOggiStr,
     };

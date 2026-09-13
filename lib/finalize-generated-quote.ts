@@ -21,14 +21,18 @@ function terms(value: string): Set<string> {
   return new Set(normalizeConservativeText(value).toLocaleLowerCase('it').replace(/[^\p{L}\p{N}]+/gu, ' ').split(/\s+/u).filter((word) => word.length >= 3 && !STOPWORDS.has(word)));
 }
 
-function chooseCandidate(candidates: WikiquoteCandidate[], signal: string, generatedSource: string): WikiquoteCandidate {
+function chooseCandidate(candidates: WikiquoteCandidate[], signal: string, theme: string, generatedSource: string): WikiquoteCandidate {
   const signalTerms = terms(signal);
+  const themeTerms = terms(theme);
   const sourceTerms = terms(generatedSource);
   return candidates.map((candidate, index) => {
     const candidateTerms = terms(candidate.text);
     let overlap = 0;
     for (const word of signalTerms) if (candidateTerms.has(word)) overlap += 1;
-    let score = overlap * 1000 + (signalTerms.size ? overlap / signalTerms.size : 0) * 100;
+    let themeOverlap = 0;
+    for (const word of themeTerms) if (candidateTerms.has(word)) themeOverlap += 1;
+    let score = overlap * 500 + (signalTerms.size ? overlap / signalTerms.size : 0) * 50;
+    score += themeOverlap * 2_000 + (themeTerms.size ? themeOverlap / themeTerms.size : 0) * 200;
     if (matchConservativeExcerpt(signal, candidate.text).matched) score += 1_000_000;
     if (generatedSource.trim() && candidate.source) {
       const candidateSourceTerms = terms(candidate.source);
@@ -55,6 +59,6 @@ export async function finalizeGeneratedQuote<T extends Record<string, unknown>>(
   const result = await (options.fetchCandidates ?? fetchWikiquoteCandidates)(author, { fetch: options.fetch ?? wikiquoteFetch, timeoutMs: options.timeoutMs ?? 8_000 });
   if (!result.ok) throw new WikiquoteFinalizationError(result.error.code, result.error.message);
   if (!result.pageFound || result.candidates.length === 0) throw new WikiquoteFinalizationError('no_candidates', `Nessuna citazione Wikiquote disponibile per ${author}.`);
-  const selected = chooseCandidate(result.candidates, typeof citation.testo === 'string' ? citation.testo : '', typeof citation.fonte === 'string' ? citation.fonte : '');
+  const selected = chooseCandidate(result.candidates, typeof citation.testo === 'string' ? citation.testo : '', typeof generatedData.tema_guida === 'string' ? generatedData.tema_guida : '', typeof citation.fonte === 'string' ? citation.fonte : '');
   return { ...generatedData, citazione: { ...citation, testo: selected.text, autore: selected.author, fonte: selected.source ?? `Wikiquote — ${selected.author}` } };
 }

@@ -160,3 +160,11 @@ test('the route finalizes CEI after Gemini and before the only upsert', async ()
   assert.ok(upsertIndex > finalizationIndex);
   assert.equal(route.indexOf(".from('contenuti_giornalieri').upsert(", upsertIndex + 1), -1);
 });
+
+test('the generation contract carries an internal guide theme and editorial coherence rules', async () => {
+  const route = await readFile(new URL('../app/api/generate/route.ts', import.meta.url), 'utf8');
+  assert.match(route, /tema_guida/);
+  assert.match(route, /5-10 versi/);
+  assert.match(route, /tema_guida[\s\S]{0,220}Bibbia/);
+  assert.match(route, /const \{ tema_guida: _temaGuida/);
+});
