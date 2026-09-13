@@ -190,7 +190,7 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
             </button>
           </div>
 
-          <label className="global-audio-volume">
+          <label className="global-audio-volume !w-[52px]">
             <span className="sr-only">{copy.volume}</span>
             <input
               type="range"
@@ -199,7 +199,7 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
               step="0.05"
               value={masterVolume}
               aria-label={copy.volume}
-              className="h-3 appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-px [&::-webkit-slider-runnable-track]:rounded-none [&::-webkit-slider-runnable-track]:bg-[#8f8175]/35 [&::-webkit-slider-thumb]:mt-[-3.5px] [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#9f554a] [&::-webkit-slider-thumb]:shadow-none [&::-moz-range-track]:h-px [&::-moz-range-track]:bg-[#8f8175]/35 [&::-moz-range-thumb]:h-2 [&::-moz-range-thumb]:w-2 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-[#9f554a]"
+              className="!h-4 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-px [&::-webkit-slider-runnable-track]:rounded-none [&::-webkit-slider-runnable-track]:bg-[#8f7d6b66] [&::-webkit-slider-thumb]:-mt-[3.5px] [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#a65b4e] [&::-webkit-slider-thumb]:shadow-none [&::-moz-range-track]:h-px [&::-moz-range-track]:rounded-none [&::-moz-range-track]:bg-[#8f7d6b66] [&::-moz-range-progress]:h-px [&::-moz-range-progress]:bg-[#a65b4e] [&::-moz-range-thumb]:h-2 [&::-moz-range-thumb]:w-2 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-[#a65b4e]"
               onChange={(event) => setMasterVolume(Number(event.currentTarget.value))}
             />
           </label>
