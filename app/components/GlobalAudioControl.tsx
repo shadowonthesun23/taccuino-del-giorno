@@ -28,6 +28,15 @@ const AUDIO_COPY: Record<LanguageCode, AudioCopy> = {
   PT: { ambience: 'Atmosfera sonora', controls: 'Controlos de áudio', home: 'Sala de leitura', museum: 'Sala do museu', mute: 'Silenciar', pause: 'Pausa', play: 'Reproduzir', source: 'Crédito', unmute: 'Ativar som', volume: 'Volume' },
 };
 
+const MUSEUM_AUDIO_COPY: Record<LanguageCode, { label: string; on: string; off: string }> = {
+  IT: { label: 'Ambiente', on: 'Disattiva ambiente museale', off: 'Attiva ambiente museale' },
+  EN: { label: 'Ambience', on: 'Turn museum ambience off', off: 'Turn museum ambience on' },
+  FR: { label: 'Ambiance', on: 'Désactiver l’ambiance du musée', off: 'Activer l’ambiance du musée' },
+  DE: { label: 'Ambiente', on: 'Museumsatmosphäre ausschalten', off: 'Museumsatmosphäre einschalten' },
+  ES: { label: 'Ambiente', on: 'Desactivar el ambiente del museo', off: 'Activar el ambiente del museo' },
+  PT: { label: 'Ambiente', on: 'Desativar o ambiente do museu', off: 'Ativar o ambiente do museu' },
+};
+
 export default function GlobalAudioControl({ language }: { language: LanguageCode }) {
   const { activeAmbience, enabled, masterVolume, muted, setEnabled, setMasterVolume, setMuted } = useAudio();
   const [open, setOpen] = useState(false);
@@ -36,7 +45,12 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
   const playPauseRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const copy = AUDIO_COPY[language] ?? AUDIO_COPY.EN;
+  const museumCopy = MUSEUM_AUDIO_COPY[language] ?? MUSEUM_AUDIO_COPY.EN;
   const audible = enabled && !muted && masterVolume > 0;
+
+  useEffect(() => {
+    if (activeAmbience === 'museum') setOpen(false);
+  }, [activeAmbience]);
 
   useEffect(() => {
     if (!open) return;
@@ -59,10 +73,36 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
     };
   }, [open]);
 
+  if (activeAmbience === 'museum') {
+    const actionLabel = audible ? museumCopy.on : museumCopy.off;
+    return (
+      <button
+        type="button"
+        className={`museum-ambience-control ${audible ? 'is-on' : 'is-off'}`}
+        aria-label={actionLabel}
+        aria-pressed={audible}
+        title={actionLabel}
+        data-scene-safe="interactive"
+        onClick={(event) => {
+          event.stopPropagation();
+          if (!enabled) {
+            setEnabled(true);
+            setMuted(false);
+            return;
+          }
+          setMuted(!muted);
+        }}
+      >
+        {audible ? <Volume2 aria-hidden="true" /> : <VolumeX aria-hidden="true" />}
+        <span>{museumCopy.label}</span>
+      </button>
+    );
+  }
+
   return (
     <div
       ref={rootRef}
-      className={`global-audio-control ${activeAmbience === 'museum' ? 'is-museum' : 'is-home min-[1180px]:max-[1660px]:!right-[209px]'} ${open ? 'is-open' : ''} ${audible ? 'is-audible' : ''}`}
+      className={`global-audio-control min-[1180px]:max-[1660px]:!right-[172px] ${open ? 'is-open' : ''} ${audible ? 'is-audible' : ''} is-home`}
       data-scene-safe="interactive"
     >
       {open ? (
@@ -71,7 +111,7 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
           <div className="global-audio-track">
             <strong id={titleId}>{HOME_AMBIENT_METADATA.title}</strong>
             {HOME_AMBIENT_METADATA.artist ? <span>{HOME_AMBIENT_METADATA.artist}</span> : null}
-            <small title={copy.ambience}>{activeAmbience === 'museum' ? copy.museum : copy.home}</small>
+            <small title={copy.ambience}>{copy.home}</small>
           </div>
 
           <div className="global-audio-actions">
