@@ -11,7 +11,7 @@ import {
   readAudioSettings,
 } from '../lib/audio-config.ts';
 
-test('audio remains opt-in unless the persisted value is explicitly on', () => {
+test('legacy audio preference parsing remains available', () => {
   assert.equal(readAudioPreference(null), false);
   assert.equal(readAudioPreference('off'), false);
   assert.equal(readAudioPreference('on'), true);
@@ -25,14 +25,15 @@ test('master volume is clamped and scales every channel centrally', () => {
   assert.equal(getEffectVolume('paperFlip', 0.5), AUDIO_LEVELS.effects.paperFlip * 0.5);
 });
 
-test('audio settings persist play, mute, and a clamped master level', () => {
+test('ambient music is always opt-in on a fresh page load while other settings persist', () => {
   assert.deepEqual(readAudioSettings('{"enabled":true,"masterVolume":0.35,"muted":true}'), {
-    enabled: true,
+    enabled: false,
     masterVolume: 0.35,
     muted: true,
   });
   assert.equal(readAudioSettings('{"masterVolume":4}').masterVolume, 1);
-  assert.equal(readAudioSettings('invalid', 'on').enabled, true);
+  assert.equal(readAudioSettings('invalid', 'on').enabled, false);
+  assert.equal(readAudioSettings(null, 'on').enabled, false);
 });
 
 test('fade progress cannot produce an invalid volume around the first animation frame', () => {
