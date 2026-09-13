@@ -8,6 +8,7 @@ import {
   getAmbientVolume,
   getEffectVolume,
   readAudioPreference,
+  readAudioSettings,
 } from '../lib/audio-config.ts';
 
 test('audio remains opt-in unless the persisted value is explicitly on', () => {
@@ -21,6 +22,17 @@ test('master volume is clamped and scales every channel centrally', () => {
   assert.equal(clampAudioLevel(2), 1);
   assert.equal(getAmbientVolume('museum', 0.5), AUDIO_LEVELS.ambience.museum * 0.5);
   assert.equal(getEffectVolume('paperOpen', 0.5), AUDIO_LEVELS.effects.paperOpen * 0.5);
+  assert.equal(getEffectVolume('paperFlip', 0.5), AUDIO_LEVELS.effects.paperFlip * 0.5);
+});
+
+test('audio settings persist play, mute, and a clamped master level', () => {
+  assert.deepEqual(readAudioSettings('{"enabled":true,"masterVolume":0.35,"muted":true}'), {
+    enabled: true,
+    masterVolume: 0.35,
+    muted: true,
+  });
+  assert.equal(readAudioSettings('{"masterVolume":4}').masterVolume, 1);
+  assert.equal(readAudioSettings('invalid', 'on').enabled, true);
 });
 
 test('fade progress cannot produce an invalid volume around the first animation frame', () => {
@@ -33,8 +45,10 @@ test('fade progress cannot produce an invalid volume around the first animation 
 test('selected V1 assets are configured while day change stays disabled', () => {
   assert.equal(AUDIO_ASSETS.ambience.home, '/audio/home-ambient-jazz.mp3');
   assert.equal(AUDIO_ASSETS.effects.paperOpen, '/audio/postcard-paper.mp3');
+  assert.equal(AUDIO_ASSETS.effects.paperFlip, '/audio/postcard-flip-soft.mp3');
   assert.equal(AUDIO_ASSETS.effects.dayChange, null);
   assert.equal(AUDIO_ASSETS.ambience.museum, '/audio/museum-gallery-ambience.mp3');
   assert.ok(AUDIO_LEVELS.effects.paperOpen < AUDIO_LEVELS.ambience.home);
+  assert.ok(AUDIO_LEVELS.effects.paperFlip < AUDIO_LEVELS.ambience.home);
   assert.ok(AUDIO_LEVELS.effects.dayChange < AUDIO_LEVELS.ambience.home);
 });

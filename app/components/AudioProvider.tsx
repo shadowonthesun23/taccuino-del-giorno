@@ -14,12 +14,13 @@ import {
   AUDIO_ASSETS,
   AUDIO_LEVELS,
   AUDIO_PREFERENCE_STORAGE_KEY,
+  AUDIO_SETTINGS_STORAGE_KEY,
   AUDIO_TIMING,
   clampAudioLevel,
   getAudioFadeProgress,
   getAmbientVolume,
   getEffectVolume,
-  readAudioPreference,
+  readAudioSettings,
   type AmbientTrack,
   type AudioEffect,
 } from '@/lib/audio-config';
@@ -30,10 +31,12 @@ interface AudioContextValue {
   activeAmbience: AmbientTrack;
   enabled: boolean;
   masterVolume: number;
+  muted: boolean;
   playEffect: (effect: AudioEffect) => void;
   setAmbience: (track: AmbientTrack) => void;
   setEnabled: (enabled: boolean) => void;
   setMasterVolume: (volume: number) => void;
+  setMuted: (muted: boolean) => void;
 }
 
 const AudioContext = createContext<AudioContextValue | null>(null);
@@ -42,16 +45,30 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [enabled, setEnabledState] = useState(false);
   const [activeAmbience, setActiveAmbience] = useState<AmbientTrack>('home');
   const [masterVolume, setMasterVolumeState] = useState<number>(AUDIO_LEVELS.master);
+  const [muted, setMutedState] = useState(false);
   const ambienceRef = useRef<AudioElements<AmbientTrack>>({});
   const effectsRef = useRef<AudioElements<AudioEffect>>({});
   const enabledRef = useRef(false);
   const activeAmbienceRef = useRef<AmbientTrack>('home');
   const masterVolumeRef = useRef<number>(AUDIO_LEVELS.master);
+  const mutedRef = useRef(false);
   const activatedRef = useRef(false);
   const mountedRef = useRef(false);
   const transitionFrameRef = useRef<number | null>(null);
   const transitionIntentRef = useRef(0);
   const lastEffectRef = useRef<{ effect: AudioEffect; playedAt: number } | null>(null);
+
+  const persistSettings = useCallback(() => {
+    try {
+      window.localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify({
+        enabled: enabledRef.current,
+        masterVolume: masterVolumeRef.current,
+        muted: mutedRef.current,
+      }));
+    } catch {
+      // Audio remains usable when storage is unavailable or full.
+    }
+  }, []);
 
   const stopTransition = useCallback(() => {
     transitionIntentRef.current += 1;
@@ -86,7 +103,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [stopTransition]);
 
   const transitionTo = useCallback((track: AmbientTrack) => {
-    if (!enabledRef.current || !activatedRef.current || document.hidden) return;
+    if (!enabledRef.current || mutedRef.current || !activatedRef.current || document.hidden) return;
 
     stopTransition();
     const intent = transitionIntentRef.current;
@@ -128,7 +145,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [stopTransition]);
 
   const activateFromGesture = useCallback(() => {
-    if (!enabledRef.current) return;
+    if (!enabledRef.current || mutedRef.current) return;
     activatedRef.current = true;
     const activeTrack = activeAmbienceRef.current;
     const activeAudio = ambienceRef.current[activeTrack];
@@ -156,7 +173,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     activeAudio.volume = 0;
     void activeAudio.play()
       .then(() => {
-        if (!mountedRef.current || !enabledRef.current || !activatedRef.current) {
+        if (!mountedRef.current || !enabledRef.current || mutedRef.current || !activatedRef.current) {
           activeAudio.pause();
           return;
         }
@@ -171,7 +188,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const setEnabled = useCallback((nextEnabled: boolean) => {
     enabledRef.current = nextEnabled;
     setEnabledState(nextEnabled);
-    window.localStorage.setItem(AUDIO_PREFERENCE_STORAGE_KEY, nextEnabled ? 'on' : 'off');
+    persistSettings();
 
     if (nextEnabled) {
       activateFromGesture();
@@ -183,7 +200,22 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audio.pause();
       audio.currentTime = 0;
     }
-  }, [activateFromGesture, fadeOutAll]);
+  }, [activateFromGesture, fadeOutAll, persistSettings]);
+
+  const setMuted = useCallback((nextMuted: boolean) => {
+    mutedRef.current = nextMuted;
+    setMutedState(nextMuted);
+    persistSettings();
+    if (!nextMuted && enabledRef.current) {
+      activateFromGesture();
+      return;
+    }
+    fadeOutAll();
+    for (const audio of Object.values(effectsRef.current)) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  }, [activateFromGesture, fadeOutAll, persistSettings]);
 
   const setAmbience = useCallback((track: AmbientTrack) => {
     if (activeAmbienceRef.current === track) return;
@@ -193,7 +225,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [transitionTo]);
 
   const playEffect = useCallback((effect: AudioEffect) => {
-    if (!enabledRef.current || !activatedRef.current || document.hidden) return;
+    if (!enabledRef.current || mutedRef.current || !activatedRef.current || document.hidden) return;
     const audio = effectsRef.current[effect];
     if (!audio) return;
     const now = performance.now();
@@ -212,8 +244,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const nextVolume = clampAudioLevel(volume);
     masterVolumeRef.current = nextVolume;
     setMasterVolumeState(nextVolume);
+    persistSettings();
     transitionTo(activeAmbienceRef.current);
-  }, [transitionTo]);
+  }, [persistSettings, transitionTo]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -234,9 +267,23 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       effectsRef.current[effect] = audio;
     }
 
-    const savedEnabled = readAudioPreference(window.localStorage.getItem(AUDIO_PREFERENCE_STORAGE_KEY));
-    enabledRef.current = savedEnabled;
-    const preferenceFrame = window.requestAnimationFrame(() => setEnabledState(savedEnabled));
+    let savedSettings = readAudioSettings(null);
+    try {
+      savedSettings = readAudioSettings(
+        window.localStorage.getItem(AUDIO_SETTINGS_STORAGE_KEY),
+        window.localStorage.getItem(AUDIO_PREFERENCE_STORAGE_KEY),
+      );
+    } catch {
+      savedSettings = readAudioSettings(null);
+    }
+    enabledRef.current = savedSettings.enabled;
+    masterVolumeRef.current = savedSettings.masterVolume;
+    mutedRef.current = savedSettings.muted;
+    const preferenceFrame = window.requestAnimationFrame(() => {
+      setEnabledState(savedSettings.enabled);
+      setMasterVolumeState(savedSettings.masterVolume);
+      setMutedState(savedSettings.muted);
+    });
 
     return () => {
       mountedRef.current = false;
@@ -253,7 +300,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [stopTransition]);
 
   useEffect(() => {
-    if (!enabled || activatedRef.current) return;
+    if (!enabled || muted || activatedRef.current) return;
     const handleFirstGesture = () => activateFromGesture();
     document.addEventListener('pointerdown', handleFirstGesture, { capture: true, once: true });
     document.addEventListener('keydown', handleFirstGesture, { capture: true, once: true });
@@ -261,7 +308,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('pointerdown', handleFirstGesture, true);
       document.removeEventListener('keydown', handleFirstGesture, true);
     };
-  }, [activateFromGesture, enabled]);
+  }, [activateFromGesture, enabled, muted]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -283,11 +330,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     activeAmbience,
     enabled,
     masterVolume,
+    muted,
     playEffect,
     setAmbience,
     setEnabled,
     setMasterVolume,
-  }), [activeAmbience, enabled, masterVolume, playEffect, setAmbience, setEnabled, setMasterVolume]);
+    setMuted,
+  }), [activeAmbience, enabled, masterVolume, muted, playEffect, setAmbience, setEnabled, setMasterVolume, setMuted]);
 
   return <AudioContext.Provider value={value}>{children}</AudioContext.Provider>;
 }

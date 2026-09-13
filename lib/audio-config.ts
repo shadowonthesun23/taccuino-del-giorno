@@ -1,7 +1,21 @@
 export type AmbientTrack = 'home' | 'museum';
-export type AudioEffect = 'paperOpen' | 'dayChange';
+export type AudioEffect = 'paperOpen' | 'paperFlip' | 'dayChange';
 
 export const AUDIO_PREFERENCE_STORAGE_KEY = 'day-atlas:audio-enabled:v1';
+export const AUDIO_SETTINGS_STORAGE_KEY = 'day-atlas:audio-settings:v2';
+
+export interface AudioSettings {
+  enabled: boolean;
+  masterVolume: number;
+  muted: boolean;
+}
+
+export const HOME_AMBIENT_METADATA = {
+  title: 'Jazz Piano Lounge Bar',
+  artist: 'BFCMUSIC',
+  sourceLabel: 'Pixabay',
+  sourceUrl: 'https://pixabay.com/music/traditional-jazz-jazz-piano-lounge-bar-292900/',
+} as const;
 
 export const AUDIO_ASSETS: {
   ambience: Record<AmbientTrack, string | null>;
@@ -13,6 +27,7 @@ export const AUDIO_ASSETS: {
   },
   effects: {
     paperOpen: '/audio/postcard-paper.mp3',
+    paperFlip: '/audio/postcard-flip-soft.mp3',
     // Reserved for a future asset; V1 has no day-change trigger.
     dayChange: null,
   },
@@ -26,6 +41,7 @@ export const AUDIO_LEVELS = {
   },
   effects: {
     paperOpen: 0.045,
+    paperFlip: 0.035,
     dayChange: 0.04,
   },
 } as const;
@@ -53,4 +69,26 @@ export function getEffectVolume(effect: AudioEffect, masterVolume: number) {
 
 export function readAudioPreference(value: string | null) {
   return value === 'on';
+}
+
+export function readAudioSettings(value: string | null, legacyPreference: string | null = null): AudioSettings {
+  const fallback = {
+    enabled: readAudioPreference(legacyPreference),
+    masterVolume: AUDIO_LEVELS.master,
+    muted: false,
+  };
+  if (!value) return fallback;
+
+  try {
+    const parsed = JSON.parse(value) as Partial<AudioSettings>;
+    return {
+      enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : fallback.enabled,
+      masterVolume: typeof parsed.masterVolume === 'number'
+        ? clampAudioLevel(parsed.masterVolume)
+        : fallback.masterVolume,
+      muted: typeof parsed.muted === 'boolean' ? parsed.muted : fallback.muted,
+    };
+  } catch {
+    return fallback;
+  }
 }

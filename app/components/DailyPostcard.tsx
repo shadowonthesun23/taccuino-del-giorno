@@ -556,12 +556,17 @@ export default function DailyPostcard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closePostcard, isActive, isOpen]);
 
+  const flipPostcard = useCallback(() => {
+    playEffect('paperFlip');
+    setIsFlipped((current) => !current);
+  }, [playEffect]);
+
   const handleCardClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     if (!isActive || isEditing || isClosing) return;
     const target = event.target;
     if (target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable="true"]')) return;
-    setIsFlipped((current) => !current);
-  }, [isActive, isClosing, isEditing]);
+    flipPostcard();
+  }, [flipPostcard, isActive, isClosing, isEditing]);
 
   const handleCardKeyDown = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (!isActive || isEditing || isClosing) return;
@@ -569,8 +574,8 @@ export default function DailyPostcard({
     if (target instanceof Element && target.closest('a, button, input, textarea, select, [contenteditable="true"]')) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
-    setIsFlipped((current) => !current);
-  }, [isActive, isClosing, isEditing]);
+    flipPostcard();
+  }, [flipPostcard, isActive, isClosing, isEditing]);
 
   const handleAddressTextChange = useCallback((value: string, textarea: HTMLTextAreaElement) => {
     setAddressText(fitPostcardAddressText(value, textarea));
