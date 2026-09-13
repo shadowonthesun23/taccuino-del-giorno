@@ -554,16 +554,8 @@ export default function ParallaxBackground({
           aria-hidden={!isArtworkSolo}
           className={`museum-gallery-room safe-viewport-backdrop fixed inset-0 z-20 overflow-hidden ${
             isArtworkSolo ? 'is-open pointer-events-auto' : 'pointer-events-none'
-          } ${isArtworkZoomed ? 'is-close' : ''}`}
+          } ${isExitingSolo ? 'is-exiting' : ''} ${isArtworkZoomed ? 'is-close' : ''}`}
           style={{
-            opacity: isArtworkSolo ? 1 : 0,
-            transform: isArtworkSolo ? 'none' : 'scale(0.97)',
-            visibility: (isArtworkSolo || isExitingSolo) ? 'visible' : 'hidden',
-            // On entry the room is already a complete, static backdrop: only the
-            // notebook moves away from it. The established fade-out/scale is preserved.
-            transition: isArtworkSolo
-              ? 'none'
-              : 'opacity 400ms ease-out, transform 400ms ease-out, visibility 400ms 400ms',
             zIndex: isArtworkSolo ? 5 : isExitingSolo ? 20 : 5,
           }}
           inert={!isArtworkSolo}
@@ -781,11 +773,7 @@ export default function ParallaxBackground({
         inert={isArtworkSolo}
         className={`relative z-10 ${hasSeasonalReveal ? 'seasonal-reveal-content' : ''} ${isArtworkSolo ? 'is-artwork-solo' : ''}`}
         style={{
-          opacity: isArtworkSolo ? 0 : 1,
           pointerEvents: isArtworkSolo ? 'none' : 'auto',
-          transition: isArtworkSolo
-            ? 'opacity 1350ms cubic-bezier(0.22, 1, 0.36, 1)'
-            : 'opacity 500ms ease-out 350ms',
         }}
       >
         {children}
@@ -794,7 +782,7 @@ export default function ParallaxBackground({
       {hasSeasonalReveal && seasonalArtwork ? (
         <div
           aria-hidden="true"
-          className={`museum-dissolve-veil safe-viewport-backdrop fixed inset-0 z-30 pointer-events-none ${
+          className={`museum-entry-light safe-viewport-backdrop fixed inset-0 z-30 pointer-events-none ${
             isArtworkSolo ? 'is-active' : ''
           }`}
         />
