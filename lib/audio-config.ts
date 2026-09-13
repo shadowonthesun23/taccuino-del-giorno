@@ -71,9 +71,9 @@ export function readAudioPreference(value: string | null) {
   return value === 'on';
 }
 
-export function readAudioSettings(value: string | null, legacyPreference: string | null = null): AudioSettings {
+export function readAudioSettings(value: string | null, _legacyPreference: string | null = null): AudioSettings {
   const fallback = {
-    enabled: readAudioPreference(legacyPreference),
+    enabled: false,
     masterVolume: AUDIO_LEVELS.master,
     muted: false,
   };
@@ -82,7 +82,9 @@ export function readAudioSettings(value: string | null, legacyPreference: string
   try {
     const parsed = JSON.parse(value) as Partial<AudioSettings>;
     return {
-      enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : fallback.enabled,
+      // Ambient music is deliberately opt-in on every fresh page load.
+      // Effects are handled independently and remain available.
+      enabled: false,
       masterVolume: typeof parsed.masterVolume === 'number'
         ? clampAudioLevel(parsed.masterVolume)
         : fallback.masterVolume,
