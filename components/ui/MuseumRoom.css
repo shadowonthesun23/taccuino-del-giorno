@@ -3,17 +3,16 @@
 .museum-gallery-room {
   background: #494b3c;
   --museum-frame-rail: clamp(20px, 2.6vw, 36px);
-  --museum-light-strength: 0.3;
-  --museum-wall-variation: 0.056;
-  --museum-floor-light: 0.12;
-  --museum-frame-contact-shadow: rgb(8 10 6 / 0.75);
-  --museum-frame-projected-shadow: rgb(11 14 8 / 0.62);
-  --museum-frame-diffuse-shadow: rgb(11 14 8 / 0.4);
-  /* Projected shadow = frame depth × light direction (upper-left source).
-     Both contact and penumbra grow with the physical moulding thickness. */
+  --museum-light-strength: 0.285;
+  --museum-wall-variation: 0.046;
+  --museum-floor-light: 0.075;
+  --museum-frame-contact-shadow: rgb(8 10 6 / 0.72);
+  --museum-frame-projected-shadow: rgb(11 14 8 / 0.56);
+  --museum-frame-diffuse-shadow: rgb(11 14 8 / 0.34);
+  /* Museum-style ceiling light: projection stays almost centered beneath the frame. */
   --museum-depth: calc(var(--museum-frame-rail) * 0.38);
-  --museum-shadow-x: calc(var(--museum-depth) * 0.48);
-  --museum-shadow-y: calc(var(--museum-depth) * 1.45);
+  --museum-shadow-x: 0px;
+  --museum-shadow-y: calc(var(--museum-depth) * 1.55);
 }
 
 .museum-gallery-room .museum-wall-backdrop {
@@ -58,9 +57,9 @@
   background: #382e24;
   border-radius: 0;
   box-shadow:
-    1px 2px 2px rgb(0 0 0 / 0.38),
-    var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.65) rgb(17 20 13 / 0.38),
-    calc(var(--museum-shadow-x) * 1.6) calc(var(--museum-shadow-y) * 1.8) calc(var(--museum-depth) * 2.8) rgb(17 20 13 / 0.22) !important;
+    0 2px 2px rgb(0 0 0 / 0.34),
+    var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.72) rgb(17 20 13 / 0.34),
+    0 calc(var(--museum-shadow-y) * 1.9) calc(var(--museum-depth) * 3.1) rgb(17 20 13 / 0.2) !important;
 }
 
 .museum-gallery-room .museum-frame-inner.frame-style-photographic::after {
@@ -69,7 +68,7 @@
   inset: 0;
   pointer-events: none;
   /* The small rebate shadow belongs to the frame, not a filter on the painting. */
-  box-shadow: inset 1px 2px 3px rgb(0 0 0 / 0.35);
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.32);
 }
 
 .museum-gallery-room .museum-frame-inner .museum-frame-image {
@@ -96,7 +95,7 @@
   border: 1px solid rgb(78 73 58 / 0.32);
   border-radius: 1px 0 1px 0;
   background:
-    linear-gradient(104deg, rgb(255 255 255 / 0.17), transparent 34% 72%, rgb(60 53 39 / 0.06)),
+    linear-gradient(180deg, rgb(255 255 255 / 0.14), transparent 38% 78%, rgb(60 53 39 / 0.05)),
     url('/beige-paper.png') 17px 11px / 108px repeat,
     #d5d0bd;
   background-blend-mode: soft-light, multiply, normal;
@@ -106,10 +105,10 @@
   text-shadow: none;
   /* Thin conservation board, mounted almost flush to the plaster. */
   box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.14),
-    1px 2px 1.5px rgb(21 22 16 / 0.3),
-    2.5px 4px 4.5px rgb(21 22 16 / 0.13),
-    inset 0 0 0 0.5px rgb(255 255 255 / 0.2);
+    0 1px 0 rgb(255 255 255 / 0.12),
+    0 2px 1.5px rgb(21 22 16 / 0.27),
+    0 4px 4.5px rgb(21 22 16 / 0.11),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.18);
   font-family: "IM Fell Double Pica", Georgia, serif;
   overflow-wrap: anywhere;
 }
@@ -122,7 +121,7 @@
   width: 2.5px;
   height: 2.5px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%, #e5dfc9 0 14%, #817b68 36%, #49463c 72%);
+  background: radial-gradient(circle at 50% 26%, #e5dfc9 0 14%, #817b68 36%, #49463c 72%);
   box-shadow: 0 0.5px 0.5px rgb(0 0 0 / 0.42);
   opacity: 0.72;
 }
@@ -175,19 +174,19 @@
 
 @media (min-width: 768px) {
   .museum-gallery-room {
-    --museum-shadow-x: calc(var(--museum-depth) * 0.63);
-    --museum-shadow-y: calc(var(--museum-depth) * 1.9);
+    --museum-shadow-x: 0px;
+    --museum-shadow-y: calc(var(--museum-depth) * 1.85);
   }
 
   .museum-gallery-room .museum-frame-inner.frame-style-photographic {
     box-shadow:
-      2px 4px 2.5px var(--museum-frame-contact-shadow),
-      var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.72) var(--museum-frame-projected-shadow),
-      calc(var(--museum-shadow-x) * 2) calc(var(--museum-shadow-y) * 2.55) calc(var(--museum-depth) * 4.8) var(--museum-frame-diffuse-shadow) !important;
+      0 4px 2.5px var(--museum-frame-contact-shadow),
+      var(--museum-shadow-x) var(--museum-shadow-y) calc(var(--museum-depth) * 0.78) var(--museum-frame-projected-shadow),
+      0 calc(var(--museum-shadow-y) * 2.45) calc(var(--museum-depth) * 4.7) var(--museum-frame-diffuse-shadow) !important;
   }
 
   .museum-gallery-room .museum-wall-backdrop {
-    filter: saturate(0.97) contrast(1.04);
+    filter: saturate(0.965) contrast(1.055) brightness(0.985);
   }
 
   .museum-gallery-room .museum-wall-backdrop::before,
@@ -201,18 +200,18 @@
   .museum-gallery-room .museum-wall-backdrop::before {
     background:
       radial-gradient(
-        ellipse 64% 86% at 50% 17%,
-        rgb(255 228 174 / var(--museum-light-strength)) 0%,
-        rgb(255 222 163 / 0.16) 45%,
-        rgb(255 216 151 / 0.055) 69%,
-        transparent 86%
+        ellipse 50% 72% at 50% 12%,
+        rgb(255 231 185 / var(--museum-light-strength)) 0%,
+        rgb(255 225 172 / 0.14) 39%,
+        rgb(255 218 158 / 0.05) 62%,
+        transparent 80%
       ),
       linear-gradient(
         90deg,
-        rgb(9 12 7 / 0.31),
-        transparent 27%,
-        transparent 73%,
-        rgb(9 12 7 / 0.34)
+        rgb(8 11 7 / 0.34),
+        transparent 24%,
+        transparent 76%,
+        rgb(8 11 7 / 0.36)
       );
   }
 
@@ -220,21 +219,22 @@
     background:
       linear-gradient(
         180deg,
-        transparent 76%,
-        rgb(14 13 9 / 0.05) 80.5%,
-        transparent 85%
+        transparent 74%,
+        rgb(12 12 9 / 0.075) 80.5%,
+        rgb(9 9 7 / 0.025) 84%,
+        transparent 88%
       ),
       linear-gradient(
-        106deg,
+        90deg,
         rgb(255 255 255 / var(--museum-wall-variation)),
-        transparent 29% 68%,
-        rgb(12 14 10 / 0.018)
+        transparent 24% 76%,
+        rgb(9 11 8 / 0.025)
       ),
       radial-gradient(
-        ellipse 62% 14% at 50% 90%,
-        rgb(255 208 139 / var(--museum-floor-light)),
-        rgb(255 202 128 / 0.035) 52%,
-        transparent 79%
+        ellipse 48% 11% at 50% 91%,
+        rgb(255 212 151 / var(--museum-floor-light)),
+        rgb(255 206 140 / 0.02) 48%,
+        transparent 74%
       );
   }
 
@@ -259,8 +259,8 @@
     width: 78%;
     height: 14px;
     border-radius: 50%;
-    background: rgb(17 13 9 / 0.24);
-    box-shadow: 0 7px 14px rgb(12 10 7 / 0.16);
+    background: rgb(17 13 9 / 0.29);
+    box-shadow: 0 8px 16px rgb(12 10 7 / 0.18);
     content: '';
   }
   .museum-bench-foreground img {
