@@ -101,9 +101,15 @@ function getBibleReferenceParts(reference: string) {
   };
 }
 
-function isLongMusicTitle(title: string) {
+function getMusicTitleLengthClass(title: string) {
   const normalized = title.trim();
-  return normalized.length > 22 || normalized.split(/\s+/).some((word) => word.length > 15);
+  const words = normalized ? normalized.split(/\s+/) : [];
+  const hasVeryLongWord = words.some((word) => word.length > 18);
+
+  if (hasVeryLongWord || normalized.length > 58 || words.length > 9) return 'is-extra-long-title';
+  if (normalized.length > 38 || words.length > 6) return 'is-long-title';
+  if (normalized.length > 16 || words.length > 3) return 'is-medium-title';
+  return 'is-short-title';
 }
 
 interface LanguageConfig {
@@ -1336,7 +1342,7 @@ export default function Home({
 
   const authorDescription = sanitizeAuthorDescription(data.breve_descrizione);
   const bibleReference = getBibleReferenceParts(data.bibbia.fonte);
-  const musicTitleIsLong = isLongMusicTitle(data.musica.brano);
+  const musicTitleLengthClass = getMusicTitleLengthClass(data.musica.brano);
   const musicHeading = (
     <div className="music-heading-block">
       <h4 className="card-primary-title text-3xl font-bold mb-2">{data.musica.brano}</h4>
@@ -2193,7 +2199,7 @@ export default function Home({
               isSaved={isCardSaved('musica')}
               onToggleSaved={() => saveCard('musica', data.musica.brano, data.musica.motivo, data.musica.autore)}
             >
-              <div className={`music-card-layout ${musicTitleIsLong ? 'is-long-title' : ''}`}>
+              <div className={`music-card-layout ${musicTitleLengthClass}`}>
                 <div className="music-media-cell select-none">
                   <div className="music-vinyl-wrapper">
                     <div className="music-vinyl-disc" aria-hidden="true">
@@ -2218,11 +2224,10 @@ export default function Home({
                       )}
                     </figure>
                   </div>
-                  {musicTitleIsLong ? <div className="music-cover-caption">{musicHeading}</div> : null}
                 </div>
 
                 <div className="music-copy-cell">
-                  {!musicTitleIsLong ? musicHeading : null}
+                  {musicHeading}
                   <p className="card-body-copy text-xl font-medium leading-relaxed mb-7">{data.musica.motivo}</p>
                   <div className="music-link-actions">
                     <a
