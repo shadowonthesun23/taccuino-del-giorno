@@ -37,9 +37,12 @@ const MUSEUM_AUDIO_COPY: Record<LanguageCode, { label: string; on: string; off: 
   PT: { label: 'Ambiente', on: 'Desativar o ambiente do museu', off: 'Ativar o ambiente do museu' },
 };
 
+type CompactAudioPosition = { right: number; top: number } | null;
+
 export default function GlobalAudioControl({ language }: { language: LanguageCode }) {
   const { activeAmbience, enabled, masterVolume, muted, setEnabled, setMasterVolume, setMuted } = useAudio();
   const [open, setOpen] = useState(false);
+  const [compactPosition, setCompactPosition] = useState<CompactAudioPosition>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const playPauseRef = useRef<HTMLButtonElement>(null);
@@ -51,6 +54,58 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
   useEffect(() => {
     if (activeAmbience === 'museum') setOpen(false);
   }, [activeAmbience]);
+
+  useEffect(() => {
+    if (activeAmbience === 'museum') {
+      setCompactPosition(null);
+      return;
+    }
+
+    let frame: number | null = null;
+    const updatePosition = () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        const panel = document.querySelector<HTMLElement>('.top-control-panel');
+        const surfaceSwitch = panel?.querySelector<HTMLElement>('.daily-surface-switch');
+        const firstControl = panel?.querySelector<HTMLElement>('.top-control-button');
+        if (!panel || !surfaceSwitch || !firstControl) {
+          setCompactPosition(null);
+          return;
+        }
+
+        const switchRect = surfaceSwitch.getBoundingClientRect();
+        const firstRect = firstControl.getBoundingClientRect();
+        const switchIsVisible = switchRect.width > 0 && switchRect.height > 0;
+        const switchIsOnSecondRow = switchRect.top > firstRect.top + 8;
+
+        if (!switchIsVisible || !switchIsOnSecondRow) {
+          setCompactPosition(null);
+          return;
+        }
+
+        // Keep exactly the same 8px rhythm used by the top control panel.
+        setCompactPosition({
+          right: Math.max(16, window.innerWidth - switchRect.left + 8),
+          top: switchRect.top,
+        });
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    const resizeObserver = new ResizeObserver(updatePosition);
+    const panel = document.querySelector<HTMLElement>('.top-control-panel');
+    const surfaceSwitch = panel?.querySelector<HTMLElement>('.daily-surface-switch');
+    if (panel) resizeObserver.observe(panel);
+    if (surfaceSwitch) resizeObserver.observe(surfaceSwitch);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      resizeObserver.disconnect();
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, [activeAmbience, language]);
 
   useEffect(() => {
     if (!open) return;
@@ -78,7 +133,7 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
     return (
       <button
         type="button"
-        className={`museum-ambience-control ${audible ? 'is-on' : 'is-off'}`}
+        className={`fixed bottom-[max(22px,env(safe-area-inset-bottom))] right-[max(22px,env(safe-area-inset-right))] z-[70] hidden min-[768px]:inline-flex items-center gap-2 min-h-11 px-[13px] py-[9px] rounded-[11px] border font-[Georgia] text-xs tracking-[0.035em] backdrop-blur-[6px] transition-all duration-200 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.10),0_5px_17px_rgb(8_10_7_/_0.14)] focus-visible:outline-2 focus-visible:outline-[#f4ead5] focus-visible:outline-offset-[5px] ${audible ? 'border-[#e8c78a3b] text-[#fff4d7e6]' : 'border-[#fff7e224] text-[#f6efdcb8]'} bg-[#191d1775] hover:border-[#fff7e238] hover:text-[#fff8eff0]`}
         aria-label={actionLabel}
         aria-pressed={audible}
         title={actionLabel}
@@ -93,7 +148,7 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
           setMuted(!muted);
         }}
       >
-        {audible ? <Volume2 aria-hidden="true" /> : <VolumeX aria-hidden="true" />}
+        {audible ? <Volume2 className="h-[15px] w-[15px] opacity-80" strokeWidth={1.45} aria-hidden="true" /> : <VolumeX className="h-[15px] w-[15px] opacity-80" strokeWidth={1.45} aria-hidden="true" />}
         <span>{museumCopy.label}</span>
       </button>
     );
@@ -102,7 +157,8 @@ export default function GlobalAudioControl({ language }: { language: LanguageCod
   return (
     <div
       ref={rootRef}
-      className={`global-audio-control min-[1180px]:max-[1660px]:!right-[172px] ${open ? 'is-open' : ''} ${audible ? 'is-audible' : ''} is-home`}
+      className={`global-audio-control ${open ? 'is-open' : ''} ${audible ? 'is-audible' : ''} is-home`}
+      style={compactPosition ? { right: `${compactPosition.right}px`, top: `${compactPosition.top}px` } : undefined}
       data-scene-safe="interactive"
     >
       {open ? (
