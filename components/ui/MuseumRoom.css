@@ -393,10 +393,7 @@
   }
   .museum-gallery-room .museum-main-exhibit { gap: 12px; }
   .museum-room-exit { left: 15px; font-size: 12px; }
-  .museum-room-download {
-    bottom: max(15px, env(safe-area-inset-bottom));
-    left: max(15px, env(safe-area-inset-left));
-  }
+  .museum-room-download { display: none; }
 }
 
 .museum-gallery-room.is-export-clone *,
