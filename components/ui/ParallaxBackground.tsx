@@ -7,6 +7,7 @@ import SceneRenderer from '@/components/scene/SceneRenderer';
 import type { SceneDraft, SceneViewport } from '@/lib/scene-draft';
 import { getSeasonalArtwork, getLocalizedSeasonalArtwork, type SeasonId } from '@/lib/seasonal-artwork';
 import { useAudio } from '@/app/components/AudioProvider';
+import { SITE_WATERMARK } from '@/lib/constants';
 import { FileDown } from 'lucide-react';
 import type { MuseumRoomExportFormat } from './museumRoomExport';
 
@@ -103,6 +104,7 @@ export default function ParallaxBackground({
   const seasonalRevealRef = useRef<HTMLDivElement>(null);
   const seasonalCaptionRef = useRef<HTMLElement>(null);
   const mainArtworkRef = useRef<HTMLDivElement>(null);
+  const mainExhibitRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<HTMLDivElement>(null);
   const museumRoomRef = useRef<HTMLDivElement>(null);
   const roomExitRef = useRef<HTMLButtonElement>(null);
@@ -245,6 +247,50 @@ export default function ParallaxBackground({
         year: 'numeric',
       }).format(new Date(`${dataIso}T12:00:00`))
     : null;
+
+  useEffect(() => {
+    if (!isArtworkSolo || !mainExhibitRef.current || !mainArtworkRef.current) return;
+
+    const exhibit = mainExhibitRef.current;
+    const frame = mainArtworkRef.current;
+    const label = exhibit.querySelector<HTMLElement>('.museum-wall-label');
+    if (!label) return;
+
+    let animationFrame: number | null = null;
+    const placeLabel = () => {
+      animationFrame = null;
+      const exhibitRect = exhibit.getBoundingClientRect();
+      const frameRect = frame.getBoundingClientRect();
+      const gap = Number.parseFloat(getComputedStyle(exhibit).getPropertyValue('--museum-label-gap')) || 32;
+      const forceBelow = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
+      const fitsOnRight = exhibitRect.right - frameRect.right >= label.offsetWidth + gap;
+
+      if (!forceBelow && fitsOnRight) {
+        exhibit.dataset.labelPlacement = 'right';
+        exhibit.style.setProperty('--museum-label-left', `${frameRect.right - exhibitRect.left + gap}px`);
+        exhibit.style.setProperty('--museum-label-top', `${frameRect.top - exhibitRect.top + frameRect.height / 2}px`);
+        return;
+      }
+
+      exhibit.dataset.labelPlacement = 'below';
+      exhibit.style.removeProperty('--museum-label-left');
+      exhibit.style.removeProperty('--museum-label-top');
+    };
+    const schedulePlacement = () => {
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(placeLabel);
+    };
+    const observer = new ResizeObserver(schedulePlacement);
+    observer.observe(exhibit);
+    observer.observe(frame);
+    observer.observe(label);
+    schedulePlacement();
+
+    return () => {
+      observer.disconnect();
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+    };
+  }, [isArtworkSolo, seasonalArtwork?.id]);
 
   useEffect(() => {
     // Legge la classe dark dall'elemento html per sincronizzarsi con il tema
@@ -689,15 +735,16 @@ export default function ParallaxBackground({
           >
             <div className="museum-wall-backdrop absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
             {museumDate && (
-              <aside className="museum-room-signage" aria-label={`${museumRoomTitle}, ${museumDate}`}>
+              <aside className="museum-room-signage" aria-label={`${museumRoomTitle}, ${SITE_WATERMARK}, ${museumDate}`}>
                 <span className="museum-room-signage-title">{museumRoomTitle}</span>
+                <span className="museum-room-signage-url">{SITE_WATERMARK}</span>
                 <time dateTime={dataIso}>{museumDate}</time>
               </aside>
             )}
             <div className="museum-frame-container">
               <div className="museum-artwork-wrapper relative">
-                {/* Middle Column Wrapper: main painting + label */}
-                <div className="museum-main-exhibit flex flex-col items-center relative z-10">
+                {/* The painting stays centred while the measured wall space determines label placement. */}
+                <div ref={mainExhibitRef} className="museum-main-exhibit flex items-center relative z-10">
                   {/* Today's Main Artwork */}
                   <div
                     ref={mainArtworkRef}
@@ -722,7 +769,7 @@ export default function ParallaxBackground({
                     />
                   </div>
 
-                  {/* A small, flush-mounted museum label remains on the wall during approach. */}
+                  {/* A smoked plexiglass museum plate remains on the wall during approach. */}
                   {seasonalArtwork.sourceUrl ? (
                     <a
                       onClick={(event) => event.stopPropagation()}
