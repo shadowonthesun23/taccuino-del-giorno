@@ -10,6 +10,8 @@ import {
 import { getEditorAuthorization } from '@/lib/editor-auth';
 import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
 import { finalizeAuthenticatedContent } from '@/lib/finalize-authenticated-content';
+import { WikiquoteFinalizationError } from '@/lib/finalize-generated-quote';
+import { finalizeWithWikiquoteRecovery } from '@/lib/finalize-with-wikiquote-recovery';
 import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-history';
 
 export const maxDuration = 180;
@@ -31,6 +33,7 @@ const GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS = 8_000;
 // Keep enough time for the final editorial check and Supabase upsert after a
 // successful targeted repair.
 const GEMINI_FINALIZATION_RESERVE_MS = 2_000;
+const GEMINI_WIKIQUOTE_RECOVERY_MAX_TIMEOUT_MS = 20_000;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
 const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 8_000;
 const MAX_FULL_GENERATION_ATTEMPTS = 2;
@@ -281,9 +284,9 @@ function extractFirstJsonObject(text: string) {
 type GeneratedDailyData = Record<string, unknown> & {
   tema_guida?: unknown;
   citazione?: Record<string, unknown>;
-  parola_giorno?: { parola?: unknown };
+  parola_giorno?: Record<string, unknown> & { parola?: unknown };
   bibbia?: { testo?: unknown; fonte?: unknown; nota?: unknown };
-  poesia?: { autore?: unknown; fonte?: unknown; testo?: unknown };
+  poesia?: Record<string, unknown> & { autore?: unknown; fonte?: unknown; testo?: unknown };
 };
 
 function parseGeneratedJson(responseText: string): GeneratedDailyData {
@@ -300,6 +303,59 @@ function parseGeneratedJson(responseText: string): GeneratedDailyData {
       `Risposta Gemini non parsabile: ${getSafeErrorMessage(err)}`,
     );
   }
+}
+
+type WikiquoteRecoveryData = {
+  autore_giorno: string;
+  tema_guida: string;
+  breve_descrizione: string;
+  citazione: { testo: string; autore: string; fonte: string };
+  parola_giorno: { parola: string; definizione: string; etimologia: string; esempio: string; nota: string };
+  bibbia: { testo: string; fonte: string; nota: string };
+  poesia: { testo: string; autore: string; fonte: string; nota: string };
+  musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
+  keyword_arte_en: string;
+};
+
+function hasExactlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
+  const actualKeys = Object.keys(value).sort();
+  return actualKeys.length === keys.length && actualKeys.every((key, index) => key === [...keys].sort()[index]);
+}
+
+function parseGeneratedWikiquoteRecovery(responseText: string): WikiquoteRecoveryData {
+  const parsed = parseGeneratedJson(responseText);
+  const citation = isRecord(parsed.citazione) ? parsed.citazione : null;
+  const word = isRecord(parsed.parola_giorno) ? parsed.parola_giorno : null;
+  const bible = isRecord(parsed.bibbia) ? parsed.bibbia : null;
+  const poem = isRecord(parsed.poesia) ? parsed.poesia : null;
+  const music = isRecord(parsed.musica) ? parsed.musica : null;
+  const valid = hasExactlyKeys(parsed, [
+    'autore_giorno', 'tema_guida', 'breve_descrizione', 'citazione', 'parola_giorno',
+    'bibbia', 'poesia', 'musica', 'keyword_arte_en',
+  ])
+    && typeof parsed.autore_giorno === 'string'
+    && typeof parsed.tema_guida === 'string'
+    && typeof parsed.breve_descrizione === 'string'
+    && typeof parsed.keyword_arte_en === 'string'
+    && citation !== null && hasExactlyKeys(citation, ['testo', 'autore', 'fonte'])
+    && typeof citation.testo === 'string' && typeof citation.autore === 'string' && typeof citation.fonte === 'string'
+    && word !== null && hasExactlyKeys(word, ['parola', 'definizione', 'etimologia', 'esempio', 'nota'])
+    && typeof word.parola === 'string' && typeof word.definizione === 'string'
+    && typeof word.etimologia === 'string' && typeof word.esempio === 'string' && typeof word.nota === 'string'
+    && bible !== null && hasExactlyKeys(bible, ['testo', 'fonte', 'nota'])
+    && bible.testo === '' && typeof bible.fonte === 'string' && typeof bible.nota === 'string'
+    && poem !== null && hasExactlyKeys(poem, ['testo', 'autore', 'fonte', 'nota'])
+    && typeof poem.testo === 'string' && typeof poem.autore === 'string'
+    && typeof poem.fonte === 'string' && typeof poem.nota === 'string'
+    && music !== null && hasExactlyKeys(music, ['brano', 'autore', 'genere', 'motivo', 'chiave_ricerca'])
+    && typeof music.brano === 'string' && typeof music.autore === 'string'
+    && typeof music.genere === 'string' && typeof music.motivo === 'string' && typeof music.chiave_ricerca === 'string';
+
+  if (!valid) {
+    throw new InvalidGeneratedJsonError('La risposta per il recovery Wikiquote non contiene esattamente lo schema richiesto.');
+  }
+
+  return parsed as unknown as WikiquoteRecoveryData;
 }
 
 function getGeneratedResponseText(result: GenerateContentResult): string {
@@ -668,6 +724,109 @@ function formatAuthorRepairContext(data: GeneratedDailyData): string {
     poesia: data.poesia,
     keyword_arte_en: data.keyword_arte_en,
   }, null, 2).slice(0, 5_000);
+}
+
+function buildWikiquoteRecoveryPrompt(
+  rejectedAuthor: string,
+  dataIso: string,
+  dataDiOggiStr: string,
+  recentWordExclusions: string,
+  recentPoemExclusions: string,
+  recentMusicExclusions: string,
+): string {
+  return `Il contenuto del giorno è già stato generato, ma l'autore ${rejectedAuthor} non possiede citazioni utilizzabili su Wikiquote italiano.
+
+Scegli un autore DIVERSO collegato esattamente alla data ${dataDiOggiStr} (${dataIso}): scrittore, poeta, filosofo o figura culturale legata alla parola scritta, con nascita o morte verificabile esattamente in questo giorno. Preferisci la nascita; usa una morte solo per una figura particolarmente significativa. NON scegliere nuovamente ${rejectedAuthor}. Preferisci figure con una presenza editoriale/citazionale sufficientemente ampia, quindi con buona probabilità di essere documentate su Wikiquote. Quando esistono alternative valide, evita figure la cui notorietà principale sia legata a occultismo, divinazione o pratiche esoteriche.
+
+Dopo aver scelto il nuovo autore, ricostruisci un unico asse editoriale: AUTORE → TEMA_GUIDA → PAROLA → CITAZIONE → POESIA → BIBBIA → MUSICA → ARTE. La citazione proposta deve appartenere realmente all'autore e serve come segnale editoriale; il testo definitivo sarà comunque sostituito dal retrieval Wikiquote. La poesia deve essere autentica, normalmente 5-10 versi significativi, non un incipit casuale, e la nota deve aderire al testo mostrato. Per la Bibbia scegli SOLO riferimento e nota coerenti con tema_guida. Lascia testo = "" perché verrà recuperato dalla CEI 2008. La musica deve seguire tema_guida e rispettare varietà e non-ripetizione.
+
+PAROLE RECENTI DA NON RIPETERE:
+${recentWordExclusions || '- Nessuna parola storica disponibile.'}
+
+POESIE RECENTI DA NON RIPETERE:
+${recentPoemExclusions || '- Nessuno storico disponibile.'}
+
+CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
+${recentMusicExclusions || '- Nessuno storico disponibile.'}
+
+Restituisci esclusivamente il JSON richiesto:
+{
+  "autore_giorno": "...",
+  "tema_guida": "1-4 parole",
+  "breve_descrizione": "...",
+  "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
+  "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
+  "bibbia": { "testo": "", "fonte": "...", "nota": "..." },
+  "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
+  "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." },
+  "keyword_arte_en": "..."
+}`;
+}
+
+async function regenerateDailyContentAfterWikiquoteMiss(
+  genAI: GoogleGenerativeAI,
+  modelCandidates: string[],
+  candidateData: GeneratedDailyData,
+  dataIso: string,
+  dataDiOggiStr: string,
+  recentRows: RecentContentRecord[] | null,
+  recentWordExclusions: string,
+  recentPoemExclusions: string,
+  recentMusicExclusions: string,
+  startedAt: number,
+): Promise<GeneratedDailyData> {
+  const rejectedAuthor = getGeneratedAuthor(candidateData);
+  const modelName = modelCandidates.includes(FALLBACK_GEMINI_MODEL)
+    ? FALLBACK_GEMINI_MODEL
+    : modelCandidates[0];
+  if (!modelName) throw new GenerationBudgetError('Recovery Wikiquote impossibile: nessun modello disponibile.');
+
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: getGeminiGenerationConfig(modelName),
+  });
+  const result = await generateWithBudget(
+    model,
+    modelName,
+    buildWikiquoteRecoveryPrompt(
+      rejectedAuthor,
+      dataIso,
+      dataDiOggiStr,
+      recentWordExclusions,
+      recentPoemExclusions,
+      recentMusicExclusions,
+    ),
+    startedAt,
+    'Recovery unico Wikiquote autore/coerenza...',
+    {
+      maxTimeoutMs: GEMINI_WIKIQUOTE_RECOVERY_MAX_TIMEOUT_MS,
+      reserveMs: GEMINI_FINALIZATION_RESERVE_MS,
+    },
+  );
+  const replacement = parseGeneratedWikiquoteRecovery(getGeneratedResponseText(result));
+  const repairedData: GeneratedDailyData = {
+    ...candidateData,
+    autore_giorno: replacement.autore_giorno,
+    tema_guida: replacement.tema_guida,
+    breve_descrizione: replacement.breve_descrizione,
+    citazione: replacement.citazione,
+    parola_giorno: replacement.parola_giorno,
+    bibbia: replacement.bibbia,
+    poesia: replacement.poesia,
+    musica: replacement.musica,
+    keyword_arte_en: replacement.keyword_arte_en,
+  };
+
+  if (normalizeEditorialValue(replacement.autore_giorno) === normalizeEditorialValue(rejectedAuthor)) {
+    throw new EditorialQualityError(['il recovery Wikiquote ha riproposto l’autore rifiutato']);
+  }
+  const authorIssues = await validateAutomaticAuthor(repairedData, dataIso, dataDiOggiStr);
+  if (authorIssues.length > 0) throw new EditorialQualityError(authorIssues);
+  const qualityIssues = validateEditorialQuality(repairedData, recentRows, '');
+  if (qualityIssues.length > 0) throw new EditorialQualityError(qualityIssues);
+
+  console.info(`Recovery Wikiquote completato con autore ${replacement.autore_giorno}; ${getGenerationTiming(startedAt)}.`);
+  return repairedData;
 }
 
 function buildDailyWordRepairPrompt(
@@ -1060,11 +1219,35 @@ Restituisci questo JSON:
 
     let finalizedData: GeneratedDailyData;
     try {
-      finalizedData = await finalizeAuthenticatedContent(generatedData, { timeoutMs: 8_000 });
+      finalizedData = await finalizeWithWikiquoteRecovery(generatedData, {
+        forcedAuthor,
+        finalize: async (candidateData) => {
+          if (candidateData === generatedData) {
+            return await finalizeAuthenticatedContent(generatedData, { timeoutMs: 8_000 });
+          }
+          return finalizeAuthenticatedContent(candidateData, { timeoutMs: 8_000 });
+        },
+        recover: (candidateData) => {
+          const rejectedAuthor = getGeneratedAuthor(candidateData);
+          console.warn('Wikiquote senza candidati per ' + rejectedAuthor + '; avvio unico recovery autore/coerenza...');
+          return regenerateDailyContentAfterWikiquoteMiss(
+            genAI,
+            modelCandidates,
+            candidateData,
+            dataIso,
+            dataDiOggiStr,
+            recentRows,
+            recentWordExclusions,
+            recentPoemExclusions,
+            recentMusicExclusions,
+            generationStartedAt,
+          );
+        },
+      });
       console.info(`Citazione Wikiquote e passaggio BibbiaEdu CEI 2008 finalizzati prima dell'upsert; ${getGenerationTiming(generationStartedAt)}.`);
     } catch (error) {
       console.error(
-        `Finalizzazione BibbiaEdu CEI 2008 interrotta prima dell'upsert: ${getSafeErrorMessage(error)}`,
+        `Finalizzazione contenuti autenticati interrotta prima dell'upsert: ${error instanceof WikiquoteFinalizationError ? error.code + ': ' : ''}${getSafeErrorMessage(error)}`,
       );
       throw error;
     }
