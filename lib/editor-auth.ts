@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createClient } from '@/lib/supabase/server';
 import { getConfiguredEditorUserId, isConfiguredEditorUser } from './editor-access';
+import { isSameOriginRequest as isAllowedSameOriginRequest } from './editor-origin';
 
 type EditorAuthorizationDenied = {
   ok: false;
@@ -15,13 +16,7 @@ export type EditorAuthorization =
 
 function isSameOriginRequest(request: Request) {
   const origin = request.headers.get('origin');
-  if (!origin) return true;
-
-  try {
-    return new URL(origin).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
+  return isAllowedSameOriginRequest(origin, request.url);
 }
 
 export async function getEditorAuthorization(request?: Request): Promise<EditorAuthorization> {

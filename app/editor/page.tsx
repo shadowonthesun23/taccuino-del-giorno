@@ -8,6 +8,7 @@ import type { EditorialContentOverrides } from '@/lib/editorial-content';
 import { sanitizeEditorialContentOverrides } from '@/lib/editorial-content';
 import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/client';
 import ThemeModeControl from '@/app/components/ThemeModeControl';
+import { resolveLocalAuthorArtwork } from '@/lib/local-author-artwork';
 import {
   clearEditorialMediaOverrides,
   DEFAULT_EDITORIAL_MEDIA_CROP,
@@ -46,8 +47,6 @@ function snapshotKey(date: string) {
   return `taccuino-editor-snapshot-${date}`;
 }
 
-const LOCAL_ARTWORK_BRIDGE_URL = 'http://127.0.0.1:43127';
-const LOCAL_ARTWORK_TIMEOUT_MS = 30 * 1_000;
 const EDITORIAL_MEDIA_REQUEST_TIMEOUT_MS = 25 * 1_000;
 
 type EditorPreviewData = DatiTaccuino & {
@@ -652,35 +651,15 @@ export default function EditorPage() {
 
     setArtworkLoading(true);
     setMediaStatus('loading');
-    setMediaMessage(`Recupero il disegno parcheggiato di ${currentAuthor}…`);
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), LOCAL_ARTWORK_TIMEOUT_MS);
+    setMediaMessage(`Cerco il disegno già pronto di ${currentAuthor}…`);
+    const expectedArtwork = { dataIso, authorName: currentAuthor, sourceUrl: sourcePhoto };
 
     try {
-      const response = await fetch(`${LOCAL_ARTWORK_BRIDGE_URL}/preview?data=${encodeURIComponent(dataIso)}`, {
-        cache: 'no-store',
-        signal: controller.signal,
+      const artworkDataUrl = await resolveLocalAuthorArtwork(expectedArtwork, {
+        onPreviewMissing: () => setMediaMessage('Nessun disegno pronto. Lo genero ora sul Mac…'),
+        onGenerationStarted: () => setMediaMessage('Generazione del ritratto in corso…'),
+        onGenerationInProgress: () => setMediaMessage('La generazione è già in corso. Attendo il risultato…'),
       });
-
-      const result = await response.json().catch(() => ({})) as {
-        data?: unknown;
-        dataUrl?: unknown;
-        authorName?: unknown;
-        sourceUrl?: unknown;
-        error?: unknown;
-      };
-
-      if (!response.ok) {
-        throw new Error(typeof result.error === 'string' ? result.error : `Errore del ponte locale (${response.status}).`);
-      }
-
-      const artworkDataUrl = normalizeEditorialMediaValue(result.dataUrl);
-      if (!artworkDataUrl.startsWith('data:image/webp;base64,')) {
-        throw new Error('Il ponte locale non ha restituito un WebP valido.');
-      }
-      if (result.data !== dataIso || result.authorName !== currentAuthor || normalizeEditorialMediaValue(result.sourceUrl) !== sourcePhoto) {
-        throw new Error('Il disegno ricevuto non corrisponde alla data o all’autore visualizzati.');
-      }
 
       const nextOverrides = { ...mediaOverrides, autore: artworkDataUrl };
       const nextCrops = { ...mediaCrops };
@@ -690,17 +669,14 @@ export default function EditorPage() {
       setMediaStatus('success');
       setMediaMessage(`Disegno di ${currentAuthor} attivato in WebP per il ${dataIso}.`);
     } catch (error) {
-      const message = error instanceof DOMException && error.name === 'AbortError'
-        ? 'Il recupero del disegno parcheggiato ha superato il tempo massimo.'
-        : error instanceof TypeError
-          ? 'Il ponte locale non è attivo. Avvia sul Mac “npm run author-artwork:bridge”.'
-          : error instanceof Error
-            ? error.message
-            : 'Attivazione del disegno non riuscita.';
+      const message = error instanceof TypeError
+        ? 'Il ponte locale non è attivo. Avvia sul Mac “npm run author-artwork:bridge”.'
+        : error instanceof Error
+          ? error.message
+          : 'Attivazione del disegno non riuscita.';
       setMediaStatus('error');
       setMediaMessage(message);
     } finally {
-      window.clearTimeout(timeoutId);
       setArtworkLoading(false);
     }
   }
