@@ -24,10 +24,12 @@ import {
   removeScenePresetOverride,
   replaceSceneObjectAsset,
   resolveSceneDraft,
+  resolveSceneDraftStrict,
   updateSceneDraft,
   type SceneEditingTarget,
   type SceneObjectAnchorInitialization,
 } from '@/lib/scene-draft-editor';
+import { clonePublishedSceneForDraft, getUnexpectedlyRemovedObjectIds, resolveInitialStudioDraft, shouldAutosaveStudioDraft } from '@/lib/scene-studio-safety';
 import {
   SCENE_RESPONSIVE_LABELS,
   getSceneObject,
@@ -299,9 +301,13 @@ export default function StudioShell() {
   const draftRef = useRef(draft);
   const resetReferenceRef = useRef<SceneDraft>(HOME_SCENE_DRAFT_BASELINE_V1);
   const interactionHistoryRef = useRef(false);
+  const dirtyRef = useRef(false);
+  const explicitlyRemovedObjectIdsRef = useRef(new Set<SceneObjectId>());
   const pendingAnchorObjectIdsRef = useRef(new Set<SceneObjectId>());
   const [draftRestored, setDraftRestored] = useState(false);
+  const [draftLoadBlocked, setDraftLoadBlocked] = useState(false);
   const [publishedScene, setPublishedScene] = useState<SceneDraft | null>(null);
+  const publishedSceneFullRef = useRef<SceneDraft | null>(null);
   const [versions, setVersions] = useState<SceneVersionRecord[]>([]);
   const [versionPreview, setVersionPreview] = useState<SceneVersionRecord | null>(null);
   const [renamingVersionId, setRenamingVersionId] = useState<string | null>(null);
@@ -339,6 +345,7 @@ export default function StudioShell() {
     setDraft((current) => {
       const next = mutator(current);
       if (JSON.stringify(next) === JSON.stringify(current)) return current;
+      dirtyRef.current = true;
       setUndoStack((history) => [...history, current].slice(-80));
       setRedoStack([]);
       return next;
@@ -351,6 +358,7 @@ export default function StudioShell() {
       if (!previous) return history;
       setRedoStack((redo) => [...redo, draftRef.current].slice(-80));
       setDraft(previous);
+      dirtyRef.current = true;
       return history.slice(0, -1);
     });
   }, []);
@@ -361,6 +369,7 @@ export default function StudioShell() {
       if (!next) return history;
       setUndoStack((undoHistory) => [...undoHistory, draftRef.current].slice(-80));
       setDraft(next);
+      dirtyRef.current = true;
       return history.slice(0, -1);
     });
   }, []);
@@ -462,19 +471,29 @@ export default function StudioShell() {
       try {
         const response = await fetch('/api/studio/scene', { cache: 'no-store' });
         if (!response.ok) throw new Error('online scene unavailable');
-        const payload = await response.json() as { draft?: unknown; published?: unknown; versions?: unknown };
-        const loadedDraft = payload.draft ? resolveSceneDraft(payload.draft) : recovery;
-        resetReferenceRef.current = structuredClone(loadedDraft);
-        setDraft(loadedDraft);
+        const payload = await response.json() as { draft?: unknown; draftError?: unknown; published?: unknown; versions?: unknown };
+        const published = resolveSceneDraftStrict(payload.published);
+        const loaded = payload.draftError
+          ? { draft: null, error: String(payload.draftError) }
+          : resolveInitialStudioDraft(payload.draft, payload.draft !== undefined && payload.draft !== null, payload.published, recovery);
+        if (loaded.draft) {
+          resetReferenceRef.current = structuredClone(loaded.draft);
+          setDraft(loaded.draft);
+          setDraftLoadBlocked(false);
+        } else {
+          setDraftLoadBlocked(true);
+          setSaveStatus('error');
+        }
         setUndoStack([]);
         setRedoStack([]);
-        setPublishedScene(resolvePublishedScene(payload.published));
+        publishedSceneFullRef.current = published;
+        setPublishedScene(published ? resolvePublishedScene(published) : null);
         if (Array.isArray(payload.versions)) {
           setVersions(payload.versions.flatMap((entry) => {
             if (!entry || typeof entry !== 'object') return [];
             const candidate = entry as Record<string, unknown>;
             let scene: SceneDraft;
-            try { scene = resolveSceneDraft(candidate.scene); } catch { return []; }
+            try { scene = resolveSceneDraftStrict(candidate.scene) ?? (() => { throw new Error('invalid version'); })(); } catch { return []; }
             if (typeof candidate.id !== 'string' || typeof candidate.version_number !== 'number' || typeof candidate.label !== 'string' || typeof candidate.created_at !== 'string') return [];
             return [{ id: candidate.id, version_number: candidate.version_number, label: candidate.label, display_name: typeof candidate.display_name === 'string' ? candidate.display_name : null, scene, is_baseline: candidate.is_baseline === true, is_current: candidate.is_current === true, source_version_id: typeof candidate.source_version_id === 'string' ? candidate.source_version_id : null, created_at: candidate.created_at }];
           }));
@@ -501,15 +520,25 @@ export default function StudioShell() {
   useEffect(() => {
     if (!draftRestored) return;
     window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    if (!shouldAutosaveStudioDraft(true, dirtyRef.current, draftLoadBlocked)) return;
     const frame = window.requestAnimationFrame(() => setSaveStatus('saving'));
+    const draftToSave = structuredClone(draft);
     const timeout = window.setTimeout(async () => {
+      if (getUnexpectedlyRemovedObjectIds(draftToSave, publishedSceneFullRef.current, explicitlyRemovedObjectIdsRef.current).length > 0) {
+        setSaveStatus('error');
+        return;
+      }
       try {
-        const response = await fetch('/api/studio/scene', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draft) });
+        const response = await fetch('/api/studio/scene', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draftToSave) });
         setSaveStatus(response.ok ? 'saved' : 'error');
+        if (response.ok && JSON.stringify(draftRef.current) === JSON.stringify(draftToSave)) {
+          dirtyRef.current = false;
+          explicitlyRemovedObjectIdsRef.current.clear();
+        }
       } catch { setSaveStatus('error'); }
     }, 1000);
     return () => { window.cancelAnimationFrame(frame); window.clearTimeout(timeout); };
-  }, [draft, draftRestored]);
+  }, [draft, draftRestored, draftLoadBlocked]);
 
   useEffect(() => {
     return () => { if (assetPreviewUrl) URL.revokeObjectURL(assetPreviewUrl); };
@@ -602,11 +631,35 @@ export default function StudioShell() {
   }
 
   function resetDraft() {
+    if (!window.confirm('Ripristinare la baseline iniziale? La bozza tornerà alla configurazione originaria e gli oggetti aggiunti successivamente verranno rimossi. La scena pubblicata non verrà modificata.')) return;
     const baseline = cloneBaselineSceneDraft();
+    for (const object of resetReferenceRef.current.objects) {
+      if (!baseline.objects.some((candidate) => candidate.id === object.id)) explicitlyRemovedObjectIdsRef.current.add(object.id);
+    }
     resetReferenceRef.current = structuredClone(baseline);
     commitDraftMutation(() => baseline);
     setSelectedObjectId('seasonal-fig');
     setEditingTarget({ mode: 'base' });
+  }
+
+  function resetDraftToPublished() {
+    const published = publishedSceneFullRef.current;
+    if (!published) return;
+    const currentVersion = versions.find((version) => version.is_current);
+    const versionLabel = currentVersion ? ` (v${currentVersion.version_number})` : '';
+    if (!window.confirm(`Le modifiche non pubblicate verranno eliminate e la bozza tornerà identica alla versione attualmente online${versionLabel}. Continuare?`)) return;
+    const restored = clonePublishedSceneForDraft(published);
+    explicitlyRemovedObjectIdsRef.current.clear();
+    dirtyRef.current = true;
+    resetReferenceRef.current = structuredClone(restored);
+    setDraft(restored);
+    setUndoStack([]);
+    setRedoStack([]);
+    setVersionPreview(null);
+    setMode('edit');
+    setUiHidden(false);
+    setEditingTarget({ mode: 'base' });
+    setSelectedObjectId((current) => getSceneObject(restored, current)?.id ?? restored.objects[0]?.id ?? 'seasonal-fig');
   }
 
   async function uploadAsset() {
@@ -647,7 +700,9 @@ export default function StudioShell() {
       const response = await fetch('/api/studio/scene', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draft) });
       if (!response.ok) throw new Error('publish failed');
       const payload = await response.json() as { scene: unknown };
-      setPublishedScene(resolvePublishedScene(payload.scene));
+      const nextPublished = resolveSceneDraftStrict(payload.scene);
+      publishedSceneFullRef.current = nextPublished;
+      setPublishedScene(nextPublished ? resolvePublishedScene(nextPublished) : null);
       if (payload && 'version' in payload && payload.version && typeof payload.version === 'object') {
         const version = payload.version as Record<string, unknown>;
         if (typeof version.id === 'string' && typeof version.version_number === 'number' && typeof version.label === 'string' && typeof version.created_at === 'string') {
@@ -686,6 +741,7 @@ export default function StudioShell() {
       const payload = await response.json() as { scene?: unknown; version?: Record<string, unknown> };
       const nextScene = resolveSceneDraft(payload.scene);
       setDraft(nextScene);
+      publishedSceneFullRef.current = structuredClone(nextScene);
       setPublishedScene(resolvePublishedScene(nextScene));
       resetReferenceRef.current = structuredClone(nextScene);
       setUndoStack([]);
@@ -779,7 +835,7 @@ export default function StudioShell() {
             <p className={styles.statusText}>
               {viewport.width} × {viewport.height} CSS px · {selectedResponsiveState.bandId ? SCENE_RESPONSIVE_LABELS[selectedResponsiveState.bandId] : 'BASELINE'} · scala {Math.round(scale * 100)}%
             </p>
-            <p className={styles.statusText}>{saveStatus === 'saving' ? 'Salvataggio…' : saveStatus === 'saved' ? 'Bozza salvata' : saveStatus === 'error' ? 'Errore' : ''}</p>
+            <p className={styles.statusText}>{draftLoadBlocked ? 'Bozza remota non valida: salvataggio sospeso.' : saveStatus === 'saving' ? 'Salvataggio…' : saveStatus === 'saved' ? 'Bozza salvata' : saveStatus === 'error' ? 'Errore' : ''}</p>
             <div className={styles.historyControls} aria-label="Cronologia bozza">
               <button type="button" className={styles.secondaryButton} onClick={undo} disabled={undoStack.length === 0}>Undo</button>
               <button type="button" className={styles.secondaryButton} onClick={redo} disabled={redoStack.length === 0}>Redo</button>
@@ -795,6 +851,9 @@ export default function StudioShell() {
             </select>
             <button type="button" className={styles.primaryButton} onClick={() => setUiHidden(true)}>
               Nascondi UI <kbd>H</kbd>
+            </button>
+            <button type="button" className={styles.secondaryButton} disabled={!publishedSceneFullRef.current} onClick={resetDraftToPublished}>
+              Torna alla versione online{versions.find((version) => version.is_current) ? ` · v${versions.find((version) => version.is_current)?.version_number}` : ''}
             </button>
             <button type="button" className={styles.primaryButton} onClick={publishDraft}>PUBBLICA</button>
             <section className={styles.versionHistory} aria-label="Cronologia versioni">
@@ -914,7 +973,7 @@ export default function StudioShell() {
               {effectiveEditingTarget.mode === 'override' ? 'Ripristina override fascia' : effectiveEditingTarget.mode === 'preset' ? 'Ripristina override preset' : 'Reset oggetto'}
             </button>
             <button type="button" className={styles.resetDraftButton} onClick={resetDraft}>
-              Reset bozza
+              Ripristina baseline iniziale
             </button>
           </FloatingPanel>
         </div>

@@ -13,7 +13,7 @@ import type { SceneMode } from '@/lib/scene-config';
 import {
   HOME_SCENE_DRAFT_BASELINE_V1,
   createSceneEditorPreviewDraft,
-  resolveSceneDraft,
+  resolveSceneDraftStrict,
   updateSceneDraft,
   updateSceneDraftWithPresetSeed,
   type SceneObjectAnchorInitialization,
@@ -510,7 +510,10 @@ export default function StudioPreviewBridge({
         setSelectedObjectId(candidate.selectedObjectId);
       }
       if (isSceneEditingTarget(candidate.editingTarget)) setEditingTarget(candidate.editingTarget);
-      if (candidate.sceneDraft !== undefined) setDraft(resolveSceneDraft(candidate.sceneDraft));
+      if (candidate.sceneDraft !== undefined) {
+        const resolved = resolveSceneDraftStrict(candidate.sceneDraft);
+        if (resolved) setDraft(resolved);
+      }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {

@@ -18,7 +18,15 @@ export async function GET(request: Request) {
   ]);
   const versionsResult = await supabase.from('scene_versions').select('id, scene_id, version_number, label, display_name, scene, is_baseline, is_current, source_version_id, created_at').eq('scene_id', 'home').order('version_number', { ascending: false });
   if (draftResult.error || publishedResult.error || versionsResult.error) return new Response('Errore caricamento scena.', { status: 500 });
-  return NextResponse.json({ draft: draftResult.data?.scene ?? null, published: publishedResult.data?.scene ?? null, versions: versionsResult.data ?? [] });
+  const remoteDraftExists = draftResult.data !== null;
+  const remoteDraft = remoteDraftExists ? resolveSceneDraftStrict(draftResult.data?.scene) : null;
+  const published = resolveSceneDraftStrict(publishedResult.data?.scene);
+  return NextResponse.json({
+    draft: remoteDraftExists && !remoteDraft ? null : remoteDraft ?? published ?? HOME_SCENE_DRAFT_BASELINE_V1,
+    draftError: remoteDraftExists && !remoteDraft ? 'La bozza salvata non è valida o non è migrabile.' : null,
+    published: published ?? null,
+    versions: versionsResult.data ?? [],
+  });
 }
 
 export async function PATCH(request: Request) {
