@@ -8398,7 +8398,7 @@ body.museum-room-open :is(
 .archive-entry-title {
   font-size: 16px;
   font-weight: 650;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 
 .archive-entry-today {
@@ -8414,7 +8414,7 @@ body.museum-room-open :is(
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.15;
   margin-top: 0;
   max-width: 100%;
   min-width: 0;
