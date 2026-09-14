@@ -9,9 +9,15 @@ import {
 } from "@google/generative-ai";
 import { getEditorAuthorization } from '@/lib/editor-auth';
 import { getAuthorAnniversary, getAuthorMetadata } from '@/lib/author-metadata';
-import { finalizeAuthenticatedContent } from '@/lib/finalize-authenticated-content';
-import { WikiquoteFinalizationError } from '@/lib/finalize-generated-quote';
-import { finalizeWithWikiquoteRecovery } from '@/lib/finalize-with-wikiquote-recovery';
+import { fetchWikiquoteCandidates } from '@/lib/content-verifier/wikiquote';
+import { createPoliteCachedFetch } from '@/lib/content-verifier/rate-limited-fetch';
+import {
+  formatEditorialQuoteCandidates,
+  injectSelectedEditorialQuote,
+  retrieveEarlyEditorialQuotes,
+  type AuthorSeed,
+} from '@/lib/editorial-quote-candidates';
+import { finalizeGeneratedBible } from '@/lib/finalize-generated-bible';
 import { formatRecentPoemExclusions, isRecentPoemRepeat } from '@/lib/poem-history';
 
 export const maxDuration = 180;
@@ -25,21 +31,16 @@ const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 const GEMINI_ATTEMPT_TIMEOUT_MS = 45_000;
 const GEMINI_GENERATION_BUDGET_MS = 165_000;
 const GEMINI_BUDGET_RESERVE_MS = 500;
-// Keep one compact author repair possible after the full JSON has been checked.
-// This is a time reserve, not an extra daily call: it is spent only when the
-// generated author fails the external date verification.
-const GEMINI_AUTHOR_REPAIR_RESERVE_MS = 10_000;
-const GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS = 8_000;
+const GEMINI_AUTHOR_SEED_MAX_TIMEOUT_MS = 20_000;
 // Keep enough time for the final editorial check and Supabase upsert after a
 // successful targeted repair.
 const GEMINI_FINALIZATION_RESERVE_MS = 2_000;
-const GEMINI_WIKIQUOTE_RECOVERY_MAX_TIMEOUT_MS = 20_000;
 const GEMINI_MIN_REQUEST_TIMEOUT_MS = 4_000;
 const GEMINI_MIN_FALLBACK_TIMEOUT_MS = 8_000;
 const MAX_FULL_GENERATION_ATTEMPTS = 2;
-const MAX_AUTHOR_REPAIR_ATTEMPTS = 1;
 const MAX_WORD_REPAIR_ATTEMPTS = 2;
 const RETRY_BACKOFF_MS = 250;
+const wikiquoteFetch = createPoliteCachedFetch({ serializedHosts: ['it.wikiquote.org'] });
 
 class GenerationBudgetError extends Error {}
 
@@ -305,40 +306,52 @@ function parseGeneratedJson(responseText: string): GeneratedDailyData {
   }
 }
 
-type WikiquoteRecoveryData = {
-  autore_giorno: string;
-  tema_guida: string;
-  breve_descrizione: string;
-  citazione: { testo: string; autore: string; fonte: string };
-  parola_giorno: { parola: string; definizione: string; etimologia: string; esempio: string; nota: string };
-  bibbia: { testo: string; fonte: string; nota: string };
-  poesia: { testo: string; autore: string; fonte: string; nota: string };
-  musica: { brano: string; autore: string; genere: string; motivo: string; chiave_ricerca: string };
-  keyword_arte_en: string;
-};
-
 function hasExactlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
   const actualKeys = Object.keys(value).sort();
   return actualKeys.length === keys.length && actualKeys.every((key, index) => key === [...keys].sort()[index]);
 }
 
-function parseGeneratedWikiquoteRecovery(responseText: string): WikiquoteRecoveryData {
+function parseGeneratedAuthorSeed(responseText: string): AuthorSeed {
   const parsed = parseGeneratedJson(responseText);
-  const citation = isRecord(parsed.citazione) ? parsed.citazione : null;
+  if (
+    !hasExactlyKeys(parsed, ['autore_giorno', 'breve_descrizione'])
+    || typeof parsed.autore_giorno !== 'string'
+    || typeof parsed.breve_descrizione !== 'string'
+    || !parsed.autore_giorno.trim()
+    || !parsed.breve_descrizione.trim()
+  ) {
+    throw new InvalidGeneratedJsonError('La risposta author seed non contiene esattamente lo schema richiesto.');
+  }
+  return Object.freeze({
+    autore_giorno: parsed.autore_giorno.trim(),
+    breve_descrizione: parsed.breve_descrizione.trim(),
+  });
+}
+
+function parseGeneratedEditorialContent(responseText: string): GeneratedDailyData & { selected_quote_id: string } {
+  const parsed = parseGeneratedJson(responseText);
   const word = isRecord(parsed.parola_giorno) ? parsed.parola_giorno : null;
   const bible = isRecord(parsed.bibbia) ? parsed.bibbia : null;
   const poem = isRecord(parsed.poesia) ? parsed.poesia : null;
   const music = isRecord(parsed.musica) ? parsed.musica : null;
+  const events = Array.isArray(parsed.avvenimenti) ? parsed.avvenimenti : null;
+  const saints = Array.isArray(parsed.santi) ? parsed.santi : null;
+  const themeWordCount = typeof parsed.tema_guida === 'string'
+    ? parsed.tema_guida.trim().split(/\s+/u).filter(Boolean).length
+    : 0;
   const valid = hasExactlyKeys(parsed, [
-    'autore_giorno', 'tema_guida', 'breve_descrizione', 'citazione', 'parola_giorno',
+    'selected_quote_id', 'tema_guida', 'avvenimenti', 'parola_giorno', 'santi',
     'bibbia', 'poesia', 'musica', 'keyword_arte_en',
   ])
-    && typeof parsed.autore_giorno === 'string'
+    && typeof parsed.selected_quote_id === 'string'
+    && /^Q\d{2,}$/u.test(parsed.selected_quote_id.trim())
     && typeof parsed.tema_guida === 'string'
-    && typeof parsed.breve_descrizione === 'string'
+    && themeWordCount >= 1 && themeWordCount <= 4
     && typeof parsed.keyword_arte_en === 'string'
-    && citation !== null && hasExactlyKeys(citation, ['testo', 'autore', 'fonte'])
-    && typeof citation.testo === 'string' && typeof citation.autore === 'string' && typeof citation.fonte === 'string'
+    && events !== null && events.every((event) => typeof event === 'string')
+    && saints !== null && saints.every((saint) => isRecord(saint)
+      && hasExactlyKeys(saint, ['nome', 'ruolo', 'anni', 'biografia'])
+      && Object.values(saint).every((value) => typeof value === 'string'))
     && word !== null && hasExactlyKeys(word, ['parola', 'definizione', 'etimologia', 'esempio', 'nota'])
     && typeof word.parola === 'string' && typeof word.definizione === 'string'
     && typeof word.etimologia === 'string' && typeof word.esempio === 'string' && typeof word.nota === 'string'
@@ -352,10 +365,10 @@ function parseGeneratedWikiquoteRecovery(responseText: string): WikiquoteRecover
     && typeof music.genere === 'string' && typeof music.motivo === 'string' && typeof music.chiave_ricerca === 'string';
 
   if (!valid) {
-    throw new InvalidGeneratedJsonError('La risposta per il recovery Wikiquote non contiene esattamente lo schema richiesto.');
+    throw new InvalidGeneratedJsonError('La risposta editoriale non contiene esattamente lo schema richiesto.');
   }
 
-  return parsed as unknown as WikiquoteRecoveryData;
+  return parsed as GeneratedDailyData & { selected_quote_id: string };
 }
 
 function getGeneratedResponseText(result: GenerateContentResult): string {
@@ -493,20 +506,16 @@ function validateEditorialQuality(
   return issues;
 }
 
-function getGeneratedAuthor(data: GeneratedDailyData): string {
+function getGeneratedAuthor(data: { autore_giorno?: unknown }): string {
   return typeof data.autore_giorno === 'string' ? data.autore_giorno.trim() : '';
 }
 
-function getGeneratedAuthorDescription(data: GeneratedDailyData): string {
+function getGeneratedAuthorDescription(data: { breve_descrizione?: unknown }): string {
   return typeof data.breve_descrizione === 'string' ? data.breve_descrizione.trim() : '';
 }
 
-function getGeneratedCitationAuthor(data: GeneratedDailyData): string {
-  return typeof data.citazione?.autore === 'string' ? data.citazione.autore.trim() : '';
-}
-
 async function validateAutomaticAuthor(
-  data: GeneratedDailyData,
+  data: AuthorSeed,
   dataIso: string,
   dataDiOggiStr: string,
 ): Promise<string[]> {
@@ -524,12 +533,7 @@ async function validateAutomaticAuthor(
     ];
   }
 
-  const citationAuthor = getGeneratedCitationAuthor(data);
   const issues: string[] = [];
-  if (!citationAuthor || normalizeEditorialValue(citationAuthor) !== normalizeEditorialValue(author)) {
-    issues.push(`la citazione deve appartenere all'autore del giorno "${author}"`);
-  }
-
   const description = getGeneratedAuthorDescription(data);
   const prefix = /^(Nato in questo giorno|Scomparso in questa data)\s+nel\s+(\d{4})\s*[,.:—-]/iu.exec(description);
   const expectedLabel = anniversary.kind === 'birth' ? 'Nato in questo giorno' : 'Scomparso in questa data';
@@ -537,29 +541,6 @@ async function validateAutomaticAuthor(
     issues.push(`la descrizione deve indicare "${expectedLabel} nel ${anniversary.year}" per l'autore verificato`);
   }
 
-  return issues;
-}
-
-function isAutomaticAuthorIssue(issue: string): boolean {
-  return issue.startsWith("l'autore del giorno")
-    || issue.startsWith('la data biografica dell’autore del giorno')
-    || issue.startsWith('la data biografica dell\'autore del giorno')
-    || issue.startsWith('la citazione deve appartenere all’autore del giorno')
-    || issue.startsWith("la citazione deve appartenere all'autore del giorno")
-    || issue.startsWith('la descrizione deve indicare');
-}
-
-async function validateGeneratedContent(
-  data: GeneratedDailyData,
-  dataIso: string,
-  dataDiOggiStr: string,
-  recentRows: RecentContentRecord[] | null,
-  forcedAuthor: string,
-): Promise<string[]> {
-  const issues = validateEditorialQuality(data, recentRows, forcedAuthor);
-  if (!forcedAuthor) {
-    issues.push(...await validateAutomaticAuthor(data, dataIso, dataDiOggiStr));
-  }
   return issues;
 }
 
@@ -572,131 +553,67 @@ function isWordOnlyQualityIssue(issues: string[]): boolean {
   return issues.length > 0 && issues.every(isDailyWordIssue);
 }
 
-function parseGeneratedAuthorRepair(responseText: string): {
-  autore_giorno: string;
-  breve_descrizione: string;
-  citazione: { testo: string; autore: string; fonte: string };
-} {
-  const parsed = parseGeneratedJson(responseText);
-  const citation = isRecord(parsed.citazione) ? parsed.citazione : null;
-  if (
-    typeof parsed.autore_giorno !== 'string'
-    || typeof parsed.breve_descrizione !== 'string'
-    || !citation
-    || typeof citation.testo !== 'string'
-    || typeof citation.autore !== 'string'
-    || typeof citation.fonte !== 'string'
-  ) {
-    throw new InvalidGeneratedJsonError('La risposta per la riparazione dell’autore non contiene tutti i campi richiesti.');
-  }
-
-  return {
-    autore_giorno: parsed.autore_giorno.trim(),
-    breve_descrizione: parsed.breve_descrizione.trim(),
-    citazione: {
-      testo: citation.testo.trim(),
-      autore: citation.autore.trim(),
-      fonte: citation.fonte.trim(),
-    },
-  };
-}
-
-function buildAuthorRepairPrompt(
-  candidateData: GeneratedDailyData,
+function buildAuthorSeedPrompt(
   dataIso: string,
   dataDiOggiStr: string,
-  authorIssues: string[],
-  rejectedAuthors: string[],
+  forcedAuthor = '',
+  rejectedAuthor = '',
 ): string {
-  const rejectedAuthorList = rejectedAuthors.length > 0
-    ? rejectedAuthors.map((author) => `- ${author}`).join('\n')
-    : '- Nessun autore specifico: verifica comunque la data.';
+  const authorRule = forcedAuthor
+    ? `Usa ESATTAMENTE l'autore imposto: ${forcedAuthor}. Non sostituirlo. È consentita l'eccezione editoriale manuale alla coincidenza con la data. Se nascita o morte coincidono, usa il relativo prefisso biografico; altrimenti scrivi una normale breve descrizione senza inventare ricorrenze.`
+    : `Scegli esclusivamente uno scrittore, poeta, filosofo o figura culturale legata alla parola scritta la cui nascita o morte cada esattamente il ${dataDiOggiStr}. Preferisci la nascita; usa la morte solo per una figura significativamente più importante. Evita musicisti e compositori quando esiste una figura letteraria valida. Non scegliere in base a un tema: il tema non esiste ancora.${rejectedAuthor ? ` Escludi esplicitamente ${rejectedAuthor}.` : ''}`;
 
-  return `Il JSON completo per il ${dataDiOggiStr} (${dataIso}) è già stato generato, ma la scelta dell'autore del giorno non ha superato la verifica delle date biografiche.
+  return `Scegli soltanto l'autore del giorno per il ${dataDiOggiStr} (${dataIso}).
 
-PROBLEMI DA CORREGGERE:
-${authorIssues.map((issue) => `- ${issue}`).join('\n')}
-
-CONTESTO EDITORIALE MINIMO:
-${formatAuthorRepairContext(candidateData)}
-
-AUTORI GIÀ RIFIUTATI:
-${rejectedAuthorList}
-
-Sostituisci esclusivamente "autore_giorno", "breve_descrizione" e "citazione". Non modificare nessun altro campo del contenuto.
-Scegli esclusivamente uno scrittore, poeta, filosofo o altra figura culturale legata alla parola scritta la cui nascita o morte sia verificabile e cada esattamente il ${dataDiOggiStr} (giorno e mese, non solo l'anno). Preferisci una nascita; usa una morte solo per una figura molto illustre. La data è il vincolo principale: non scegliere un autore solo perché è affine al tema e non inventare date. Non ripetere gli autori già rifiutati.
-La descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," oppure "Scomparso in questa data nel [anno]," in base alla data verificata. La citazione deve appartenere allo stesso autore ed essere in italiano con fonte.
+${authorRule}
+Per la generazione automatica, breve_descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," oppure "Scomparso in questa data nel [anno]," secondo la ricorrenza verificata.
+Non generare tema, citazione, parola, poesia, Bibbia, musica, arte, santi o avvenimenti.
 
 Restituisci esclusivamente un unico oggetto JSON valido con questa forma:
 {
   "autore_giorno": "...",
-  "breve_descrizione": "...",
-  "citazione": { "testo": "...", "autore": "...", "fonte": "..." }
+  "breve_descrizione": "..."
 }`;
 }
 
-async function regenerateDailyAuthor(
-  model: GenerativeModel,
-  modelName: string,
-  candidateData: GeneratedDailyData,
+async function generateAuthorSeed(
+  genAI: GoogleGenerativeAI,
+  modelCandidates: string[],
   dataIso: string,
   dataDiOggiStr: string,
   startedAt: number,
-  initialAuthorIssues: string[],
-): Promise<GeneratedDailyData> {
-  const rejectedAuthors = new Set<string>();
-  const initialAuthor = getGeneratedAuthor(candidateData);
-  if (initialAuthor) rejectedAuthors.add(initialAuthor);
-
-  let lastError: unknown = new EditorialQualityError(initialAuthorIssues);
-  let authorIssues = initialAuthorIssues;
-  let currentCandidateData = candidateData;
-
-  for (let attempt = 1; attempt <= MAX_AUTHOR_REPAIR_ATTEMPTS; attempt++) {
-    try {
-      const repairResult = await generateWithBudget(
-        model,
-        modelName,
-        buildAuthorRepairPrompt(currentCandidateData, dataIso, dataDiOggiStr, authorIssues, [...rejectedAuthors]),
-        startedAt,
-        'Riparazione mirata autore del giorno...',
-        {
-          maxTimeoutMs: GEMINI_AUTHOR_REPAIR_MAX_TIMEOUT_MS,
-          reserveMs: GEMINI_FINALIZATION_RESERVE_MS,
-        },
-      );
-      const replacement = parseGeneratedAuthorRepair(getGeneratedResponseText(repairResult));
-      const repairedData: GeneratedDailyData = {
-        ...currentCandidateData,
-        autore_giorno: replacement.autore_giorno,
-        breve_descrizione: replacement.breve_descrizione,
-        citazione: replacement.citazione,
-      };
-      authorIssues = await validateAutomaticAuthor(repairedData, dataIso, dataDiOggiStr);
-      if (authorIssues.length === 0) {
-        console.info(`Autore sostitutivo verificato (${replacement.autore_giorno}); ${getGenerationTiming(startedAt)}.`);
-        return repairedData;
-      }
-
-      lastError = new EditorialQualityError(authorIssues);
-      if (replacement.autore_giorno) rejectedAuthors.add(replacement.autore_giorno);
-      currentCandidateData = repairedData;
-      console.warn(`Rifiuto editoriale autore sostitutivo: ${authorIssues.join('; ')}; ${getGenerationTiming(startedAt)}.`);
-    } catch (error) {
-      lastError = error;
-      if (error instanceof GenerationBudgetError) break;
-      logTechnicalError('riparazione mirata autore del giorno', modelName, error, startedAt);
-    }
-
-    if (attempt < MAX_AUTHOR_REPAIR_ATTEMPTS) {
-      if (getGeminiAttemptTimeout(startedAt) === null) break;
-      await waitBeforeRetry(startedAt);
-    }
+  forcedAuthor = '',
+  rejectedAuthor = '',
+): Promise<AuthorSeed> {
+  const modelName = modelCandidates.includes(FALLBACK_GEMINI_MODEL)
+    ? FALLBACK_GEMINI_MODEL
+    : modelCandidates[0];
+  if (!modelName) throw new GenerationBudgetError('Author seed impossibile: nessun modello disponibile.');
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: getGeminiGenerationConfig(modelName),
+  });
+  const operation = rejectedAuthor ? 'Recovery unico author seed...' : 'Author seed Gemini...';
+  const result = await generateWithBudget(
+    model,
+    modelName,
+    buildAuthorSeedPrompt(dataIso, dataDiOggiStr, forcedAuthor, rejectedAuthor),
+    startedAt,
+    operation,
+    { maxTimeoutMs: GEMINI_AUTHOR_SEED_MAX_TIMEOUT_MS, reserveMs: GEMINI_FINALIZATION_RESERVE_MS },
+  );
+  const authorSeed = parseGeneratedAuthorSeed(getGeneratedResponseText(result));
+  if (forcedAuthor && authorSeed.autore_giorno !== forcedAuthor) {
+    throw new EditorialQualityError([`l'autore obbligatorio deve essere "${forcedAuthor}"`]);
   }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('Nessun autore sostitutivo verificato ricevuto dal modello.');
+  if (rejectedAuthor && normalizeEditorialValue(authorSeed.autore_giorno) === normalizeEditorialValue(rejectedAuthor)) {
+    throw new EditorialQualityError(['il recovery autore ha riproposto l’autore escluso']);
+  }
+  if (!forcedAuthor) {
+    const issues = await validateAutomaticAuthor(authorSeed, dataIso, dataDiOggiStr);
+    if (issues.length > 0) throw new EditorialQualityError(issues);
+  }
+  return authorSeed;
 }
 
 function formatGeneratedContentContext(data: GeneratedDailyData): string {
@@ -712,121 +629,6 @@ function formatGeneratedContentContext(data: GeneratedDailyData): string {
     poesia: data.poesia,
     musica: data.musica,
   }, null, 2).slice(0, 16_000);
-}
-
-function formatAuthorRepairContext(data: GeneratedDailyData): string {
-  return JSON.stringify({
-    autore_giorno: data.autore_giorno,
-    tema_guida: data.tema_guida,
-    breve_descrizione: data.breve_descrizione,
-    citazione: data.citazione,
-    parola_giorno: data.parola_giorno,
-    poesia: data.poesia,
-    keyword_arte_en: data.keyword_arte_en,
-  }, null, 2).slice(0, 5_000);
-}
-
-function buildWikiquoteRecoveryPrompt(
-  rejectedAuthor: string,
-  dataIso: string,
-  dataDiOggiStr: string,
-  recentWordExclusions: string,
-  recentPoemExclusions: string,
-  recentMusicExclusions: string,
-): string {
-  return `Il contenuto del giorno è già stato generato, ma l'autore ${rejectedAuthor} non possiede citazioni utilizzabili su Wikiquote italiano.
-
-Scegli un autore DIVERSO collegato esattamente alla data ${dataDiOggiStr} (${dataIso}): scrittore, poeta, filosofo o figura culturale legata alla parola scritta, con nascita o morte verificabile esattamente in questo giorno. Preferisci la nascita; usa una morte solo per una figura particolarmente significativa. NON scegliere nuovamente ${rejectedAuthor}. Preferisci figure con una presenza editoriale/citazionale sufficientemente ampia, quindi con buona probabilità di essere documentate su Wikiquote. Quando esistono alternative valide, evita figure la cui notorietà principale sia legata a occultismo, divinazione o pratiche esoteriche.
-
-Dopo aver scelto il nuovo autore, ricostruisci un unico asse editoriale: AUTORE → TEMA_GUIDA → PAROLA → CITAZIONE → POESIA → BIBBIA → MUSICA → ARTE. La citazione proposta deve appartenere realmente all'autore e serve come segnale editoriale; il testo definitivo sarà comunque sostituito dal retrieval Wikiquote. La poesia deve essere autentica, normalmente 5-10 versi significativi, non un incipit casuale, e la nota deve aderire al testo mostrato. Per la Bibbia scegli SOLO riferimento e nota coerenti con tema_guida. Lascia testo = "" perché verrà recuperato dalla CEI 2008. La musica deve seguire tema_guida e rispettare varietà e non-ripetizione.
-
-PAROLE RECENTI DA NON RIPETERE:
-${recentWordExclusions || '- Nessuna parola storica disponibile.'}
-
-POESIE RECENTI DA NON RIPETERE:
-${recentPoemExclusions || '- Nessuno storico disponibile.'}
-
-CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
-${recentMusicExclusions || '- Nessuno storico disponibile.'}
-
-Restituisci esclusivamente il JSON richiesto:
-{
-  "autore_giorno": "...",
-  "tema_guida": "1-4 parole",
-  "breve_descrizione": "...",
-  "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
-  "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
-  "bibbia": { "testo": "", "fonte": "...", "nota": "..." },
-  "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
-  "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." },
-  "keyword_arte_en": "..."
-}`;
-}
-
-async function regenerateDailyContentAfterWikiquoteMiss(
-  genAI: GoogleGenerativeAI,
-  modelCandidates: string[],
-  candidateData: GeneratedDailyData,
-  dataIso: string,
-  dataDiOggiStr: string,
-  recentRows: RecentContentRecord[] | null,
-  recentWordExclusions: string,
-  recentPoemExclusions: string,
-  recentMusicExclusions: string,
-  startedAt: number,
-): Promise<GeneratedDailyData> {
-  const rejectedAuthor = getGeneratedAuthor(candidateData);
-  const modelName = modelCandidates.includes(FALLBACK_GEMINI_MODEL)
-    ? FALLBACK_GEMINI_MODEL
-    : modelCandidates[0];
-  if (!modelName) throw new GenerationBudgetError('Recovery Wikiquote impossibile: nessun modello disponibile.');
-
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: getGeminiGenerationConfig(modelName),
-  });
-  const result = await generateWithBudget(
-    model,
-    modelName,
-    buildWikiquoteRecoveryPrompt(
-      rejectedAuthor,
-      dataIso,
-      dataDiOggiStr,
-      recentWordExclusions,
-      recentPoemExclusions,
-      recentMusicExclusions,
-    ),
-    startedAt,
-    'Recovery unico Wikiquote autore/coerenza...',
-    {
-      maxTimeoutMs: GEMINI_WIKIQUOTE_RECOVERY_MAX_TIMEOUT_MS,
-      reserveMs: GEMINI_FINALIZATION_RESERVE_MS,
-    },
-  );
-  const replacement = parseGeneratedWikiquoteRecovery(getGeneratedResponseText(result));
-  const repairedData: GeneratedDailyData = {
-    ...candidateData,
-    autore_giorno: replacement.autore_giorno,
-    tema_guida: replacement.tema_guida,
-    breve_descrizione: replacement.breve_descrizione,
-    citazione: replacement.citazione,
-    parola_giorno: replacement.parola_giorno,
-    bibbia: replacement.bibbia,
-    poesia: replacement.poesia,
-    musica: replacement.musica,
-    keyword_arte_en: replacement.keyword_arte_en,
-  };
-
-  if (normalizeEditorialValue(replacement.autore_giorno) === normalizeEditorialValue(rejectedAuthor)) {
-    throw new EditorialQualityError(['il recovery Wikiquote ha riproposto l’autore rifiutato']);
-  }
-  const authorIssues = await validateAutomaticAuthor(repairedData, dataIso, dataDiOggiStr);
-  if (authorIssues.length > 0) throw new EditorialQualityError(authorIssues);
-  const qualityIssues = validateEditorialQuality(repairedData, recentRows, '');
-  if (qualityIssues.length > 0) throw new EditorialQualityError(qualityIssues);
-
-  console.info(`Recovery Wikiquote completato con autore ${replacement.autore_giorno}; ${getGenerationTiming(startedAt)}.`);
-  return repairedData;
 }
 
 function buildDailyWordRepairPrompt(
@@ -854,7 +656,7 @@ ${latestRejectedWord ? `\nL'ultima parola proposta e rifiutata è "${latestRejec
 
 REGOLE EDITORIALI:
 ${DAILY_WORD_EDITORIAL_RULES}
-Mantieni la nuova parola coerente con il tema e il contesto appena generati. Restituisci esclusivamente un unico piccolo oggetto JSON valido, senza testo prima o dopo, con esattamente questa forma:
+La citazione autentica mostrata nel contesto è immutabile e tema_guida è immutabile: non modificarli. Scegli la nuova parola esclusivamente in funzione di CITAZIONE + TEMA, tenendo conto della parola rifiutata e delle parole recenti escluse. Restituisci esclusivamente un unico piccolo oggetto JSON valido, senza testo prima o dopo, con esattamente questa forma:
 {
   "parola": "...",
   "definizione": "...",
@@ -996,13 +798,40 @@ async function handleGenerate(request: Request, allowEditorRequest: boolean) {
     );
     const recentWordExclusions = formatRecentWordExclusions(recentRows);
     const recentPoemExclusions = formatRecentPoemExclusions(recentRows);
+    const modelCandidates = uniqueModelCandidates(process.env.GEMINI_MODEL);
+    const initialAuthorSeed = await generateAuthorSeed(
+      genAI,
+      modelCandidates,
+      dataIso,
+      dataDiOggiStr,
+      generationStartedAt,
+      forcedAuthor,
+    );
+    const { authorSeed, quotes: editorialQuotes } = await retrieveEarlyEditorialQuotes(
+      initialAuthorSeed,
+      {
+        forcedAuthor,
+        fetchCandidates: (author) => fetchWikiquoteCandidates(author, {
+          fetch: wikiquoteFetch,
+          timeoutMs: 8_000,
+        }),
+        recoverAuthor: (rejectedAuthor) => generateAuthorSeed(
+          genAI,
+          modelCandidates,
+          dataIso,
+          dataDiOggiStr,
+          generationStartedAt,
+          '',
+          rejectedAuthor,
+        ),
+      },
+    );
+    console.info(`Author seed e ${editorialQuotes.length} citazioni Wikiquote pronti prima della generazione editoriale; ${getGenerationTiming(generationStartedAt)}.`);
     const manualDirection = forcedAuthor || editorialNotes
       ? `
 DIREZIONE EDITORIALE MANUALE — PRIORITÀ MASSIMA:
-${forcedAuthor ? `- Autore del giorno obbligatorio: ${forcedAuthor}. Usa esattamente questo autore come "autore_giorno".` : ''}
+${forcedAuthor ? `- L'autore imposto e già validato è: ${forcedAuthor}. Non proporre né restituire un autore diverso.` : ''}
 ${editorialNotes ? `- Note curatoriale da rispettare: ${editorialNotes}` : ''}
-${forcedAuthor ? '- Verifica prima il giorno e il mese di nascita e di morte dell’autore obbligatorio. Se la nascita cade in questa data, la "breve_descrizione" deve iniziare con "Nato in questo giorno nel [anno],"; se la morte cade in questa data, deve iniziare con "Scomparso in questa data nel [anno],". Se nessuna delle due date coincide, inizia direttamente con una normale frase biografica o editoriale, senza prefissi speciali.' : ''}
-- La citazione deve appartenere all'autore obbligatorio e deve essere restituita in ITALIANO. Se il testo originale è in un'altra lingua, usa una traduzione italiana pubblicata e indica in "fonte" l'opera o l'edizione; non restituire il testo originale in francese, inglese o altra lingua.
 `
       : '';
 
@@ -1010,13 +839,22 @@ ${forcedAuthor ? '- Verifica prima il giorno e il mese di nascita e di morte del
 
 ${manualDirection}
 
+AUTORE:
+${authorSeed.autore_giorno}
+
+DESCRIZIONE:
+${authorSeed.breve_descrizione}
+
+CITAZIONI AUTENTICHE DISPONIBILI:
+${formatEditorialQuoteCandidates(editorialQuotes)}
+
 REGOLE DI CURATELA:
-0. TEMA GUIDA: dopo aver scelto l'autore, definisci "tema_guida" in 1-4 parole, derivato dalla sua opera e dalla giornata. Tutti i contenuti devono seguire questo filo editoriale.
-1. AUTORE: Per la generazione automatica scegli esclusivamente scrittori, poeti, filosofi e altre figure culturali legate alla parola scritta la cui nascita o morte sia verificabile e cada esattamente il ${dataDiOggiStr} (giorno e mese della data ${dataIso}). Prediligi una nascita; usa una morte solo per una figura molto più illustre. Evita musicisti e compositori quando esiste una figura letteraria adatta. La data esatta viene prima del tema: non scegliere un autore soltanto perché è affine e non inventare date.
-2. DESCRIZIONE AUTORE: Per la generazione automatica la descrizione deve iniziare esattamente con "Nato in questo giorno nel [anno]," se la nascita coincide oppure con "Scomparso in questa data nel [anno]," se la morte coincide. L'anno deve essere quello della data biografica verificata. L'eccezione per un autore non legato alla data vale soltanto quando è indicato esplicitamente nella DIREZIONE EDITORIALE MANUALE.
-3. CITAZIONE: Solo in ITALIANO. Usa una citazione autentica dell'autore con fonte verificabile e riporta una traduzione italiana pubblicata quando l'originale è in un'altra lingua; non lasciare la citazione in lingua originale.
+0. CITAZIONE PRIMA DEL TEMA: non esiste ancora un tema del giorno. Scegli prima la citazione più fertile, significativa e autosufficiente tra quelle autentiche disponibili. DOPO aver scelto la citazione, deduci tema_guida esclusivamente dal suo nucleo concettuale e dall'opera dell'autore. Non scegliere una citazione per adattarla a un tema preconcetto.
+1. CITAZIONE IMMUTABILE: restituisci soltanto selected_quote_id. Non riscrivere, tradurre, accorciare, completare o inventare il testo, l'autore o la fonte della citazione. Questi campi appartengono al server.
+2. TEMA GUIDA: definisci tema_guida in 1-4 parole dopo la scelta della citazione. Tutti gli altri contenuti devono discendere da questo asse.
+3. GERARCHIA: CITAZIONE AUTENTICA → TEMA_GUIDA → PAROLA_GIORNO → POESIA / BIBBIA / MUSICA / ARTE.
 4. AVVENIMENTI: Max 5. Fatti storici, scoperte scientifiche, INVENZIONI e BREVETTI registrati oggi.
-5. BIBBIA: usa sempre la traduzione CEI 2008. Scegli un passaggio collegato al tema del giorno attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti, oltre ai Salmi solo quando sono davvero la scelta migliore. Varia le fonti nel tempo. Indica in "fonte" libro, capitolo e versetti. Rispetta TABULAZIONI, RIENTRI e "A CAPO" originali dove presenti. Includi una "nota" che illustri brevemente il senso teologico del passaggio, in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
+5. BIBBIA: scegli soltanto fonte/riferimento e nota; "testo" deve essere "" perché il server recupererà la CEI 2008. Scegli un passaggio collegato al tema derivato dalla citazione, non per sola somiglianza lessicale con la parola, attingendo all'intero arco dei libri sapienziali e profetici, non soltanto ai Salmi: Giobbe, Proverbi, Qoelet, Cantico dei Cantici, Sapienza, Siracide, Isaia, Geremia, Baruc, Ezechiele, Daniele e i Dodici Profeti. Varia le fonti nel tempo. La nota deve essere impersonale o in terza persona.
 6. ${DAILY_WORD_EDITORIAL_RULES}
 7. POESIA: Solo in ITALIANO. Varia radicalmente il repertorio e non ripetere la stessa poesia comparsa negli ultimi 45 giorni. Lo stesso poeta può tornare con un testo diverso: il controllo riguarda il testo della poesia, non il solo nome dell'autore. Esplora anche autori italiani meno prevedibili e diverse epoche, correnti e forme; Montale, Leopardi, Ungaretti e Pascoli non sono scelte predefinite. Se l'autore è straniero, usa una traduzione d'autore ufficiale. Includi una "nota" che illustri il valore tematico e stilistico del testo in relazione al tema del giorno. Scrivi in forma impersonale o terza persona, senza mai usare la prima persona ("ho scelto", "mi sembra", ecc.).
 8. MUSICA: Scegli un consiglio musicale non commerciale e non trap, legato al tema del giorno. NON privilegiare la classica: usala solo quando è davvero la scelta più forte. Varia tra jazz, folk, cantautorato non mainstream, elettronica ambient/minimal, post-rock, soul, blues, world music, colonne sonore d'autore, sperimentale accessibile, musica sacra non ovvia, indie non commerciale. Evita brani/artisti troppo ovvi, radiofonici o da classifica. Non ripetere brani o artisti già usati di recente. In "chiave_ricerca" inserisci soltanto artista e titolo esatti, senza genere o commenti aggiuntivi.
@@ -1031,21 +869,18 @@ ${recentPoemExclusions || '- Nessuno storico disponibile: scegli comunque un aut
 CONSIGLI MUSICALI RECENTI DA NON RIPETERE:
 ${recentMusicExclusions || '- Nessuno storico disponibile: varia comunque genere, epoca e area geografica.'}
 
-COERENZA EDITORIALE: parola_giorno deve illuminare una sfumatura del tema_guida; poesia deve mostrare il tema in un estratto significativo di norma 5-10 versi (non un incipit casuale o 2-3 versi introduttivi) e la nota deve riferirsi a ciò che si legge; Bibbia deve seguire il tema_guida e non la sola parola; musica e keyword_arte_en devono seguire lo stesso tema.
+COERENZA EDITORIALE: parola_giorno deve illuminare una sfumatura concreta della citazione e del tema_guida; poesia deve dialogare con il loro nucleo concettuale in un estratto significativo di norma 5-10 versi (non un incipit casuale o 2-3 versi introduttivi) e la nota deve riferirsi a ciò che si legge; Bibbia, musica e keyword_arte_en devono seguire lo stesso asse citazione → tema. La scelta avviene prima per selected_quote_id, poi per tema, poi per parola/poesia/Bibbia/musica/arte.
 
 Restituisci esclusivamente un unico oggetto JSON valido. Non aggiungere testo prima o dopo il JSON.
 
 Restituisci questo JSON:
 {
-  "data_odierna": "${dataDiOggiStr}",
-  "autore_giorno": "...",
+  "selected_quote_id": "Qxx",
   "tema_guida": "1-4 parole",
-  "breve_descrizione": "...",
-  "citazione": { "testo": "...", "autore": "...", "fonte": "..." },
   "avvenimenti": [ "ANNO: Descrizione evento o brevetto..." ],
   "parola_giorno": { "parola": "...", "definizione": "...", "etimologia": "...", "esempio": "...", "nota": "..." },
   "santi": [ { "nome": "...", "ruolo": "...", "anni": "...", "biografia": "..." } ],
-  "bibbia": { "testo": "Testo CEI 2008 formattato con tabulazioni...", "fonte": "...", "nota": "..." },
+  "bibbia": { "testo": "", "fonte": "...", "nota": "..." },
   "poesia": { "testo": "...", "autore": "...", "fonte": "...", "nota": "..." },
   "musica": { "brano": "...", "autore": "...", "genere": "...", "motivo": "...", "chiave_ricerca": "..." },
   "keyword_arte_en": "..."
@@ -1056,7 +891,6 @@ Restituisci questo JSON:
     let qualityFeedback = '';
     let fullGenerationAttempts = 0;
     let modelIndex = 0;
-    const modelCandidates = uniqueModelCandidates(process.env.GEMINI_MODEL);
 
     while (
       !generatedData
@@ -1078,72 +912,21 @@ Restituisci questo JSON:
           modelName,
           `${prompt}${qualityFeedback}`,
           generationStartedAt,
-          'Generazione completa Gemini...',
-          // Keep the author-repair reserve for the first candidate. If that
-          // call fails technically, the second model can use the remaining
-          // budget instead of being blocked by an unused reserve.
-          { reserveMs: fullGenerationAttempts === 1 ? GEMINI_AUTHOR_REPAIR_RESERVE_MS : 0 },
+          'Generazione editoriale quote-first Gemini...',
         );
-        const candidateData = parseGeneratedJson(getGeneratedResponseText(attemptResult));
-        let acceptedCandidate = candidateData;
-        let qualityIssues = await validateGeneratedContent(
-          acceptedCandidate,
-          dataIso,
-          dataDiOggiStr,
-          recentRows,
-          forcedAuthor,
-        );
-
-        if (!forcedAuthor && qualityIssues.some(isAutomaticAuthorIssue)) {
-          const authorIssues = qualityIssues.filter(isAutomaticAuthorIssue);
-          console.warn(
-            `Riparazione autore necessaria: ${authorIssues.join('; ')}; ${getGenerationTiming(generationStartedAt)}.`,
+        const editorialData = parseGeneratedEditorialContent(getGeneratedResponseText(attemptResult));
+        let acceptedCandidate: GeneratedDailyData;
+        try {
+          acceptedCandidate = injectSelectedEditorialQuote(
+            editorialData,
+            authorSeed,
+            editorialQuotes,
+            dataDiOggiStr,
           );
-          const authorRepairModelName = modelCandidates.includes(FALLBACK_GEMINI_MODEL)
-            ? FALLBACK_GEMINI_MODEL
-            : modelName;
-          const authorRepairModel = authorRepairModelName === modelName
-            ? model
-            : genAI.getGenerativeModel({
-              model: authorRepairModelName,
-              generationConfig: getGeminiGenerationConfig(authorRepairModelName),
-            });
-          try {
-            acceptedCandidate = await regenerateDailyAuthor(
-              authorRepairModel,
-              authorRepairModelName,
-              acceptedCandidate,
-              dataIso,
-              dataDiOggiStr,
-              generationStartedAt,
-              authorIssues,
-            );
-            // regenerateDailyAuthor returns only after the replacement has
-            // already passed validateAutomaticAuthor; validate the remaining
-            // editorial fields without spending another metadata timeout.
-            qualityIssues = validateEditorialQuality(
-              acceptedCandidate,
-              recentRows,
-              forcedAuthor,
-            );
-          } catch (error) {
-            lastGenerationError = error;
-            const fallbackModel = modelCandidates[modelIndex + 1];
-            if (
-              fullGenerationAttempts >= MAX_FULL_GENERATION_ATTEMPTS
-              || !fallbackModel
-              || (getGeminiAttemptTimeout(generationStartedAt) ?? 0) < GEMINI_MIN_FALLBACK_TIMEOUT_MS
-            ) {
-              break;
-            }
-
-            modelIndex += 1;
-            qualityFeedback = '';
-            console.info(`Ripiego su una nuova generazione dopo la riparazione autore; modello ${fallbackModel}; ${getGenerationTiming(generationStartedAt)}.`);
-            await waitBeforeRetry(generationStartedAt);
-            continue;
-          }
+        } catch (error) {
+          throw new InvalidGeneratedJsonError(getSafeErrorMessage(error));
         }
+        const qualityIssues = validateEditorialQuality(acceptedCandidate, recentRows, forcedAuthor);
 
         if (qualityIssues.length > 0) {
           console.warn(`Rifiuto editoriale: ${qualityIssues.join('; ')}; ${getGenerationTiming(generationStartedAt)}.`);
@@ -1158,8 +941,8 @@ Restituisci questo JSON:
                 recentWordExclusions,
                 recentRows,
                 forcedAuthor,
-                typeof candidateData.parola_giorno?.parola === 'string'
-                  ? candidateData.parola_giorno.parola.trim()
+                typeof acceptedCandidate.parola_giorno?.parola === 'string'
+                  ? acceptedCandidate.parola_giorno.parola.trim()
                   : '',
                 generationStartedAt,
               );
@@ -1219,35 +1002,11 @@ Restituisci questo JSON:
 
     let finalizedData: GeneratedDailyData;
     try {
-      finalizedData = await finalizeWithWikiquoteRecovery(generatedData, {
-        forcedAuthor,
-        finalize: async (candidateData) => {
-          if (candidateData === generatedData) {
-            return await finalizeAuthenticatedContent(generatedData, { timeoutMs: 8_000 });
-          }
-          return finalizeAuthenticatedContent(candidateData, { timeoutMs: 8_000 });
-        },
-        recover: (candidateData) => {
-          const rejectedAuthor = getGeneratedAuthor(candidateData);
-          console.warn('Wikiquote senza candidati per ' + rejectedAuthor + '; avvio unico recovery autore/coerenza...');
-          return regenerateDailyContentAfterWikiquoteMiss(
-            genAI,
-            modelCandidates,
-            candidateData,
-            dataIso,
-            dataDiOggiStr,
-            recentRows,
-            recentWordExclusions,
-            recentPoemExclusions,
-            recentMusicExclusions,
-            generationStartedAt,
-          );
-        },
-      });
-      console.info(`Citazione Wikiquote e passaggio BibbiaEdu CEI 2008 finalizzati prima dell'upsert; ${getGenerationTiming(generationStartedAt)}.`);
+      finalizedData = await finalizeGeneratedBible(generatedData, { timeoutMs: 8_000 });
+      console.info(`Citazione Wikiquote immutabile e passaggio BibbiaEdu CEI 2008 finalizzati prima dell'upsert; ${getGenerationTiming(generationStartedAt)}.`);
     } catch (error) {
       console.error(
-        `Finalizzazione contenuti autenticati interrotta prima dell'upsert: ${error instanceof WikiquoteFinalizationError ? error.code + ': ' : ''}${getSafeErrorMessage(error)}`,
+        `Finalizzazione CEI 2008 interrotta prima dell'upsert: ${getSafeErrorMessage(error)}`,
       );
       throw error;
     }

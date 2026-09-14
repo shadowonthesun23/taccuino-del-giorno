@@ -152,13 +152,29 @@ test('the route finalizes CEI after Gemini and before the only upsert', async ()
     'utf8',
   );
   const geminiSdkCalls = route.match(/\.generateContent\(/gu) ?? [];
-  const finalizationIndex = route.indexOf('await finalizeAuthenticatedContent(generatedData');
+  const finalizationIndex = route.indexOf('await finalizeGeneratedBible(generatedData');
   const upsertIndex = route.indexOf(".from('contenuti_giornalieri').upsert(");
 
   assert.equal(geminiSdkCalls.length, 1);
   assert.ok(finalizationIndex > route.indexOf('if (!generatedData)'));
   assert.ok(upsertIndex > finalizationIndex);
   assert.equal(route.indexOf(".from('contenuti_giornalieri').upsert(", upsertIndex + 1), -1);
+});
+
+test('the route retrieves Wikiquote before editorial generation and never finalizes the quote late', async () => {
+  const route = await readFile(new URL('../app/api/generate/route.ts', import.meta.url), 'utf8');
+  const retrievalIndex = route.indexOf('await retrieveEarlyEditorialQuotes(');
+  const promptIndex = route.indexOf('CITAZIONI AUTENTICHE DISPONIBILI:');
+  const editorialGenerationIndex = route.indexOf("'Generazione editoriale quote-first Gemini...'");
+  const quoteInjectionIndex = route.indexOf('injectSelectedEditorialQuote(');
+  const bibleFinalizationIndex = route.indexOf('await finalizeGeneratedBible(generatedData');
+
+  assert.ok(retrievalIndex >= 0);
+  assert.ok(promptIndex > retrievalIndex);
+  assert.ok(editorialGenerationIndex > promptIndex);
+  assert.ok(quoteInjectionIndex > editorialGenerationIndex);
+  assert.ok(bibleFinalizationIndex > quoteInjectionIndex);
+  assert.doesNotMatch(route, /finalizeGeneratedQuote|finalizeAuthenticatedContent|finalizeWithWikiquoteRecovery/u);
 });
 
 test('the generation contract carries an internal guide theme and editorial coherence rules', async () => {
