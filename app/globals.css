@@ -8097,14 +8097,6 @@ body.museum-room-open :is(
   white-space: nowrap;
 }
 
-.archive-entry-date {
-  display: block;
-  font-size: 13px;
-  font-style: italic;
-  line-height: 1.2;
-  margin-top: 4px;
-}
-
 .archive-empty {
   margin: 24px 0;
   text-align: center;
@@ -8417,10 +8409,17 @@ body.museum-room-open :is(
 }
 
 .archive-entry-date {
-  color: #8a817c;
-  font-size: 12px;
+  color: #756c66;
+  display: block;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
   line-height: 1;
   margin-top: 0;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -8429,7 +8428,7 @@ body.museum-room-open :is(
 }
 
 .archive-popover.is-dark .archive-entry-date {
-  color: #99918b;
+  color: #aa9e94;
 }
 
 .archive-popover.is-dark .archive-entry-mark {
