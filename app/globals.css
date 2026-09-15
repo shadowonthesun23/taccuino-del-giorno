@@ -6941,11 +6941,8 @@ body.museum-room-open :is(
 }
 
 .daily-postcard-quote-body {
-  align-items: center;
-  display: grid;
+  display: block;
   flex: 1 1 auto;
-  gap: 16px;
-  grid-template-columns: minmax(116px, 0.82fr) minmax(0, 1.18fr);
   margin-top: 14px;
   min-height: 0;
 }
@@ -6957,8 +6954,10 @@ body.museum-room-open :is(
     inset 0 0 0 1px rgba(85, 60, 33, 0.18),
     inset 0 1px rgba(255, 255, 255, 0.62);
   height: 194px;
+  float: left;
   overflow: hidden;
   position: relative;
+  margin: 0 16px 8px 0;
   transform: rotate(-2deg);
   width: 130px;
 }
@@ -6983,6 +6982,12 @@ body.museum-room-open :is(
   min-width: 0;
 }
 
+.daily-postcard-quote-copy::after {
+  clear: both;
+  content: '';
+  display: table;
+}
+
 .daily-postcard-quote-copy blockquote {
   font-size: clamp(0.86rem, 2.2vw, 1.48rem);
   font-style: italic;
@@ -7001,8 +7006,8 @@ body.museum-room-open :is(
 }
 
 .daily-postcard-quote.is-long .daily-postcard-quote-copy blockquote {
-  font-size: clamp(0.86rem, 1.62vw, 1.12rem);
-  line-height: 1.02;
+  font-size: clamp(0.72rem, 1.24vw, 0.86rem);
+  line-height: 0.96;
 }
 
 .daily-postcard-quote.is-medium .daily-postcard-quote-copy figcaption,
